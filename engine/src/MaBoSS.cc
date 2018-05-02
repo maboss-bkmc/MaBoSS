@@ -1,6 +1,6 @@
 /* 
    MaBoSS (Markov Boolean Stochastic Simulator)
-   Copyright (C) 2011 Institut Curie, 26 rue d'Ulm, Paris, France
+   Copyright (C) 2011-2018 Institut Curie, 26 rue d'Ulm, Paris, France
    
    MaBoSS is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -32,8 +32,9 @@
 #include "MaBEstEngine.h"
 #include <fstream>
 #include <stdlib.h>
+#include "Utils.h"
 
-static const char* prog;
+const char* prog;
 
 static int usage(std::ostream& os = std::cerr)
 {
@@ -45,50 +46,6 @@ static int usage(std::ostream& os = std::cerr)
   os << "  " << prog << " [-c|--config CONF_FILE] [-v|--config-vars VAR1=NUMERIC[,VAR2=...]] [-e|--config-expr CONFIG_EXPR] -l|--generate-logical-expressions BOOLEAN_NETWORK_FILE\n\n";
   os << "  " << prog << " -t|--generate-config-template BOOLEAN_NETWORK_FILE\n";
   return 1;
-}
-
-static int setConfigVariables(std::vector<std::string>& runvar_v)
-{
-  SymbolTable* symtab = SymbolTable::getInstance();
-  std::vector<std::string>::const_iterator begin = runvar_v.begin();
-  std::vector<std::string>::const_iterator end = runvar_v.end();
-
-  while (begin != end) {
-    const std::string& var_values = *begin;
-    size_t o_var_value_pos = 0;
-    for (;;) {
-      if (o_var_value_pos == std::string::npos) {
-	break;
-      }
-      size_t var_value_pos = var_values.find(',', o_var_value_pos);
-      std::string var_value = var_value_pos == std::string::npos ? var_values.substr(o_var_value_pos) : var_values.substr(o_var_value_pos, var_value_pos-o_var_value_pos);
-      o_var_value_pos = var_value_pos + (var_value_pos == std::string::npos ? 0 : 1);
-      size_t pos = var_value.find('=');
-      if (pos == std::string::npos) {
-	std::cerr << '\n' << prog << ": invalid var format [" << var_value << "] VAR=BOOL_OR_DOUBLE expected\n";
-	return 1;
-      }
-      std::string ovar = var_value.substr(0, pos);
-      std::string var = ovar[0] != '$' ? "$" + ovar : ovar;
-      const Symbol* symbol = symtab->getOrMakeSymbol(var);
-      std::string value = var_value.substr(pos+1);
-      if (!strcasecmp(value.c_str(), "true")) {
-	symtab->overrideSymbolValue(symbol, 1);
-      } else if (!strcasecmp(value.c_str(), "false")) {
-	symtab->overrideSymbolValue(symbol, 0);
-      } else {
-	double dval;
-	int r = sscanf(value.c_str(), "%lf", &dval);
-	if (r != 1) {
-	  std::cerr << '\n' << prog << ": invalid value format [" << var_value << "] " << ovar << "=BOOL_OR_DOUBLE expected\n";
-	  return 1;
-	}
-	symtab->overrideSymbolValue(symbol, dval);
-      }
-    }
-    ++begin;
-  }
-  return 0;
 }
 
 static int help()
@@ -115,26 +72,6 @@ static int help()
   std::cout << '\n';
   return 0;
 }
-
-class ConfigOpt {
-  std::string file_or_expr;
-  bool is_expr;
-  static unsigned int runconfig_file_cnt;
-  static unsigned int runconfig_expr_cnt;
-public:
-  ConfigOpt(const std::string& file_or_expr, bool is_expr) : file_or_expr(file_or_expr), is_expr(is_expr) {
-    if (is_expr) {runconfig_expr_cnt++;} else {runconfig_file_cnt++;}
-  }
-  bool isExpr() const {return is_expr;}
-  const std::string& getExpr() const {assert(is_expr); return file_or_expr;}
-  const std::string& getFile() const {assert(!is_expr); return file_or_expr;}
-
-  static unsigned int getFileCount() {return runconfig_file_cnt;}
-  static unsigned int getExprCount() {return runconfig_expr_cnt;}
-};
-
-unsigned int ConfigOpt::runconfig_file_cnt = 0;
-unsigned int ConfigOpt::runconfig_expr_cnt = 0;
 
 int main(int argc, char* argv[])
 {

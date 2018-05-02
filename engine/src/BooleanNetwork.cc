@@ -1,6 +1,6 @@
 /* 
    MaBoSS (Markov Boolean Stochastic Simulator)
-   Copyright (C) 2011 Institut Curie, 26 rue d'Ulm, Paris, France
+   Copyright (C) 2011-2018 Institut Curie, 26 rue d'Ulm, Paris, France
    
    MaBoSS is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -33,6 +33,7 @@
 #include "BooleanNetwork.h"
 #include "BooleanGrammar.h"
 #include "RunConfig.h"
+#include "Utils.h"
 #include <iostream>
 
 Network* Network::instance;
@@ -589,3 +590,53 @@ void SymbolTable::reset()
   last_symb_idx = 0;
 }
 
+int setConfigVariables(std::vector<std::string>& runvar_v)
+{
+  SymbolTable* symtab = SymbolTable::getInstance();
+  std::vector<std::string>::const_iterator begin = runvar_v.begin();
+  std::vector<std::string>::const_iterator end = runvar_v.end();
+
+  while (begin != end) {
+    const std::string& var_values = *begin;
+    size_t o_var_value_pos = 0;
+    for (;;) {
+      if (o_var_value_pos == std::string::npos) {
+	break;
+      }
+      size_t var_value_pos = var_values.find(',', o_var_value_pos);
+      std::string var_value = var_value_pos == std::string::npos ? var_values.substr(o_var_value_pos) : var_values.substr(o_var_value_pos, var_value_pos-o_var_value_pos);
+      o_var_value_pos = var_value_pos + (var_value_pos == std::string::npos ? 0 : 1);
+      size_t pos = var_value.find('=');
+      if (pos == std::string::npos) {
+	std::cerr << '\n' << prog << ": invalid var format [" << var_value << "] VAR=BOOL_OR_DOUBLE expected\n";
+	return 1;
+      }
+      std::string ovar = var_value.substr(0, pos);
+      std::string var = ovar[0] != '$' ? "$" + ovar : ovar;
+      const Symbol* symbol = symtab->getOrMakeSymbol(var);
+      std::string value = var_value.substr(pos+1);
+      if (!strcasecmp(value.c_str(), "true")) {
+	symtab->overrideSymbolValue(symbol, 1);
+      } else if (!strcasecmp(value.c_str(), "false")) {
+	symtab->overrideSymbolValue(symbol, 0);
+      } else {
+	double dval;
+	int r = sscanf(value.c_str(), "%lf", &dval);
+	if (r != 1) {
+	  std::cerr << '\n' << prog << ": invalid value format [" << var_value << "] " << ovar << "=BOOL_OR_DOUBLE expected\n";
+	  return 1;
+	}
+	symtab->overrideSymbolValue(symbol, dval);
+      }
+    }
+    ++begin;
+  }
+  return 0;
+}
+
+int setConfigVariables(const std::string& runvar)
+{
+  std::vector<std::string> runvar_v;
+  runvar_v.push_back(runvar);
+  return setConfigVariables(runvar_v);
+}

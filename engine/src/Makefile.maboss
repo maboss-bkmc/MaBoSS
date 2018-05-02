@@ -12,11 +12,14 @@ endif
 
 ifeq ($(shell expr $(MAXNODES) '>' 64), 1)
 INFIX := _$(MAXNODES)n
-PROG := MaBoSS$(INFIX)
 else
 MAXNODES = 64
-PROG := MaBoSS
+#MABOSS := MaBoSS
 endif
+
+MABOSS := MaBoSS$(INFIX)
+MABOSS_SERVER := MaBoSS$(INFIX)-server
+MABOSS_CLIENT := MaBoSS-client
 
 ifeq ($(shell grep @HAS_UNORDERED_MAP maboss-config.h > /dev/null 2> /dev/null && echo OK), OK)
 EXTRA_FLAGS = -std=c++0x
@@ -33,10 +36,16 @@ BISON = bison
 CHECK_FLEX  = $(FLEX) --version > /dev/null
 CHECK_BISON = $(BISON) --version > /dev/null
 
-all: $(PROG)
+all: $(MABOSS) $(MABOSS_SERVER) $(MABOSS_CLIENT)
 
-$(PROG): MaBoSS$(INFIX).o MaBEstEngine$(INFIX).o Cumulator$(INFIX).o ProbaDist$(INFIX).o BooleanNetwork$(INFIX).o BooleanGrammar$(INFIX).o RunConfigGrammar$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o
-	g++ -o $(PROG) $+ -lpthread
+$(MABOSS): MaBoSS$(INFIX).o MaBEstEngine$(INFIX).o Cumulator$(INFIX).o ProbaDist$(INFIX).o BooleanNetwork$(INFIX).o BooleanGrammar$(INFIX).o RunConfigGrammar$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o Utils$(INFIX).o
+	g++ -o $(MABOSS) $+ -lpthread
+
+$(MABOSS_SERVER): MaBoSS$(INFIX)-server.o MaBEstEngine$(INFIX).o Cumulator$(INFIX).o ProbaDist$(INFIX).o BooleanNetwork$(INFIX).o BooleanGrammar$(INFIX).o RunConfigGrammar$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o Server.o DataStreamer.o RPC.o Utils$(INFIX).o
+	g++ -o $(MABOSS_SERVER) $+ -lpthread
+
+$(MABOSS_CLIENT): MaBoSS-client.o Client.o DataStreamer.o RPC.o Utils$(INFIX).o
+	g++ -o $(MABOSS_CLIENT) $+ -lpthread
 
 init:
 	@CXX=$(CXX) sh init-config.sh
@@ -71,7 +80,7 @@ lex.RC.cc: RunConfigGrammar.l
 	$(FLEX) -t $+ | sed -e 's/yy/RC/g' -e 's/register //g' > lex.RC.cc
 
 clean: cleanobj
-	rm -f Test TestApi KMC $(PROG) lex.yy.c lex.CTBNDL.cc BooleanGrammar.tab.h BooleanGrammar.tab.c BooleanGrammar.cc BooleanGrammar.tab.h lex.CTBNDL.cc lex.RC.cc RunConfigGrammar.cc RunConfigGrammar.tab.h RunConfigGrammar.tab.c BooleanGrammar.output RunConfigGrammar.output maboss-config.h
+	rm -f Test TestApi KMC $(MABOSS) $(MABOSS_CLIENT) $(MABOSS_SERVER) lex.yy.c lex.CTBNDL.cc BooleanGrammar.tab.h BooleanGrammar.tab.c BooleanGrammar.cc BooleanGrammar.tab.h lex.CTBNDL.cc lex.RC.cc RunConfigGrammar.cc RunConfigGrammar.tab.h RunConfigGrammar.tab.c BooleanGrammar.output RunConfigGrammar.output maboss-config.h
 
 cleanobj:
 	rm -f *$(INFIX).o
@@ -84,7 +93,7 @@ tar_perform: clean
 
 install: all
 	 mkdir -p ../pub
-	 cp $(PROG) ../pub
+	 cp $(MABOSS) $(MABOSS_SERVER) $(MABOSS_CLIENT) ../pub
 
 package:
 	@(cd ..; dir=`pwd`; cd src; make -j 4 all; version=`./MaBoSS -version | awk '{print $$3}'`; make clean; echo $$version; mkdir -p /tmp/MaBoSS-$$version/package; cd ..; find README src binaries doc examples \( -name Makefile\* -o -name \*.[ylh] -o -name init-config.sh -o -name \*.cc -o -name MaBoSS-RefCard.pdf -o -name DescriptionOutputFile.pdf -o -name MaBoSS -o -name MaBoSS.exe -o -name \*.cfg -o -name \*.bnd -o -name README \) -print | egrep -v "~|maboss-config\.h|doc/Makefile|doc/README" | cpio -pdmv /tmp/MaBoSS-$$version; cd /tmp; tar  cvfz /tmp/MaBoSS-$$version.tgz --exclude='*.svn*' MaBoSS-$$version; echo | rm -r /tmp/MaBoSS-$$version; echo; echo "Package: /tmp/MaBoSS-$$version.tgz")

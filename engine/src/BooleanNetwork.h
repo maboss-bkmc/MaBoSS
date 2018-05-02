@@ -1,6 +1,6 @@
 /* 
    MaBoSS (Markov Boolean Stochastic Simulator)
-   Copyright (C) 2011 Institut Curie, 26 rue d'Ulm, Paris, France
+   Copyright (C) 2011-2018 Institut Curie, 26 rue d'Ulm, Paris, France
    
    MaBoSS is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -1329,5 +1329,7 @@ private:
 extern const bool backward_istate;
 
 extern bool dont_shrink_logical_expressions;
+extern int setConfigVariables(const std::string& runvar);
+extern int setConfigVariables(std::vector<std::string>& runvar_v);
 
 #endif

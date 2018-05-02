@@ -1,6 +1,6 @@
 /* 
    MaBoSS (Markov Boolean Stochastic Simulator)
-   Copyright (C) 2011 Institut Curie, 26 rue d'Ulm, Paris, France
+   Copyright (C) 2011-2018 Institut Curie, 26 rue d'Ulm, Paris, France
    
    MaBoSS is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
