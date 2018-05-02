@@ -66,7 +66,7 @@ int Server::manageRequests()
     }
     time_t t = time(NULL);
     char* now = ctime(&t);
-    std::cerr << "\nMaBoSS Server Ready at " << now;
+    std::cerr << "\n" << prog << " [listen=" << host << ":" << port << "] Ready at " << now;
     listen();
     return 0;
   }

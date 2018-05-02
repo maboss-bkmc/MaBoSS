@@ -34,7 +34,7 @@
 #include <stdlib.h>
 #include "Utils.h"
 
-const char* prog;
+const char* prog = "MaBoSS";
 
 static int usage(std::ostream& os = std::cerr)
 {
@@ -83,7 +83,6 @@ int main(int argc, char* argv[])
   bool generate_config_template = false;
   bool generate_logical_expressions = false;
   dont_shrink_logical_expressions = false; // global flag
-  prog = argv[0];
 
   for (int nn = 1; nn < argc; ++nn) {
     const char* s = argv[nn];

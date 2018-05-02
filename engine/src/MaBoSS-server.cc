@@ -34,7 +34,7 @@
 #include "Server.h"
 #include "Utils.h"
 
-const char* prog;
+const char* prog = "MaBoSS-server";
 
 static int usage(std::ostream& os = std::cerr)
 {
@@ -61,7 +61,6 @@ int main(int argc, char* argv[])
 {
   std::string port;
   std::string host;
-  prog = argv[0];
 
   for (int nn = 1; nn < argc; ++nn) {
     const char* opt = argv[nn];

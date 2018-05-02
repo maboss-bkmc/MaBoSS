@@ -35,7 +35,7 @@
 #include "Utils.h"
 #include "DataStreamer.h"
 
-const char* prog;
+const char* prog = "MaBoSS-client";
 
 static int usage(std::ostream& os = std::cerr)
 {
@@ -76,7 +76,6 @@ int main(int argc, char* argv[])
   const char* ctbndl_file = NULL;
   std::string port;
   std::string host;
-  prog = argv[0];
 
   for (int nn = 1; nn < argc; ++nn) {
     const char* opt = argv[nn];
