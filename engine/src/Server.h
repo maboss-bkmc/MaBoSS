@@ -33,6 +33,7 @@
 
 #include <string>
 #include "RPC.h"
+#include "Utils.h"
 
 class ClientData;
 
@@ -51,7 +52,7 @@ public:
   }
 
   void setErrorMessage(const std::string& error_msg) {
-    this->error_msg = error_msg;
+    this->error_msg = stringReplaceAll(error_msg, "\n", NL_PATTERN);
   }
 
   void setStatDist(const std::string& statdist) {
@@ -78,7 +79,11 @@ public:
     return status;
   }
 
-  const std::string& getErrorMessage() const {
+  const std::string getErrorMessage() const {
+    return stringReplaceAll(error_msg, NL_PATTERN, "\n");
+  }
+
+  const std::string& getErrorMessageRaw() const {
     return error_msg;
   }
 
@@ -107,14 +112,14 @@ class Server : public rpc_Server {
   std::string pidfile;
   static Server* server;
 
-  Server(const std::string& host, const std::string& port) : rpc_Server(host, port) { }
+  Server(const std::string& host, const std::string& port, const std::string& pidfile) : rpc_Server(host, port), pidfile(pidfile) { }
 
   void run(const ClientData& client_data, ServerData& server_data);
 
 public:
-  static Server* getServer(const std::string& host, const std::string& port) {
+  static Server* getServer(const std::string& host, const std::string& port, const std::string& pidfile = "") {
     if (NULL == server) {
-      server = new Server(host, port);
+      server = new Server(host, port, pidfile);
     }
     return server;
   }

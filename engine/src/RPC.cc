@@ -140,7 +140,7 @@ ssize_t rpc_writeStringData(int fd, const char* data, size_t len)
 }
 
 
-int rpc_Server::bind()
+int rpc_Server::bind(const char** p_rpc_portname)
 {
   const char* hostname = host.c_str();
   const char* portname = port.c_str();
@@ -152,6 +152,9 @@ int rpc_Server::bind()
   port_h->type = SOCK_STREAM;
 
   if (port_h->domain == AF_INET) {
+    if (p_rpc_portname) {
+      *p_rpc_portname = NULL;
+    }
     if ((port_h->u.in.sockin_fd = socket(AF_INET, port_h->type, 0)) < 0) {
       std::string errmsg = std::string("eyedb fatal error: unable to create inet socket port [") + port_h->portname + "]";
       perror(errmsg.c_str());
@@ -196,6 +199,9 @@ int rpc_Server::bind()
 
   if (port_h->domain == AF_UNIX) {
     rpc_checkAFUnixPort(portname);
+    if (p_rpc_portname) {
+      *p_rpc_portname = portname;
+    }
 
     if ((port_h->u.un.sockun_fd = socket(AF_UNIX, port_h->type, 0)) < 0) {
       std::string errmsg = std::string("eyedb fatal error: unable to create unix socket port [") + port_h->portname + "]";

@@ -77,7 +77,7 @@ protected:
   std::string port;
 
   rpc_Server(const std::string& host, const std::string& port) : host(host), port(port) {}
-  int bind();
+  int bind(const char** p_rpc_portname = NULL);
   virtual int listen();
   virtual void manageRequest(int fd, const char* request) = 0;
 

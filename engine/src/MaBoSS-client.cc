@@ -193,7 +193,7 @@ int main(int argc, char* argv[])
   }
 
   if (server_data.getStatus() != 0) {
-    std::cerr << "error: " << server_data.getErrorMessage() << " [status=" << server_data.getStatus() << "]\n";
+    std::cerr << prog << " error: [" << server_data.getErrorMessage() << "] [status=" << server_data.getStatus() << "]\n";
     return 1;
   }
 

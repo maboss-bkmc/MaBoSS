@@ -32,6 +32,7 @@
 #include "MaBEstEngine.h"
 #include <sys/stat.h>
 
+const std::string NL_PATTERN = "@--NL--@";
 unsigned int ConfigOpt::runconfig_file_cnt = 0;
 unsigned int ConfigOpt::runconfig_expr_cnt = 0;
 
@@ -95,4 +96,22 @@ int filePutContents(const std::string& file, const std::string& data)
   fclose(fd);
 
   return 0;
+}
+
+std::string stringReplaceAll(const std::string& subject, const std::string& from, const std::string& to)
+{
+  std::string str = subject;
+  std::string::size_type from_size = from.length();
+  std::string::size_type to_size = to.length();
+  std::string::size_type itpos;
+  std::string::size_type pos;
+
+  pos = 0;
+  while ((itpos = str.find(from, pos)) != std::string::npos) {
+    str = str.replace(str.begin()+itpos, str.begin()+itpos+from_size, to);
+    pos = itpos + to_size;
+  }
+
+  return str;
+
 }

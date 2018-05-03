@@ -41,29 +41,36 @@
 #include "MaBEstEngine.h"
 
 Server* Server::server;
+static const char* RPC_portname;
 
-static void unlink_pidfile_handler(int sig)
+static void unlink_tempfiles_handler(int sig)
 {
-  unlink(Server::getInstance()->getPidFile().c_str());
+  const std::string& pidfile = Server::getInstance()->getPidFile();
+  if (pidfile.length() > 0) {
+    unlink(pidfile.c_str());
+  }
+  if (NULL != RPC_portname) {
+    unlink(RPC_portname);
+  }
   exit(1);
 }
 
 int Server::manageRequests()
 {
-  if (bind() == rpc_Success) {
+  if (bind(&RPC_portname) == rpc_Success) {
     if (0 != pidfile.length()) {
       std::ofstream fpidfile(pidfile.c_str());
       if (fpidfile.bad() || fpidfile.fail()) {
 	std::cerr << "cannot open pidfile " << pidfile << " for writing\n";
 	return 1;
       }
-      signal(SIGINT, unlink_pidfile_handler);
-      signal(SIGQUIT, unlink_pidfile_handler);
-      signal(SIGTERM, unlink_pidfile_handler);
-      signal(SIGABRT, unlink_pidfile_handler);
       fpidfile << getpid() << '\n';
       fpidfile.close();
     }
+    signal(SIGINT, unlink_tempfiles_handler);
+    signal(SIGQUIT, unlink_tempfiles_handler);
+    signal(SIGTERM, unlink_tempfiles_handler);
+    signal(SIGABRT, unlink_tempfiles_handler);
     time_t t = time(NULL);
     char* now = ctime(&t);
     std::cerr << "\n" << prog << " [listen=" << host << ":" << port << "] Ready at " << now;
@@ -89,6 +96,7 @@ static void delete_temp_files(const std::vector<std::string>& files_to_delete_v)
 
 void Server::run(const ClientData& client_data, ServerData& server_data)
 {
+  static const std::string hst = "==================";
   std::ostream* output_run = NULL;
   std::ostream* output_traj = NULL;
   std::ostream* output_probtraj = NULL;
@@ -111,7 +119,9 @@ void Server::run(const ClientData& client_data, ServerData& server_data)
   try {
     time_t start_time, end_time;
     time(&start_time);
-    std::cerr << "\n" << prog << " launching simulation at " << ctime(&start_time);
+    char* timebuf = ctime(&start_time);
+    timebuf[strlen(timebuf)-1] = 0;
+    std::cerr << "\n" << hst << " " << prog << " launching simulation at " << timebuf << " " << hst << "\n";
     Network* network = new Network();
     std::string network_file = output + "_network.bnd";
     filePutContents(network_file, client_data.getNetwork());
@@ -186,10 +196,15 @@ void Server::run(const ClientData& client_data, ServerData& server_data)
       server_data.setTraj(contents);
     }
 
-    std::cerr << prog << " done at " << ctime(&end_time);
+    std::cerr << "\n" << server_data.getRunLog();
+    timebuf = ctime(&end_time);
+    timebuf[strlen(timebuf)-1] = 0;
+    std::cerr << hst << " " << prog << " simulation finished at " << timebuf << " " << hst << "\n";;
   } catch(const BNException& e) {
-    std::cerr << '\n' << prog << ": " << e;
+    std::cerr << "\n" << hst << " " << prog << " simulation error [[\n" << e << "]] " << hst << "\n";
     delete_temp_files(files_to_delete_v);
+    server_data.setStatus(1);
+    server_data.setErrorMessage(e.getMessage());
     return;
   }
   delete_temp_files(files_to_delete_v);

@@ -42,6 +42,7 @@ static int usage(std::ostream& os = std::cerr)
   os << "  " << prog << " [-h|--help]\n\n";
   os << "  " << prog << " [-V|--version]\n\n";
   os << "  " << prog << " --host HOST --port PORT\n";
+  os << "  " << prog << " [--pidfile PIDFILE]\n";
   return 1;
 }
 
@@ -53,6 +54,7 @@ static int help()
   std::cout << "  -V --version                            : displays MaBoSS-client version\n";
   std::cout << "  --host HOST                             : uses given host\n";
   std::cout << "  --port PORT                             : uses given PORT (number or filename)\n";
+  std::cout << "  --pidfile PIDFILE                       : optional; pidfile to store pid process\n";
   std::cout << "  -h --help                               : displays this message\n";
   return 0;
 }
@@ -61,6 +63,7 @@ int main(int argc, char* argv[])
 {
   std::string port;
   std::string host;
+  std::string pidfile;
 
   for (int nn = 1; nn < argc; ++nn) {
     const char* opt = argv[nn];
@@ -78,6 +81,11 @@ int main(int argc, char* argv[])
 	return usage();
       }
       port = argv[++nn];
+    } else if (!strcmp(opt, "--pidfile")) {
+      if (checkArgMissing(opt, nn, argc)) {
+	return usage();
+      }
+      pidfile = argv[++nn];
     } else if (!strcmp(opt, "--help") || !strcmp(opt, "-h")) {
       return help();
     } else {
@@ -96,7 +104,7 @@ int main(int argc, char* argv[])
     return usage();
   }
 
-  Server* server = Server::getServer(host, port);
+  Server* server = Server::getServer(host, port, pidfile);
   server->manageRequests();
   delete server;
 

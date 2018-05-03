@@ -108,7 +108,7 @@ void DataStreamer::buildStreamData(std::string &data, const ServerData& server_d
   o_header << RETURN << " " << MABOSS << "\n";
   o_header << STATUS << server_data.getStatus() << "\n";
   if (server_data.getStatus() != 0) {
-    o_header << ERROR_MESSAGE << server_data.getErrorMessage() << "\n";
+    o_header << ERROR_MESSAGE << server_data.getErrorMessageRaw() << "\n";
     data = o_header.str() + "\n\n";
     return;
   }

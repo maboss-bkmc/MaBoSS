@@ -58,7 +58,7 @@ void Client::send(const ClientData& client_data, ServerData& server_data)
     
     char* response = rpc_readStringData(sock_fd);
     if (response != NULL) {
-      std::cout << "client received [" << strlen(response) << "]\n";
+      //std::cout << "client received [" << strlen(response) << "]\n";
       DataStreamer::parseStreamData(server_data, response);
       free(response);
     }
