@@ -30,7 +30,7 @@ endif
 
 CXX = gcc
 CXXOPT = -O2
-CXXFLAGS = $(CXXOPT) -Wall -DMAXNODES=$(MAXNODES) $(EXTRA_FLAGS) -U__STRICT_ANSI__
+CXXFLAGS = $(CXXOPT) -Wall -DMAXNODES=$(MAXNODES) $(EXTRA_FLAGS) -fpic -U__STRICT_ANSI__
 
 MAKEDEPEND = gcc -M $(EXTRA_FLAGS)
 
@@ -40,18 +40,36 @@ BISON = bison
 CHECK_FLEX  = $(FLEX) --version > /dev/null
 CHECK_BISON = $(BISON) --version > /dev/null
 
+LIB_OBJS := MaBEstEngine$(INFIX).o Cumulator$(INFIX).o ProbaDist$(INFIX).o BooleanNetwork$(INFIX).o BooleanGrammar$(INFIX).o RunConfigGrammar$(INFIX).o Function$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o Utils$(INFIX).o
 SERVER_OBJS := Server.o DataStreamer.o RPC.o
 
-all: $(MABOSS) $(MABOSS_SERVER) $(MABOSS_CLIENT)
+# if USE_LIB is set, maboss library will be used for MaBoSS and MaBoSS-server programs => that will oblige the user to set LD_LIBRARY_PATH or DYLD_LIBRARY_PATH environment variable to execute MaBoSS or MaBoSS-server
+#USE_LIB = 1
 
-$(MABOSS_LIB): MaBEstEngine$(INFIX).o Cumulator$(INFIX).o ProbaDist$(INFIX).o BooleanNetwork$(INFIX).o BooleanGrammar$(INFIX).o RunConfigGrammar$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o Utils$(INFIX).o
+ifdef USE_LIB
+MABOSS_OBJS = $(MABOSS_LIB)
+else
+MABOSS_OBJS = $(LIB_OBJS)
+endif
+
+all: $(MABOSS_LIB) $(MABOSS) $(MABOSS_SERVER) $(MABOSS_CLIENT)
+
+$(MABOSS_LIB): $(LIB_OBJS)
 	g++ -shared -o $(MABOSS_LIB) $+ -lpthread
 
-$(MABOSS): MaBoSS$(INFIX).o $(MABOSS_LIB)
+$(MABOSS): MaBoSS$(INFIX).o $(MABOSS_OBJS)
+ifdef USE_LIB
 	g++ -o $(MABOSS) MaBoSS$(INFIX).o -l$(MABOSS_LIBNAME) -lpthread -L.
+else
+	g++ -o $(MABOSS) $+ -lpthread
+endif
 
-$(MABOSS_SERVER): MaBoSS$(INFIX)-server.o $(MABOSS_LIB) $(SERVER_OBJS)
+$(MABOSS_SERVER): MaBoSS$(INFIX)-server.o $(MABOSS_OBJS) $(SERVER_OBJS)
+ifdef USE_LIB
 	g++ -o $(MABOSS_SERVER) MaBoSS$(INFIX)-server.o $(SERVER_OBJS) -l$(MABOSS_LIBNAME) -lpthread -L.
+else
+	g++ -o $(MABOSS_SERVER) $+ -lpthread
+endif
 
 $(MABOSS_CLIENT): MaBoSS-client.o Client.o DataStreamer.o RPC.o Utils$(INFIX).o
 	g++ -o $(MABOSS_CLIENT) $+ -lpthread
@@ -92,7 +110,7 @@ clean: cleanobj
 	rm -f Test TestApi KMC $(MABOSS) $(MABOSS_CLIENT) $(MABOSS_SERVER) lex.yy.c lex.CTBNDL.cc BooleanGrammar.tab.h BooleanGrammar.tab.c BooleanGrammar.cc BooleanGrammar.tab.h lex.CTBNDL.cc lex.RC.cc RunConfigGrammar.cc RunConfigGrammar.tab.h RunConfigGrammar.tab.c BooleanGrammar.output RunConfigGrammar.output maboss-config.h
 
 cleanobj:
-	rm -f *$(INFIX).o
+	rm -f *$(INFIX).o *$(INFIX).so *$(INFIX).dylib
 
 tar: all
 	$(MAKE) -f Makefile.maboss tar_perform
@@ -108,6 +126,10 @@ package:
 	@(cd ..; dir=`pwd`; cd src; make -j 4 all; version=`./MaBoSS -version | awk '{print $$3}'`; make clean; echo $$version; mkdir -p /tmp/MaBoSS-$$version/package; cd ..; find README src binaries doc examples \( -name Makefile\* -o -name \*.[ylh] -o -name init-config.sh -o -name \*.cc -o -name MaBoSS-RefCard.pdf -o -name DescriptionOutputFile.pdf -o -name MaBoSS -o -name MaBoSS.exe -o -name \*.cfg -o -name \*.bnd -o -name README \) -print | egrep -v "~|maboss-config\.h|doc/Makefile|doc/README" | cpio -pdmv /tmp/MaBoSS-$$version; cd /tmp; tar  cvfz /tmp/MaBoSS-$$version.tgz --exclude='*.svn*' MaBoSS-$$version; echo | rm -r /tmp/MaBoSS-$$version; echo; echo "Package: /tmp/MaBoSS-$$version.tgz")
 
 include depend.mk
+
+#### OBSOLETE
+
+#	g++ -dynamiclib -undefined suppress -flat_namespace -o $(MABOSS_LIB) $+ -lpthread
 
 #$(MABOSS_SERVER): MaBoSS$(INFIX)-server.o MaBEstEngine$(INFIX).o Cumulator$(INFIX).o ProbaDist$(INFIX).o BooleanNetwork$(INFIX).o BooleanGrammar$(INFIX).o RunConfigGrammar$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o Server.o DataStreamer.o RPC.o Utils$(INFIX).o
 #	g++ -o $(MABOSS_SERVER) $+ -lpthread

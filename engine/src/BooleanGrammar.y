@@ -45,6 +45,7 @@ static Network* current_network;
   std::vector<NodeDeclItem*>* node_decl_item_list;
   NodeDeclItem* node_decl_item;
   Expression* expr;
+  ArgumentList* arg_list;
   char* str;
   double d;
   long long l;
@@ -67,6 +68,7 @@ static Network* current_network;
 %type<expr> logical_xor_expression
 %type<expr> conditional_expression
 %type<expr> expression
+%type<arg_list> argument_expression_list
 
 %token<str> IDENTIFIER VARIABLE STRING
 %token<d> DOUBLE
@@ -158,31 +160,27 @@ postfix_expression: primary_expression
 {
   $$ = $1;
 }
-/*
 | IDENTIFIER '(' argument_expression_list ')'
 {
-  $$ = new FuncCall($1, $3);
+  $$ = new FuncCallExpression($1, $3);
 }
 | IDENTIFIER '(' ')'
 {
-  $$ = new FuncCall($1, new std::vector<Node *>());
+  $$ = new FuncCallExpression($1, NULL);
 }
-*/
 ;
 
-/*
 argument_expression_list: conditional_expression
 {
-  $$ = new std::vector<Node *>();
+  $$ = new ArgumentList();
   $$->push_back($1);
 }
 | argument_expression_list ',' conditional_expression
 {
-  $1->push_back($3);
   $$ = $1;
+  $$->push_back($3);
 }
 ;
-*/
 
 unary_expression: postfix_expression
 {

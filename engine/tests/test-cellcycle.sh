@@ -23,8 +23,8 @@ check_file()
 
 echo
 echo "Non regression test: Cell Cycle one thread"
-$LAUNCHER $MABOSS cellcycle.bnd -c cellcycle_runcfg.cfg -c cellcycle_runcfg-thread_1.cfg -o tmp/Cell_cycle_thread_1
-
+$LAUNCHER /usr/bin/time -p $MABOSS cellcycle.bnd -c cellcycle_runcfg.cfg -c cellcycle_runcfg-thread_1.cfg -o tmp/Cell_cycle_thread_1
+if [ $? != 0 ]; then exit 1; fi
 diff refer/Cell_cycle_thread_1_probtraj.csv tmp/
 check_file "projtraj"
 

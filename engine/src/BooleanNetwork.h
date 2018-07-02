@@ -57,6 +57,7 @@
 #include <vector>
 #include <assert.h>
 #include <sstream>
+#include <iostream>
 #include <strings.h>
 #include <string.h>
 #ifdef USE_BOOST_BITSET
@@ -64,6 +65,7 @@
 #elif defined(USE_BITSET)
 #include <bitset>
 #endif
+#include "Function.h"
 
 const std::string LOGICAL_AND_SYMBOL = " & ";
 const std::string LOGICAL_OR_SYMBOL = " | ";
@@ -1210,6 +1212,112 @@ public:
 
   virtual ~ParenthesisExpression() {
     delete expr;
+  }
+};
+
+class ArgumentList {
+  std::vector<Expression*> expr_v;
+
+public:
+  ArgumentList() { }
+
+  void push_back(Expression* expr) {expr_v.push_back(expr);}
+
+  ArgumentList* clone() const {
+    ArgumentList* arg_list_cloned = new ArgumentList();
+    for (std::vector<Expression*>::const_iterator iter = expr_v.begin(); iter != expr_v.end(); ++iter) {
+      arg_list_cloned->push_back(*iter);
+    }
+    return arg_list_cloned;
+  }
+
+  bool hasCycle(Node* node) const {
+    for (std::vector<Expression*>::const_iterator iter = expr_v.begin(); iter != expr_v.end(); ++iter) {
+      if ((*iter)->hasCycle(node)) {
+	return true;
+      }
+    }
+    return false;
+  }
+
+  bool isConstantExpression() const {
+    for (std::vector<Expression*>::const_iterator iter = expr_v.begin(); iter != expr_v.end(); ++iter) {
+      if (!(*iter)->isConstantExpression()) {
+	return false;
+      }
+    }
+    return true;
+  }
+
+  void display(std::ostream& os) const {
+    unsigned int nn = 0;
+    for (std::vector<Expression*>::const_iterator iter = expr_v.begin(); iter != expr_v.end(); ++iter) {
+      os << (nn > 0 ? ", " : "");
+      (*iter)->display(os);
+      nn++;
+    }
+  }
+
+  const std::vector<Expression*>& getExpressionList() const { return expr_v; }
+  size_t getExpressionListCount() { return expr_v.size(); }
+
+  ~ArgumentList() {
+    for (std::vector<Expression*>::iterator iter = expr_v.begin(); iter != expr_v.end(); ++iter) {
+      delete *iter;
+    }
+  }
+};
+
+class FuncCallExpression : public Expression {
+  std::string funname;
+  ArgumentList* arg_list;
+  Function* function;
+  bool is_const;
+  double value;
+
+public:
+  FuncCallExpression(const std::string& funname, ArgumentList* arg_list) : funname(funname), arg_list(arg_list), function(NULL), value(0.) {
+    function = Function::getFunction(funname);
+
+    if (function == NULL) {
+      throw BNException("unknown function " + funname);
+    }
+    function->check(arg_list);
+
+    is_const = function->isDeterministic() && isConstantExpression();
+    if (is_const) {
+      NetworkState network_state;
+      value = function->eval(NULL, network_state, arg_list);
+    }
+ }
+
+  Expression* clone() const {return new FuncCallExpression(funname, arg_list->clone());}
+
+  double eval(const Node* this_node, const NetworkState& network_state) const {
+    if (is_const) {
+      return value;
+    }
+    return function->eval(this_node, network_state, arg_list);
+  }
+
+  void display(std::ostream& os) const {
+    os <<  funname << '(';
+    arg_list->display(os);
+    os <<  ')';
+  }
+
+  bool hasCycle(Node* node) const {
+    return arg_list->hasCycle(node);
+  }
+
+  bool isConstantExpression() const {return arg_list->isConstantExpression();}
+
+  void generateLogicalExpression(LogicalExprGenContext& genctx) const {
+    // for now
+  }
+
+  virtual ~FuncCallExpression() {
+    delete arg_list;
   }
 };
 

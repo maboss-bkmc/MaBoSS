@@ -70,6 +70,10 @@ static int help()
   std::cout << "   --config-vars VAR=VALUE always overrides any VAR assignment in a configuration file or expression\n";
   std::cout << "\n2. --dump-config, --generate-config-template, --generate-logical-expressions and --output are exclusive options\n";
   std::cout << '\n';
+
+  std::cout << "Builtin functions:\n\n";
+  Function::displayFunctionDescriptions(std::cout);
+
   return 0;
 }
 
