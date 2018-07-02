@@ -85,17 +85,17 @@ int main(int argc, char* argv[])
 	std::cout << "MaBoSS version <TBD>\n";
 	return 0;
       } else if (!strcmp(opt, "--host")) {
-	if (checkArgMissing(opt, nn, argc)) {
+	if (checkArgMissing(prog, opt, nn, argc)) {
 	  return usage();
 	}
 	host = argv[++nn];
       } else if (!strcmp(opt, "--port")) {
-	if (checkArgMissing(opt, nn, argc)) {
+	if (checkArgMissing(prog, opt, nn, argc)) {
 	  return usage();
 	}
 	port = argv[++nn];
       } else if (!strcmp(opt, "--config-vars") || !strcmp(opt, "-v")) {
-	if (checkArgMissing(opt, nn, argc)) {
+	if (checkArgMissing(prog, opt, nn, argc)) {
 	  return usage();
 	}
 	if (config_vars.length() > 0) {
@@ -103,17 +103,17 @@ int main(int argc, char* argv[])
 	}
 	config_vars += argv[++nn];
       } else if (!strcmp(opt, "--config-expr") || !strcmp(opt, "-e")) {
-	if (checkArgMissing(opt, nn, argc)) {
+	if (checkArgMissing(prog, opt, nn, argc)) {
 	  return usage();
 	}
 	runconfig_file_or_expr_v.push_back(ConfigOpt(argv[++nn], true));
       } else if (!strcmp(opt, "-o") || !strcmp(opt, "--output")) {
-	if (checkArgMissing(opt, nn, argc)) {
+	if (checkArgMissing(prog, opt, nn, argc)) {
 	  return usage();
 	}
 	output = argv[++nn];
       } else if (!strcmp(opt, "-c") || !strcmp(opt, "--config")) {
-	if (checkArgMissing(opt, nn, argc)) {
+	if (checkArgMissing(prog, opt, nn, argc)) {
 	  return usage();
 	}
 	runconfig_file_or_expr_v.push_back(ConfigOpt(argv[++nn], false));

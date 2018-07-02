@@ -1329,7 +1329,7 @@ private:
 extern const bool backward_istate;
 
 extern bool dont_shrink_logical_expressions;
-extern int setConfigVariables(const std::string& runvar);
-extern int setConfigVariables(std::vector<std::string>& runvar_v);
+extern int setConfigVariables(const std::string& prog, const std::string& runvar);
+extern int setConfigVariables(const std::string& prog, std::vector<std::string>& runvar_v);
 
 #endif

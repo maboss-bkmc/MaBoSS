@@ -183,7 +183,7 @@ int main(int argc, char* argv[])
       return 0;
     }
 
-    if (setConfigVariables(runconfig_var_v)) {
+    if (setConfigVariables(prog, runconfig_var_v)) {
       return 1;
     }      
 

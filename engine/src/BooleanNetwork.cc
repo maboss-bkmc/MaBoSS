@@ -590,7 +590,7 @@ void SymbolTable::reset()
   last_symb_idx = 0;
 }
 
-int setConfigVariables(std::vector<std::string>& runvar_v)
+int setConfigVariables(const std::string& prog, std::vector<std::string>& runvar_v)
 {
   SymbolTable* symtab = SymbolTable::getInstance();
   std::vector<std::string>::const_iterator begin = runvar_v.begin();
@@ -634,9 +634,9 @@ int setConfigVariables(std::vector<std::string>& runvar_v)
   return 0;
 }
 
-int setConfigVariables(const std::string& runvar)
+int setConfigVariables(const std::string& prog, const std::string& runvar)
 {
   std::vector<std::string> runvar_v;
   runvar_v.push_back(runvar);
-  return setConfigVariables(runvar_v);
+  return setConfigVariables(prog, runvar_v);
 }

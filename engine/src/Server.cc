@@ -135,7 +135,7 @@ void Server::run(const ClientData& client_data, ServerData& server_data)
     if (config_vars.length() > 0) {
       std::vector<std::string> runconfig_var_v;
       runconfig_var_v.push_back(config_vars);
-      if (setConfigVariables(runconfig_var_v)) {
+      if (setConfigVariables(prog, runconfig_var_v)) {
 	delete_temp_files(files_to_delete_v);
 	//return 1;
 	// TBD: error
@@ -215,6 +215,7 @@ void Server::manageRequest(int fd, const char* request)
 {
   ClientData client_data;
   std::string err_data;
+  std::cout << "request [" << request << "]\n";
   if (DataStreamer::parseStreamData(client_data, request, err_data)) {
     rpc_writeStringData(fd, err_data.c_str(), err_data.length());
     return;

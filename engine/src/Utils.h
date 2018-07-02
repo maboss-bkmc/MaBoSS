@@ -52,12 +52,11 @@ public:
   static unsigned int getExprCount() {return runconfig_expr_cnt;}
 };
 
-extern int checkArgMissing(const char* opt, int nn, int argc);
+extern int checkArgMissing(const char* prog, const char* opt, int nn, int argc);
 extern int fileGetContents(const std::string& file, std::string& contents);
 extern int filePutContents(const std::string& file, const std::string& data);
 extern std::string stringReplaceAll(const std::string& subject, const std::string& from, const std::string& to);
 
-extern const char* prog;
 extern const std::string NL_PATTERN;
 
 #endif

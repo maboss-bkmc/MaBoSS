@@ -36,7 +36,7 @@ const std::string NL_PATTERN = "@--NL--@";
 unsigned int ConfigOpt::runconfig_file_cnt = 0;
 unsigned int ConfigOpt::runconfig_expr_cnt = 0;
 
-int checkArgMissing(const char* opt, int nn, int argc)
+int checkArgMissing(const char* prog, const char* opt, int nn, int argc)
 {
   if (nn == argc-1) {
     std::cerr << '\n' << prog << ": missing value after option " << opt << '\n';

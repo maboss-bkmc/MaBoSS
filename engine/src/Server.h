@@ -109,17 +109,18 @@ public:
 };
 
 class Server : public rpc_Server {
+  std::string prog;
   std::string pidfile;
   static Server* server;
 
-  Server(const std::string& host, const std::string& port, const std::string& pidfile) : rpc_Server(host, port), pidfile(pidfile) { }
+  Server(const std::string& host, const std::string& port, const std::string& prog, const std::string& pidfile) : rpc_Server(host, port), prog(prog), pidfile(pidfile) { }
 
   void run(const ClientData& client_data, ServerData& server_data);
 
 public:
-  static Server* getServer(const std::string& host, const std::string& port, const std::string& pidfile = "") {
+  static Server* getServer(const std::string& host, const std::string& port, const std::string& prog, const std::string& pidfile = "") {
     if (NULL == server) {
-      server = new Server(host, port, pidfile);
+      server = new Server(host, port, prog, pidfile);
     }
     return server;
   }
