@@ -387,6 +387,7 @@ class Node {
   ~Node();
 };
 
+
 // the boolean network (also used as a Node factory)
 class Network {
   MAP<std::string, Node*> node_map;
@@ -399,7 +400,7 @@ class Network {
 
 public:
 
-  Network() : last_index(0U), random_generator(NULL) { }
+  Network();
 
   Network(const Network& network);
   Network& operator=(const Network& network);

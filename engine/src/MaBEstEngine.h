@@ -73,6 +73,9 @@ class MaBEstEngine {
 public:
   static const std::string VERSION;
 
+  static void init();
+  static void loadUserFuncs(const char* module);
+
   MaBEstEngine(Network* network, RunConfig* runconfig);
 
   void run(std::ostream* output_traj);

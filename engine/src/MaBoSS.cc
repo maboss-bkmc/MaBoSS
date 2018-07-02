@@ -88,6 +88,8 @@ int main(int argc, char* argv[])
   bool generate_logical_expressions = false;
   dont_shrink_logical_expressions = false; // global flag
 
+  MaBEstEngine::init();
+
   for (int nn = 1; nn < argc; ++nn) {
     const char* s = argv[nn];
     if (s[0] == '-') {
@@ -108,6 +110,9 @@ int main(int argc, char* argv[])
 	generate_logical_expressions = true;
       } else if (!strcmp(s, "--dont-shrink-logical-expressions")) {
 	dont_shrink_logical_expressions = true;
+      } else if (!strcmp(s, "--load-user-functions")) {
+	if (nn == argc-1) {std::cerr << '\n' << prog << ": missing value after option " << s << '\n'; return usage();}
+	MaBEstEngine::loadUserFuncs(argv[++nn]);
       } else if (!strcmp(s, "-o") || !strcmp(s, "--output")) {
 	if (nn == argc-1) {std::cerr << '\n' << prog << ": missing value after option " << s << '\n'; return usage();}
 	output = argv[++nn];

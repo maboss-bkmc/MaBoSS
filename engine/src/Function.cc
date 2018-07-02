@@ -32,10 +32,15 @@
 #include "BooleanNetwork.h"
 #include <iostream>
 
-std::map<std::string, Function*> Function::func_map;
+std::map<std::string, Function*>* Function::func_map;
 
-static Function* log_func = new LogFunction();
-static Function* exp_func = new ExpFunction();
+Function::Function(const std::string& funname, unsigned int min_args, unsigned int max_args) : funname(funname), min_args(min_args), max_args(max_args == ~0U ? min_args : max_args)
+{
+  if (NULL == func_map) {
+    func_map = new std::map<std::string, Function*>();
+  }
+  (*func_map)[funname] = this;
+}
 
 void Function::check(ArgumentList* arg_list)
 {
@@ -48,34 +53,20 @@ void Function::check(ArgumentList* arg_list)
   }
 }
 
-//
-// User function definition
-//
-
-double LogFunction::eval(const Node* this_node, const NetworkState& network_state, ArgumentList* arg_list)
+Function* Function::getFunction(const std::string& funname)
 {
-  const std::vector<Expression*>& expr_v = arg_list->getExpressionList();
-  std::vector<Expression*>::const_iterator iter = expr_v.begin();
-  double val = (*iter)->eval(this_node, network_state);
-  if (expr_v.size() == 1) {
-    return log(val);
+  if (func_map == NULL) {return NULL;}
+  std::map<std::string, Function*>::iterator iter = func_map->find(funname);
+  if (iter == func_map->end()) {
+    return NULL;
   }
-
-  iter++;
-  double base = (*iter)->eval(this_node, network_state);
-  return log(val) / log(base);
+  return iter->second;
 }
 
-double ExpFunction::eval(const Node* this_node, const NetworkState& network_state, ArgumentList* arg_list)
+void Function::displayFunctionDescriptions(std::ostream& os)
 {
-  const std::vector<Expression*>& expr_v = arg_list->getExpressionList();
-  std::vector<Expression*>::const_iterator iter = expr_v.begin();
-  double val = (*iter)->eval(this_node, network_state);
-  if (expr_v.size() == 1) {
-    return exp(val);
+  if (func_map == NULL) {return;}
+  for (std::map<std::string, Function*>::iterator iter = func_map->begin(); iter != func_map->end(); ++iter) {
+    os << "  " << iter->second->getDescription() << "\n\n";
   }
-
-  iter++;
-  double base = (*iter)->eval(this_node, network_state);
-  return exp(val * log(base));
 }

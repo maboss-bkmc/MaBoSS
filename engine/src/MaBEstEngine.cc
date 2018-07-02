@@ -34,9 +34,38 @@
 #include <stdlib.h>
 #include <math.h>
 #include <iomanip>
+#include <dlfcn.h>
+#include <iostream>
 
 const std::string MaBEstEngine::VERSION = "2.0";
 size_t RandomGenerator::generated_number_count = 0;
+static const char* MABOSS_USER_FUNC_INIT = "maboss_user_func_init";
+
+void MaBEstEngine::init()
+{
+  extern void builtin_functions_init();
+  builtin_functions_init();
+}
+
+void MaBEstEngine::loadUserFuncs(const char* module)
+{
+  init();
+
+  void* dl = dlopen(module, RTLD_LAZY);
+  if (NULL == dl) {
+    std::cerr << dlerror() << "\n";
+    exit(1);
+  }
+
+  void* sym = dlsym(dl, MABOSS_USER_FUNC_INIT);
+  if (sym == NULL) {
+    std::cerr << "symbol " << MABOSS_USER_FUNC_INIT << "() not found in user func module: " << module << "\n";
+    exit(1);
+  }
+  typedef void (*init_t)(std::map<std::string, Function*>*);
+  init_t init_fun = (init_t)sym;
+  init_fun(Function::getFuncMap());
+}
 
 MaBEstEngine::MaBEstEngine(Network* network, RunConfig* runconfig) :
   network(network), time_tick(runconfig->getTimeTick()), max_time(runconfig->getMaxTime()), sample_count(runconfig->getSampleCount()), discrete_time(runconfig->isDiscreteTime()), thread_count(runconfig->getThreadCount()) {

@@ -40,7 +40,7 @@ BISON = bison
 CHECK_FLEX  = $(FLEX) --version > /dev/null
 CHECK_BISON = $(BISON) --version > /dev/null
 
-LIB_OBJS := MaBEstEngine$(INFIX).o Cumulator$(INFIX).o ProbaDist$(INFIX).o BooleanNetwork$(INFIX).o BooleanGrammar$(INFIX).o RunConfigGrammar$(INFIX).o Function$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o Utils$(INFIX).o
+LIB_OBJS := MaBEstEngine$(INFIX).o Cumulator$(INFIX).o ProbaDist$(INFIX).o BooleanNetwork$(INFIX).o BooleanGrammar$(INFIX).o RunConfigGrammar$(INFIX).o Function$(INFIX).o BuiltinFunctions$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o Utils$(INFIX).o
 SERVER_OBJS := Server.o DataStreamer.o RPC.o
 
 # if USE_LIB is set, maboss library will be used for MaBoSS and MaBoSS-server programs => that will oblige the user to set LD_LIBRARY_PATH or DYLD_LIBRARY_PATH environment variable to execute MaBoSS or MaBoSS-server
@@ -56,6 +56,12 @@ all: $(MABOSS_LIB) $(MABOSS) $(MABOSS_SERVER) $(MABOSS_CLIENT)
 
 $(MABOSS_LIB): $(LIB_OBJS)
 	g++ -shared -o $(MABOSS_LIB) $+ -lpthread
+
+$(FUNC_MODULE): $(FUNC_MODULE).o $(MABOSS_LIB)
+	g++ -shared -o $(FUNC_MODULE).so $(FUNC_MODULE).o -l$(MABOSS_LIBNAME) -lpthread -L.
+#	g++ -shared -o $(FUNC_MODULE).so $(FUNC_MODULE).o -lpthread -L.
+#	g++ -shared -o user_func.so user_func.o -weak-lmaboss -lpthread -L.
+
 
 $(MABOSS): MaBoSS$(INFIX).o $(MABOSS_OBJS)
 ifdef USE_LIB

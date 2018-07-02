@@ -56,6 +56,10 @@ bool Node::isInputNode() const
   return getLogicalInputExpression() == NULL && getRateUpExpression() == NULL && getRateDownExpression() == NULL;
 }
 
+Network::Network() : last_index(0U), random_generator(NULL)
+{
+}
+
 int Network::parse(const char* file)
 {
   if (NULL != file) {

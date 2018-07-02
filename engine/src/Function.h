@@ -40,30 +40,23 @@ class ArgumentList;
 class Expression;
 class Node;
 class NetworkState;
+class Function;
 
 class Function {
   std::string funname;
   unsigned int min_args;
   unsigned int max_args;
-  static std::map<std::string, Function*> func_map;
+  static std::map<std::string, Function*>* func_map;
 
 protected:
-  Function(const std::string& funname, unsigned int min_args, unsigned int max_args = ~0U) : funname(funname), min_args(min_args), max_args(max_args == ~0U ? min_args : max_args) { 
-    func_map[funname] = this;
-  }
+  Function(const std::string& funname, unsigned int min_args, unsigned int max_args = ~0U);
 
 public:
   const std::string& getFunName() const {return funname;}
   unsigned int getMinArgs() const {return min_args;}
   unsigned int getMaxArgs() const {return max_args;}
 
-  static Function* getFunction(const std::string& funname) {
-    std::map<std::string, Function*>::iterator iter = func_map.find(funname);
-    if (iter == func_map.end()) {
-      return NULL;
-    }
-    return iter->second;
-  }
+  static Function* getFunction(const std::string& funname);
 
   virtual bool isDeterministic() const {return true;}
 
@@ -73,39 +66,9 @@ public:
 
   virtual double eval(const Node* this_node, const NetworkState& network_state, ArgumentList* arg_list) = 0;
 
-  static void displayFunctionDescriptions(std::ostream& os) {
-    for (std::map<std::string, Function*>::iterator iter = func_map.begin(); iter != func_map.end(); ++iter) {
-      os << "  " << iter->second->getDescription() << "\n\n";
-    }
-  }
-};
-
-//
-// User function declarations
-//
-
-class LogFunction : public Function {
-
-public:
-  LogFunction() : Function("log", 1, 2) { }
-
-  double eval(const Node* this_node, const NetworkState& network_state, ArgumentList* arg_list);
-
-  std::string getDescription() const {
-    return "double log(double VALUE[, double BASE=e])\n  computes the value of the natural logarithm of VALUE; uses BASE if set";
-  }
-};
-
-class ExpFunction : public Function {
-
-public:
-  ExpFunction() : Function("exp", 1, 2) { }
-
-  double eval(const Node* this_node, const NetworkState& network_state, ArgumentList* arg_list);
-
-  std::string getDescription() const {
-    return "double exp(double VALUE[, double BASE=e])\n  computes the base-e exponential of VALUE; uses BASE if set";
-  }
+  static void displayFunctionDescriptions(std::ostream& os);
+  static std::map<std::string, Function*>* getFuncMap() {return func_map;}
+  static void setFuncMap(std::map<std::string, Function*>* _func_map) {func_map = _func_map;}
 };
 
 #endif

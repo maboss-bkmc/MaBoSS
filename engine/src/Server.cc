@@ -58,6 +58,7 @@ static void unlink_tempfiles_handler(int sig)
 
 int Server::manageRequests()
 {
+  MaBEstEngine::init();
   if (bind(&RPC_portname) == rpc_Success) {
     if (0 != pidfile.length()) {
       std::ofstream fpidfile(pidfile.c_str());
