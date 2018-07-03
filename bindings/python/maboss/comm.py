@@ -16,7 +16,7 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA 
 
-# Module: maboss.py
+# Module: maboss/comm.py
 # Authors: Eric Viara <viara@sysra.com>
 # Date: May-July 2018
 
@@ -25,10 +25,8 @@ import atexit
 import result
 
 #
-# MaBoSS communication layer
+# MaBoSS Communication Layer
 #
-
-MABOSS_SERVER = "../../engine/src/MaBoSS-server" # for now
 
 LAUNCH = "LAUNCH"
 MABOSS = "MaBoSS-2.0"
@@ -252,7 +250,11 @@ class MaBoSSClient:
     
     SERVER_NUM = 1 # for now
 
-    def __init__(self, host = None, port = None):
+    def __init__(self, host = None, port = None, maboss_server = None):
+        if not maboss_server:
+            maboss_server = "MaBoSS-server"
+
+        self._maboss_server = maboss_server
         self._host = host
         self._port = port
         self._pid = None
@@ -275,8 +277,8 @@ class MaBoSSClient:
 
             if pid == 0:
                 try:
-                    args = [MABOSS_SERVER, "--host", "localhost", "-q", "--port", port, "--pidfile", self._pidfile]
-                    os.execv(MABOSS_SERVER, args)
+                    args = [self._maboss_server, "--host", "localhost", "-q", "--port", port, "--pidfile", self._pidfile]
+                    os.execv(self._maboss_server, args)
                 except e:
                     print >> sys.stderr, "error execv:", e
 
@@ -321,9 +323,8 @@ class MaBoSSClient:
 
     def close(self):
         if self._pid != None:
-            print "kill", self._pid
+            #print "kill", self._pid
             os.kill(self._pid, signal.SIGTERM)
             if self._pidfile:
                 os.remove(self._pidfile)
             self._pid = None
-

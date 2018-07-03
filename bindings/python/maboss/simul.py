@@ -1,4 +1,8 @@
 
+#
+# class Simulation example using maboss communication layer: to be merged with pyMaBoSS/maboss/simul.py
+#
+
 class Simulation:
 
     def __init__(self, bndfile, cfgfile = None, cfgfiles = None):

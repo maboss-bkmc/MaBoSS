@@ -1,4 +1,8 @@
 
+#
+# class Result example using maboss communication layer: to be merged with pyMaBoSS/maboss/result.py
+#
+
 import maboss.comm
 
 class Result:

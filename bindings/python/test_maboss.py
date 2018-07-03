@@ -1,7 +1,8 @@
 
 import maboss.comm, maboss.simul, maboss.result
 
-mbcli = maboss.comm.MaBoSSClient()
+mbcli = maboss.comm.MaBoSSClient(maboss_server = "../../engine/src/MaBoSS-server")
+
 TESTLOC = "../../engine/tests/"
 
 simulation = maboss.simul.Simulation(bndfile = TESTLOC + "/cellcycle.bnd", cfgfiles = [TESTLOC + "/cellcycle_runcfg.cfg", TESTLOC + "/cellcycle_runcfg-thread_1-simple.cfg"])
