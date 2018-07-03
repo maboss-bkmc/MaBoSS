@@ -22,6 +22,11 @@
 
 import os, sys, time, signal, socket
 import atexit
+import result
+
+#
+# MaBoSS communication layer
+#
 
 MABOSS_SERVER = "../../engine/src/MaBoSS-server" # for now
 
@@ -39,62 +44,6 @@ TRAJECTORY_PROBABILITY = "Trajectory-Probability:"
 TRAJECTORIES = "Trajectories:"
 FIXED_POINTS = "Fixed-Points:"
 RUN_LOG = "Run-Log:"
-
-class MaBoSS:
-
-    def __init__(self, host = None, port = None):
-        self._host = host
-        self._port = port
-        self._client = Client(host, port)
-
-    def launch(self, simulation):
-        return Result(self._client, simulation)
-
-    def getHost(self):
-        return self._host
-
-    def getPort(self):
-        return self._port
-
-    def getClient(self):
-        return self._client
-
-    def close(self):
-        self._client.close()
-
-class Simulation:
-
-    def __init__(self, bndfile, cfgfile = None, cfgfiles = None):
-        self._network = file_get_contents(bndfile)
-        if cfgfile:
-            self._config = file_get_contents(cfgfile)
-        elif cfgfiles:
-            self._config = ""
-            for cfgfile in cfgfiles:
-                self._config += file_get_contents(cfgfile)
-        else:
-            raise Exception("Simulation: cfgfile or cfgfiles must be set")
-
-    def getNetwork(self):
-        return self._network
-
-    def getConfig(self):
-        return self._config
-
-class Result:
-
-    def __init__(self, mbcli, simulation):
-        client_data = ClientData(simulation.getNetwork(), simulation.getConfig())
-        data = DataStreamer.buildStreamData(client_data)
-        #print "send data", data
-        data = mbcli.send(data)
-        #print "rcv data", data
-        server_data = DataStreamer.parseStreamData(data)
-        print "server_data", server_data.getStatus(), server_data.getErrorMessage()
-        print "server_data FP", server_data.getFP()
-        print "server_data Runlog", server_data.getRunLog()
-
-# communication
 
 class HeaderItem:
 
@@ -142,20 +91,20 @@ class DataStreamer:
 
     @staticmethod
     def parseStreamData(ret_data):
-        server_data = ServerData()
+        result_data = ResultData()
         magic = RETURN + " " + MABOSS
         magic_len = len(magic)
         if ret_data[0:magic_len] != magic:
-            server_data.setStatus(1)
-            server_data.setErrorMessage("magic " + magic + " not found in header")
-            return server_data
+            result_data.setStatus(1)
+            result_data.setErrorMessage("magic " + magic + " not found in header")
+            return result_data
 
         offset = magic_len
         pos = ret_data.find("\n\n", magic_len)
         if pos < 0:
-            server_data.setStatus(2)
-            server_data.setErrorMessage("separator double nl found in header")
-            return server_data
+            result_data.setStatus(2)
+            result_data.setErrorMessage("separator double nl found in header")
+            return result_data
 
         offset += 1
         header = ret_data[offset:pos+1]
@@ -166,34 +115,34 @@ class DataStreamer:
         header_items = []
         err_data = DataStreamer._parse_header_items(header, header_items)
         if err_data:
-            server_data.setStatus(3)
-            server_data.setErrorMessage(err_data)
-            return server_data
+            result_data.setStatus(3)
+            result_data.setErrorMessage(err_data)
+            return result_data
 
         for header_item in header_items:
             directive = header_item.getDirective()
             if directive == STATUS:
-                server_data.setStatus(int(header_item.getValue()))
+                result_data.setStatus(int(header_item.getValue()))
             elif directive == ERROR_MESSAGE:
-                server_data.setErrorMessage(header_item.getValue())
+                result_data.setErrorMessage(header_item.getValue())
             else:
                 data_value = data[header_item.getFrom():header_item.getTo()+1]
                 if directive == STATIONARY_DISTRIBUTION:
-                    server_data.setStatDist(data_value)
+                    result_data.setStatDist(data_value)
                 elif directive == TRAJECTORY_PROBABILITY:
-                    server_data.setProbTraj(data_value)
+                    result_data.setProbTraj(data_value)
                 elif directive == TRAJECTORIES:
-                    server_data.setTraj(data_value)
+                    result_data.setTraj(data_value)
                 elif directive == FIXED_POINTS:
-                    server_data.setFP(data_value)
+                    result_data.setFP(data_value)
                 elif directive == RUN_LOG:
-                    server_data.setRunLog(data_value)
+                    result_data.setRunLog(data_value)
                 else:
-                    server_data.setErrorMessage("unknown directive " + directive)
-                    server_data.setStatus(4)
-                    return server_data
+                    result_data.setErrorMessage("unknown directive " + directive)
+                    result_data.setStatus(4)
+                    return result_data
 
-        return server_data
+        return result_data
 
     @staticmethod
     def _parse_header_items(header, header_items):
@@ -246,7 +195,7 @@ class ClientData:
     def setConfig(self, config):
         self._config = config
 
-class ServerData:
+class ResultData:
 
     def __init__(self):
         self._status = 0
@@ -299,7 +248,7 @@ class ServerData:
     def getRunLog(self):
         return self._runlog
 
-class Client:
+class MaBoSSClient:
     
     SERVER_NUM = 1 # for now
 
@@ -313,10 +262,10 @@ class Client:
 
         if host == None:
             if port == None:
-                port = '/tmp/MaBoSS_pipe_' + str(os.getpid()) + "_" + str(Client.SERVER_NUM)
+                port = '/tmp/MaBoSS_pipe_' + str(os.getpid()) + "_" + str(MaBoSSClient.SERVER_NUM)
 
-            self._pidfile = '/tmp/MaBoSS_pidfile_' + str(os.getpid()) + "_" + str(Client.SERVER_NUM)
-            Client.SERVER_NUM += 1
+            self._pidfile = '/tmp/MaBoSS_pidfile_' + str(os.getpid()) + "_" + str(MaBoSSClient.SERVER_NUM)
+            MaBoSSClient.SERVER_NUM += 1
 
             try:
                 pid = os.fork()
@@ -326,7 +275,7 @@ class Client:
 
             if pid == 0:
                 try:
-                    args = [MABOSS_SERVER, "--host", "localhost", "--port", port, "--pidfile", self._pidfile]
+                    args = [MABOSS_SERVER, "--host", "localhost", "-q", "--port", port, "--pidfile", self._pidfile]
                     os.execv(MABOSS_SERVER, args)
                 except e:
                     print >> sys.stderr, "error execv:", e
@@ -351,6 +300,9 @@ class Client:
             self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self._socket.connect((host, port))
             
+    def launch(self, simulation):
+        return result.Result(self, simulation)
+
     def send(self, data):
         self._socket.send(data)
         self._term()
@@ -374,28 +326,4 @@ class Client:
             if self._pidfile:
                 os.remove(self._pidfile)
             self._pid = None
-
-#        self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-#        self._socket.connect((host, port))
-#        print "Connection on {}".format(port)
-#        self._socket.send('coucou les lapins')
-
-def file_get_contents(filename):
-    if not os.path.isfile(filename):
-        raise Exception(filename + " is not a valid file")
-    fd = os.open(filename, os.O_RDONLY)
-    if fd >= 0:
-        stat = os.fstat(fd)
-        contents = os.read(fd, stat.st_size)
-        os.close(fd)
-        return contents
-    raise Exception(file + " is not readable")
-
-
-
-
-
-
-
-
 

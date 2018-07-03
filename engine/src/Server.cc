@@ -75,7 +75,9 @@ int Server::manageRequests()
     signal(SIGABRT, unlink_tempfiles_handler);
     time_t t = time(NULL);
     char* now = ctime(&t);
-    std::cerr << "\n" << prog << " [listen=" << host << ":" << port << "] Ready at " << now;
+    if (!quiet) {
+      std::cerr << "\n" << prog << " [listen=" << host << ":" << port << "] Ready at " << now;
+    }
     listen();
     return 0;
   }
@@ -123,7 +125,9 @@ void Server::run(const ClientData& client_data, ServerData& server_data)
     time(&start_time);
     char* timebuf = ctime(&start_time);
     timebuf[strlen(timebuf)-1] = 0;
-    std::cerr << "\n" << hst << " " << prog << " launching simulation at " << timebuf << " " << hst << "\n";
+    if (!quiet) {
+      std::cerr << "\n" << hst << " " << prog << " launching simulation at " << timebuf << " " << hst << "\n";
+    }
     Network* network = new Network();
     std::string network_file = output + "_network.bnd";
     filePutContents(network_file, client_data.getNetwork());
@@ -158,7 +162,9 @@ void Server::run(const ClientData& client_data, ServerData& server_data)
 
     if (runconfig->displayTrajectories()) {
       if (runconfig->getThreadCount() > 1) {
-	std::cerr << '\n' << prog << ": warning: cannot display trajectories in multi-threaded mode\n";
+	if (!quiet) {
+	  std::cerr << '\n' << prog << ": warning: cannot display trajectories in multi-threaded mode\n";
+	}
       } else {
 	output_traj = create_temp_file(traj_file, files_to_delete_v);
       }
@@ -198,12 +204,18 @@ void Server::run(const ClientData& client_data, ServerData& server_data)
       server_data.setTraj(contents);
     }
 
-    std::cerr << "\n" << server_data.getRunLog();
+    if (!quiet) {
+      std::cerr << "\n" << server_data.getRunLog();
+    }
     timebuf = ctime(&end_time);
     timebuf[strlen(timebuf)-1] = 0;
-    std::cerr << hst << " " << prog << " simulation finished at " << timebuf << " " << hst << "\n";;
+    if (!quiet) {
+      std::cerr << hst << " " << prog << " simulation finished at " << timebuf << " " << hst << "\n";;
+    }
   } catch(const BNException& e) {
-    std::cerr << "\n" << hst << " " << prog << " simulation error [[\n" << e << "]] " << hst << "\n";
+    if (!quiet) {
+      std::cerr << "\n" << hst << " " << prog << " simulation error [[\n" << e << "]] " << hst << "\n";
+    }
     delete_temp_files(files_to_delete_v);
     server_data.setStatus(1);
     server_data.setErrorMessage(e.getMessage());
@@ -216,7 +228,9 @@ void Server::manageRequest(int fd, const char* request)
 {
   ClientData client_data;
   std::string err_data;
-  std::cout << "request [" << request << "]\n";
+  if (verbose) {
+    std::cout << "request [" << request << "]\n";
+  }
   if (DataStreamer::parseStreamData(client_data, request, err_data)) {
     rpc_writeStringData(fd, err_data.c_str(), err_data.length());
     return;

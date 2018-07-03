@@ -1,10 +1,10 @@
 
-import maboss
+import maboss.comm, maboss.simul, maboss.result
 
-mb = maboss.MaBoSS()
+mbcli = maboss.comm.MaBoSSClient()
 TESTLOC = "../../engine/tests/"
 
-simulation = maboss.Simulation(bndfile = TESTLOC + "/cellcycle.bnd", cfgfiles = [TESTLOC + "/cellcycle_runcfg.cfg", TESTLOC + "/cellcycle_runcfg-thread_1-simple.cfg"])
+simulation = maboss.simul.Simulation(bndfile = TESTLOC + "/cellcycle.bnd", cfgfiles = [TESTLOC + "/cellcycle_runcfg.cfg", TESTLOC + "/cellcycle_runcfg-thread_1-simple.cfg"])
 
-result = mb.launch(simulation) # call Result(mb, simulation)
+result = mbcli.launch(simulation) # call Result(mbcli, simulation)
 

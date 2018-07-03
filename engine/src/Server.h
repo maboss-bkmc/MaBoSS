@@ -111,9 +111,11 @@ public:
 class Server : public rpc_Server {
   std::string prog;
   std::string pidfile;
+  bool quiet;
+  bool verbose;
   static Server* server;
 
-  Server(const std::string& host, const std::string& port, const std::string& prog, const std::string& pidfile) : rpc_Server(host, port), prog(prog), pidfile(pidfile) { }
+  Server(const std::string& host, const std::string& port, const std::string& prog, const std::string& pidfile) : rpc_Server(host, port), prog(prog), pidfile(pidfile), quiet(false), verbose(false) { }
 
   void run(const ClientData& client_data, ServerData& server_data);
 
@@ -128,6 +130,9 @@ public:
   static Server* getInstance() {
     return server;
   }
+
+  void setQuiet(bool quiet) {this->quiet = quiet;}
+  void setVerbose(bool verbose) {this->verbose = verbose;}
 
   const std::string& getPidFile() const {return pidfile;}
 
