@@ -1,0 +1,15 @@
+#docker-compose.yml
+version: '3.3'
+services:
+
+  maboss-server:
+    build:
+      context: ./docker
+      dockerfile: Dockerfile
+
+    image: maboss-server
+    container_name: maboss-server
+    ports:
+      - "7777:7777"
+    restart: unless-stopped
+
