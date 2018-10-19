@@ -13,7 +13,7 @@ RUN pip3 install matplotlib pandas seaborn xlsxwriter
 # Installing MaBoSS
 RUN git clone https://github.com/maboss-bkmc/MaBoSS-env-2.0.git /opt/MaBoSS-env-2.0
 RUN bash -c "cd /opt/MaBoSS-env-2.0/; ./check-requirements.sh"
-RUN bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; sed -i 's/-lpthread/-lpthread -ldl/' Makefile.maboss; make install" 
+RUN bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; make install"
 
 # Exposing port 7777
 EXPOSE 7777
