@@ -11,8 +11,8 @@ RUN apt-get install -yq git flex bison gcc g++ python python-pip python3 python3
 RUN pip3 install matplotlib pandas seaborn xlsxwriter
 
 # Installing MaBoSS
-RUN git clone https://github.com/maboss-bkmc/MaBoSS-env-2.0.git /opt/MaBoSS-env-2.0
-RUN bash -c "cd /opt/MaBoSS-env-2.0/; ./check-requirements.sh"
+ADD . /opt/MaBoSS-env-2.0
+RUN bash -c "cd /opt/MaBoSS-env-2.0; ./check-requirements.sh"
 RUN bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; make install"
 
 # Exposing port 7777
