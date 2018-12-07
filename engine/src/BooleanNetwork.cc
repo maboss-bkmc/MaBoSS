@@ -106,9 +106,16 @@ int Network::parse(const char* file)
   int r = CTBNDLparse();
   set_current_network(NULL);
   if (r) {
+    if (NULL != file)
+      fclose(CTBNDLin);
+
     return 1;
   }
   compile();
+
+  if (NULL != file)
+    fclose(CTBNDLin);
+    
   return 0;
 }
 
