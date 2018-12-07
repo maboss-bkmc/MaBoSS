@@ -138,6 +138,12 @@ package:
 
 include depend.mk
 
+install_lib: $(MABOSS_LIB)
+	mkdir -p ../lib
+	cp $(MABOSS_LIB) ../lib
+	mkdir -p ../include/
+	cp *.h ../include/
+	
 #### OBSOLETE
 
 #	g++ -dynamiclib -undefined suppress -flat_namespace -o $(MABOSS_LIB) $+ -lpthread
