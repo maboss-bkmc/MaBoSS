@@ -108,13 +108,6 @@ int main(int argc, char* argv[])
     return usage();
   }
 
-  /*
-  if (host.length() == 0) {
-    std::cerr << '\n' << prog << ": host is missing\n";
-    return usage();
-  }
-  */
-
   Server* server = Server::getServer(host, port, prog, pidfile, quiet, verbose);
   if (quiet) {
     close(0);

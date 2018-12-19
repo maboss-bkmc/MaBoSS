@@ -51,9 +51,6 @@ TRAJECTORIES = "Trajectories:"
 FIXED_POINTS = "Fixed-Points:"
 RUN_LOG = "Run-Log:"
 
-VERBOSE = False
-VERBOSE = True
-
 class HeaderItem:
 
     def __init__(self, directive, _from = None, to = None, value = None):
@@ -77,10 +74,16 @@ class HeaderItem:
 class DataStreamer:
 
     @staticmethod
-    def buildStreamData(client_data, hexfloat):
+    def buildStreamData(client_data, hints = None):
         data = ""
         offset = 0
         o_offset = 0
+
+        verbose = False
+        hexfloat = False
+        if hints:
+            hexfloat = "hexfloat" in hints and hints["hexfloat"]
+            verbose = "verbose" in hints and hints["verbose"]
 
         command = RUN_COMMAND # for now
         if hexfloat:
@@ -106,12 +109,17 @@ class DataStreamer:
 
         (header, o_offset) = DataStreamer._add_header(header, NETWORK, o_offset, offset)
 
-        if VERBOSE:
-            print "SENDING [", header, "]"
+        if verbose:
+            print "======= sending header\n", header
+            print "======= sending data[0:200]\n", data[0:200], "\n[...]\n"
         return header + "\n" + data
 
     @staticmethod
-    def parseStreamData(ret_data):
+    def parseStreamData(ret_data, hints = None):
+        verbose = False
+        if hints:
+            verbose = "verbose" in hints and hints["verbose"]
+
         result_data = ResultData()
         magic = RETURN + " " + MABOSS_MAGIC
         magic_len = len(magic)
@@ -130,9 +138,9 @@ class DataStreamer:
         offset += 1
         header = ret_data[offset:pos+1]
         data  = ret_data[pos+2:]
-        if VERBOSE:
-            print "RECEIVED HEADER [ ", header, "]"
-            #print "DATA", data[0:200]
+        if verbose:
+            print "======= receiving header \n", header
+            print "======= receiving data[0:200]\n", data[0:200], "\n[...]\n"
 
         header_items = []
         err_data = DataStreamer._parse_header_items(header, header_items)
@@ -279,8 +287,6 @@ class MaBoSSClient:
             maboss_server = os.getenv("MABOSS_SERVER")
             if not maboss_server:
                 maboss_server = "MaBoSS-server"
-#                if not maboss_server:
-#                    raise Exception("MaBoSS server not specified")
 
         self._maboss_server = maboss_server
         self._host = host
@@ -332,8 +338,8 @@ class MaBoSSClient:
             self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self._socket.connect((host, port))
             
-    def run(self, simulation, hexfloat = False):
-        return result.Result(self, simulation, hexfloat)
+    def run(self, simulation, hints = None):
+        return result.Result(self, simulation, hints)
 
     def send(self, data):
         self._socket.sendall(data)

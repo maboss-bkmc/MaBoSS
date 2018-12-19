@@ -65,7 +65,7 @@ static size_t add_header(std::ostringstream& o_header, const std::string& direct
   return offset;
 }
 
-void DataStreamer::buildStreamData(const std::string& command, unsigned long long protocol_mode, std::string& data, const ClientData& client_data)
+void DataStreamer::buildStreamData(std::string& data, const ClientData& client_data)
 {
   std::ostringstream o_header;
   std::ostringstream o_data;
@@ -74,8 +74,8 @@ void DataStreamer::buildStreamData(const std::string& command, unsigned long lon
 
   o_header << MABOSS_MAGIC << "\n";
   o_header << PROTOCOL_VERSION << PROTOCOL_VERSION_NUMBER << "\n";
-  o_header << PROTOCOL_MODE << protocol_mode << "\n";
-  o_header << COMMAND << command << "\n";
+  o_header << PROTOCOL_MODE << client_data.getProtocolMode() << "\n";
+  o_header << COMMAND << client_data.getCommand() << "\n";
 
   const std::vector<std::string>& config_v = client_data.getConfigs();
   for (std::vector<std::string>::const_iterator iter_config = config_v.begin(); iter_config != config_v.end(); ++iter_config) {

@@ -43,7 +43,8 @@ static int usage(std::ostream& os = std::cerr)
   os << "  " << prog << " [-h|--help]\n\n";
   os << "  " << prog << " [--version]\n\n";
   os << "  " << prog << " [--verbose]\n\n";
-  os << "  " << prog << " --port PORT [--host HOST] [-c|--config CONF_FILE] [-v|--config-vars VAR1=NUMERIC[,VAR2=...]] [-e|--config-expr CONFIG_EXPR] -o|--output OUTPUT BOOLEAN_NETWORK_FILE\n\n";
+  os << "  " << prog << " --port PORT [--host HOST] [-c|--config CONF_FILE] [-v|--config-vars VAR1=NUMERIC[,VAR2=...]] [-e|--config-expr CONFIG_EXPR] -o|--output OUTPUT BOOLEAN_NETWORK_FILE\n";
+  os << "  " << prog << " [--hexfloat\n\n";
   return 1;
 }
 
@@ -60,6 +61,7 @@ static int help()
   std::cout << "  -e --config-expr CONFIG_EXPR            : evaluates the configuration expression; may have multiple expressions\n";
   std::cout << "                                            separated by semi-colons\n";
   std::cout << "  -o --output OUTPUT                      : prefix to be used for output files; when present run MaBoSS simulation process\n";
+  std::cout << "  --hexfloat                              : displays double in hexadecimal format\n";
   std::cout << "  --verbose                               : verbose mode\n";
   std::cout << "  -h --help                               : displays this message\n";
   std::cout << "\nNotices:\n";
@@ -79,6 +81,7 @@ int main(int argc, char* argv[])
   std::string port;
   std::string host;
   bool verbose = false;
+  bool hexfloat = false;
 
   for (int nn = 1; nn < argc; ++nn) {
     const char* opt = argv[nn];
@@ -122,6 +125,8 @@ int main(int argc, char* argv[])
 	runconfig_file_or_expr_v.push_back(ConfigOpt(argv[++nn], false));
       } else if (!strcmp(opt, "--verbose")) {
 	verbose = true;
+      } else if (!strcmp(opt, "--hexfloat")) {
+	hexfloat = true;
       } else if (!strcmp(opt, "--help") || !strcmp(opt, "-h")) {
 	return help();
       } else {
@@ -145,13 +150,6 @@ int main(int argc, char* argv[])
     std::cerr << '\n' << prog << ": port is missing\n";
     return usage();
   }
-
-  /*
-  if (host.length() == 0) {
-    std::cerr << '\n' << prog << ": host is missing\n";
-    return usage();
-  }
-  */
 
   ClientData client_data;
 
@@ -178,6 +176,13 @@ int main(int argc, char* argv[])
   }
 
   client_data.setConfigVars(config_vars);
+
+  client_data.setCommand(DataStreamer::RUN_COMMAND);
+  unsigned long long protocol_mode = DataStreamer::PROTOCOL_ASCII_MODE;
+  if (hexfloat) {
+    protocol_mode |= DataStreamer::PROTOCOL_HEXFLOAT_MODE;
+  }
+  client_data.setProtocolMode(protocol_mode);
 
   Client* client = new Client(host, port, verbose);
   ServerData server_data;

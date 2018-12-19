@@ -80,7 +80,7 @@ private:
   static int parse_header_items(const std::string &header, std::vector<HeaderItem>& header_item_v, std::string& err_data);
 
 public:
-  static void buildStreamData(const std::string& command, unsigned long long protocol_mode, std::string& data, const ClientData& client_data);
+  static void buildStreamData(std::string& data, const ClientData& client_data);
   static void buildStreamData(std::string &data, const ServerData& server_data);
   static int parseStreamData(ClientData& client_data, const std::string& data, std::string& err_data);
   static int parseStreamData(ServerData& server_data, const std::string& data);

@@ -7,16 +7,16 @@ import maboss.comm
 
 class Result:
 
-    def __init__(self, mbcli, simulation, hexfloat = False):
+    def __init__(self, mbcli, simulation, hints):
         client_data = maboss.comm.ClientData(simulation.getNetwork(), simulation.getConfig())
 
-        data = maboss.comm.DataStreamer.buildStreamData(client_data, hexfloat)
+        data = maboss.comm.DataStreamer.buildStreamData(client_data, hints)
         #print "sending data", data
 
         data = mbcli.send(data)
         #print "received data", data
 
-        self._result_data = maboss.comm.DataStreamer.parseStreamData(data)
+        self._result_data = maboss.comm.DataStreamer.parseStreamData(data, hints )
 
     def getResultData(self):
         return self._result_data
