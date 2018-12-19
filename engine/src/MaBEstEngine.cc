@@ -31,6 +31,7 @@
 
 #include "MaBEstEngine.h"
 #include "Probe.h"
+#include "Utils.h"
 #include <stdlib.h>
 #include <math.h>
 #include <iomanip>
@@ -393,9 +394,11 @@ void MaBEstEngine::display(std::ostream& output_probtraj, std::ostream& output_s
     return;
   }
 
+#ifdef HAS_STD_HEXFLOAT
   if (hexfloat) {
     output_fp << std::hexfloat;
   }
+#endif
 
   STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator begin = fixpoints.begin();
   STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator end = fixpoints.end();
@@ -405,7 +408,11 @@ void MaBEstEngine::display(std::ostream& output_probtraj, std::ostream& output_s
   for (unsigned int nn = 0; begin != end; ++nn) {
     const NetworkState& network_state = (*begin).first;
     output_fp << "#" << (nn+1) << "\t";
-    output_fp << ((double)(*begin).second / sample_count) <<  "\t";
+    if (hexfloat) {
+      output_fp << fmthexdouble((double)(*begin).second / sample_count) <<  "\t";
+    } else {
+      output_fp << ((double)(*begin).second / sample_count) <<  "\t";
+    }
     network_state.displayOneLine(output_fp, network);
     output_fp << '\t';
     network_state.display(output_fp, network);
