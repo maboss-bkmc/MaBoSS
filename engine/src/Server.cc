@@ -86,7 +86,7 @@ int Server::manageRequests()
 
 static std::ofstream* create_temp_file(const std::string& file, std::vector<std::string>& files_to_delete_v)
 {
-  std::ofstream* os = new std::ofstream(file);
+  std::ofstream* os = new std::ofstream(file.c_str());
   files_to_delete_v.push_back(file);
   return os;
 }
