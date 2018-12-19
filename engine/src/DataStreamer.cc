@@ -39,8 +39,8 @@ const std::string DataStreamer::PROTOCOL_VERSION_NUMBER = "1.0";
 const std::string DataStreamer::MABOSS_MAGIC = "MaBoSS-2.0";
 const std::string DataStreamer::PROTOCOL_VERSION = "Protocol-Version:";
 const std::string DataStreamer::PROTOCOL_MODE = "Protocol-Mode:";
-const std::string DataStreamer::PROTOCOL_ASCII_MODE = "ascii";
-const std::string DataStreamer::PROTOCOL_HEXFLOAT_MODE = "hexfloat";
+const unsigned long long DataStreamer::PROTOCOL_ASCII_MODE = 0x1ULL;
+const unsigned long long DataStreamer::PROTOCOL_HEXFLOAT_MODE = 0x2ULL;
 const std::string DataStreamer::COMMAND = "Command:";
 const std::string DataStreamer::RUN_COMMAND = "run";
 const std::string DataStreamer::PARSE_COMMAND = "parse";
@@ -65,7 +65,7 @@ static size_t add_header(std::ostringstream& o_header, const std::string& direct
   return offset;
 }
 
-void DataStreamer::buildStreamData(const std::string& command, const std::string& comm_mode, std::string& data, const ClientData& client_data)
+void DataStreamer::buildStreamData(const std::string& command, unsigned long long protocol_mode, std::string& data, const ClientData& client_data)
 {
   std::ostringstream o_header;
   std::ostringstream o_data;
@@ -74,7 +74,7 @@ void DataStreamer::buildStreamData(const std::string& command, const std::string
 
   o_header << MABOSS_MAGIC << "\n";
   o_header << PROTOCOL_VERSION << PROTOCOL_VERSION_NUMBER << "\n";
-  o_header << PROTOCOL_MODE << comm_mode << "\n";
+  o_header << PROTOCOL_MODE << protocol_mode << "\n";
   o_header << COMMAND << command << "\n";
 
   const std::vector<std::string>& config_v = client_data.getConfigs();
@@ -236,7 +236,7 @@ int DataStreamer::parseStreamData(ClientData& client_data, const std::string& in
     if (directive == PROTOCOL_VERSION) {
       client_data.setProtocolVersion(header_item_iter->getValue());
     } else if (directive == PROTOCOL_MODE) {
-      client_data.setProtocolMode(header_item_iter->getValue());
+      client_data.setProtocolMode(atoll(header_item_iter->getValue().c_str()));
     } else if (directive == COMMAND) {
       client_data.setCommand(header_item_iter->getValue());
     } else if (directive == NETWORK) {

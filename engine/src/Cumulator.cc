@@ -174,7 +174,7 @@ void Cumulator::epilogue(Network* network, const NetworkState& reference_state)
 #endif
 }
 
-void Cumulator::displayCSV(Network* network, unsigned int refnode_count, std::ostream& os_probtraj, std::ostream& os_statdist) const
+void Cumulator::displayCSV(Network* network, unsigned int refnode_count, std::ostream& os_probtraj, std::ostream& os_statdist, bool hexfloat) const
 {
   std::vector<Node*>::const_iterator begin_network;
 
@@ -197,6 +197,9 @@ void Cumulator::displayCSV(Network* network, unsigned int refnode_count, std::os
   for (int nn = 0; nn < max_tick_index; ++nn) {
     os_probtraj << std::setprecision(4) << std::fixed << (nn*time_tick);
     // TH
+    if (hexfloat) {
+      os_probtraj << std::hexfloat;
+    }
     const CumulMap& mp = get_map(nn);
     CumulMap::Iterator iter = mp.iterator();
     os_probtraj << '\t' << TH_v[nn];
@@ -266,6 +269,10 @@ void Cumulator::displayCSV(Network* network, unsigned int refnode_count, std::os
   unsigned int statdist_traj_count = RunConfig::getInstance()->getStatDistTrajCount();
   if (statdist_traj_count == 0) {
     return;
+  }
+
+  if (hexfloat) {
+    os_statdist << std::hexfloat;
   }
 
   unsigned int max_size = 0;

@@ -85,7 +85,7 @@ public:
 
   bool converges() const {return fixpoints.size() > 0;}
 
-  void display(std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp) const;
+  void display(std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat = false) const;
 
   long long getElapsedCoreRunTime() const {return elapsed_core_runtime;}
   long long getUserCoreRunTime() const {return user_core_runtime;}

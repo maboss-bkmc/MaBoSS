@@ -33,8 +33,8 @@ PROTOCOL_VERSION_NUMBER = "1.0"
 MABOSS_MAGIC = "MaBoSS-2.0"
 PROTOCOL_VERSION = "Protocol-Version:"
 PROTOCOL_MODE = "Protocol-Mode:"
-PROTOCOL_ASCII_MODE = "ascii"
-PROTOCOL_HEXFLOAT_MODE = "hexfloat"
+PROTOCOL_ASCII_MODE = 0x1
+PROTOCOL_HEXFLOAT_MODE = 0x2
 COMMAND = "Command:"
 RUN_COMMAND = "run"
 PARSE_COMMAND = "parse"
@@ -52,6 +52,7 @@ FIXED_POINTS = "Fixed-Points:"
 RUN_LOG = "Run-Log:"
 
 VERBOSE = False
+VERBOSE = True
 
 class HeaderItem:
 
@@ -76,18 +77,21 @@ class HeaderItem:
 class DataStreamer:
 
     @staticmethod
-    def buildStreamData(client_data):
+    def buildStreamData(client_data, hexfloat):
         data = ""
         offset = 0
         o_offset = 0
 
         command = RUN_COMMAND # for now
-        comm_mode = PROTOCOL_ASCII_MODE # for now
+        if hexfloat:
+            comm_mode = (PROTOCOL_ASCII_MODE | PROTOCOL_HEXFLOAT_MODE)
+        else:
+            comm_mode = PROTOCOL_ASCII_MODE
 
         #header = RUN + " " + MABOSS_MAGIC + "\n"
         header = MABOSS_MAGIC + "\n"
         header += PROTOCOL_VERSION + PROTOCOL_VERSION_NUMBER + "\n";
-        header += PROTOCOL_MODE + comm_mode + "\n";
+        header += PROTOCOL_MODE + str(comm_mode) + "\n";
         header += COMMAND + command + "\n";
 
         config_data = client_data.getConfig()
@@ -227,41 +231,41 @@ class ResultData:
     def setStatus(self, status):
         self._status = status
 
-    def getStatus(self):
-        return self._status
-
     def setErrorMessage(self, errmsg):
         self._errmsg = errmsg
-
-    def getErrorMessage(self):
-        return self._errmsg
 
     def setStatDist(self, data_value):
         self._stat_dist = data_value
 
-    def getStatDist(self):
-        return self._stat_dist
-
     def setProbTraj(self, data_value):
         self._prob_traj = data_value
-
-    def getProbTraj(self):
-        return self._prob_traj
 
     def setTraj(self, data_value):
         self._traj = data_value
 
-    def getTraj(self):
-        return self._traj
-
     def setFP(self, data_value):
         self._FP = data_value
 
-    def getFP(self):
-        return self._FP
-
     def setRunLog(self, data_value):
         self._runlog = data_value
+
+    def getStatus(self):
+        return self._status
+
+    def getErrorMessage(self):
+        return self._errmsg
+
+    def getStatDist(self):
+        return self._stat_dist
+
+    def getProbTraj(self):
+        return self._prob_traj
+
+    def getTraj(self):
+        return self._traj
+
+    def getFP(self):
+        return self._FP
 
     def getRunLog(self):
         return self._runlog
@@ -328,8 +332,8 @@ class MaBoSSClient:
             self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self._socket.connect((host, port))
             
-    def run(self, simulation):
-        return result.Result(self, simulation)
+    def run(self, simulation, hexfloat = False):
+        return result.Result(self, simulation, hexfloat)
 
     def send(self, data):
         self._socket.sendall(data)

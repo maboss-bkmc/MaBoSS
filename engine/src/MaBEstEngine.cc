@@ -240,7 +240,11 @@ void MaBEstEngine::runThread(Cumulator* cumulator, unsigned int start_count_thre
 	}
 	++begin;
       }
+
+      // EV: 2018-12-19 suppressed this block and integrated fixed point management below
+      /*
       if (total_rate == 0.0) {
+	std::cerr << "FP\n";
 	// may have several fixpoint maps
 	if (fixpoint_map->find(network_state.getState()) == fixpoint_map->end()) {
 	  (*fixpoint_map)[network_state.getState()] = 1;
@@ -252,19 +256,30 @@ void MaBEstEngine::runThread(Cumulator* cumulator, unsigned int start_count_thre
 	stable_cnt++;
 	break;
       }
+      */
 
-      double transition_time ;
-      if (discrete_time) {
-	transition_time = time_tick;
+      double TH;
+      if (total_rate == 0) {
+	tm = max_time;
+	TH = 0.;
+	if (fixpoint_map->find(network_state.getState()) == fixpoint_map->end()) {
+	  (*fixpoint_map)[network_state.getState()] = 1;
+	} else {
+	  (*fixpoint_map)[network_state.getState()]++;
+	}
+	stable_cnt++;
       } else {
-	double U_rand1 = random_generator->generate();
-	transition_time = -log(U_rand1) / total_rate;
+	double transition_time ;
+	if (discrete_time) {
+	  transition_time = time_tick;
+	} else {
+	  double U_rand1 = random_generator->generate();
+	  transition_time = -log(U_rand1) / total_rate;
+	}
+	
+	tm += transition_time;
+	TH = computeTH(nodeTransitionRates, total_rate);
       }
-
-      tm += transition_time;
-
-      NodeIndex node_idx = getTargetNode(random_generator, nodeTransitionRates, total_rate);
-      double TH = computeTH(nodeTransitionRates, total_rate);
 
       if (NULL != output_traj) {
 	(*output_traj) << std::setprecision(10) << tm << '\t';
@@ -278,6 +293,7 @@ void MaBEstEngine::runThread(Cumulator* cumulator, unsigned int start_count_thre
 	break;
       }
 
+      NodeIndex node_idx = getTargetNode(random_generator, nodeTransitionRates, total_rate);
       network_state.flipState(network->getNode(node_idx));
       step++;
     }
@@ -359,10 +375,10 @@ void MaBEstEngine::epilogue()
   delete merged_fixpoint_map;
 }
 
-void MaBEstEngine::display(std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp) const
+void MaBEstEngine::display(std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat) const
 {
   Probe probe;
-  merged_cumulator->displayCSV(network, refnode_count, output_probtraj, output_statdist);
+  merged_cumulator->displayCSV(network, refnode_count, output_probtraj, output_statdist, hexfloat);
   probe.stop();
   elapsed_statdist_runtime = probe.elapsed_msecs();
   user_statdist_runtime = probe.user_msecs();
@@ -375,6 +391,10 @@ void MaBEstEngine::display(std::ostream& output_probtraj, std::ostream& output_s
   output_fp << "Fixed Points (" << fixpoints.size() << ")\n";
   if (0 == fixpoints.size()) {
     return;
+  }
+
+  if (hexfloat) {
+    output_fp << std::hexfloat;
   }
 
   STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator begin = fixpoints.begin();

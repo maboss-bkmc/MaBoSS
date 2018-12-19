@@ -7,10 +7,10 @@ import maboss.comm
 
 class Result:
 
-    def __init__(self, mbcli, simulation):
+    def __init__(self, mbcli, simulation, hexfloat = False):
         client_data = maboss.comm.ClientData(simulation.getNetwork(), simulation.getConfig())
 
-        data = maboss.comm.DataStreamer.buildStreamData(client_data)
+        data = maboss.comm.DataStreamer.buildStreamData(client_data, hexfloat)
         #print "sending data", data
 
         data = mbcli.send(data)

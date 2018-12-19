@@ -45,6 +45,7 @@ static int usage(std::ostream& os = std::cerr)
   os << "  " << prog << " [-c|--config CONF_FILE] [-v|--config-vars VAR1=NUMERIC[,VAR2=...]] [-e|--config-expr CONFIG_EXPR] -d|--dump-config BOOLEAN_NETWORK_FILE\n\n";
   os << "  " << prog << " [-c|--config CONF_FILE] [-v|--config-vars VAR1=NUMERIC[,VAR2=...]] [-e|--config-expr CONFIG_EXPR] -l|--generate-logical-expressions BOOLEAN_NETWORK_FILE\n\n";
   os << "  " << prog << " -t|--generate-config-template BOOLEAN_NETWORK_FILE\n";
+  os << "  " << prog << " --hexfloat\n";
   return 1;
 }
 
@@ -63,6 +64,7 @@ static int help()
   std::cout << "  -d --dump-config                        : dumps configuration and exits\n";
   std::cout << "  -t --generate-config-template           : generates template configuration and exits\n";
   std::cout << "  -l --generate-logical-expressions       : generates the logical expressions and exits\n";
+  std::cout << "  --hexfloat                              : displays double in hexadecimal format\n";
   std::cout << "  -h --help                               : displays this message\n";
   std::cout << "\nNotices:\n";
   std::cout << "\n1. --config and --config-expr options can be used multiple times;\n";
@@ -86,8 +88,9 @@ int main(int argc, char* argv[])
   bool dump_config = false;
   bool generate_config_template = false;
   bool generate_logical_expressions = false;
+  bool hexfloat = false;
   dont_shrink_logical_expressions = false; // global flag
-
+  
   MaBEstEngine::init();
 
   for (int nn = 1; nn < argc; ++nn) {
@@ -119,6 +122,8 @@ int main(int argc, char* argv[])
       } else if (!strcmp(s, "-c") || !strcmp(s, "--config")) {
 	if (nn == argc-1) {std::cerr << '\n' << prog << ": missing value after option " << s << '\n'; return usage();}
 	runconfig_file_or_expr_v.push_back(ConfigOpt(argv[++nn], false));
+      } else if (!strcmp(s, "--hexfloat")) {
+	hexfloat = true;
       } else if (!strcmp(s, "--help") || !strcmp(s, "-h")) {
 	return help();
       } else {
@@ -236,7 +241,7 @@ int main(int argc, char* argv[])
     time(&start_time);
     MaBEstEngine mabest(network, runconfig);
     mabest.run(output_traj);
-    mabest.display(*output_probtraj, *output_statdist, *output_fp);
+    mabest.display(*output_probtraj, *output_statdist, *output_fp, hexfloat);
     time(&end_time);
 
     runconfig->display(network, start_time, end_time, mabest, *output_run);

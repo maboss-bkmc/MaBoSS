@@ -386,7 +386,7 @@ public:
     this->output_mask = output_mask;
   }
 
-  void displayCSV(Network* network, unsigned int refnode_count, std::ostream& os_probtraj = std::cout, std::ostream& os_statdist = std::cout) const;
+  void displayCSV(Network* network, unsigned int refnode_count, std::ostream& os_probtraj = std::cout, std::ostream& os_statdist = std::cout, bool hexfloat = false) const;
 
   void computeMaxTickIndex();
   void epilogue(Network* network, const NetworkState& reference_state);

@@ -52,7 +52,7 @@ void Client::send(const ClientData& client_data, ServerData& server_data)
   if (open() == rpc_Success) {
     std::string data;
     // 2018-11-08: warning: command and comm_mode not yet implemented
-    DataStreamer::buildStreamData("run", "", data, client_data);
+    DataStreamer::buildStreamData("run", 0, data, client_data);
     if (verbose) {
       std::cout << "client sending request [" << data << "]\n";
     }
