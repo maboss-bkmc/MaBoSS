@@ -21,7 +21,7 @@ public:
     double val = (*iter)->eval(this_node, network_state);
     if (expr_v.size() == 1) {
       std::cout << "test function(" << val << ")\n";
-      return log(val);
+      return log(val+10);
     }
 
     iter++;

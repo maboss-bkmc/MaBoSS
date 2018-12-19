@@ -57,11 +57,13 @@ all: $(MABOSS_LIB) $(MABOSS) $(MABOSS_SERVER) $(MABOSS_CLIENT)
 $(MABOSS_LIB): $(LIB_OBJS)
 	g++ -shared -o $(MABOSS_LIB) $+ -lpthread -ldl
 
-$(FUNC_MODULE): $(FUNC_MODULE).o $(MABOSS_LIB)
-	g++ -shared -o $(FUNC_MODULE).so $(FUNC_MODULE).o -l$(MABOSS_LIBNAME) -lpthread -L.
-#	g++ -shared -o $(FUNC_MODULE).so $(FUNC_MODULE).o -lpthread -L.
-#	g++ -shared -o user_func.so user_func.o -weak-lmaboss -lpthread -L.
+$(FUNC_MODULE): $(FUNC_MODULE).o $(LIB_OBJS)
+	g++ -shared -o $(FUNC_MODULE).so $(FUNC_MODULE).o $(LIB_OBJS) -lpthread -L.
 
+# $(FUNC_MODULE): $(FUNC_MODULE).o $(MABOSS_LIB)
+# 	g++ -shared -o $(FUNC_MODULE).so $(FUNC_MODULE).o -l$(MABOSS_LIBNAME) -lpthread -L.
+# #	g++ -shared -o $(FUNC_MODULE).so $(FUNC_MODULE).o -lpthread -L.
+# #	g++ -shared -o user_func.so user_func.o -weak-lmaboss -lpthread -L.
 
 $(MABOSS): MaBoSS$(INFIX).o $(MABOSS_OBJS)
 ifdef USE_LIB
