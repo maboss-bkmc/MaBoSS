@@ -5,7 +5,6 @@ node CycD
   rate_down = @logic ? 0.0 : $fast;
 }
 
-
 node CycE
 {
   logic = !Rb & E2F;

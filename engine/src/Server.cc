@@ -160,6 +160,12 @@ void Server::run(const ClientData& client_data, ServerData& server_data)
 
     IStateGroup::checkAndComplete(network);
 
+    if (client_data.getCommand() == DataStreamer::CHECK_COMMAND) {
+      delete_temp_files(files_to_delete_v);
+      server_data.setStatus(0);
+      return;
+    }
+
     if (runconfig->displayTrajectories()) {
       if (runconfig->getThreadCount() > 1) {
 	if (!quiet) {
@@ -243,7 +249,7 @@ void Server::manageRequest(int fd, const char* request)
     //rpc_writeStringData(fd, err_data.c_str(), err_data.length());
     //return;
   } else {
-    if (client_data.getCommand() == DataStreamer::RUN_COMMAND) {
+    if (client_data.getCommand() == DataStreamer::RUN_COMMAND || client_data.getCommand() == DataStreamer::CHECK_COMMAND) {
       run(client_data, server_data);
     } else {
       std::cerr << "unknown command \"" << client_data.getCommand() << "\"\n";

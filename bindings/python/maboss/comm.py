@@ -37,6 +37,7 @@ PROTOCOL_ASCII_MODE = 0x1
 PROTOCOL_HEXFLOAT_MODE = 0x2
 COMMAND = "Command:"
 RUN_COMMAND = "run"
+CHECK_COMMAND = "check"
 PARSE_COMMAND = "parse"
 NETWORK = "Network:"
 CONFIGURATION = "Configuration:"
@@ -85,7 +86,7 @@ class DataStreamer:
             hexfloat = "hexfloat" in hints and hints["hexfloat"]
             verbose = "verbose" in hints and hints["verbose"]
 
-        command = RUN_COMMAND # for now
+        command = client_data.getCommand()
         if hexfloat:
             comm_mode = (PROTOCOL_ASCII_MODE | PROTOCOL_HEXFLOAT_MODE)
         else:
@@ -209,15 +210,19 @@ class DataStreamer:
 
 class ClientData:
 
-    def __init__(self, network = None, config = None):
+    def __init__(self, network = None, config = None, command = 'Run'):
         self._network = network
         self._config = config
+        self._command = command
 
     def getNetwork(self):
         return self._network
 
     def getConfig(self):
         return self._config
+
+    def getCommand(self):
+        return self._command
 
     def setNetwork(self, network):
         self._network = network

@@ -44,6 +44,7 @@ static int usage(std::ostream& os = std::cerr)
   os << "  " << prog << " [--version]\n\n";
   os << "  " << prog << " [--verbose]\n\n";
   os << "  " << prog << " --port PORT [--host HOST] [-c|--config CONF_FILE] [-v|--config-vars VAR1=NUMERIC[,VAR2=...]] [-e|--config-expr CONFIG_EXPR] -o|--output OUTPUT BOOLEAN_NETWORK_FILE\n";
+  os << "  " << prog << " [--check]\n";
   os << "  " << prog << " [--hexfloat\n\n";
   return 1;
 }
@@ -61,6 +62,7 @@ static int help()
   std::cout << "  -e --config-expr CONFIG_EXPR            : evaluates the configuration expression; may have multiple expressions\n";
   std::cout << "                                            separated by semi-colons\n";
   std::cout << "  -o --output OUTPUT                      : prefix to be used for output files; when present run MaBoSS simulation process\n";
+  std::cout << "  --check                                 : checks network and configuration files and exits\n";
   std::cout << "  --hexfloat                              : displays double in hexadecimal format\n";
   std::cout << "  --verbose                               : verbose mode\n";
   std::cout << "  -h --help                               : displays this message\n";
@@ -81,6 +83,7 @@ int main(int argc, char* argv[])
   std::string port;
   std::string host;
   bool verbose = false;
+  bool check = false;
   bool hexfloat = false;
 
   for (int nn = 1; nn < argc; ++nn) {
@@ -125,6 +128,8 @@ int main(int argc, char* argv[])
 	runconfig_file_or_expr_v.push_back(ConfigOpt(argv[++nn], false));
       } else if (!strcmp(opt, "--verbose")) {
 	verbose = true;
+      } else if (!strcmp(opt, "--check")) {
+	check = true;
       } else if (!strcmp(opt, "--hexfloat")) {
 	hexfloat = true;
       } else if (!strcmp(opt, "--help") || !strcmp(opt, "-h")) {
@@ -177,7 +182,7 @@ int main(int argc, char* argv[])
 
   client_data.setConfigVars(config_vars);
 
-  client_data.setCommand(DataStreamer::RUN_COMMAND);
+  client_data.setCommand(check ? DataStreamer::CHECK_COMMAND : DataStreamer::RUN_COMMAND);
   unsigned long long protocol_mode = DataStreamer::PROTOCOL_ASCII_MODE;
   if (hexfloat) {
     protocol_mode |= DataStreamer::PROTOCOL_HEXFLOAT_MODE;

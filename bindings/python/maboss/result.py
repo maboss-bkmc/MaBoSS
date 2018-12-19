@@ -8,7 +8,12 @@ import maboss.comm
 class Result:
 
     def __init__(self, mbcli, simulation, hints):
-        client_data = maboss.comm.ClientData(simulation.getNetwork(), simulation.getConfig())
+        if "check" in hints and hints["check"]:
+            command = maboss.comm.CHECK_COMMAND
+        else:
+            command = maboss.comm.RUN_COMMAND
+
+        client_data = maboss.comm.ClientData(simulation.getNetwork(), simulation.getConfig(), command)
 
         data = maboss.comm.DataStreamer.buildStreamData(client_data, hints)
         #print "sending data", data

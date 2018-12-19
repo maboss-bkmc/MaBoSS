@@ -43,6 +43,7 @@ const unsigned long long DataStreamer::PROTOCOL_ASCII_MODE = 0x1ULL;
 const unsigned long long DataStreamer::PROTOCOL_HEXFLOAT_MODE = 0x2ULL;
 const std::string DataStreamer::COMMAND = "Command:";
 const std::string DataStreamer::RUN_COMMAND = "run";
+const std::string DataStreamer::CHECK_COMMAND = "check";
 const std::string DataStreamer::PARSE_COMMAND = "parse";
 const std::string DataStreamer::NETWORK = "Network:";
 const std::string DataStreamer::CONFIGURATION = "Configuration:";

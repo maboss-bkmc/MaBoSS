@@ -46,6 +46,7 @@ public:
   static const unsigned long long PROTOCOL_HEXFLOAT_MODE;
   static const std::string COMMAND;
   static const std::string RUN_COMMAND;
+  static const std::string CHECK_COMMAND;
   static const std::string PARSE_COMMAND;
   static const std::string RETURN;
   static const std::string STATUS;

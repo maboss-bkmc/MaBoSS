@@ -45,6 +45,7 @@ static int usage(std::ostream& os = std::cerr)
   os << "  " << prog << " [-c|--config CONF_FILE] [-v|--config-vars VAR1=NUMERIC[,VAR2=...]] [-e|--config-expr CONFIG_EXPR] -d|--dump-config BOOLEAN_NETWORK_FILE\n\n";
   os << "  " << prog << " [-c|--config CONF_FILE] [-v|--config-vars VAR1=NUMERIC[,VAR2=...]] [-e|--config-expr CONFIG_EXPR] -l|--generate-logical-expressions BOOLEAN_NETWORK_FILE\n\n";
   os << "  " << prog << " -t|--generate-config-template BOOLEAN_NETWORK_FILE\n";
+  os << "  " << prog << " [--check]\n";
   os << "  " << prog << " --hexfloat\n";
   return 1;
 }
@@ -64,6 +65,7 @@ static int help()
   std::cout << "  -d --dump-config                        : dumps configuration and exits\n";
   std::cout << "  -t --generate-config-template           : generates template configuration and exits\n";
   std::cout << "  -l --generate-logical-expressions       : generates the logical expressions and exits\n";
+  std::cout << "  --check                                 : checks network and configuration files and exits\n";
   std::cout << "  --hexfloat                              : displays double in hexadecimal format\n";
   std::cout << "  -h --help                               : displays this message\n";
   std::cout << "\nNotices:\n";
@@ -89,6 +91,7 @@ int main(int argc, char* argv[])
   bool generate_config_template = false;
   bool generate_logical_expressions = false;
   bool hexfloat = false;
+  bool check = false;
   dont_shrink_logical_expressions = false; // global flag
   
   MaBEstEngine::init();
@@ -122,6 +125,8 @@ int main(int argc, char* argv[])
       } else if (!strcmp(s, "-c") || !strcmp(s, "--config")) {
 	if (nn == argc-1) {std::cerr << '\n' << prog << ": missing value after option " << s << '\n'; return usage();}
 	runconfig_file_or_expr_v.push_back(ConfigOpt(argv[++nn], false));
+      } else if (!strcmp(s, "--check")) {
+	check = true;
       } else if (!strcmp(s, "--hexfloat")) {
 	hexfloat = true;
       } else if (!strcmp(s, "--help") || !strcmp(s, "-h")) {
@@ -142,7 +147,7 @@ int main(int argc, char* argv[])
     return usage();
   }
     
-  if (!dump_config && !generate_config_template && !generate_logical_expressions && output == NULL) {
+  if (!dump_config && !generate_config_template && !generate_logical_expressions && !check && output == NULL) {
     std::cerr << '\n' << prog << ": ouput option is not set\n";
     return usage();
   }
@@ -174,6 +179,11 @@ int main(int argc, char* argv[])
 
   if (generate_config_template && runconfig_var_v.size() > 0) {
     std::cerr << '\n' << prog << ": --generate-config-template and --config-vars are exclusive options\n";
+    return usage();
+  }
+
+  if (check && output) {
+    std::cerr << '\n' << prog << ": --check and -o|--output are exclusive options\n";
     return usage();
   }
 
@@ -214,6 +224,10 @@ int main(int argc, char* argv[])
     }
 
     IStateGroup::checkAndComplete(network);
+
+    if (check) {
+      return 0;
+    }
 
     if (generate_logical_expressions) {
       network->generateLogicalExpressions(std::cout);
