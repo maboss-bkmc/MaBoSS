@@ -24,7 +24,7 @@ node CycA
 node CycB
 {
   logic = !Cdc20 & !cdh1;
-  rate_up = @logic ? $slow : test(0.0);
+  rate_up = @logic ? $slow : 0.0;
   rate_down = @logic ? 0.0 : $fast;
 }
 
