@@ -62,6 +62,7 @@ exppart		[eE](\-|\+)?[0-9]+
 [0-9]+			{ sscanf(yytext, "%lld", &yylval.l); return INTEGER; }
 {fracconst}{exppart}?	{ yylval.d = atof(yytext); return DOUBLE; }
 [0-9]+{exppart}		{ yylval.d = atof(yytext); return DOUBLE; }
+0x([0-9a-fA-F]*\.[0-9a-fA-F]+|[0-9a-fA-F]+\.?)p[-+]?[0-9]+ { yylval.d = atof(yytext); return DOUBLE; }
 .			{ return yytext[0]; }
 
 %%

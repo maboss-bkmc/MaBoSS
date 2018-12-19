@@ -51,14 +51,19 @@ void Client::send(const ClientData& client_data, ServerData& server_data)
 {
   if (open() == rpc_Success) {
     std::string data;
-    DataStreamer::buildStreamData(data, client_data);
-    //std::cout << "client sending [" << data << "]\n";
+    // 2018-11-08: warning: command and comm_mode not yet implemented
+    DataStreamer::buildStreamData("run", "", data, client_data);
+    if (verbose) {
+      std::cout << "client sending request [" << data << "]\n";
+    }
 
     rpc_writeStringData(sock_fd, data.c_str(), data.length());
     
     char* response = rpc_readStringData(sock_fd);
     if (response != NULL) {
-      //std::cout << "client received [" << strlen(response) << "]\n";
+      if (verbose) {
+	std::cout << "client received [" << response << "]\n";
+      }
       DataStreamer::parseStreamData(server_data, response);
       free(response);
     }

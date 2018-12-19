@@ -126,7 +126,7 @@ void Server::run(const ClientData& client_data, ServerData& server_data)
     char* timebuf = ctime(&start_time);
     timebuf[strlen(timebuf)-1] = 0;
     if (!quiet) {
-      std::cerr << "\n" << hst << " " << prog << " launching simulation at " << timebuf << " " << hst << "\n";
+      std::cerr << "\n" << hst << " " << prog << " running simulation at " << timebuf << " " << hst << "\n";
     }
     Network* network = new Network();
     std::string network_file = output + "_network.bnd";
@@ -227,19 +227,32 @@ void Server::run(const ClientData& client_data, ServerData& server_data)
 void Server::manageRequest(int fd, const char* request)
 {
   ClientData client_data;
+  ServerData server_data;
   std::string err_data;
+  int status;
+
   if (verbose) {
     std::cout << "request [" << request << "]\n";
   }
-  if (DataStreamer::parseStreamData(client_data, request, err_data)) {
-    rpc_writeStringData(fd, err_data.c_str(), err_data.length());
-    return;
-  }
 
-  ServerData server_data;
-  run(client_data, server_data);
+  if ((status = DataStreamer::parseStreamData(client_data, request, err_data)) != 0) {
+    server_data.setStatus(status);
+    server_data.setErrorMessage(err_data);
+    //rpc_writeStringData(fd, err_data.c_str(), err_data.length());
+    //return;
+  } else {
+    if (client_data.getCommand() == DataStreamer::RUN_COMMAND) {
+      run(client_data, server_data);
+    } else {
+      std::cerr << "unknown command \"" << client_data.getCommand() << "\"\n";
+      return;
+    }
+  }
 
   std::string data;
   DataStreamer::buildStreamData(data, server_data);
+  if (verbose) {
+    std::cout << "response [" << data << "]\n";
+  }
   rpc_writeStringData(fd, data.c_str(), data.length());
 }

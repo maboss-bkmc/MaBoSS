@@ -377,9 +377,6 @@ void MaBEstEngine::display(std::ostream& output_probtraj, std::ostream& output_s
     return;
   }
 
-
-  //std::map<NetworkState, unsigned int>::const_iterator begin = fixpoints.begin();
-  //std::map<NetworkState, unsigned int>::const_iterator end = fixpoints.end();
   STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator begin = fixpoints.begin();
   STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator end = fixpoints.end();
   

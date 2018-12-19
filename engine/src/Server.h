@@ -115,14 +115,14 @@ class Server : public rpc_Server {
   bool verbose;
   static Server* server;
 
-  Server(const std::string& host, const std::string& port, const std::string& prog, const std::string& pidfile) : rpc_Server(host, port), prog(prog), pidfile(pidfile), quiet(false), verbose(false) { }
+  Server(const std::string& host, const std::string& port, const std::string& prog, const std::string& pidfile, bool quiet = false, bool verbose = false) : rpc_Server(host, port), prog(prog), pidfile(pidfile), quiet(verbose), verbose(verbose) { }
 
   void run(const ClientData& client_data, ServerData& server_data);
 
 public:
-  static Server* getServer(const std::string& host, const std::string& port, const std::string& prog, const std::string& pidfile = "") {
+  static Server* getServer(const std::string& host, const std::string& port, const std::string& prog, const std::string& pidfile = "", bool quiet = false, bool verbose = false) {
     if (NULL == server) {
-      server = new Server(host, port, prog, pidfile);
+      server = new Server(host, port, prog, pidfile, quiet, verbose);
     }
     return server;
   }

@@ -34,8 +34,16 @@
 #include "DataStreamer.h"
 #include "Utils.h"
 
-const std::string DataStreamer::LAUNCH = "LAUNCH";
-const std::string DataStreamer::MABOSS = "MaBoSS-2.0";
+const std::string DataStreamer::PROTOCOL_VERSION_NUMBER = "1.0";
+
+const std::string DataStreamer::MABOSS_MAGIC = "MaBoSS-2.0";
+const std::string DataStreamer::PROTOCOL_VERSION = "Protocol-Version:";
+const std::string DataStreamer::PROTOCOL_MODE = "Protocol-Mode:";
+const std::string DataStreamer::PROTOCOL_ASCII_MODE = "ascii";
+const std::string DataStreamer::PROTOCOL_HEXFLOAT_MODE = "hexfloat";
+const std::string DataStreamer::COMMAND = "Command:";
+const std::string DataStreamer::RUN_COMMAND = "run";
+const std::string DataStreamer::PARSE_COMMAND = "parse";
 const std::string DataStreamer::NETWORK = "Network:";
 const std::string DataStreamer::CONFIGURATION = "Configuration:";
 const std::string DataStreamer::CONFIGURATION_EXPRESSIONS = "Configuration-Expressions:";
@@ -57,14 +65,17 @@ static size_t add_header(std::ostringstream& o_header, const std::string& direct
   return offset;
 }
 
-void DataStreamer::buildStreamData(std::string& data, const ClientData& client_data)
+void DataStreamer::buildStreamData(const std::string& command, const std::string& comm_mode, std::string& data, const ClientData& client_data)
 {
   std::ostringstream o_header;
   std::ostringstream o_data;
   size_t offset = 0;
   size_t o_offset = offset;
 
-  o_header << LAUNCH << " " << MABOSS << "\n";
+  o_header << MABOSS_MAGIC << "\n";
+  o_header << PROTOCOL_VERSION << PROTOCOL_VERSION_NUMBER << "\n";
+  o_header << PROTOCOL_MODE << comm_mode << "\n";
+  o_header << COMMAND << command << "\n";
 
   const std::vector<std::string>& config_v = client_data.getConfigs();
   for (std::vector<std::string>::const_iterator iter_config = config_v.begin(); iter_config != config_v.end(); ++iter_config) {
@@ -105,7 +116,7 @@ void DataStreamer::buildStreamData(std::string &data, const ServerData& server_d
   size_t offset = 0;
   size_t o_offset = offset;
 
-  o_header << RETURN << " " << MABOSS << "\n";
+  o_header << RETURN << " " << MABOSS_MAGIC << "\n";
   o_header << STATUS << server_data.getStatus() << "\n";
   if (server_data.getStatus() != 0) {
     o_header << ERROR_MESSAGE << server_data.getErrorMessageRaw() << "\n";
@@ -154,7 +165,7 @@ void DataStreamer::buildStreamData(std::string &data, const ServerData& server_d
 std::string DataStreamer::error(int status, const std::string& errmsg)
 {
   std::ostringstream o_str;
-  o_str << RETURN << " " << MABOSS << "\n" << STATUS << status << "\n" << ERROR_MESSAGE << errmsg << "\n\n";
+  o_str << RETURN << " " << MABOSS_MAGIC << "\n" << STATUS << status << "\n" << ERROR_MESSAGE << errmsg << "\n\n";
   return o_str.str();
 }
 
@@ -178,7 +189,7 @@ int DataStreamer::parse_header_items(const std::string &header, std::vector<Head
     std::string value = header.substr(opos, pos-opos);
     opos = pos+1;
     size_t pos2 = value.find("-");
-    if (directive == STATUS || directive == ERROR_MESSAGE) {
+    if (directive == STATUS || directive == ERROR_MESSAGE || directive == PROTOCOL_VERSION || directive == PROTOCOL_MODE || directive == COMMAND) {
       header_item_v.push_back(HeaderItem(directive, value));
     } else if (pos2 != std::string::npos) {
       header_item_v.push_back(HeaderItem(directive, atoll(value.substr(0, pos2).c_str()), atoll(value.substr(pos2+1).c_str())));
@@ -193,7 +204,8 @@ int DataStreamer::parse_header_items(const std::string &header, std::vector<Head
 
 int DataStreamer::parseStreamData(ClientData& client_data, const std::string& input_data, std::string& err_data)
 {
-  std::string magic = LAUNCH + " " + MABOSS;
+  //std::string magic = RUN + " " + MABOSS_MAGIC;
+  std::string magic = MABOSS_MAGIC;
   size_t pos = input_data.find(magic);
   if (pos == std::string::npos) {
     int status = 1;
@@ -221,7 +233,13 @@ int DataStreamer::parseStreamData(ClientData& client_data, const std::string& in
   for (std::vector<HeaderItem>::const_iterator header_item_iter = header_item_v.begin(); header_item_iter != header_item_v.end(); ++header_item_iter) {
     const std::string& directive = header_item_iter->getDirective();
     std::string data_value = data.substr(header_item_iter->getFrom(), header_item_iter->getTo() - header_item_iter->getFrom() + 1);
-    if (directive == NETWORK) {
+    if (directive == PROTOCOL_VERSION) {
+      client_data.setProtocolVersion(header_item_iter->getValue());
+    } else if (directive == PROTOCOL_MODE) {
+      client_data.setProtocolMode(header_item_iter->getValue());
+    } else if (directive == COMMAND) {
+      client_data.setCommand(header_item_iter->getValue());
+    } else if (directive == NETWORK) {
       client_data.setNetwork(data_value);
     } else if (directive == CONFIGURATION) {
       client_data.addConfig(data_value);
@@ -247,7 +265,7 @@ int DataStreamer::parseStreamData(ClientData& client_data, const std::string& in
 
 int DataStreamer::parseStreamData(ServerData& server_data, const std::string& input_data)
 {
-  std::string magic = RETURN + " " + MABOSS;
+  std::string magic = RETURN + " " + MABOSS_MAGIC;
   size_t pos = input_data.find(magic);
   if (pos == std::string::npos) {
     server_data.setStatus(1);

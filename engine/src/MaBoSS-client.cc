@@ -41,8 +41,9 @@ static int usage(std::ostream& os = std::cerr)
 {
   os << "\nUsage:\n\n";
   os << "  " << prog << " [-h|--help]\n\n";
-  os << "  " << prog << " [-V|--version]\n\n";
-  os << "  " << prog << " --host HOST --port PORT [-c|--config CONF_FILE] [-v|--config-vars VAR1=NUMERIC[,VAR2=...]] [-e|--config-expr CONFIG_EXPR] -o|--output OUTPUT BOOLEAN_NETWORK_FILE\n\n";
+  os << "  " << prog << " [--version]\n\n";
+  os << "  " << prog << " [--verbose]\n\n";
+  os << "  " << prog << " --port PORT [--host HOST] [-c|--config CONF_FILE] [-v|--config-vars VAR1=NUMERIC[,VAR2=...]] [-e|--config-expr CONFIG_EXPR] -o|--output OUTPUT BOOLEAN_NETWORK_FILE\n\n";
   return 1;
 }
 
@@ -51,7 +52,7 @@ static int help()
   //  std::cout << "\n=================================================== " << prog << " help " << "===================================================\n";
   (void)usage(std::cout);
   std::cout << "\nOptions:\n\n";
-  std::cout << "  -V --version                            : displays MaBoSS-client version\n";
+  std::cout << "  --version                               : displays MaBoSS-client version\n";
   std::cout << "  --host HOST                             : reaches server on given host\n";
   std::cout << "  --port PORT                             : reaches server on given PORT (number or filename)\n";
   std::cout << "  -c --config CONF_FILE                   : uses CONF_FILE as a configuration file\n";
@@ -59,6 +60,7 @@ static int help()
   std::cout << "  -e --config-expr CONFIG_EXPR            : evaluates the configuration expression; may have multiple expressions\n";
   std::cout << "                                            separated by semi-colons\n";
   std::cout << "  -o --output OUTPUT                      : prefix to be used for output files; when present run MaBoSS simulation process\n";
+  std::cout << "  --verbose                               : verbose mode\n";
   std::cout << "  -h --help                               : displays this message\n";
   std::cout << "\nNotices:\n";
   std::cout << "\n1. --config and --config-expr options can be used multiple times;\n";
@@ -76,11 +78,12 @@ int main(int argc, char* argv[])
   const char* ctbndl_file = NULL;
   std::string port;
   std::string host;
+  bool verbose = false;
 
   for (int nn = 1; nn < argc; ++nn) {
     const char* opt = argv[nn];
     if (opt[0] == '-') {
-      if (!strcmp(opt, "-version") || !strcmp(opt, "--version") || !strcmp(opt, "-V")) { // keep -version for backward compatibility
+      if (!strcmp(opt, "-version") || !strcmp(opt, "--version")) { // keep -version for backward compatibility
 	//std::cout << "MaBoSS version " + MaBEstEngine::VERSION << " [networks up to " << MAXNODES << " nodes]\n";
 	std::cout << "MaBoSS version <TBD>\n";
 	return 0;
@@ -94,7 +97,7 @@ int main(int argc, char* argv[])
 	  return usage();
 	}
 	port = argv[++nn];
-      } else if (!strcmp(opt, "--config-vars") || !strcmp(opt, "-v")) {
+      } else if (!strcmp(opt, "--config-vars")) {
 	if (checkArgMissing(prog, opt, nn, argc)) {
 	  return usage();
 	}
@@ -117,6 +120,8 @@ int main(int argc, char* argv[])
 	  return usage();
 	}
 	runconfig_file_or_expr_v.push_back(ConfigOpt(argv[++nn], false));
+      } else if (!strcmp(opt, "--verbose")) {
+	verbose = true;
       } else if (!strcmp(opt, "--help") || !strcmp(opt, "-h")) {
 	return help();
       } else {
@@ -136,15 +141,17 @@ int main(int argc, char* argv[])
   }
     
 
-  if (host.length() == 0) {
-    std::cerr << '\n' << prog << ": host is missing\n";
-    return usage();
-  }
-
   if (port.length() == 0) {
     std::cerr << '\n' << prog << ": port is missing\n";
     return usage();
   }
+
+  /*
+  if (host.length() == 0) {
+    std::cerr << '\n' << prog << ": host is missing\n";
+    return usage();
+  }
+  */
 
   ClientData client_data;
 
@@ -172,7 +179,7 @@ int main(int argc, char* argv[])
 
   client_data.setConfigVars(config_vars);
 
-  Client* client = new Client(host, port);
+  Client* client = new Client(host, port, verbose);
   ServerData server_data;
   client->send(client_data, server_data);
 

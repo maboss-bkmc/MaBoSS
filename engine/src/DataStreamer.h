@@ -37,8 +37,16 @@
 #include "Server.h"
 
 class DataStreamer {
-  static const std::string LAUNCH;
-  static const std::string MABOSS;
+public:
+  static const std::string MABOSS_MAGIC;
+  static const std::string PROTOCOL_VERSION;
+  static const std::string PROTOCOL_VERSION_NUMBER;
+  static const std::string PROTOCOL_MODE;
+  static const std::string PROTOCOL_ASCII_MODE;
+  static const std::string PROTOCOL_HEXFLOAT_MODE;
+  static const std::string COMMAND;
+  static const std::string RUN_COMMAND;
+  static const std::string PARSE_COMMAND;
   static const std::string RETURN;
   static const std::string STATUS;
   static const std::string ERROR_MESSAGE;
@@ -53,6 +61,7 @@ class DataStreamer {
   static const std::string RUN_LOG;
   static std::string error(int status, const std::string& errmsg);
 
+private:
   class HeaderItem {
     std::string directive;
     size_t from;
@@ -71,7 +80,7 @@ class DataStreamer {
   static int parse_header_items(const std::string &header, std::vector<HeaderItem>& header_item_v, std::string& err_data);
 
 public:
-  static void buildStreamData(std::string& data, const ClientData& client_data);
+  static void buildStreamData(const std::string& command, const std::string& comm_mode, std::string& data, const ClientData& client_data);
   static void buildStreamData(std::string &data, const ServerData& server_data);
   static int parseStreamData(ClientData& client_data, const std::string& data, std::string& err_data);
   static int parseStreamData(ServerData& server_data, const std::string& data);

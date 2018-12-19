@@ -39,12 +39,28 @@
 class ServerData;
 
 class ClientData {
+  std::string protocol_version;
+  std::string protocol_mode;
+  std::string command;
+
   std::string network;
   std::vector<std::string> config_v;
   std::vector<std::string> config_expr_v;
   std::string config_vars;
 
 public:
+  void setProtocolVersion(const std::string& protocol_version) {
+    this->protocol_version = protocol_version;
+  }
+
+  void setProtocolMode(const std::string& protocol_mode) {
+    this->protocol_mode = protocol_mode;
+  }
+
+  void setCommand(const std::string& command) {
+    this->command = command;
+  }
+
   void setNetwork(const std::string& network) {
     this->network = network;
   }
@@ -59,6 +75,18 @@ public:
 
   void setConfigVars(const std::string& config_vars) {
     this->config_vars = config_vars;
+  }
+
+  const std::string& getProtocolVersion() const {
+    return protocol_version;
+  }
+
+  const std::string& getProtocolMode() const {
+    return protocol_mode;
+  }
+
+  const std::string& getCommand() const {
+    return command;
   }
 
   const std::string& getNetwork() const {
@@ -81,9 +109,10 @@ public:
 class Client : public rpc_Client {
   std::string host;
   std::string port;
+  bool verbose;
 
 public:
-  Client(const std::string& host, const std::string& port) : rpc_Client(host, port) { }
+  Client(const std::string& host, const std::string& port, bool verbose = false) : rpc_Client(host, port), verbose(verbose) { }
 
   void send(const ClientData& client_data, ServerData& server_data);
 };

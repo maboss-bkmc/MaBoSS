@@ -167,12 +167,13 @@ int rpc_Server::bind(const char** p_rpc_portname)
     port_h->u.in.sock_in_name.sin_family = AF_INET;
     port_h->u.in.sock_in_name.sin_port   = htons(atoi(portname));
       
-    if (hostname == NULL) {
+    if (hostname == NULL || !*hostname) {
       if (gethostname(hname, sizeof(hname)-1) < 0) {
 	perror("eyedb fatal error: gethostname failed");
 	return rpc_Error;
       }
       hname[sizeof(hname)-1] = 0;
+      hostname = hname;
     }
     else {
       strcpy(hname, hostname);
@@ -315,18 +316,28 @@ int rpc_Client::open()
   struct sockaddr_in sock_in_name;
   struct sockaddr_un sock_un_name;
   struct sockaddr *sock_addr;
+  char hname[128];
 
   std::string errmsg = "";
 
   int type = SOCK_STREAM;
 
   if (isnumber(portname)) {
-    char hname[64];
     domain = AF_INET;
     sock_in_name.sin_family = domain;
     sock_in_name.sin_port = htons(atoi(portname));
 
-    strcpy(hname, hostname);
+    if (hostname == NULL || !*hostname) {
+      if (gethostname(hname, sizeof(hname)-1) < 0) {
+	perror("eyedb fatal error: gethostname failed");
+	return rpc_Error;
+      }
+      hname[sizeof(hname)-1] = 0;
+      hostname = hname;
+    }
+    else {
+      strcpy(hname, hostname);
+    }
 
     if (!rpc_hostNameToAddr(hname, &sock_in_name.sin_addr)) {
       errmsg = std::string("unknown host: " ) + hostname;

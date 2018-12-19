@@ -18,7 +18,7 @@
 
 # Module: maboss/comm.py
 # Authors: Eric Viara <viara@sysra.com>
-# Date: May-July 2018
+# Date: May-December 2018
 
 import os, sys, time, signal, socket
 import atexit
@@ -28,8 +28,16 @@ import result
 # MaBoSS Communication Layer
 #
 
-LAUNCH = "LAUNCH"
-MABOSS = "MaBoSS-2.0"
+PROTOCOL_VERSION_NUMBER = "1.0"
+
+MABOSS_MAGIC = "MaBoSS-2.0"
+PROTOCOL_VERSION = "Protocol-Version:"
+PROTOCOL_MODE = "Protocol-Mode:"
+PROTOCOL_ASCII_MODE = "ascii"
+PROTOCOL_HEXFLOAT_MODE = "hexfloat"
+COMMAND = "Command:"
+RUN_COMMAND = "run"
+PARSE_COMMAND = "parse"
 NETWORK = "Network:"
 CONFIGURATION = "Configuration:"
 CONFIGURATION_EXPRESSIONS = "Configuration-Expressions:"
@@ -42,6 +50,8 @@ TRAJECTORY_PROBABILITY = "Trajectory-Probability:"
 TRAJECTORIES = "Trajectories:"
 FIXED_POINTS = "Fixed-Points:"
 RUN_LOG = "Run-Log:"
+
+VERBOSE = False
 
 class HeaderItem:
 
@@ -71,7 +81,14 @@ class DataStreamer:
         offset = 0
         o_offset = 0
 
-        header = LAUNCH + " " + MABOSS + "\n"
+        command = RUN_COMMAND # for now
+        comm_mode = PROTOCOL_ASCII_MODE # for now
+
+        #header = RUN + " " + MABOSS_MAGIC + "\n"
+        header = MABOSS_MAGIC + "\n"
+        header += PROTOCOL_VERSION + PROTOCOL_VERSION_NUMBER + "\n";
+        header += PROTOCOL_MODE + comm_mode + "\n";
+        header += COMMAND + command + "\n";
 
         config_data = client_data.getConfig()
         offset += len(config_data)
@@ -85,12 +102,14 @@ class DataStreamer:
 
         (header, o_offset) = DataStreamer._add_header(header, NETWORK, o_offset, offset)
 
+        if VERBOSE:
+            print "SENDING [", header, "]"
         return header + "\n" + data
 
     @staticmethod
     def parseStreamData(ret_data):
         result_data = ResultData()
-        magic = RETURN + " " + MABOSS
+        magic = RETURN + " " + MABOSS_MAGIC
         magic_len = len(magic)
         if ret_data[0:magic_len] != magic:
             result_data.setStatus(1)
@@ -107,8 +126,9 @@ class DataStreamer:
         offset += 1
         header = ret_data[offset:pos+1]
         data  = ret_data[pos+2:]
-        print "HEADER", header
-        #print "DATA", data[0:200]
+        if VERBOSE:
+            print "RECEIVED HEADER [ ", header, "]"
+            #print "DATA", data[0:200]
 
         header_items = []
         err_data = DataStreamer._parse_header_items(header, header_items)
@@ -252,7 +272,11 @@ class MaBoSSClient:
 
     def __init__(self, host = None, port = None, maboss_server = None):
         if not maboss_server:
-            maboss_server = "MaBoSS-server"
+            maboss_server = os.getenv("MABOSS_SERVER")
+            if not maboss_server:
+                maboss_server = "MaBoSS-server"
+#                if not maboss_server:
+#                    raise Exception("MaBoSS server not specified")
 
         self._maboss_server = maboss_server
         self._host = host
@@ -279,8 +303,9 @@ class MaBoSSClient:
                 try:
                     args = [self._maboss_server, "--host", "localhost", "-q", "--port", port, "--pidfile", self._pidfile]
                     os.execv(self._maboss_server, args)
-                except e:
-                    print >> sys.stderr, "error execv:", e
+                except Exception as e:
+                    print >> sys.stderr, "error while launching '" + self._maboss_server + "'", e
+                    sys.exit(1)
 
             self._pid = pid
             atexit.register(self.close)
@@ -294,7 +319,8 @@ class MaBoSSClient:
                 time.sleep(TIME_INTERVAL)
 
             if not server_started:
-                raise Exception("MaBoSS server on port " + port + " not started after " + str(MAX_TRIES*TIME_INTERVAL) + " seconds")
+                self._pidfile = None
+                raise Exception("MaBoSS server '" + self._maboss_server + "' on port " + port + " not started after " + str(MAX_TRIES*TIME_INTERVAL) + " seconds")
 
             self._socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             self._socket.connect(port)
@@ -302,11 +328,11 @@ class MaBoSSClient:
             self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self._socket.connect((host, port))
             
-    def launch(self, simulation):
+    def run(self, simulation):
         return result.Result(self, simulation)
 
     def send(self, data):
-        self._socket.send(data)
+        self._socket.sendall(data)
         self._term()
         SIZE = 4096
         ret_data = ""

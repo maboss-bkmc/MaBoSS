@@ -18,7 +18,5 @@ class Result:
 
         self._result_data = maboss.comm.DataStreamer.parseStreamData(data)
 
-        print "self._result_data status=", self._result_data.getStatus(), "errmsg=", self._result_data.getErrorMessage()
-        print "FP", self._result_data.getFP()
-        print "Runlog", self._result_data.getRunLog()
-
+    def getResultData(self):
+        return self._result_data
