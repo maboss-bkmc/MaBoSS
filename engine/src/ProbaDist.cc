@@ -34,6 +34,7 @@ class Network;
 #include "ProbaDist.h"
 #include "BooleanNetwork.h"
 #include "RunConfig.h"
+#include "Utils.h"
 #include <iomanip>
 #include <math.h>
 #include <float.h>
@@ -131,7 +132,7 @@ void ProbaDistClusterFactory::cacheSimilarities()
   }
 }
 
-void ProbaDistCluster::display(Network* network, std::ostream& os) const
+void ProbaDistCluster::display(Network* network, std::ostream& os, bool hexfloat) const
 {
   MAP<unsigned int, ProbaDist>::const_iterator begin = proba_dist_map.begin();
   MAP<unsigned int, ProbaDist>::const_iterator end = proba_dist_map.end();
@@ -140,29 +141,29 @@ void ProbaDistCluster::display(Network* network, std::ostream& os) const
     unsigned int nn = (*begin).first;
     const ProbaDist& proba_dist = (*begin).second;
     os << "#" << (nn+1);
-    proba_dist.display(os, network);
+    proba_dist.display(os, network, hexfloat);
     ++begin;
   }
 }
 
-void ProbaDistClusterFactory::display(Network* network, std::ostream& os) const
+void ProbaDistClusterFactory::display(Network* network, std::ostream& os, bool hexfloat) const
 {
   unsigned int size = proba_dist_cluster_v.size();
   for (unsigned int nn = 0; nn < size; ++nn) {
     ProbaDistCluster* cluster = proba_dist_cluster_v[nn];
     os << "\nTrajectory[cluster=#" << (nn+1) << ",size=" << cluster->size() << "]\tState\tProba\tState\tProba\tState\tProba\tState\tProba ...\n";
-    cluster->display(network, os);
+    cluster->display(network, os, hexfloat);
   }
 }
 
-void ProbaDistClusterFactory::displayStationaryDistribution(Network* network, std::ostream& os) const
+void ProbaDistClusterFactory::displayStationaryDistribution(Network* network, std::ostream& os, bool hexfloat) const
 {
   unsigned int size = proba_dist_cluster_v.size();
   os << "\nCluster\tState\tProba\tErrorProba\tState\tProba\tErrorProba\tState\tProba\tErrorProba\tState\tProba\tErrorProba...\n";
   for (unsigned int nn = 0; nn < size; ++nn) {
     ProbaDistCluster* cluster = proba_dist_cluster_v[nn];
     os << "#" << (nn+1);
-    cluster->displayStationaryDistribution(network, os);
+    cluster->displayStationaryDistribution(network, os, hexfloat);
     os << '\n';
   }
 }
@@ -189,7 +190,7 @@ void ProbaDistCluster::computeStationaryDistribution()
   }
 }
 
-void ProbaDistCluster::displayStationaryDistribution(Network* network, std::ostream& os) const
+void ProbaDistCluster::displayStationaryDistribution(Network* network, std::ostream& os, bool hexfloat) const
 {
   STATE_MAP<NetworkState_Impl, Proba>::const_iterator stat_dist_iter = stat_dist_map.begin();
   STATE_MAP<NetworkState_Impl, Proba>::const_iterator stat_dist_end = stat_dist_map.end();
@@ -206,14 +207,22 @@ void ProbaDistCluster::displayStationaryDistribution(Network* network, std::ostr
     double probaSquare = pb.probaSquare/sz;
     double vr = (probaSquare-proba*proba)/(sz-1); // EV 2014-10-07: in case of sz == 1, vr is nan
     //    os << '\t' << proba << " (" <<  (probaSquare-proba*proba) << ")" << '\t';
-    os << '\t' << proba << '\t';
+    if (hexfloat) {
+      os << '\t' << fmthexdouble(proba) << '\t';
+    } else {
+      os << '\t' << proba << '\t';
+    }
     double variance;
     if (vr < minsquaredouble || sz <= 1) { // EV 2014-10-07: sz <= 1 to avoid nan values
       variance = 0.0;
     } else {
       variance = sqrt(vr);
     }
-    os << variance;
+    if (hexfloat) {
+      os << fmthexdouble(variance);
+    } else {
+      os << variance;
+    }
     ++stat_dist_iter;
   }
 }
@@ -261,7 +270,7 @@ double ProbaDistCluster::similarity(unsigned int nn1, const ProbaDist& proba_dis
   return simil1 * simil2;
 }
 
-void ProbaDist::display(std::ostream& os, Network* network) const
+void ProbaDist::display(std::ostream& os, Network* network, bool hexfloat) const
 {
   ProbaDist::Iterator proba_dist_iter = iterator();
   os << std::setprecision(10);
@@ -272,7 +281,11 @@ void ProbaDist::display(std::ostream& os, Network* network) const
     NetworkState network_state(state);
     os << '\t';
     network_state.displayOneLine(os, network);
-    os << '\t' << proba;
+    if (hexfloat) {
+      os << '\t' << fmthexdouble(proba);
+    } else {
+      os << '\t' << proba;
+    }
   }
   os << '\n';
 }

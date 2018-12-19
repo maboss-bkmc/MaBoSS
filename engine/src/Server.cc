@@ -176,13 +176,6 @@ void Server::run(const ClientData& client_data, ServerData& server_data)
     output_fp = create_temp_file(fp_file, files_to_delete_v);
 
     bool hexfloat = (client_data.getProtocolMode() & DataStreamer::PROTOCOL_HEXFLOAT_MODE) != 0;
-    /*
-    if (hexfloat) {
-      (*output_probtraj) << std::hexfloat;
-      (*output_statdist) << std::hexfloat;
-      (*output_fp) << std::hexfloat;
-    }
-    */
 
     MaBEstEngine mabest(network, runconfig);
     mabest.run(output_traj);

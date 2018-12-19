@@ -115,3 +115,18 @@ std::string stringReplaceAll(const std::string& subject, const std::string& from
   return str;
 
 }
+
+// EV: 2018-12-19
+// std::hexfloat is missing on some gcc compiler version
+// introduced this function to print double in hexa format
+const char* fmthexdouble(double d)
+{
+  static const int MAXBUF_FMTDOUBLE = 8;
+  static char buf[MAXBUF_FMTDOUBLE][64];
+  static int buf_ind = 0;
+  if (buf_ind >= MAXBUF_FMTDOUBLE) {
+    buf_ind = 0;
+  }
+  sprintf(buf[buf_ind], "%a", d);
+  return buf[buf_ind++];
+}

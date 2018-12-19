@@ -58,5 +58,6 @@ extern int filePutContents(const std::string& file, const std::string& data);
 extern std::string stringReplaceAll(const std::string& subject, const std::string& from, const std::string& to);
 
 extern const std::string NL_PATTERN;
+extern const char* fmthexdouble(double d);
 
 #endif

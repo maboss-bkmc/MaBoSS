@@ -112,7 +112,7 @@ class ProbaDist {
     }
   };	
 
-  void display(std::ostream& os, Network* network) const;
+  void display(std::ostream& os, Network* network, bool hexfloat) const;
 
   Iterator iterator() {return Iterator(*this);}
   Iterator iterator() const {return Iterator(*this);}
@@ -144,8 +144,8 @@ class ProbaDistCluster {
   void complete(double threshold, unsigned int statdist_traj_count);
   void computeStationaryDistribution();
 
-  void display(Network* network, std::ostream& os) const;
-  void displayStationaryDistribution(Network* network, std::ostream& os) const;
+  void display(Network* network, std::ostream& os, bool display) const;
+  void displayStationaryDistribution(Network* network, std::ostream& os, bool hexfloat) const;
 };
 
 class ProbaDistClusterFactory {
@@ -208,9 +208,9 @@ class ProbaDistClusterFactory {
 
   void makeClusters(double threshold);
   void computeStationaryDistribution();
-  void displayStationaryDistribution(Network* network, std::ostream& os) const;
+  void displayStationaryDistribution(Network* network, std::ostream& os, bool hexfloat) const;
 
-  void display(Network* network, std::ostream& os) const;
+  void display(Network* network, std::ostream& os, bool hexfloat) const;
 };
 
 #endif

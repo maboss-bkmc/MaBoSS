@@ -32,6 +32,7 @@
 #include "BooleanNetwork.h"
 #include "Cumulator.h"
 #include "RunConfig.h"
+#include "Utils.h"
 #include <sstream>
 #include <iomanip>
 #include <math.h>
@@ -190,19 +191,25 @@ void Cumulator::displayCSV(Network* network, unsigned int refnode_count, std::os
 
   os_probtraj << '\n';
 
-  os_probtraj << std::fixed;
-  os_probtraj << std::setprecision(6);
+  //os_probtraj << std::fixed;
+  //os_probtraj << std::setprecision(6);
   double time_tick2 = time_tick * time_tick;
   double ratio = time_tick*sample_count;
   for (int nn = 0; nn < max_tick_index; ++nn) {
     os_probtraj << std::setprecision(4) << std::fixed << (nn*time_tick);
-    // TH
+#ifdef HAS_STD_HEXFLOAT
     if (hexfloat) {
       os_probtraj << std::hexfloat;
     }
+#endif
+    // TH
     const CumulMap& mp = get_map(nn);
     CumulMap::Iterator iter = mp.iterator();
-    os_probtraj << '\t' << TH_v[nn];
+    if (hexfloat) {
+      os_probtraj << '\t' << fmthexdouble(TH_v[nn]);
+    } else {
+      os_probtraj << '\t' << TH_v[nn];
+    }
 
     // ErrorTH
     //assert((size_t)nn < TH_square_v.size());
@@ -218,21 +225,38 @@ void Cumulator::displayCSV(Network* network, unsigned int refnode_count, std::os
       } else {
 	err_TH = 0.;
       }
-      os_probtraj << '\t' << err_TH;
+      if (hexfloat) {
+	os_probtraj << '\t' << fmthexdouble(err_TH);
+      } else {
+	os_probtraj << '\t' << err_TH;
+      }
     }
 
     // H
-    os_probtraj << '\t' << H_v[nn];
+    if (hexfloat) {
+      os_probtraj << '\t' << fmthexdouble(H_v[nn]);
+    } else {
+      os_probtraj << '\t' << H_v[nn];
+    }
 
+    std::string zero_hexfloat = fmthexdouble(0.0);
     // HD
     const MAP<unsigned int, double>& hd_m = HD_v[nn];
     for (unsigned int hd = 0; hd <= refnode_count; ++hd) { 
       os_probtraj << '\t';
       MAP<unsigned int, double>::const_iterator hd_m_iter = hd_m.find(hd);
       if (hd_m_iter != hd_m.end()) {
-	os_probtraj << (*hd_m_iter).second;
+	if (hexfloat) {
+	  os_probtraj << fmthexdouble((*hd_m_iter).second);
+	} else {
+	  os_probtraj << (*hd_m_iter).second;
+	}
       } else {
-	os_probtraj << "0.0";
+	if (hexfloat) {
+	  os_probtraj << zero_hexfloat;
+	} else {
+	  os_probtraj << "0.0";
+	}
       }
     }
 
@@ -246,7 +270,11 @@ void Cumulator::displayCSV(Network* network, unsigned int refnode_count, std::os
       os_probtraj << '\t';
       NetworkState network_state(state);
       network_state.displayOneLine(os_probtraj, network);
-      os_probtraj << '\t' << std::setprecision(6) << proba;
+      if (hexfloat) {
+	os_probtraj << '\t' << std::setprecision(6) << fmthexdouble(proba);
+      } else {
+	os_probtraj << '\t' << std::setprecision(6) << proba;
+      }
       if (COMPUTE_ERRORS) {
 	double tm_slice_square = tick_value.tm_slice_square;
 	double variance_proba = (tm_slice_square / ((sample_count-1) * time_tick2)) - (proba*proba*sample_count/(sample_count-1));
@@ -257,7 +285,11 @@ void Cumulator::displayCSV(Network* network, unsigned int refnode_count, std::os
 	} else {
 	  err_proba = 0.;
 	}
-	os_probtraj << '\t' << err_proba;
+	if (hexfloat) {
+	  os_probtraj << '\t' << fmthexdouble(err_proba);
+	} else {
+	  os_probtraj << '\t' << err_proba;
+	}
       }
     }
     os_probtraj << '\n';
@@ -271,9 +303,11 @@ void Cumulator::displayCSV(Network* network, unsigned int refnode_count, std::os
     return;
   }
 
+#ifdef HAS_STD_HEXFLOAT
   if (hexfloat) {
     os_statdist << std::hexfloat;
   }
+#endif
 
   unsigned int max_size = 0;
   unsigned int cnt = 0;
@@ -303,7 +337,7 @@ void Cumulator::displayCSV(Network* network, unsigned int refnode_count, std::os
     os_statdist << "#" << (cnt+1);
     cnt++;
 
-    proba_dist.display(os_statdist, network);
+    proba_dist.display(os_statdist, network, hexfloat);
     if (cnt >= statdist_traj_count) {
       break;
     }
@@ -323,9 +357,9 @@ void Cumulator::displayCSV(Network* network, unsigned int refnode_count, std::os
   // should not be called from here, but from MaBestEngine
   ProbaDistClusterFactory* clusterFactory = new ProbaDistClusterFactory(proba_dist_v, statdist_traj_count);
   clusterFactory->makeClusters(RunConfig::getInstance()->getStatdistClusterThreshold());
-  clusterFactory->display(network, os_statdist);
+  clusterFactory->display(network, os_statdist, hexfloat);
   clusterFactory->computeStationaryDistribution();
-  clusterFactory->displayStationaryDistribution(network, os_statdist);
+  clusterFactory->displayStationaryDistribution(network, os_statdist, hexfloat);
 }
 
 void Cumulator::add(unsigned int where, const CumulMap& add_cumul_map)
