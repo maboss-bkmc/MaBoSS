@@ -206,6 +206,8 @@ public:
 extern std::ostream& operator<<(std::ostream& os, const BNException& e);
 
 class Node {
+  static bool override;
+  static bool augment;
   std::string label;
   std::string description;
   bool istate_set;
@@ -238,17 +240,11 @@ class Node {
     return description;
   }
 
-  void setLogicalInputExpression(const Expression* logicalInputExpr) {
-    this->logicalInputExpr = logicalInputExpr;
-  }
+  void setLogicalInputExpression(const Expression* logicalInputExpr);
 
-  void setRateUpExpression(const Expression* expr) {
-    this->rateUpExpr = expr;
-  }
+  void setRateUpExpression(const Expression* expr);
 
-  void setRateDownExpression(const Expression* expr) {
-    this->rateDownExpr = expr;
-  }
+  void setRateDownExpression(const Expression* expr);
 
   const Expression* getLogicalInputExpression() const {
     return logicalInputExpr;
@@ -383,6 +379,20 @@ class Node {
 
   void display(std::ostream& os) const;
   void generateLogicalExpression(LogicalExprGenContext& gen) const;
+
+  static void setOverride(bool override) {
+    Node::override = override;
+  }
+
+  static bool isOverride() {return override;}
+
+  static void setAugment(bool augment) {
+    Node::augment = augment;
+  }
+
+  static bool isAugment() {return augment;}
+
+  void reset();
 
   ~Node();
 };

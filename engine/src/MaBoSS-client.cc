@@ -45,6 +45,8 @@ static int usage(std::ostream& os = std::cerr)
   os << "  " << prog << " [--verbose]\n\n";
   os << "  " << prog << " --port PORT [--host HOST] [-c|--config CONF_FILE] [-v|--config-vars VAR1=NUMERIC[,VAR2=...]] [-e|--config-expr CONFIG_EXPR] -o|--output OUTPUT BOOLEAN_NETWORK_FILE\n";
   os << "  " << prog << " [--check]\n";
+  os << "  " << prog << " [--override]\n";
+  os << "  " << prog << " [--augment]\n";
   os << "  " << prog << " [--hexfloat\n\n";
   return 1;
 }
@@ -61,6 +63,8 @@ static int help()
   std::cout << "  -v --config-vars VAR=NUMERIC[,VAR2=...] : sets the value of the given variables to the given numeric values\n";
   std::cout << "  -e --config-expr CONFIG_EXPR            : evaluates the configuration expression; may have multiple expressions\n";
   std::cout << "                                            separated by semi-colons\n";
+  std::cout << "  --override                              : if set, a new node definition will override a previous one\n";
+  std::cout << "  --augment                               : if set, a new node definition will complete (add non existing attributes) / override (replace existing attributes) a previous one\n";
   std::cout << "  -o --output OUTPUT                      : prefix to be used for output files; when present run MaBoSS simulation process\n";
   std::cout << "  --check                                 : checks network and configuration files and exits\n";
   std::cout << "  --hexfloat                              : displays double in hexadecimal format\n";
@@ -84,6 +88,8 @@ int main(int argc, char* argv[])
   std::string host;
   bool verbose = false;
   bool check = false;
+  bool override = false;
+  bool augment = false;
   bool hexfloat = false;
 
   for (int nn = 1; nn < argc; ++nn) {
@@ -128,6 +134,16 @@ int main(int argc, char* argv[])
 	runconfig_file_or_expr_v.push_back(ConfigOpt(argv[++nn], false));
       } else if (!strcmp(opt, "--verbose")) {
 	verbose = true;
+      } else if (!strcmp(opt, "--override")) {
+	if (augment) {
+	  std::cerr << '\n' << prog << ": --override and --augment are exclusive options\n"; return usage();
+	}
+	override = true;
+      } else if (!strcmp(opt, "--augment")) {
+	if (override) {
+	  std::cerr << '\n' << prog << ": --override and --augment are exclusive options\n"; return usage();
+	}
+	augment = true;
       } else if (!strcmp(opt, "--check")) {
 	check = true;
       } else if (!strcmp(opt, "--hexfloat")) {
@@ -186,6 +202,12 @@ int main(int argc, char* argv[])
   unsigned long long flags = 0;
   if (hexfloat) {
     flags |= DataStreamer::HEXFLOAT_FLAG;
+  }
+  if (override) {
+    flags |= DataStreamer::OVERRIDE_FLAG;
+  }
+  if (augment) {
+    flags |= DataStreamer::AUGMENT_FLAG;
   }
   client_data.setFlags(flags);
 

@@ -46,7 +46,9 @@ static int usage(std::ostream& os = std::cerr)
   os << "  " << prog << " [-c|--config CONF_FILE] [-v|--config-vars VAR1=NUMERIC[,VAR2=...]] [-e|--config-expr CONFIG_EXPR] -l|--generate-logical-expressions BOOLEAN_NETWORK_FILE\n\n";
   os << "  " << prog << " -t|--generate-config-template BOOLEAN_NETWORK_FILE\n";
   os << "  " << prog << " [--check]\n";
-  os << "  " << prog << " --hexfloat\n";
+  os << "  " << prog << " [--override]\n";
+  os << "  " << prog << " [--augment]\n";
+  os << "  " << prog << " [--hexfloat]\n";
   return 1;
 }
 
@@ -61,6 +63,8 @@ static int help()
   //  std::cout << "                                        the VAR value in the configuration file (if present) will be overriden\n";
   std::cout << "  -e --config-expr CONFIG_EXPR            : evaluates the configuration expression; may have multiple expressions\n";
   std::cout << "                                            separated by semi-colons\n";
+  std::cout << "  --override                              : if set, a new node definition will replace a previous one\n";
+  std::cout << "  --augment                               : if set, a new node definition will complete (add non existing attributes) / override (replace existing attributes) a previous one\n";
   std::cout << "  -o --output OUTPUT                      : prefix to be used for output files; when present run MaBoSS simulation process\n";
   std::cout << "  -d --dump-config                        : dumps configuration and exits\n";
   std::cout << "  -t --generate-config-template           : generates template configuration and exits\n";
@@ -125,6 +129,16 @@ int main(int argc, char* argv[])
       } else if (!strcmp(s, "-c") || !strcmp(s, "--config")) {
 	if (nn == argc-1) {std::cerr << '\n' << prog << ": missing value after option " << s << '\n'; return usage();}
 	runconfig_file_or_expr_v.push_back(ConfigOpt(argv[++nn], false));
+      } else if (!strcmp(s, "--override")) {
+	if (Node::isAugment()) {
+	  std::cerr << '\n' << prog << ": --override and --augment are exclusive options\n"; return usage();
+	}
+	Node::setOverride(true);
+      } else if (!strcmp(s, "--augment")) {
+	if (Node::isOverride()) {
+	  std::cerr << '\n' << prog << ": --override and --augment are exclusive options\n"; return usage();
+	}
+	Node::setAugment(true);
       } else if (!strcmp(s, "--check")) {
 	check = true;
       } else if (!strcmp(s, "--hexfloat")) {

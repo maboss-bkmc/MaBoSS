@@ -61,13 +61,21 @@ class NodeDecl {
 
 public:
   NodeDecl(const std::string& identifier, std::vector<NodeDeclItem*>* node_decl_item_list) {
+    bool reset = false;
     if (isNodeDefined(identifier)) {
-      throw BNException("node " + identifier + " already defined");
+      if (Node::isOverride()) {
+	reset = true;
+      } else if (!Node::isAugment()) {
+	throw BNException("node " + identifier + " already defined");
+      }
     }
 
     defineNode(identifier);
 
     Node* node = get_current_network()->getOrMakeNode(identifier);
+    if (reset) {
+      node->reset();
+    }
     if (NULL == node_decl_item_list) {
       return;
     }

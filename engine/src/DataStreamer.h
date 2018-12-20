@@ -44,6 +44,7 @@ public:
   static const std::string FLAGS;
   static const unsigned long long HEXFLOAT_FLAG;
   static const unsigned long long OVERRIDE_FLAG;
+  static const unsigned long long AUGMENT_FLAG;
   static const std::string COMMAND;
   static const std::string RUN_COMMAND;
   static const std::string CHECK_COMMAND;

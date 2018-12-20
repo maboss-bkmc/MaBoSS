@@ -25,7 +25,7 @@
 # export MABOSS_SERVER=../../engine/src/MaBoSS-server
 #
 
-import maboss.comm, maboss.simul, maboss.result
+import maboss.comm, maboss.simul, maboss.result, sys
 
 # MaBoSS client instantiation
 # - the MaBoSS client forks a MaBoSS-server (defined as default as "MaBoSS-server" or in MABOSS_SERVER environment variable)
@@ -34,18 +34,24 @@ mbcli = maboss.comm.MaBoSSClient()
 
 # create a simulation (network + config)
 TESTLOC = "../../engine/tests/"
-simulation = maboss.simul.Simulation(bndfile = TESTLOC + "/cellcycle.bnd", cfgfiles = [TESTLOC + "/cellcycle_runcfg.cfg", TESTLOC + "/cellcycle_runcfg-thread_1-simple.cfg"])
+simulation = maboss.simul.Simulation(bndfile = TESTLOC + "/cellcycle-bad.bnd", cfgfiles = [TESTLOC + "/cellcycle_runcfg.cfg", TESTLOC + "/cellcycle_runcfg-thread_1-simple.cfg"])
 
 # run the simulation, the forked MaBoSS-server will be used
 check = True
 check = False
-result = mbcli.run(simulation, {"check" : check, "hexfloat" : True, "verbose" : True}) # will call Result(mbcli, simulation)
+verbose = False
+augment = False
+override = False
+augment = True
+#override = True
+result = mbcli.run(simulation, {"check" : check, "hexfloat" : True, "augment" : augment, "override" : override, "verbose" : verbose}) # will call Result(mbcli, simulation)
 
 # get the returned data (notice the data is not checkd)
 result_data = result.getResultData()
 
 # prints the returned data
-print "result_data status=", result_data.getStatus(), "errmsg=", result_data.getErrorMessage()
+if result_data.getStatus():
+    print >> sys.stderr, "result_data status=", result_data.getStatus(), "errmsg=", result_data.getErrorMessage()
 if result_data.getStatus() == 0: # means Success
     print "FP", result_data.getFP()
     print "Runlog", result_data.getRunLog()

@@ -41,6 +41,7 @@ const std::string DataStreamer::PROTOCOL_VERSION = "Protocol-Version:";
 const std::string DataStreamer::FLAGS = "Flags:";
 const unsigned long long DataStreamer::HEXFLOAT_FLAG = 0x1ULL;
 const unsigned long long DataStreamer::OVERRIDE_FLAG = 0x2ULL;
+const unsigned long long DataStreamer::AUGMENT_FLAG = 0x4ULL;
 const std::string DataStreamer::COMMAND = "Command:";
 const std::string DataStreamer::RUN_COMMAND = "run";
 const std::string DataStreamer::CHECK_COMMAND = "check";

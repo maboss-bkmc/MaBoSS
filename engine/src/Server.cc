@@ -128,6 +128,15 @@ void Server::run(const ClientData& client_data, ServerData& server_data)
     if (!quiet) {
       std::cerr << "\n" << hst << " " << prog << " running simulation at " << timebuf << " " << hst << "\n";
     }
+
+    Node::setOverride((client_data.getFlags() & DataStreamer::OVERRIDE_FLAG) != 0);
+    Node::setAugment((client_data.getFlags() & DataStreamer::AUGMENT_FLAG) != 0);
+    if (Node::isOverride() && Node::isAugment()) {
+      server_data.setStatus(2);
+      server_data.setErrorMessage("override and augment are exclusive flags");
+      return;
+    }
+
     Network* network = new Network();
     std::string network_file = output + "_network.bnd";
     filePutContents(network_file, client_data.getNetwork());
@@ -184,7 +193,6 @@ void Server::run(const ClientData& client_data, ServerData& server_data)
     output_fp = create_temp_file(fp_file, files_to_delete_v);
 
     bool hexfloat = (client_data.getFlags() & DataStreamer::HEXFLOAT_FLAG) != 0;
-
     MaBEstEngine mabest(network, runconfig);
     mabest.run(output_traj);
     mabest.display(*output_probtraj, *output_statdist, *output_fp, hexfloat);

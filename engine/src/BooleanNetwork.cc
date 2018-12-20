@@ -44,11 +44,44 @@ extern int CTBNDLparse();
 std::vector<IStateGroup*>* IStateGroup::istate_group_list = new std::vector<IStateGroup*>();
 const bool backward_istate = getenv("MABOSS_BACKWARD_ISTATE") != NULL;
 
+bool Node::override = false;
+bool Node::augment = false;
+
 Node::Node(const std::string& label, const std::string& description, NodeIndex index) : label(label), description(description), istate_set(false), is_internal(false), is_reference(false), referenceState(false), logicalInputExpr(NULL), rateUpExpr(NULL), rateDownExpr(NULL), index(index)
 {
 #if !defined(USE_BITSET) && !defined(USE_BOOST_BITSET)
   node_bit = NetworkState::nodeBit(index);
 #endif
+}
+
+void Node::reset()
+{
+  description = "";
+  istate_set = false;
+  is_internal = false;
+  is_reference = false;
+  referenceState = false;
+  delete logicalInputExpr;
+  logicalInputExpr = NULL;
+  delete rateUpExpr;
+  rateUpExpr = NULL;
+  delete rateDownExpr;
+  rateDownExpr = NULL;
+}
+
+void Node::setLogicalInputExpression(const Expression* logicalInputExpr) {
+  delete this->logicalInputExpr;
+  this->logicalInputExpr = logicalInputExpr;
+}
+
+void Node::setRateUpExpression(const Expression* expr) {
+  delete this->rateUpExpr;
+  this->rateUpExpr = expr;
+}
+
+void Node::setRateDownExpression(const Expression* expr) {
+  delete this->rateDownExpr;
+  this->rateDownExpr = expr;
 }
 
 bool Node::isInputNode() const

@@ -35,6 +35,7 @@ PROTOCOL_VERSION = "Protocol-Version:"
 FLAGS = "Flags:"
 HEXFLOAT_FLAG = 0x1
 OVERRIDE_FLAG = 0x2
+AUGMENT_FLAG = 0x4
 COMMAND = "Command:"
 RUN_COMMAND = "run"
 CHECK_COMMAND = "check"
@@ -80,16 +81,25 @@ class DataStreamer:
         offset = 0
         o_offset = 0
 
-        verbose = False
-        hexfloat = False
         if hints:
             hexfloat = "hexfloat" in hints and hints["hexfloat"]
+            override = "override" in hints and hints["override"]
+            augment = "augment" in hints and hints["augment"]
             verbose = "verbose" in hints and hints["verbose"]
+        else:
+            hexfloat = False
+            override = False
+            augment = False
+            verbose = False
 
         command = client_data.getCommand()
         flags = 0
         if hexfloat:
             flags |= HEXFLOAT_FLAG
+        if override:
+            flags |= OVERRIDE_FLAG
+        if augment:
+            flags |= AUGMENT_FLAG
 
         header = MABOSS_MAGIC + "\n"
         header += PROTOCOL_VERSION + PROTOCOL_VERSION_NUMBER + "\n";
