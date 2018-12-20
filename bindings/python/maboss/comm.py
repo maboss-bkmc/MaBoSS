@@ -32,9 +32,9 @@ PROTOCOL_VERSION_NUMBER = "1.0"
 
 MABOSS_MAGIC = "MaBoSS-2.0"
 PROTOCOL_VERSION = "Protocol-Version:"
-PROTOCOL_MODE = "Protocol-Mode:"
-PROTOCOL_ASCII_MODE = 0x1
-PROTOCOL_HEXFLOAT_MODE = 0x2
+FLAGS = "Flags:"
+HEXFLOAT_FLAG = 0x1
+OVERRIDE_FLAG = 0x2
 COMMAND = "Command:"
 RUN_COMMAND = "run"
 CHECK_COMMAND = "check"
@@ -87,15 +87,13 @@ class DataStreamer:
             verbose = "verbose" in hints and hints["verbose"]
 
         command = client_data.getCommand()
+        flags = 0
         if hexfloat:
-            comm_mode = (PROTOCOL_ASCII_MODE | PROTOCOL_HEXFLOAT_MODE)
-        else:
-            comm_mode = PROTOCOL_ASCII_MODE
+            flags |= HEXFLOAT_FLAG
 
-        #header = RUN + " " + MABOSS_MAGIC + "\n"
         header = MABOSS_MAGIC + "\n"
         header += PROTOCOL_VERSION + PROTOCOL_VERSION_NUMBER + "\n";
-        header += PROTOCOL_MODE + str(comm_mode) + "\n";
+        header += FLAGS + str(flags) + "\n";
         header += COMMAND + command + "\n";
 
         config_data = client_data.getConfig()

@@ -594,8 +594,11 @@ public:
 
   double getSymbolValue(const Symbol* symbol, bool check = true) const {
     SymbolIndex idx = symbol->getIndex();
-    if (check && !symb_def[idx]) {
-      throw BNException("symbol " + symbol->getName() + " is not defined"); 
+    if (!symb_def[idx]) {
+      if (check) {
+	throw BNException("symbol " + symbol->getName() + " is not defined"); 
+      }
+      return 0.;
    }
     return symb_value[idx];
   }
@@ -616,6 +619,7 @@ public:
   }
 
   void display(std::ostream& os, bool check = true) const;
+  void checkSymbols() const;
 
   void reset();
 };

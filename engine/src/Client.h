@@ -40,7 +40,7 @@ class ServerData;
 
 class ClientData {
   std::string protocol_version;
-  unsigned long long protocol_mode;
+  unsigned long long flags;
   std::string command;
 
   std::string network;
@@ -53,8 +53,8 @@ public:
     this->protocol_version = protocol_version;
   }
 
-  void setProtocolMode(unsigned long long protocol_mode) {
-    this->protocol_mode = protocol_mode;
+  void setFlags(unsigned long long flags) {
+    this->flags = flags;
   }
 
   void setCommand(const std::string& command) {
@@ -81,8 +81,8 @@ public:
     return protocol_version;
   }
 
-  const unsigned long long getProtocolMode() const {
-    return protocol_mode;
+  const unsigned long long getFlags() const {
+    return flags;
   }
 
   const std::string& getCommand() const {

@@ -225,6 +225,8 @@ int main(int argc, char* argv[])
 
     IStateGroup::checkAndComplete(network);
 
+    SymbolTable::getInstance()->checkSymbols();
+
     if (check) {
       return 0;
     }

@@ -183,11 +183,11 @@ int main(int argc, char* argv[])
   client_data.setConfigVars(config_vars);
 
   client_data.setCommand(check ? DataStreamer::CHECK_COMMAND : DataStreamer::RUN_COMMAND);
-  unsigned long long protocol_mode = DataStreamer::PROTOCOL_ASCII_MODE;
+  unsigned long long flags = 0;
   if (hexfloat) {
-    protocol_mode |= DataStreamer::PROTOCOL_HEXFLOAT_MODE;
+    flags |= DataStreamer::HEXFLOAT_FLAG;
   }
-  client_data.setProtocolMode(protocol_mode);
+  client_data.setFlags(flags);
 
   Client* client = new Client(host, port, verbose);
   ServerData server_data;

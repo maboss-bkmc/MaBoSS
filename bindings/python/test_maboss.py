@@ -37,7 +37,9 @@ TESTLOC = "../../engine/tests/"
 simulation = maboss.simul.Simulation(bndfile = TESTLOC + "/cellcycle.bnd", cfgfiles = [TESTLOC + "/cellcycle_runcfg.cfg", TESTLOC + "/cellcycle_runcfg-thread_1-simple.cfg"])
 
 # run the simulation, the forked MaBoSS-server will be used
-result = mbcli.run(simulation, {"check" : True, "hexfloat" : True, "verbose" : True}) # will call Result(mbcli, simulation)
+check = True
+check = False
+result = mbcli.run(simulation, {"check" : check, "hexfloat" : True, "verbose" : True}) # will call Result(mbcli, simulation)
 
 # get the returned data (notice the data is not checkd)
 result_data = result.getResultData()

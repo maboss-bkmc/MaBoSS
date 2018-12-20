@@ -38,9 +38,9 @@ const std::string DataStreamer::PROTOCOL_VERSION_NUMBER = "1.0";
 
 const std::string DataStreamer::MABOSS_MAGIC = "MaBoSS-2.0";
 const std::string DataStreamer::PROTOCOL_VERSION = "Protocol-Version:";
-const std::string DataStreamer::PROTOCOL_MODE = "Protocol-Mode:";
-const unsigned long long DataStreamer::PROTOCOL_ASCII_MODE = 0x1ULL;
-const unsigned long long DataStreamer::PROTOCOL_HEXFLOAT_MODE = 0x2ULL;
+const std::string DataStreamer::FLAGS = "Flags:";
+const unsigned long long DataStreamer::HEXFLOAT_FLAG = 0x1ULL;
+const unsigned long long DataStreamer::OVERRIDE_FLAG = 0x2ULL;
 const std::string DataStreamer::COMMAND = "Command:";
 const std::string DataStreamer::RUN_COMMAND = "run";
 const std::string DataStreamer::CHECK_COMMAND = "check";
@@ -75,7 +75,7 @@ void DataStreamer::buildStreamData(std::string& data, const ClientData& client_d
 
   o_header << MABOSS_MAGIC << "\n";
   o_header << PROTOCOL_VERSION << PROTOCOL_VERSION_NUMBER << "\n";
-  o_header << PROTOCOL_MODE << client_data.getProtocolMode() << "\n";
+  o_header << FLAGS << client_data.getFlags() << "\n";
   o_header << COMMAND << client_data.getCommand() << "\n";
 
   const std::vector<std::string>& config_v = client_data.getConfigs();
@@ -190,7 +190,7 @@ int DataStreamer::parse_header_items(const std::string &header, std::vector<Head
     std::string value = header.substr(opos, pos-opos);
     opos = pos+1;
     size_t pos2 = value.find("-");
-    if (directive == STATUS || directive == ERROR_MESSAGE || directive == PROTOCOL_VERSION || directive == PROTOCOL_MODE || directive == COMMAND) {
+    if (directive == STATUS || directive == ERROR_MESSAGE || directive == PROTOCOL_VERSION || directive == FLAGS || directive == COMMAND) {
       header_item_v.push_back(HeaderItem(directive, value));
     } else if (pos2 != std::string::npos) {
       header_item_v.push_back(HeaderItem(directive, atoll(value.substr(0, pos2).c_str()), atoll(value.substr(pos2+1).c_str())));
@@ -236,8 +236,8 @@ int DataStreamer::parseStreamData(ClientData& client_data, const std::string& in
     std::string data_value = data.substr(header_item_iter->getFrom(), header_item_iter->getTo() - header_item_iter->getFrom() + 1);
     if (directive == PROTOCOL_VERSION) {
       client_data.setProtocolVersion(header_item_iter->getValue());
-    } else if (directive == PROTOCOL_MODE) {
-      client_data.setProtocolMode(atoll(header_item_iter->getValue().c_str()));
+    } else if (directive == FLAGS) {
+      client_data.setFlags(atoll(header_item_iter->getValue().c_str()));
     } else if (directive == COMMAND) {
       client_data.setCommand(header_item_iter->getValue());
     } else if (directive == NETWORK) {

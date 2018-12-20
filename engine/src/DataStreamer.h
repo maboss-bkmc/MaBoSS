@@ -41,9 +41,9 @@ public:
   static const std::string MABOSS_MAGIC;
   static const std::string PROTOCOL_VERSION;
   static const std::string PROTOCOL_VERSION_NUMBER;
-  static const std::string PROTOCOL_MODE;
-  static const unsigned long long PROTOCOL_ASCII_MODE;
-  static const unsigned long long PROTOCOL_HEXFLOAT_MODE;
+  static const std::string FLAGS;
+  static const unsigned long long HEXFLOAT_FLAG;
+  static const unsigned long long OVERRIDE_FLAG;
   static const std::string COMMAND;
   static const std::string RUN_COMMAND;
   static const std::string CHECK_COMMAND;

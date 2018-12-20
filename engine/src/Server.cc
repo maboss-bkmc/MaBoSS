@@ -160,6 +160,8 @@ void Server::run(const ClientData& client_data, ServerData& server_data)
 
     IStateGroup::checkAndComplete(network);
 
+    SymbolTable::getInstance()->checkSymbols();
+
     if (client_data.getCommand() == DataStreamer::CHECK_COMMAND) {
       delete_temp_files(files_to_delete_v);
       server_data.setStatus(0);
@@ -181,7 +183,7 @@ void Server::run(const ClientData& client_data, ServerData& server_data)
     output_statdist = create_temp_file(statdist_file, files_to_delete_v);
     output_fp = create_temp_file(fp_file, files_to_delete_v);
 
-    bool hexfloat = (client_data.getProtocolMode() & DataStreamer::PROTOCOL_HEXFLOAT_MODE) != 0;
+    bool hexfloat = (client_data.getFlags() & DataStreamer::HEXFLOAT_FLAG) != 0;
 
     MaBEstEngine mabest(network, runconfig);
     mabest.run(output_traj);

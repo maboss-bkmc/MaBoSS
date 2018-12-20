@@ -91,6 +91,27 @@ void SymbolTable::display(std::ostream& os, bool check) const
   }
 }
 
+void SymbolTable::checkSymbols() const
+{
+  MAP<std::string, Symbol*>::const_iterator begin = symb_map.begin();
+  MAP<std::string, Symbol*>::const_iterator end = symb_map.end();
+
+  std::string str;
+  while (begin != end) {
+    const Symbol* symbol = begin->second;;
+    SymbolIndex idx = begin->second->getIndex();
+    if (!symb_def[idx]) {
+      str += std::string("\n") + "symbol " + symbol->getName() + " is not defined";
+      //throw BNException("symbol " + symbol->getName() + " is not defined"); 
+    }
+    ++begin;
+  }
+
+  if (str.length() != 0) {
+    throw BNException(str);
+  }
+}
+
 void Network::updateRandomGenerator(RunConfig* runconfig)
 {
   delete random_generator;
