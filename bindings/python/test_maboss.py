@@ -25,6 +25,7 @@
 # export MABOSS_SERVER=../../engine/src/MaBoSS-server
 #
 
+from __future__ import print_function
 import maboss.comm, maboss.simul, maboss.result, sys
 
 # MaBoSS client instantiation
@@ -51,11 +52,11 @@ result_data = result.getResultData()
 
 # prints the returned data
 if result_data.getStatus():
-    print >> sys.stderr, "result_data status=", result_data.getStatus(), "errmsg=", result_data.getErrorMessage()
+    print("result_data status=", result_data.getStatus(), "errmsg=", result_data.getErrorMessage(), file=sys.stderr)
 if result_data.getStatus() == 0: # means Success
-    print "FP", result_data.getFP()
-    print "Runlog", result_data.getRunLog()
-    print "ProbTraj", result_data.getProbTraj()
-    print "StatDist", result_data.getStatDist()
+    print("FP", result_data.getFP())
+    print("Runlog", result_data.getRunLog())
+    print("ProbTraj", result_data.getProbTraj())
+    print("StatDist", result_data.getStatDist())
 
 
