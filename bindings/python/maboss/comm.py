@@ -319,7 +319,7 @@ class MaBoSSClient:
 
             try:
                 pid = os.fork()
-            except OSError, e:
+            except OSError as e:
                 print("error fork:", e, file=sys.stderr)
                 return
 
