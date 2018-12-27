@@ -22,8 +22,8 @@
 
 from __future__ import print_function
 import os, sys, time, signal, socket
-import atexit
-import result
+import maboss.atexit
+import maboss.result
 
 #
 # MaBoSS Communication Layer
@@ -332,7 +332,7 @@ class MaBoSSClient:
                     sys.exit(1)
 
             self._pid = pid
-            atexit.register(self.close)
+            maboss.atexit.register(self.close)
             server_started = False
             MAX_TRIES = 20
             TIME_INTERVAL = 0.1
@@ -353,7 +353,7 @@ class MaBoSSClient:
             self._socket.connect((host, port))
             
     def run(self, simulation, hints = None):
-        return result.Result(self, simulation, hints)
+        return maboss.result.Result(self, simulation, hints)
 
     def send(self, data):
         self._socket.sendall(data)
