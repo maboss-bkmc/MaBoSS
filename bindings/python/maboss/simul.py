@@ -36,5 +36,5 @@ def file_get_contents(filename):
         stat = os.fstat(fd)
         contents = os.read(fd, stat.st_size)
         os.close(fd)
-        return contents
+        return contents.decode()
     raise Exception(file + " is not readable")

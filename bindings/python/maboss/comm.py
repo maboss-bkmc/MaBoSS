@@ -356,7 +356,7 @@ class MaBoSSClient:
         return maboss.result.Result(self, simulation, hints)
 
     def send(self, data):
-        self._socket.sendall(data)
+        self._socket.sendall(data.encode())
         self._term()
         SIZE = 4096
         ret_data = ""
@@ -364,7 +364,7 @@ class MaBoSSClient:
             databuf = self._socket.recv(SIZE)
             if not databuf or len(databuf) <= 0:
                 break
-            ret_data += databuf
+            ret_data += databuf.decode()
 
         return ret_data
 
