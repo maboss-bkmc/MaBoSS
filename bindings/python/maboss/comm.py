@@ -325,7 +325,7 @@ class MaBoSSClient:
             if pid == 0:
                 try:
                     args = [self._maboss_server, "--host", "localhost", "-q", "--port", port, "--pidfile", self._pidfile]
-                    os.execv(self._maboss_server, args)
+                    os.execvp(self._maboss_server, args)
                 except Exception as e:
                     print >> sys.stderr, "error while launching '" + self._maboss_server + "'", e
                     sys.exit(1)
