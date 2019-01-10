@@ -87,6 +87,20 @@ public:
 
   void display(std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat = false) const;
 
+  const std::map<double, STATE_MAP<NetworkState_Impl, double> > getStateDists() const;
+  const STATE_MAP<NetworkState_Impl, double> getNthStateDist(int nn) const;
+  const STATE_MAP<NetworkState_Impl, double> getAsymptoticStateDist() const;
+
+  const std::map<double, std::map<Node *, double> > getNodesDists() const;
+  const std::map<Node*, double> getNthNodesDist(int nn) const;
+  const std::map<Node*, double> getAsymptoticNodesDist() const;
+
+  const std::map<double, double> getNodeDists(Node * node) const;
+  double getNthNodeDist(Node * node, int nn) const;
+  double getAsymptoticNodeDist(Node * node) const;
+  
+  int getMaxTickIndex() const {return merged_cumulator->getMaxTickIndex();} 
+
   long long getElapsedCoreRunTime() const {return elapsed_core_runtime;}
   long long getUserCoreRunTime() const {return user_core_runtime;}
 
