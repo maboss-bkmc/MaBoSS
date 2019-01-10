@@ -393,6 +393,8 @@ public:
   const STATE_MAP<NetworkState_Impl, double> getAsymptoticStateDist() const;
   
   void computeMaxTickIndex();
+  int getMaxTickIndex() const { return max_tick_index;} 
+
   void epilogue(Network* network, const NetworkState& reference_state);
   void trajectoryEpilogue();
 
