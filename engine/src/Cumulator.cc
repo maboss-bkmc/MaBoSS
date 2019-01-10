@@ -362,6 +362,56 @@ void Cumulator::displayCSV(Network* network, unsigned int refnode_count, std::os
   clusterFactory->displayStationaryDistribution(network, os_statdist, hexfloat);
 }
 
+const std::map<double, STATE_MAP<NetworkState_Impl, double> > Cumulator::getStateDists() const
+{
+  std::map<double, STATE_MAP<NetworkState_Impl, double> > result;
+
+  double ratio = time_tick*sample_count;
+  for (int nn = 0; nn < max_tick_index; ++nn) {
+
+    const CumulMap& mp = get_map(nn);
+    CumulMap::Iterator iter = mp.iterator();
+
+    STATE_MAP<NetworkState_Impl, double> t_result;
+
+    while (iter.hasNext()) {
+      NetworkState_Impl state;
+      TickValue tick_value;
+      iter.next(state, tick_value);
+
+      double proba = tick_value.tm_slice / ratio;      
+      t_result[state] = proba;
+    }
+
+    result[((double) nn)*time_tick] = t_result;
+  } 
+  return result;
+}
+
+const STATE_MAP<NetworkState_Impl, double> Cumulator::getNthStateDist(int nn) const
+{
+  double ratio = time_tick*sample_count;
+
+  const CumulMap& mp = get_map(nn);
+  CumulMap::Iterator iter = mp.iterator();
+
+  STATE_MAP<NetworkState_Impl, double> result;
+
+  while (iter.hasNext()) {
+    NetworkState_Impl state;
+    TickValue tick_value;
+    iter.next(state, tick_value);
+
+    double proba = tick_value.tm_slice / ratio;      
+    result[state] = proba;
+  }
+ 
+  return result;
+}
+ 
+const STATE_MAP<NetworkState_Impl, double> Cumulator::getAsymptoticStateDist() const 
+{ return getNthStateDist(getMaxTickIndex()-1); }
+
 void Cumulator::add(unsigned int where, const CumulMap& add_cumul_map)
 {
   CumulMap& to_cumul_map = get_map(where);

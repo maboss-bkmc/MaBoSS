@@ -388,6 +388,10 @@ public:
 
   void displayCSV(Network* network, unsigned int refnode_count, std::ostream& os_probtraj = std::cout, std::ostream& os_statdist = std::cout, bool hexfloat = false) const;
 
+  const std::map<double, STATE_MAP<NetworkState_Impl, double> > getStateDists() const;
+  const STATE_MAP<NetworkState_Impl, double> getNthStateDist(int nn) const;
+  const STATE_MAP<NetworkState_Impl, double> getAsymptoticStateDist() const;
+  
   void computeMaxTickIndex();
   void epilogue(Network* network, const NetworkState& reference_state);
   void trajectoryEpilogue();
