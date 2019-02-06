@@ -74,6 +74,7 @@ const std::string LOGICAL_XOR_SYMBOL = " ^ ";
 
 class Expression;
 class NotLogicalExpression;
+class SymbolExpression;
 class NetworkState;
 class Network;
 class Node;
@@ -576,6 +577,8 @@ class SymbolTable {
 
   SymbolTable() : last_symb_idx(0) { }
 
+  std::vector<SymbolExpression *> symbolExpressions;
+
 public:
   static SymbolTable* getInstance() {
     if (instance == NULL) {
@@ -632,6 +635,12 @@ public:
   void checkSymbols() const;
 
   void reset();
+
+  void addSymbolExpression(SymbolExpression * exp) {
+    symbolExpressions.push_back(exp);
+  }
+
+  void unsetSymbolExpressions();
 };
 
 // abstract base class used for expression evaluation
@@ -1021,7 +1030,9 @@ class SymbolExpression : public Expression {
   mutable double value;
 
 public:
-  SymbolExpression(const Symbol* symbol) : symbol(symbol), value_set(false) { }
+  SymbolExpression(const Symbol* symbol) : symbol(symbol), value_set(false) { 
+    SymbolTable::getInstance()->addSymbolExpression(this);
+  }
 
   Expression* clone() const {return new SymbolExpression(symbol);}
 
@@ -1044,6 +1055,8 @@ public:
   bool isConstantExpression() const {return true;}
 
   void generateLogicalExpression(LogicalExprGenContext& genctx) const;
+
+  void unset() { value_set = false; }
 };
 
 class AliasExpression : public Expression {
