@@ -23,6 +23,6 @@ EXPOSE 7778
 EXPOSE 7779
 
 # Running MaBoSS server
-CMD /opt/MaBoSS-env-2.0/engine/pub/MaBoSS-server --host 0.0.0.0 --port 7777 \
- & /opt/MaBoSS-env-2.0/engine/pub/MaBoSS_128n-server --host 0.0.0.0 --port 7778 \
- & /opt/MaBoSS-env-2.0/engine/pub/MaBoSS_256n-server --host 0.0.0.0 --port 7779
+CMD /opt/MaBoSS-env-2.0/engine/pub/MaBoSS-server -q --host 0.0.0.0 --port 7777 \
+ & /opt/MaBoSS-env-2.0/engine/pub/MaBoSS_128n-server -q --host 0.0.0.0 --port 7778 \
+ & /opt/MaBoSS-env-2.0/engine/pub/MaBoSS_256n-server -q --host 0.0.0.0 --port 7779
