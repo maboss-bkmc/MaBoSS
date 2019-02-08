@@ -5,11 +5,13 @@ services:
   maboss-server:
     build:
       context: ./
-      dockerfile: docker/Dockerfile
+      dockerfile: containers/docker/Dockerfile
 
     image: maboss-server
     container_name: maboss-server
     ports:
       - "7777:7777"
+      - "7778:7778"
+      - "7779:7779"
     restart: unless-stopped
 
