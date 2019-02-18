@@ -88,6 +88,9 @@ init:
 %$(INFIX).o: %.cc
 	$(CXX) $(CXXFLAGS) -c $*.cc -o $*$(INFIX).o
 
+%$(INFIX)-server.o: %.cc
+	$(CXX) $(CXXFLAGS) -c $*.cc -o $*$(INFIX)-server.o
+
 force-init:
 	@CXX=$(CXX) sh init-config.sh force
 
