@@ -698,3 +698,15 @@ int setConfigVariables(const std::string& prog, const std::string& runvar)
   runvar_v.push_back(runvar);
   return setConfigVariables(prog, runvar_v);
 }
+
+void SymbolTable::unsetSymbolExpressions() {
+  std::vector<SymbolExpression *>::const_iterator begin = symbolExpressions.begin();
+  std::vector<SymbolExpression *>::const_iterator end = symbolExpressions.end();
+
+  while(begin != end) {
+
+    SymbolExpression * exp = *begin;
+    exp->unset();
+    begin++;
+  }
+}
