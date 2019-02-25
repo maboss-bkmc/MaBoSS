@@ -598,6 +598,10 @@ void IStateGroup::display(Network* network, std::ostream& os)
   }
 }
 
+void IStateGroup::reset() {
+  istate_group_list->clear();
+}
+
 Node::~Node()
 {
   delete logicalInputExpr;

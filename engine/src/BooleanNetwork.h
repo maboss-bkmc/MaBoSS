@@ -1432,7 +1432,8 @@ public:
   static void checkAndComplete(Network* network);
   static void initStates(Network* network, NetworkState& initial_state);
   static void display(Network* network, std::ostream& os);
-
+  static void reset();
+  
 private:
   std::vector<const Node*>* nodes;
   std::vector<ProbaIState*>* proba_istates;
