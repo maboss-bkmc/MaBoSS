@@ -20,9 +20,10 @@
 # Authors: Eric Viara <viara@sysra.com>
 # Date: May-December 2018
 
+from __future__ import print_function
 import os, sys, time, signal, socket
-import atexit
-import result
+import maboss.atexit
+import maboss.result
 
 #
 # MaBoSS Communication Layer
@@ -119,8 +120,8 @@ class DataStreamer:
         (header, o_offset) = DataStreamer._add_header(header, NETWORK, o_offset, offset)
 
         if verbose:
-            print "======= sending header\n", header
-            print "======= sending data[0:200]\n", data[0:200], "\n[...]\n"
+            print("======= sending header\n", header)
+            print("======= sending data[0:200]\n", data[0:200], "\n[...]\n")
         return header + "\n" + data
 
     @staticmethod
@@ -148,8 +149,8 @@ class DataStreamer:
         header = ret_data[offset:pos+1]
         data  = ret_data[pos+2:]
         if verbose:
-            print "======= receiving header \n", header
-            print "======= receiving data[0:200]\n", data[0:200], "\n[...]\n"
+            print("======= receiving header \n", header)
+            print("======= receiving data[0:200]\n", data[0:200], "\n[...]\n")
 
         header_items = []
         err_data = DataStreamer._parse_header_items(header, header_items)
@@ -318,20 +319,20 @@ class MaBoSSClient:
 
             try:
                 pid = os.fork()
-            except OSError, e:
-                print >> sys.stderr, "error fork:", e
+            except OSError as e:
+                print("error fork:", e, file=sys.stderr)
                 return
 
             if pid == 0:
                 try:
                     args = [self._maboss_server, "--host", "localhost", "-q", "--port", port, "--pidfile", self._pidfile]
-                    os.execv(self._maboss_server, args)
+                    os.execvp(self._maboss_server, args)
                 except Exception as e:
-                    print >> sys.stderr, "error while launching '" + self._maboss_server + "'", e
+                    print("error while launching '" + self._maboss_server + "'", e, file=sys.stderr)
                     sys.exit(1)
 
             self._pid = pid
-            atexit.register(self.close)
+            maboss.atexit.register(self.close)
             server_started = False
             MAX_TRIES = 20
             TIME_INTERVAL = 0.1
@@ -352,10 +353,10 @@ class MaBoSSClient:
             self._socket.connect((host, port))
             
     def run(self, simulation, hints = None):
-        return result.Result(self, simulation, hints)
+        return maboss.result.Result(self, simulation, hints)
 
     def send(self, data):
-        self._socket.sendall(data)
+        self._socket.sendall(data.encode())
         self._term()
         SIZE = 4096
         ret_data = ""
@@ -363,7 +364,7 @@ class MaBoSSClient:
             databuf = self._socket.recv(SIZE)
             if not databuf or len(databuf) <= 0:
                 break
-            ret_data += databuf
+            ret_data += databuf.decode()
 
         return ret_data
 
@@ -372,7 +373,7 @@ class MaBoSSClient:
 
     def close(self):
         if self._pid != None:
-            #print "kill", self._pid
+            #print("kill", self._pid)
             os.kill(self._pid, signal.SIGTERM)
             if self._pidfile:
                 os.remove(self._pidfile)

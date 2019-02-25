@@ -5,6 +5,8 @@ upon normal program termination.
 One public function, register, is defined.
 """
 
+from __future__ import print_function
+
 __all__ = ["register"]
 
 import sys
@@ -26,12 +28,12 @@ def _run_exitfuncs():
             exc_info = sys.exc_info()
         except:
             import traceback
-            print >> sys.stderr, "Error in atexit._run_exitfuncs:"
+            print("Error in atexit._run_exitfuncs:", file=sys.stderr)
             traceback.print_exc()
             exc_info = sys.exc_info()
 
     if exc_info is not None:
-        raise exc_info[0], exc_info[1], exc_info[2]
+        raise exc_info[0](exc_info[1], exc_info[2])
 
 
 def register(func, *targs, **kargs):
