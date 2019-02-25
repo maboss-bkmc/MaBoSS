@@ -155,7 +155,11 @@ int RunConfig::parse(Network* network, const char* file)
   }
 
   RC_set_file(file);
-  return RCparse();
+  int res = RCparse();
+  if (NULL != file)
+    fclose(RCin);
+    
+  return res;
 }
 
 int RunConfig::parseExpression(Network* network, const char* expr)
