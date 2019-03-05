@@ -73,6 +73,9 @@ int Server::manageRequests()
     signal(SIGQUIT, unlink_tempfiles_handler);
     signal(SIGTERM, unlink_tempfiles_handler);
     signal(SIGABRT, unlink_tempfiles_handler);
+
+    signal(SIGCHLD, SIG_IGN);
+    
     time_t t = time(NULL);
     char* now = ctime(&t);
     if (!quiet) {
