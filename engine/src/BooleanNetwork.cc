@@ -36,7 +36,7 @@
 #include "Utils.h"
 #include <iostream>
 
-Network* Network::instance;
+// Network* Network::instance;
 SymbolTable* SymbolTable::instance;
 extern FILE* CTBNDLin;
 extern int CTBNDLparse();

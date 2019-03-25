@@ -406,7 +406,7 @@ class Network {
   std::vector<Node*> input_nodes;
   std::vector<Node*> non_input_nodes;
   std::vector<Node*> nodes;
-  static Network* instance;
+  // static Network* instance;
   RandomGenerator* random_generator; // used for node initial states
 
 public:
