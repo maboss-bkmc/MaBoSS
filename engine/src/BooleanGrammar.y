@@ -69,6 +69,7 @@ static Network* current_network;
 %type<expr> conditional_expression
 %type<expr> expression
 %type<arg_list> argument_expression_list
+%type<str> colon_comma
 
 %token<str> IDENTIFIER VARIABLE STRING
 %token<d> DOUBLE
@@ -98,13 +99,19 @@ node_decl: NODE IDENTIFIER '{' node_decl_item_list '}'
 {
   $$ = new NodeDecl($2, NULL);
 }
-| IDENTIFIER ':' expression term_opt
+| IDENTIFIER colon_comma expression term_opt
 {
   NodeDeclItem* decl_item = new NodeDeclItem("logic", $3);
   std::vector<NodeDeclItem*>* decl_item_v = new std::vector<NodeDeclItem*>();
   decl_item_v->push_back(decl_item);
   $$ = new NodeDecl($1, decl_item_v);
 }
+;
+
+colon_comma: ':' 
+{}
+| ',' 
+{}
 ;
 
 node_decl_item_list: node_decl_item
