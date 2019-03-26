@@ -64,10 +64,10 @@ class EnsembleEngine {
   pthread_t* tid;
   // NodeIndex getTargetNode(RandomGenerator* random_generator, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
   // double computeTH(const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
-  // void epilogue();
+  void epilogue();
   static void* threadWrapper(void *arg);
   // void runThread(Cumulator* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj);
-  // STATE_MAP<NetworkState_Impl, unsigned int>* mergeFixpointMaps();
+  STATE_MAP<NetworkState_Impl, unsigned int>* mergeFixpointMaps();
 
 public:
   static const std::string VERSION;

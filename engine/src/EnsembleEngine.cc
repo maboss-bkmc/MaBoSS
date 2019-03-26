@@ -333,49 +333,50 @@ void EnsembleEngine::run(std::ostream* output_traj)
   user_epilogue_runtime = probe.user_msecs();
 }  
 
-// STATE_MAP<NetworkState_Impl, unsigned int>* MaBEstEngine::mergeFixpointMaps()
-// {
-//   if (1 == fixpoint_map_v.size()) {
-//     return new STATE_MAP<NetworkState_Impl, unsigned int>(*fixpoint_map_v[0]);
-//   }
+STATE_MAP<NetworkState_Impl, unsigned int>* EnsembleEngine::mergeFixpointMaps()
+{
+  if (1 == fixpoint_map_v.size()) {
+    return new STATE_MAP<NetworkState_Impl, unsigned int>(*fixpoint_map_v[0]);
+  }
 
-//   STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map = new STATE_MAP<NetworkState_Impl, unsigned int>();
-//   std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*>::iterator begin = fixpoint_map_v.begin();
-//   std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*>::iterator end = fixpoint_map_v.end();
-//   while (begin != end) {
-//     STATE_MAP<NetworkState_Impl, unsigned int>* fp_map = *begin;
-//     STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator b = fp_map->begin();
-//     STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator e = fp_map->end();
-//     while (b != e) {
-//       NetworkState_Impl state = (*b).first;
-//       if (fixpoint_map->find(state) == fixpoint_map->end()) {
-// 	(*fixpoint_map)[state] = (*b).second;
-//       } else {
-// 	(*fixpoint_map)[state] += (*b).second;
-//       }
-//       ++b;
-//     }
-//     ++begin;
-//   }
-//   return fixpoint_map;
-// }
+  STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map = new STATE_MAP<NetworkState_Impl, unsigned int>();
+  std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*>::iterator begin = fixpoint_map_v.begin();
+  std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*>::iterator end = fixpoint_map_v.end();
+  while (begin != end) {
+    STATE_MAP<NetworkState_Impl, unsigned int>* fp_map = *begin;
+    STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator b = fp_map->begin();
+    STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator e = fp_map->end();
+    while (b != e) {
+      NetworkState_Impl state = (*b).first;
+      if (fixpoint_map->find(state) == fixpoint_map->end()) {
+	(*fixpoint_map)[state] = (*b).second;
+      } else {
+	(*fixpoint_map)[state] += (*b).second;
+      }
+      ++b;
+    }
+    ++begin;
+  }
+  return fixpoint_map;
+}
 
-// void EnsembleEngine::epilogue()
-// {
-//   merged_cumulator = Cumulator::mergeCumulators(cumulator_v);
-//   merged_cumulator->epilogue(network, reference_state);
+void EnsembleEngine::epilogue()
+{
+  merged_cumulator = Cumulator::mergeCumulators(cumulator_v);
+  // This might suck
+  // merged_cumulator->epilogue(network, reference_state);
 
-//   STATE_MAP<NetworkState_Impl, unsigned int>* merged_fixpoint_map = mergeFixpointMaps();
+  STATE_MAP<NetworkState_Impl, unsigned int>* merged_fixpoint_map = mergeFixpointMaps();
 
-//   STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator b = merged_fixpoint_map->begin();
-//   STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator e = merged_fixpoint_map->end();
+  STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator b = merged_fixpoint_map->begin();
+  STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator e = merged_fixpoint_map->end();
 
-//   while (b != e) {
-//     fixpoints[NetworkState((*b).first).getState()] = (*b).second;
-//     ++b;
-//   }
-//   delete merged_fixpoint_map;
-// }
+  while (b != e) {
+    fixpoints[NetworkState((*b).first).getState()] = (*b).second;
+    ++b;
+  }
+  delete merged_fixpoint_map;
+}
 
 // void EnsembleEngine::display(std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat) const
 // {
