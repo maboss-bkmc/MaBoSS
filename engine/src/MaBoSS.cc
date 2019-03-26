@@ -30,6 +30,7 @@
 */
 
 #include "MaBEstEngine.h"
+#include "EnsembleEngine.h"
 #include <fstream>
 #include <stdlib.h>
 #include "Utils.h"
@@ -222,20 +223,56 @@ int main(int argc, char* argv[])
   std::ostream* output_fp = NULL;
 
   try {
+    time_t start_time, end_time;
+
     if (ensemble) {
 
+      time(&start_time);
+
       std::vector<Network *> networks;
+      RunConfig* runconfig = RunConfig::getInstance();      
 
       for (unsigned int i=0; i < ctbndl_files.size(); i++) {
         std::cout << ctbndl_files[i] << std::endl;
         Network* network = new Network();
         network->parse(ctbndl_files[i]);
         networks.push_back(network);
-      }
       
+
+      
+        // if (generate_config_template) {
+        //   IStateGroup::checkAndComplete(network);
+        //   runconfig->generateTemplate(network, std::cout);
+        //   return 0;
+        // }
+
+        // if (setConfigVariables(prog, runconfig_var_v)) {
+        //   return 1;
+        // }  
+
+        std::vector<ConfigOpt>::const_iterator begin = runconfig_file_or_expr_v.begin();
+        std::vector<ConfigOpt>::const_iterator end = runconfig_file_or_expr_v.end();
+        while (begin != end) {
+          const ConfigOpt& cfg = *begin;
+          if (cfg.isExpr()) {
+      runconfig->parseExpression(networks[i], (cfg.getExpr() + ";").c_str());
+          } else {
+      runconfig->parse(networks[i], cfg.getFile().c_str());
+          }
+          ++begin;
+        }
+
+        IStateGroup::checkAndComplete(networks[i]);
+      }
+      SymbolTable::getInstance()->checkSymbols();
+
+      EnsembleEngine* engine = new EnsembleEngine(networks, runconfig);
+
+      time(&end_time);
+      std::cout << "Models loaded in " << (end_time - start_time) << "s" << std::endl;
+
     } else {
         
-      time_t start_time, end_time;
       Network* network = new Network();
 
       network->parse(ctbndl_file);
