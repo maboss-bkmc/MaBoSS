@@ -41,7 +41,7 @@
 #include "RandomGenerator.h"
 #include "RunConfig.h"
 
-struct ArgWrapper;
+struct EnsembleArgWrapper;
 
 class EnsembleEngine {
 
@@ -60,12 +60,12 @@ class EnsembleEngine {
   Cumulator* merged_cumulator;
   std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*> fixpoint_map_v;
   std::vector<Cumulator*> cumulator_v;
-  std::vector<ArgWrapper*> arg_wrapper_v;
+  std::vector<EnsembleArgWrapper*> arg_wrapper_v;
   pthread_t* tid;
   // NodeIndex getTargetNode(RandomGenerator* random_generator, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
   // double computeTH(const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
   // void epilogue();
-  // static void* threadWrapper(void *arg);
+  static void* threadWrapper(void *arg);
   // void runThread(Cumulator* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj);
   // STATE_MAP<NetworkState_Impl, unsigned int>* mergeFixpointMaps();
 
@@ -77,7 +77,7 @@ public:
 
   EnsembleEngine(std::vector<Network*> network, RunConfig* runconfig);
 
-  // void run(std::ostream* output_traj);
+  void run(std::ostream* output_traj);
 
   // //const std::map<NetworkState, unsigned int>& getFixpoints() const {return fixpoints;}
   // const STATE_MAP<NetworkState_Impl, unsigned int>& getFixpoints() const {return fixpoints;}

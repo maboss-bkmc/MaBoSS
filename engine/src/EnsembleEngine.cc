@@ -173,8 +173,8 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
 //   return TH;
 // }
 
-struct ArgWrapper {
-  MaBEstEngine* mabest;
+struct EnsembleArgWrapper {
+  EnsembleEngine* mabest;
   unsigned int start_count_thread;
   unsigned int sample_count_thread;
   Cumulator* cumulator;
@@ -183,20 +183,20 @@ struct ArgWrapper {
   STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map;
   std::ostream* output_traj;
 
-  ArgWrapper(MaBEstEngine* mabest, unsigned int start_count_thread, unsigned int sample_count_thread, Cumulator* cumulator, RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj) :
+  EnsembleArgWrapper(EnsembleEngine* mabest, unsigned int start_count_thread, unsigned int sample_count_thread, Cumulator* cumulator, RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj) :
     mabest(mabest), start_count_thread(start_count_thread), sample_count_thread(sample_count_thread), cumulator(cumulator), randgen_factory(randgen_factory), seed(seed), fixpoint_map(fixpoint_map), output_traj(output_traj) { }
 };
 
-// void* EnsembleEngine::threadWrapper(void *arg)
-// {
-//   ArgWrapper* warg = (ArgWrapper*)arg;
-//   try {
-//     warg->mabest->runThread(warg->cumulator, warg->start_count_thread, warg->sample_count_thread, warg->randgen_factory, warg->seed, warg->fixpoint_map, warg->output_traj);
-//   } catch(const BNException& e) {
-//     std::cerr << e;
-//   }
-//   return NULL;
-// }
+void* EnsembleEngine::threadWrapper(void *arg)
+{
+  EnsembleArgWrapper* warg = (EnsembleArgWrapper*)arg;
+  try {
+    // warg->mabest->runThread(warg->cumulator, warg->start_count_thread, warg->sample_count_thread, warg->randgen_factory, warg->seed, warg->fixpoint_map, warg->output_traj);
+  } catch(const BNException& e) {
+    std::cerr << e;
+  }
+  return NULL;
+}
 
 // void EnsembleEngine::runThread(Cumulator* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj)
 // {
@@ -304,34 +304,34 @@ struct ArgWrapper {
 //   delete random_generator;
 // }
 
-// void EnsembleEngine::run(std::ostream* output_traj)
-// {
-//   tid = new pthread_t[thread_count];
-//   RandomGeneratorFactory* randgen_factory = RunConfig::getInstance()->getRandomGeneratorFactory();
-//   int seed = RunConfig::getInstance()->getSeedPseudoRandom();
-//   unsigned int start_sample_count = 0;
-//   Probe probe;
-//   for (unsigned int nn = 0; nn < thread_count; ++nn) {
-//     STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map = new STATE_MAP<NetworkState_Impl, unsigned int>();
-//     fixpoint_map_v.push_back(fixpoint_map);
-//     ArgWrapper* warg = new ArgWrapper(this, start_sample_count, cumulator_v[nn]->getSampleCount(), cumulator_v[nn], randgen_factory, seed, fixpoint_map, output_traj);
-//     pthread_create(&tid[nn], NULL, MaBEstEngine::threadWrapper, warg);
-//     arg_wrapper_v.push_back(warg);
+void EnsembleEngine::run(std::ostream* output_traj)
+{
+  tid = new pthread_t[thread_count];
+  RandomGeneratorFactory* randgen_factory = RunConfig::getInstance()->getRandomGeneratorFactory();
+  int seed = RunConfig::getInstance()->getSeedPseudoRandom();
+  unsigned int start_sample_count = 0;
+  Probe probe;
+  for (unsigned int nn = 0; nn < thread_count; ++nn) {
+    STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map = new STATE_MAP<NetworkState_Impl, unsigned int>();
+    fixpoint_map_v.push_back(fixpoint_map);
+    EnsembleArgWrapper* warg = new EnsembleArgWrapper(this, start_sample_count, cumulator_v[nn]->getSampleCount(), cumulator_v[nn], randgen_factory, seed, fixpoint_map, output_traj);
+    pthread_create(&tid[nn], NULL, EnsembleEngine::threadWrapper, warg);
+    arg_wrapper_v.push_back(warg);
 
-//     start_sample_count += cumulator_v[nn]->getSampleCount();
-//   }
-//   for (unsigned int nn = 0; nn < thread_count; ++nn) {
-//     pthread_join(tid[nn], NULL);
-//   }
-//   probe.stop();
-//   elapsed_core_runtime = probe.elapsed_msecs();
-//   user_core_runtime = probe.user_msecs();
-//   probe.start();
+    start_sample_count += cumulator_v[nn]->getSampleCount();
+  }
+  for (unsigned int nn = 0; nn < thread_count; ++nn) {
+    pthread_join(tid[nn], NULL);
+  }
+  probe.stop();
+  elapsed_core_runtime = probe.elapsed_msecs();
+  user_core_runtime = probe.user_msecs();
+  probe.start();
 //   epilogue();
-//   probe.stop();
-//   elapsed_epilogue_runtime = probe.elapsed_msecs();
-//   user_epilogue_runtime = probe.user_msecs();
-// }  
+  probe.stop();
+  elapsed_epilogue_runtime = probe.elapsed_msecs();
+  user_epilogue_runtime = probe.user_msecs();
+}  
 
 // STATE_MAP<NetworkState_Impl, unsigned int>* MaBEstEngine::mergeFixpointMaps()
 // {
@@ -431,7 +431,7 @@ EnsembleEngine::~EnsembleEngine()
     delete *iter;
   }
 
-  for (std::vector<ArgWrapper*>::iterator iter = arg_wrapper_v.begin(); iter < arg_wrapper_v.end(); ++iter) {
+  for (std::vector<EnsembleArgWrapper*>::iterator iter = arg_wrapper_v.begin(); iter < arg_wrapper_v.end(); ++iter) {
     delete *iter;
   }
 
