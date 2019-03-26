@@ -62,12 +62,12 @@ class EnsembleEngine {
   std::vector<Cumulator*> cumulator_v;
   std::vector<ArgWrapper*> arg_wrapper_v;
   pthread_t* tid;
-  NodeIndex getTargetNode(RandomGenerator* random_generator, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
-  double computeTH(const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
-  void epilogue();
-  static void* threadWrapper(void *arg);
-  void runThread(Cumulator* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj);
-  STATE_MAP<NetworkState_Impl, unsigned int>* mergeFixpointMaps();
+  // NodeIndex getTargetNode(RandomGenerator* random_generator, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
+  // double computeTH(const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
+  // void epilogue();
+  // static void* threadWrapper(void *arg);
+  // void runThread(Cumulator* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj);
+  // STATE_MAP<NetworkState_Impl, unsigned int>* mergeFixpointMaps();
 
 public:
   static const std::string VERSION;
@@ -77,14 +77,14 @@ public:
 
   EnsembleEngine(std::vector<Network*> network, RunConfig* runconfig);
 
-  void run(std::ostream* output_traj);
+  // void run(std::ostream* output_traj);
 
-  //const std::map<NetworkState, unsigned int>& getFixpoints() const {return fixpoints;}
-  const STATE_MAP<NetworkState_Impl, unsigned int>& getFixpoints() const {return fixpoints;}
+  // //const std::map<NetworkState, unsigned int>& getFixpoints() const {return fixpoints;}
+  // const STATE_MAP<NetworkState_Impl, unsigned int>& getFixpoints() const {return fixpoints;}
 
-  bool converges() const {return fixpoints.size() > 0;}
+  // bool converges() const {return fixpoints.size() > 0;}
 
-  void display(std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat = false) const;
+  // void display(std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat = false) const;
 
   long long getElapsedCoreRunTime() const {return elapsed_core_runtime;}
   long long getUserCoreRunTime() const {return user_core_runtime;}
