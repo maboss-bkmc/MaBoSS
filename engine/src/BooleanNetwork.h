@@ -409,6 +409,8 @@ class Network {
   // static Network* instance;
   RandomGenerator* random_generator; // used for node initial states
 
+  MAP<std::string, bool> node_def_map;
+
 public:
 
   Network();
@@ -471,6 +473,18 @@ public:
   void display(std::ostream& os) const;
 
   void generateLogicalExpressions(std::ostream& os) const;
+
+  bool isNodeDefined(const std::string& identifier) {
+    return node_def_map.find(identifier) != node_def_map.end();
+  }
+
+  void setNodeAsDefined(const std::string& identifier) {
+    node_def_map[identifier] = true;
+  }
+
+  void resetNodeDefinition() {
+    node_def_map.clear();
+  }
 
   ~Network();
 };

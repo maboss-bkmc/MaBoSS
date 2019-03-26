@@ -35,7 +35,7 @@
 
 extern int yylex();
 static void yyerror(const char *s);
-MAP<std::string, bool> NodeDecl::node_def_map;
+// MAP<std::string, bool> NodeDecl::node_def_map;
 static Network* current_network;
 %}
 

@@ -181,7 +181,7 @@ void Network::compile()
   begin = node_map.begin();
   while (begin != end) {
     Node* node = (*begin).second;
-    if (!NodeDecl::isNodeDefined(node->getLabel())) {
+    if (!isNodeDefined(node->getLabel())) {
       throw BNException("node " + node->getLabel() + " used but not defined"); 
     }
     ++begin;
@@ -204,11 +204,11 @@ void Network::compile()
 
 Node* Network::defineNode(const std::string& label, const std::string& description)
 {
-  if (NodeDecl::isNodeDefined(label)) {
+  if (isNodeDefined(label)) {
     throw BNException("node " + label + " already defined");
   }
   Node* node = new Node(label, description, last_index++); // node factory
-  NodeDecl::defineNode(label);
+  setNodeAsDefined(label);
   node_map[label] = node;
   return node;
 }
