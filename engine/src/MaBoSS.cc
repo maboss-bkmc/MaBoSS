@@ -233,7 +233,7 @@ int main(int argc, char* argv[])
       RunConfig* runconfig = RunConfig::getInstance();      
 
       for (unsigned int i=0; i < ctbndl_files.size(); i++) {
-        std::cout << ctbndl_files[i] << std::endl;
+        // std::cout << ctbndl_files[i] << std::endl;
         Network* network = new Network();
         network->parse(ctbndl_files[i]);
         networks.push_back(network);
@@ -265,11 +265,27 @@ int main(int argc, char* argv[])
         IStateGroup::checkAndComplete(networks[i]);
       }
       SymbolTable::getInstance()->checkSymbols();
+      
+      // output_run = new std::ofstream((std::string(output) + "_run.txt").c_str());
+      output_probtraj = new std::ofstream((std::string(output) + "_probtraj.csv").c_str());
+      output_statdist = new std::ofstream((std::string(output) + "_statdist.csv").c_str());
+      output_fp = new std::ofstream((std::string(output) + "_fp.csv").c_str());
 
-      EnsembleEngine* engine = new EnsembleEngine(networks, runconfig);
 
+      EnsembleEngine engine(networks, runconfig);
+      engine.run(NULL);
+      engine.display(*output_probtraj, *output_statdist, *output_fp, hexfloat);
       time(&end_time);
-      std::cout << "Models loaded in " << (end_time - start_time) << "s" << std::endl;
+
+      // runconfig->display(network, start_time, end_time, mabest, *output_run);
+
+
+      // std::cout << "Models loaded in " << (end_time - start_time) << "s" << std::endl;
+      
+      // ((std::ofstream*)output_run)->close();
+      ((std::ofstream*)output_probtraj)->close();
+      ((std::ofstream*)output_statdist)->close();
+      ((std::ofstream*)output_fp)->close();
 
     } else {
         
