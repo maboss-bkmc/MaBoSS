@@ -136,42 +136,46 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
 //   return node_idx;
 // }
 
-// double EnsembleEngine::computeTH(const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const
-// {
-//   if (nodeTransitionRates.size() == 1) {
-//     return 0.;
-//   }
+double EnsembleEngine::computeTH(const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const
+{
+  if (nodeTransitionRates.size() == 1) {
+    return 0.;
+  }
 
-//   MAP<NodeIndex, double>::const_iterator begin = nodeTransitionRates.begin();
-//   MAP<NodeIndex, double>::const_iterator end = nodeTransitionRates.end();
-//   double TH = 0.;
-//   double rate_internal = 0.;
+  MAP<NodeIndex, double>::const_iterator begin = nodeTransitionRates.begin();
+  MAP<NodeIndex, double>::const_iterator end = nodeTransitionRates.end();
+  double TH = 0.;
+  double rate_internal = 0.;
 
-//   while (begin != end) {
-//     NodeIndex index = (*begin).first;
-//     double rate = (*begin).second;
-//     if (network->getNode(index)->isInternal()) {
-//       rate_internal += rate;
-//     }
-//     ++begin;
-//   }
+  while (begin != end) {
+    NodeIndex index = (*begin).first;
+    double rate = (*begin).second;
 
-//   double total_rate_non_internal = total_rate - rate_internal;
+    // Here we just check if the node is internal,
+    // which should be the same for all model.
+    // So we just take the first one, and we're good
+    if (networks[0]->getNode(index)->isInternal()) {
+      rate_internal += rate;
+    }
+    ++begin;
+  }
 
-//   begin = nodeTransitionRates.begin();
+  double total_rate_non_internal = total_rate - rate_internal;
 
-//   while (begin != end) {
-//     NodeIndex index = (*begin).first;
-//     double rate = (*begin).second;
-//     if (!network->getNode(index)->isInternal()) {
-//       double proba = rate / total_rate_non_internal;
-//       TH -= log2(proba) * proba;
-//     }
-//     ++begin;
-//   }
+  begin = nodeTransitionRates.begin();
 
-//   return TH;
-// }
+  while (begin != end) {
+    NodeIndex index = (*begin).first;
+    double rate = (*begin).second;
+    if (!networks[0]->getNode(index)->isInternal()) {
+      double proba = rate / total_rate_non_internal;
+      TH -= log2(proba) * proba;
+    }
+    ++begin;
+  }
+
+  return TH;
+}
 
 struct EnsembleArgWrapper {
   EnsembleEngine* mabest;
@@ -191,118 +195,124 @@ void* EnsembleEngine::threadWrapper(void *arg)
 {
   EnsembleArgWrapper* warg = (EnsembleArgWrapper*)arg;
   try {
-    // warg->mabest->runThread(warg->cumulator, warg->start_count_thread, warg->sample_count_thread, warg->randgen_factory, warg->seed, warg->fixpoint_map, warg->output_traj);
+    warg->mabest->runThread(warg->cumulator, warg->start_count_thread, warg->sample_count_thread, warg->randgen_factory, warg->seed, warg->fixpoint_map, warg->output_traj);
   } catch(const BNException& e) {
     std::cerr << e;
   }
   return NULL;
 }
 
-// void EnsembleEngine::runThread(Cumulator* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj)
-// {
-//   const std::vector<Node*>& nodes = network->getNodes();
-//   std::vector<Node*>::const_iterator begin = nodes.begin();
-//   std::vector<Node*>::const_iterator end = nodes.end();
-//   unsigned int stable_cnt = 0;
-//   NetworkState network_state; 
+void EnsembleEngine::runThread(Cumulator* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj)
+{
+  unsigned int stable_cnt = 0;
+  NetworkState network_state; 
+  
+  RandomGenerator* random_generator = randgen_factory->generateRandomGenerator(seed);
+  for (unsigned int nn = 0; nn < sample_count_thread; ++nn) {
 
-//   RandomGenerator* random_generator = randgen_factory->generateRandomGenerator(seed);
-//   for (unsigned int nn = 0; nn < sample_count_thread; ++nn) {
-//     random_generator->setSeed(seed+start_count_thread+nn);
-//     cumulator->rewind();
-//     network->initStates(network_state);
-//     double tm = 0.;
-//     unsigned int step = 0;
-//     if (NULL != output_traj) {
-//       (*output_traj) << "\nTrajectory #" << (nn+1) << '\n';
-//       (*output_traj) << " istate\t";
-//       network_state.displayOneLine(*output_traj, network);
-//       (*output_traj) << '\n';
-//     }
-//     while (tm < max_time) {
-//       double total_rate = 0.;
-//       MAP<NodeIndex, double> nodeTransitionRates;
-//       begin = nodes.begin();
+    random_generator->setSeed(seed+start_count_thread+nn);
+    int network_index = floor(random_generator->generate()*networks.size());
+    
+    Network* network = networks[network_index];
+    const std::vector<Node*>& nodes = network->getNodes();
+    std::vector<Node*>::const_iterator begin = nodes.begin();
+    std::vector<Node*>::const_iterator end = nodes.end();
+ 
+ 
+    cumulator->rewind();
+    network->initStates(network_state);
+    double tm = 0.;
+    unsigned int step = 0;
+  //   if (NULL != output_traj) {
+  //     (*output_traj) << "\nTrajectory #" << (nn+1) << '\n';
+  //     (*output_traj) << " istate\t";
+  //     network_state.displayOneLine(*output_traj, network);
+  //     (*output_traj) << '\n';
+  //   }
+    while (tm < max_time) {
+      double total_rate = 0.;
+      MAP<NodeIndex, double> nodeTransitionRates;
+      begin = nodes.begin();
 
-//       while (begin != end) {
-// 	Node* node = *begin;
-// 	NodeIndex node_idx = node->getIndex();
-// 	if (node->getNodeState(network_state)) {
-// 	  double r_down = node->getRateDown(network_state);
-// 	  if (r_down != 0.0) {
-// 	    total_rate += r_down;
-// 	    nodeTransitionRates[node_idx] = r_down;
-// 	  }
-// 	} else {
-// 	  double r_up = node->getRateUp(network_state);
-// 	  if (r_up != 0.0) {
-// 	    total_rate += r_up;
-// 	    nodeTransitionRates[node_idx] = r_up;
-// 	  }
-// 	}
-// 	++begin;
-//       }
+      while (begin != end) {
+        Node* node = *begin;
+        NodeIndex node_idx = node->getIndex();
+        if (node->getNodeState(network_state)) {
+          double r_down = node->getRateDown(network_state);
+          if (r_down != 0.0) {
+            total_rate += r_down;
+            nodeTransitionRates[node_idx] = r_down;
+          }
+        } else {
+          double r_up = node->getRateUp(network_state);
+          if (r_up != 0.0) {
+            total_rate += r_up;
+            nodeTransitionRates[node_idx] = r_up;
+          }
+        }
+	      ++begin;
+      }
 
-//       // EV: 2018-12-19 suppressed this block and integrated fixed point management below
-//       /*
-//       if (total_rate == 0.0) {
-// 	std::cerr << "FP\n";
-// 	// may have several fixpoint maps
-// 	if (fixpoint_map->find(network_state.getState()) == fixpoint_map->end()) {
-// 	  (*fixpoint_map)[network_state.getState()] = 1;
-// 	} else {
-// 	  (*fixpoint_map)[network_state.getState()]++;
-// 	}
-// 	cumulator->cumul(network_state, max_time, 0.);
-// 	tm = max_time;
-// 	stable_cnt++;
-// 	break;
-//       }
-//       */
+      // EV: 2018-12-19 suppressed this block and integrated fixed point management below
+      /*
+      if (total_rate == 0.0) {
+	std::cerr << "FP\n";
+	// may have several fixpoint maps
+	if (fixpoint_map->find(network_state.getState()) == fixpoint_map->end()) {
+	  (*fixpoint_map)[network_state.getState()] = 1;
+	} else {
+	  (*fixpoint_map)[network_state.getState()]++;
+	}
+	cumulator->cumul(network_state, max_time, 0.);
+	tm = max_time;
+	stable_cnt++;
+	break;
+      }
+      */
 
-//       double TH;
-//       if (total_rate == 0) {
-// 	tm = max_time;
-// 	TH = 0.;
-// 	if (fixpoint_map->find(network_state.getState()) == fixpoint_map->end()) {
-// 	  (*fixpoint_map)[network_state.getState()] = 1;
-// 	} else {
-// 	  (*fixpoint_map)[network_state.getState()]++;
-// 	}
-// 	stable_cnt++;
-//       } else {
-// 	double transition_time ;
-// 	if (discrete_time) {
-// 	  transition_time = time_tick;
-// 	} else {
-// 	  double U_rand1 = random_generator->generate();
-// 	  transition_time = -log(U_rand1) / total_rate;
-// 	}
-	
-// 	tm += transition_time;
-// 	TH = computeTH(nodeTransitionRates, total_rate);
-//       }
+      double TH;
+      if (total_rate == 0) {
+        tm = max_time;
+        TH = 0.;
+        if (fixpoint_map->find(network_state.getState()) == fixpoint_map->end()) {
+          (*fixpoint_map)[network_state.getState()] = 1;
+        } else {
+          (*fixpoint_map)[network_state.getState()]++;
+        }
+        stable_cnt++;
+            } else {
+        double transition_time ;
+        if (discrete_time) {
+          transition_time = time_tick;
+        } else {
+          double U_rand1 = random_generator->generate();
+          transition_time = -log(U_rand1) / total_rate;
+        }
+        
+        tm += transition_time;
+        TH = computeTH(nodeTransitionRates, total_rate);
+      }
 
-//       if (NULL != output_traj) {
-// 	(*output_traj) << std::setprecision(10) << tm << '\t';
-// 	network_state.displayOneLine(*output_traj, network);
-// 	(*output_traj) << '\t' << TH << '\n';
-//       }
+  //     if (NULL != output_traj) {
+	// (*output_traj) << std::setprecision(10) << tm << '\t';
+	// network_state.displayOneLine(*output_traj, network);
+	// (*output_traj) << '\t' << TH << '\n';
+  //     }
 
-//       cumulator->cumul(network_state, tm, TH);
+      cumulator->cumul(network_state, tm, TH);
 
-//       if (tm >= max_time) {
-// 	break;
-//       }
+      if (tm >= max_time) {
+	break;
+      }
 
-//       NodeIndex node_idx = getTargetNode(random_generator, nodeTransitionRates, total_rate);
-//       network_state.flipState(network->getNode(node_idx));
-//       step++;
-//     }
-//     cumulator->trajectoryEpilogue();
-//   }
-//   delete random_generator;
-// }
+      // NodeIndex node_idx = getTargetNode(random_generator, nodeTransitionRates, total_rate);
+      // network_state.flipState(network->getNode(node_idx));
+      step++;
+    }
+  //   cumulator->trajectoryEpilogue();
+  }
+  delete random_generator;
+}
 
 void EnsembleEngine::run(std::ostream* output_traj)
 {
