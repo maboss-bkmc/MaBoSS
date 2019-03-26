@@ -41,13 +41,13 @@ const std::string EnsembleEngine::VERSION = "0.1";
 // size_t RandomGenerator::generated_number_count = 0;
 static const char* MABOSS_USER_FUNC_INIT = "maboss_user_func_init";
 
-void EnsembleEngine::init()
+void MetaEngine::init()
 {
   extern void builtin_functions_init();
   builtin_functions_init();
 }
 
-void EnsembleEngine::loadUserFuncs(const char* module)
+void MetaEngine::loadUserFuncs(const char* module)
 {
   init();
 
@@ -68,7 +68,7 @@ void EnsembleEngine::loadUserFuncs(const char* module)
 }
 
 EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runconfig) :
-  networks(networks), time_tick(runconfig->getTimeTick()), max_time(runconfig->getMaxTime()), sample_count(runconfig->getSampleCount()), discrete_time(runconfig->isDiscreteTime()), thread_count(runconfig->getThreadCount()) {
+  MetaEngine(runconfig), networks(networks) {
 
   tid = NULL;
 
@@ -333,7 +333,7 @@ void EnsembleEngine::run(std::ostream* output_traj)
   user_epilogue_runtime = probe.user_msecs();
 }  
 
-STATE_MAP<NetworkState_Impl, unsigned int>* EnsembleEngine::mergeFixpointMaps()
+STATE_MAP<NetworkState_Impl, unsigned int>* MetaEngine::mergeFixpointMaps()
 {
   if (1 == fixpoint_map_v.size()) {
     return new STATE_MAP<NetworkState_Impl, unsigned int>(*fixpoint_map_v[0]);

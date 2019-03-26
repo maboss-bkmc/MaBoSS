@@ -43,48 +43,41 @@
 
 struct EnsembleArgWrapper;
 
-class EnsembleEngine {
+class MetaEngine {
 
-  std::vector<Network*> networks;
+protected:
+  
   double time_tick;
   double max_time;
   unsigned int sample_count;
   bool discrete_time;
   unsigned int thread_count;
-  //std::map<NetworkState, unsigned int> fixpoints;
-  STATE_MAP<NetworkState_Impl, unsigned int> fixpoints;
-  mutable long long elapsed_core_runtime, user_core_runtime, elapsed_statdist_runtime, user_statdist_runtime, elapsed_epilogue_runtime, user_epilogue_runtime;
-
+  
   NetworkState reference_state;
   unsigned int refnode_count;
-  Cumulator* merged_cumulator;
+
+  mutable long long elapsed_core_runtime, user_core_runtime, elapsed_statdist_runtime, user_statdist_runtime, elapsed_epilogue_runtime, user_epilogue_runtime;
+  STATE_MAP<NetworkState_Impl, unsigned int> fixpoints;
   std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*> fixpoint_map_v;
+  
+  Cumulator* merged_cumulator;
   std::vector<Cumulator*> cumulator_v;
-  std::vector<EnsembleArgWrapper*> arg_wrapper_v;
+
   pthread_t* tid;
-  // NodeIndex getTargetNode(RandomGenerator* random_generator, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
-  // double computeTH(const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
-  void epilogue();
-  static void* threadWrapper(void *arg);
-  // void runThread(Cumulator* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj);
+
   STATE_MAP<NetworkState_Impl, unsigned int>* mergeFixpointMaps();
 
 public:
-  static const std::string VERSION;
+
+  MetaEngine(RunConfig* runconfig) : 
+    time_tick(runconfig->getTimeTick()), 
+    max_time(runconfig->getMaxTime()), 
+    sample_count(runconfig->getSampleCount()), 
+    discrete_time(runconfig->isDiscreteTime()), 
+    thread_count(runconfig->getThreadCount()) {}
 
   static void init();
   static void loadUserFuncs(const char* module);
-
-  EnsembleEngine(std::vector<Network*> network, RunConfig* runconfig);
-
-  void run(std::ostream* output_traj);
-
-  // //const std::map<NetworkState, unsigned int>& getFixpoints() const {return fixpoints;}
-  // const STATE_MAP<NetworkState_Impl, unsigned int>& getFixpoints() const {return fixpoints;}
-
-  // bool converges() const {return fixpoints.size() > 0;}
-
-  // void display(std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat = false) const;
 
   long long getElapsedCoreRunTime() const {return elapsed_core_runtime;}
   long long getUserCoreRunTime() const {return user_core_runtime;}
@@ -94,6 +87,32 @@ public:
 
   long long getElapsedStatDistRunTime() const {return elapsed_statdist_runtime;}
   long long getUserStatDistRunTime() const {return user_statdist_runtime;}
+
+  bool converges() const {return fixpoints.size() > 0;}
+  const STATE_MAP<NetworkState_Impl, unsigned int>& getFixpoints() const {return fixpoints;}
+
+};
+
+
+class EnsembleEngine : MetaEngine {
+
+  std::vector<Network*> networks;
+  
+  std::vector<EnsembleArgWrapper*> arg_wrapper_v;
+  // NodeIndex getTargetNode(RandomGenerator* random_generator, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
+  // double computeTH(const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
+  void epilogue();
+  static void* threadWrapper(void *arg);
+  // void runThread(Cumulator* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj);
+
+public:
+  static const std::string VERSION;
+
+  EnsembleEngine(std::vector<Network*> network, RunConfig* runconfig);
+
+  void run(std::ostream* output_traj);
+
+  // void display(std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat = false) const;
 
   ~EnsembleEngine();
 };
