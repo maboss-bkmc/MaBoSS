@@ -99,7 +99,7 @@ class EnsembleEngine : MetaEngine {
   std::vector<Network*> networks;
   
   std::vector<EnsembleArgWrapper*> arg_wrapper_v;
-  // NodeIndex getTargetNode(RandomGenerator* random_generator, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
+  NodeIndex getTargetNode(Network* network, RandomGenerator* random_generator, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
   double computeTH(const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
   void epilogue();
   static void* threadWrapper(void *arg);
@@ -112,7 +112,7 @@ public:
 
   void run(std::ostream* output_traj);
 
-  // void display(std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat = false) const;
+  void display(std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat = false) const;
 
   ~EnsembleEngine();
 };

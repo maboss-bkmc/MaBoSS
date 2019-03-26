@@ -37,7 +37,7 @@
 #include <dlfcn.h>
 #include <iostream>
 
-const std::string EnsembleEngine::VERSION = "0.1";
+const std::string EnsembleEngine::VERSION = "1.0";
 // size_t RandomGenerator::generated_number_count = 0;
 static const char* MABOSS_USER_FUNC_INIT = "maboss_user_func_init";
 
@@ -117,24 +117,24 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
   }
 }
 
-// NodeIndex EnsembleEngine::getTargetNode(RandomGenerator* random_generator, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const
-// {
-//   double U_rand2 = random_generator->generate();
-//   double random_rate = U_rand2 * total_rate;
-//   MAP<NodeIndex, double>::const_iterator begin = nodeTransitionRates.begin();
-//   MAP<NodeIndex, double>::const_iterator end = nodeTransitionRates.end();
-//   NodeIndex node_idx = INVALID_NODE_INDEX;
-//   while (begin != end && random_rate > 0.) {
-//     node_idx = (*begin).first;
-//     double rate = (*begin).second;
-//     random_rate -= rate;
-//     ++begin;
-//   }
+NodeIndex EnsembleEngine::getTargetNode(Network* network, RandomGenerator* random_generator, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const
+{
+  double U_rand2 = random_generator->generate();
+  double random_rate = U_rand2 * total_rate;
+  MAP<NodeIndex, double>::const_iterator begin = nodeTransitionRates.begin();
+  MAP<NodeIndex, double>::const_iterator end = nodeTransitionRates.end();
+  NodeIndex node_idx = INVALID_NODE_INDEX;
+  while (begin != end && random_rate > 0.) {
+    node_idx = (*begin).first;
+    double rate = (*begin).second;
+    random_rate -= rate;
+    ++begin;
+  }
 
-//   assert(node_idx != INVALID_NODE_INDEX);
-//   assert(network->getNode(node_idx)->getIndex() == node_idx);
-//   return node_idx;
-// }
+  assert(node_idx != INVALID_NODE_INDEX);
+  assert(network->getNode(node_idx)->getIndex() == node_idx);
+  return node_idx;
+}
 
 double EnsembleEngine::computeTH(const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const
 {
@@ -302,14 +302,14 @@ void EnsembleEngine::runThread(Cumulator* cumulator, unsigned int start_count_th
       cumulator->cumul(network_state, tm, TH);
 
       if (tm >= max_time) {
-	break;
+	      break;
       }
 
-      // NodeIndex node_idx = getTargetNode(random_generator, nodeTransitionRates, total_rate);
-      // network_state.flipState(network->getNode(node_idx));
+      NodeIndex node_idx = getTargetNode(network, random_generator, nodeTransitionRates, total_rate);
+      network_state.flipState(network->getNode(node_idx));
       step++;
     }
-  //   cumulator->trajectoryEpilogue();
+    cumulator->trajectoryEpilogue();
   }
   delete random_generator;
 }
@@ -337,7 +337,7 @@ void EnsembleEngine::run(std::ostream* output_traj)
   elapsed_core_runtime = probe.elapsed_msecs();
   user_core_runtime = probe.user_msecs();
   probe.start();
-//   epilogue();
+  epilogue();
   probe.stop();
   elapsed_epilogue_runtime = probe.elapsed_msecs();
   user_epilogue_runtime = probe.user_msecs();
@@ -373,8 +373,7 @@ STATE_MAP<NetworkState_Impl, unsigned int>* MetaEngine::mergeFixpointMaps()
 void EnsembleEngine::epilogue()
 {
   merged_cumulator = Cumulator::mergeCumulators(cumulator_v);
-  // This might suck
-  // merged_cumulator->epilogue(network, reference_state);
+  merged_cumulator->epilogue(networks[0], reference_state);
 
   STATE_MAP<NetworkState_Impl, unsigned int>* merged_fixpoint_map = mergeFixpointMaps();
 
@@ -388,49 +387,49 @@ void EnsembleEngine::epilogue()
   delete merged_fixpoint_map;
 }
 
-// void EnsembleEngine::display(std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat) const
-// {
-//   Probe probe;
-//   merged_cumulator->displayCSV(network, refnode_count, output_probtraj, output_statdist, hexfloat);
-//   probe.stop();
-//   elapsed_statdist_runtime = probe.elapsed_msecs();
-//   user_statdist_runtime = probe.user_msecs();
+void EnsembleEngine::display(std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat) const
+{
+  Probe probe;
+  merged_cumulator->displayCSV(networks[0], refnode_count, output_probtraj, output_statdist, hexfloat);
+  probe.stop();
+  elapsed_statdist_runtime = probe.elapsed_msecs();
+  user_statdist_runtime = probe.user_msecs();
 
-//   unsigned int statdist_traj_count = RunConfig::getInstance()->getStatDistTrajCount();
-//   if (statdist_traj_count == 0) {
-//     output_statdist << "Trajectory\tState\tProba\n";
-//   }
+  unsigned int statdist_traj_count = RunConfig::getInstance()->getStatDistTrajCount();
+  if (statdist_traj_count == 0) {
+    output_statdist << "Trajectory\tState\tProba\n";
+  }
 
-//   output_fp << "Fixed Points (" << fixpoints.size() << ")\n";
-//   if (0 == fixpoints.size()) {
-//     return;
-//   }
+  output_fp << "Fixed Points (" << fixpoints.size() << ")\n";
+  if (0 == fixpoints.size()) {
+    return;
+  }
 
-// #ifdef HAS_STD_HEXFLOAT
-//   if (hexfloat) {
-//     output_fp << std::hexfloat;
-//   }
-// #endif
+#ifdef HAS_STD_HEXFLOAT
+  if (hexfloat) {
+    output_fp << std::hexfloat;
+  }
+#endif
 
-//   STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator begin = fixpoints.begin();
-//   STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator end = fixpoints.end();
+  STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator begin = fixpoints.begin();
+  STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator end = fixpoints.end();
   
-//   output_fp << "FP\tProba\tState\t";
-//   network->displayHeader(output_fp);
-//   for (unsigned int nn = 0; begin != end; ++nn) {
-//     const NetworkState& network_state = (*begin).first;
-//     output_fp << "#" << (nn+1) << "\t";
-//     if (hexfloat) {
-//       output_fp << fmthexdouble((double)(*begin).second / sample_count) <<  "\t";
-//     } else {
-//       output_fp << ((double)(*begin).second / sample_count) <<  "\t";
-//     }
-//     network_state.displayOneLine(output_fp, network);
-//     output_fp << '\t';
-//     network_state.display(output_fp, network);
-//     ++begin;
-//   }
-// }
+  output_fp << "FP\tProba\tState\t";
+  networks[0]->displayHeader(output_fp);
+  for (unsigned int nn = 0; begin != end; ++nn) {
+    const NetworkState& network_state = (*begin).first;
+    output_fp << "#" << (nn+1) << "\t";
+    if (hexfloat) {
+      output_fp << fmthexdouble((double)(*begin).second / sample_count) <<  "\t";
+    } else {
+      output_fp << ((double)(*begin).second / sample_count) <<  "\t";
+    }
+    network_state.displayOneLine(output_fp, networks[0]);
+    output_fp << '\t';
+    network_state.display(output_fp, networks[0]);
+    ++begin;
+  }
+}
 
 EnsembleEngine::~EnsembleEngine()
 {
