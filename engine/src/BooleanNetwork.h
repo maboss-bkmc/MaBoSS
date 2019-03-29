@@ -229,6 +229,10 @@ class Node {
  public:
   Node(const std::string& label, const std::string& description, NodeIndex index);
 
+  void setIndex(NodeIndex new_index) {
+    index = new_index;
+  }
+
   const std::string& getLabel() const {
     return label;
   }
@@ -418,7 +422,7 @@ public:
   Network(const Network& network);
   Network& operator=(const Network& network);
 
-  int parse(const char* file = NULL);
+  int parse(const char* file = NULL, std::map<std::string, NodeIndex>* nodes_indexes = NULL);
 
   Node* defineNode(const std::string& label, const std::string& description = "");
 
@@ -445,7 +449,8 @@ public:
 
   size_t getNodeCount() const {return node_map.size();}
 
-  void compile();
+  void compile(std::map<std::string, NodeIndex>* nodes_indexes = NULL);
+
 
   RandomGenerator* getRandomGenerator() const {return random_generator;}
 

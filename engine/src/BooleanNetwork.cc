@@ -93,7 +93,7 @@ Network::Network() : last_index(0U), random_generator(NULL)
 {
 }
 
-int Network::parse(const char* file)
+int Network::parse(const char* file, std::map<std::string, NodeIndex>* nodes_indexes)
 {
   if (NULL != file) {
     CTBNDLin = fopen(file, "r");
@@ -111,7 +111,7 @@ int Network::parse(const char* file)
 
     return 1;
   }
-  compile();
+  compile(nodes_indexes);
 
   if (NULL != file)
     fclose(CTBNDLin);
@@ -158,7 +158,7 @@ void Network::updateRandomGenerator(RunConfig* runconfig)
   random_generator = runconfig->getRandomGeneratorFactory()->generateRandomGenerator(runconfig->getSeedPseudoRandom());
 }
 
-void Network::compile()
+void Network::compile(std::map<std::string, NodeIndex>* nodes_indexes)
 {
   MAP<std::string, Node*>::iterator begin = node_map.begin();
   MAP<std::string, Node*>::iterator end = node_map.end();
@@ -191,6 +191,10 @@ void Network::compile()
   nodes.resize(node_map.size());
   while (begin != end) {
     Node* node = (*begin).second;
+    if (nodes_indexes != NULL) {
+      node->setIndex((*nodes_indexes)[node->getLabel()]);
+    }
+    
     if (node->isInputNode()) {
       input_nodes.push_back(node);
     } else {
