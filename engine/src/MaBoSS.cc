@@ -232,13 +232,22 @@ int main(int argc, char* argv[])
       std::vector<Network *> networks;
       RunConfig* runconfig = RunConfig::getInstance();      
 
-      for (unsigned int i=0; i < ctbndl_files.size(); i++) {
-        // std::cout << ctbndl_files[i] << std::endl;
-        Network* network = new Network();
-        network->parse(ctbndl_files[i]);
-        networks.push_back(network);
-      
+      Network* first_network = new Network();
+      first_network->parse(ctbndl_files[0]);
+      networks.push_back(first_network);
 
+      std::map<std::string, NodeIndex> nodes_indexes;
+      std::vector<Node*> first_network_nodes = first_network->getNodes();
+      for (unsigned int i=0; i < first_network_nodes.size(); i++) {
+        Node* t_node = first_network_nodes[i];
+        nodes_indexes[t_node->getLabel()] = t_node->getIndex();
+      }
+
+      for (unsigned int i=1; i < ctbndl_files.size(); i++) {
+        
+        Network* network = new Network();
+        network->parse(ctbndl_files[i], &nodes_indexes);
+        networks.push_back(network);
       
         // if (generate_config_template) {
         //   IStateGroup::checkAndComplete(network);
