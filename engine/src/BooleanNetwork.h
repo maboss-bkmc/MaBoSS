@@ -229,6 +229,10 @@ class Node {
  public:
   Node(const std::string& label, const std::string& description, NodeIndex index);
 
+  void setIndex(NodeIndex new_index) {
+    index = new_index;
+  }
+
   const std::string& getLabel() const {
     return label;
   }
@@ -406,8 +410,10 @@ class Network {
   std::vector<Node*> input_nodes;
   std::vector<Node*> non_input_nodes;
   std::vector<Node*> nodes;
-  static Network* instance;
+  // static Network* instance;
   RandomGenerator* random_generator; // used for node initial states
+
+  MAP<std::string, bool> node_def_map;
 
 public:
 
@@ -416,7 +422,7 @@ public:
   Network(const Network& network);
   Network& operator=(const Network& network);
 
-  int parse(const char* file = NULL);
+  int parse(const char* file = NULL, std::map<std::string, NodeIndex>* nodes_indexes = NULL);
 
   Node* defineNode(const std::string& label, const std::string& description = "");
 
@@ -443,7 +449,8 @@ public:
 
   size_t getNodeCount() const {return node_map.size();}
 
-  void compile();
+  void compile(std::map<std::string, NodeIndex>* nodes_indexes = NULL);
+
 
   RandomGenerator* getRandomGenerator() const {return random_generator;}
 
@@ -471,6 +478,18 @@ public:
   void display(std::ostream& os) const;
 
   void generateLogicalExpressions(std::ostream& os) const;
+
+  bool isNodeDefined(const std::string& identifier) {
+    return node_def_map.find(identifier) != node_def_map.end();
+  }
+
+  void setNodeAsDefined(const std::string& identifier) {
+    node_def_map[identifier] = true;
+  }
+
+  void resetNodeDefinition() {
+    node_def_map.clear();
+  }
 
   ~Network();
 };

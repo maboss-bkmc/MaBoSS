@@ -56,13 +56,13 @@ public:
 
 class NodeDecl {
 
-  // node definition should not be here (in the grammar) because it is also used by the API (even when grammar is not used at all)
-  static MAP<std::string, bool> node_def_map;
-
 public:
   NodeDecl(const std::string& identifier, std::vector<NodeDeclItem*>* node_decl_item_list) {
+    
+    Network* network = get_current_network();
+
     bool reset = false;
-    if (isNodeDefined(identifier)) {
+    if (network->isNodeDefined(identifier)) {
       if (Node::isOverride()) {
 	reset = true;
       } else if (!Node::isAugment()) {
@@ -70,9 +70,9 @@ public:
       }
     }
 
-    defineNode(identifier);
+    network->setNodeAsDefined(identifier);
 
-    Node* node = get_current_network()->getOrMakeNode(identifier);
+    Node* node = network->getOrMakeNode(identifier);
     if (reset) {
       node->reset();
     }
@@ -88,18 +88,6 @@ public:
 	node->setAttributeString((*node_decl_item_list)[nn]->getIdentifier(), (*node_decl_item_list)[nn]->getString());
       }
     }
-  }
-
-  static bool isNodeDefined(const std::string& identifier) {
-    return node_def_map.find(identifier) != node_def_map.end();
-  }
-
-  static void defineNode(const std::string& identifier) {
-    node_def_map[identifier] = true;
-  }
-
-  static void reset() {
-    node_def_map.clear();
   }
 };
 

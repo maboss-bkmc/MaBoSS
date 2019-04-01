@@ -30,6 +30,7 @@
 */
 
 #include "MaBEstEngine.h"
+#include "EnsembleEngine.h"
 #include <fstream>
 #include <stdlib.h>
 #include "Utils.h"
@@ -91,6 +92,8 @@ int main(int argc, char* argv[])
   std::vector<ConfigOpt> runconfig_file_or_expr_v;
   std::vector<std::string> runconfig_var_v;
   const char* ctbndl_file = NULL;
+  bool ensemble = false;
+  std::vector<char *> ctbndl_files;
   bool dump_config = false;
   bool generate_config_template = false;
   bool generate_logical_expressions = false;
@@ -120,6 +123,8 @@ int main(int argc, char* argv[])
 	generate_logical_expressions = true;
       } else if (!strcmp(s, "--dont-shrink-logical-expressions")) {
 	dont_shrink_logical_expressions = true;
+      } else if (!strcmp(s, "--ensemble")) {
+  ensemble = true;
       } else if (!strcmp(s, "--load-user-functions")) {
 	if (nn == argc-1) {std::cerr << '\n' << prog << ": missing value after option " << s << '\n'; return usage();}
 	MaBEstEngine::loadUserFuncs(argv[++nn]);
@@ -149,15 +154,25 @@ int main(int argc, char* argv[])
 	std::cerr << '\n' << prog << ": unknown option " << s << std::endl;
 	return usage();
       }
-    } else if (ctbndl_file == NULL) {
+    } else if (!ensemble && ctbndl_file == NULL) {
       ctbndl_file = argv[nn];
+    } else if (ensemble) {
+      ctbndl_files.push_back(argv[nn]);
     } else {
       std::cerr << '\n' << prog << ": boolean network file is already set to " << ctbndl_file << " [" << s << "]" << std::endl;
     }
   }
 
-  if (NULL == ctbndl_file) {
-    std::cerr << '\n' << prog << ": boolean network file is missing\n";
+  if (!ensemble && NULL == ctbndl_file)
+  {
+    std::cerr << '\n'
+              << prog << ": boolean network file is missing\n";
+    return usage();
+  }
+
+  if (ensemble && ctbndl_files.size() == 0) {
+    std::cerr << '\n'
+              << prog << ": ensemble networks are missing\n";
     return usage();
   }
     
@@ -209,80 +224,153 @@ int main(int argc, char* argv[])
 
   try {
     time_t start_time, end_time;
-    Network* network = new Network();
 
-    network->parse(ctbndl_file);
+    if (ensemble) {
 
-    RunConfig* runconfig = RunConfig::getInstance();
+      std::vector<Network *> networks;
+      RunConfig* runconfig = RunConfig::getInstance();      
 
-    if (generate_config_template) {
+      Network* first_network = new Network();
+      first_network->parse(ctbndl_files[0]);
+      networks.push_back(first_network);
+
+      std::vector<ConfigOpt>::const_iterator begin = runconfig_file_or_expr_v.begin();
+      std::vector<ConfigOpt>::const_iterator end = runconfig_file_or_expr_v.end();
+      while (begin != end) {
+        const ConfigOpt& cfg = *begin;
+        if (cfg.isExpr()) {
+          runconfig->parseExpression(networks[0], (cfg.getExpr() + ";").c_str());
+        } else {
+          runconfig->parse(networks[0], cfg.getFile().c_str());
+        }
+        ++begin;
+      }
+
+      IStateGroup::checkAndComplete(networks[0]);
+
+      std::map<std::string, NodeIndex> nodes_indexes;
+      std::vector<Node*> first_network_nodes = first_network->getNodes();
+      for (unsigned int i=0; i < first_network_nodes.size(); i++) {
+        Node* t_node = first_network_nodes[i];
+        nodes_indexes[t_node->getLabel()] = t_node->getIndex();
+      }
+
+      for (unsigned int i=1; i < ctbndl_files.size(); i++) {
+        
+        Network* network = new Network();
+        network->parse(ctbndl_files[i], &nodes_indexes);
+        networks.push_back(network);
+
+        const std::vector<Node*> nodes = networks[i]->getNodes();
+        for (unsigned int j=0; j < nodes.size(); j++) {
+            if (!first_network_nodes[j]->istateSetRandomly()) {
+                nodes[j]->setIState(first_network_nodes[j]->getIState(first_network));
+            }
+
+            nodes[j]->isInternal(first_network_nodes[j]->isInternal());
+
+            // if (!first_network_nodes[j]->isReference()) {
+            //   nodes[j]->setReferenceState(first_network_nodes[j]->getReferenceState());
+            // }
+        }
+
+        IStateGroup::checkAndComplete(networks[i]);
+      }
+      SymbolTable::getInstance()->checkSymbols();
+
+      // output_run = new std::ofstream((std::string(output) + "_run.txt").c_str());
+      output_probtraj = new std::ofstream((std::string(output) + "_probtraj.csv").c_str());
+      output_statdist = new std::ofstream((std::string(output) + "_statdist.csv").c_str());
+      output_fp = new std::ofstream((std::string(output) + "_fp.csv").c_str());
+
+      time(&start_time);
+      EnsembleEngine engine(networks, runconfig);
+      engine.run(NULL);
+      engine.display(*output_probtraj, *output_statdist, *output_fp, hexfloat);
+      time(&end_time);
+
+      // ((std::ofstream*)output_run)->close();
+      ((std::ofstream*)output_probtraj)->close();
+      ((std::ofstream*)output_statdist)->close();
+      ((std::ofstream*)output_fp)->close();
+
+    } else {
+        
+      Network* network = new Network();
+
+      network->parse(ctbndl_file);
+
+      RunConfig* runconfig = RunConfig::getInstance();
+
+      if (generate_config_template) {
+        IStateGroup::checkAndComplete(network);
+        runconfig->generateTemplate(network, std::cout);
+        return 0;
+      }
+
+      if (setConfigVariables(prog, runconfig_var_v)) {
+        return 1;
+      }      
+
+      std::vector<ConfigOpt>::const_iterator begin = runconfig_file_or_expr_v.begin();
+      std::vector<ConfigOpt>::const_iterator end = runconfig_file_or_expr_v.end();
+      while (begin != end) {
+        const ConfigOpt& cfg = *begin;
+        if (cfg.isExpr()) {
+    runconfig->parseExpression(network, (cfg.getExpr() + ";").c_str());
+        } else {
+    runconfig->parse(network, cfg.getFile().c_str());
+        }
+        ++begin;
+      }
+
       IStateGroup::checkAndComplete(network);
-      runconfig->generateTemplate(network, std::cout);
-      return 0;
-    }
 
-    if (setConfigVariables(prog, runconfig_var_v)) {
-      return 1;
-    }      
+      SymbolTable::getInstance()->checkSymbols();
 
-    std::vector<ConfigOpt>::const_iterator begin = runconfig_file_or_expr_v.begin();
-    std::vector<ConfigOpt>::const_iterator end = runconfig_file_or_expr_v.end();
-    while (begin != end) {
-      const ConfigOpt& cfg = *begin;
-      if (cfg.isExpr()) {
-	runconfig->parseExpression(network, (cfg.getExpr() + ";").c_str());
-      } else {
-	runconfig->parse(network, cfg.getFile().c_str());
+      if (check) {
+        return 0;
       }
-      ++begin;
-    }
 
-    IStateGroup::checkAndComplete(network);
-
-    SymbolTable::getInstance()->checkSymbols();
-
-    if (check) {
-      return 0;
-    }
-
-    if (generate_logical_expressions) {
-      network->generateLogicalExpressions(std::cout);
-      return 0;
-    }
-
-    if (dump_config) {
-      runconfig->dump(network, std::cout);
-      return 0;
-    }
-
-    if (runconfig->displayTrajectories()) {
-      if (runconfig->getThreadCount() > 1) {
-	std::cerr << '\n' << prog << ": warning: cannot display trajectories in multi-threaded mode\n";
-      } else {
-	output_traj = new std::ofstream((std::string(output) + "_traj.txt").c_str());
+      if (generate_logical_expressions) {
+        network->generateLogicalExpressions(std::cout);
+        return 0;
       }
+
+      if (dump_config) {
+        runconfig->dump(network, std::cout);
+        return 0;
+      }
+
+      if (runconfig->displayTrajectories()) {
+        if (runconfig->getThreadCount() > 1) {
+    std::cerr << '\n' << prog << ": warning: cannot display trajectories in multi-threaded mode\n";
+        } else {
+    output_traj = new std::ofstream((std::string(output) + "_traj.txt").c_str());
+        }
+      }
+
+      output_run = new std::ofstream((std::string(output) + "_run.txt").c_str());
+      output_probtraj = new std::ofstream((std::string(output) + "_probtraj.csv").c_str());
+      output_statdist = new std::ofstream((std::string(output) + "_statdist.csv").c_str());
+      output_fp = new std::ofstream((std::string(output) + "_fp.csv").c_str());
+
+      time(&start_time);
+      MaBEstEngine mabest(network, runconfig);
+      mabest.run(output_traj);
+      mabest.display(*output_probtraj, *output_statdist, *output_fp, hexfloat);
+      time(&end_time);
+
+      runconfig->display(network, start_time, end_time, mabest, *output_run);
+
+      ((std::ofstream*)output_run)->close();
+      if (NULL != output_traj) {
+        ((std::ofstream*)output_traj)->close();
+      }
+      ((std::ofstream*)output_probtraj)->close();
+      ((std::ofstream*)output_statdist)->close();
+      ((std::ofstream*)output_fp)->close();
     }
-
-    output_run = new std::ofstream((std::string(output) + "_run.txt").c_str());
-    output_probtraj = new std::ofstream((std::string(output) + "_probtraj.csv").c_str());
-    output_statdist = new std::ofstream((std::string(output) + "_statdist.csv").c_str());
-    output_fp = new std::ofstream((std::string(output) + "_fp.csv").c_str());
-
-    time(&start_time);
-    MaBEstEngine mabest(network, runconfig);
-    mabest.run(output_traj);
-    mabest.display(*output_probtraj, *output_statdist, *output_fp, hexfloat);
-    time(&end_time);
-
-    runconfig->display(network, start_time, end_time, mabest, *output_run);
-
-    ((std::ofstream*)output_run)->close();
-    if (NULL != output_traj) {
-      ((std::ofstream*)output_traj)->close();
-    }
-    ((std::ofstream*)output_probtraj)->close();
-    ((std::ofstream*)output_statdist)->close();
-    ((std::ofstream*)output_fp)->close();
   } catch(const BNException& e) {
     std::cerr << '\n' << prog << ": " << e;
     return 1;
