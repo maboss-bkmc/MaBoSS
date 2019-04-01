@@ -239,10 +239,8 @@ int main(int argc, char* argv[])
       while (begin != end) {
         const ConfigOpt& cfg = *begin;
         if (cfg.isExpr()) {
-
           runconfig->parseExpression(networks[0], (cfg.getExpr() + ";").c_str());
         } else {
-          std::cout << "parsing config with network " << 0 << std::endl;
           runconfig->parse(networks[0], cfg.getFile().c_str());
         }
         ++begin;
@@ -262,6 +260,19 @@ int main(int argc, char* argv[])
         Network* network = new Network();
         network->parse(ctbndl_files[i], &nodes_indexes);
         networks.push_back(network);
+
+        const std::vector<Node*> nodes = networks[i]->getNodes();
+        for (unsigned int j=0; j < nodes.size(); j++) {
+            if (!first_network_nodes[j]->istateSetRandomly()) {
+                nodes[j]->setIState(first_network_nodes[j]->getIState(first_network));
+            }
+
+            nodes[j]->isInternal(first_network_nodes[j]->isInternal());
+
+            // if (!first_network_nodes[j]->isReference()) {
+            //   nodes[j]->setReferenceState(first_network_nodes[j]->getReferenceState());
+            // }
+        }
 
         IStateGroup::checkAndComplete(networks[i]);
       }
