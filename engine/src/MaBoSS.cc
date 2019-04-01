@@ -227,14 +227,28 @@ int main(int argc, char* argv[])
 
     if (ensemble) {
 
-      time(&start_time);
-
       std::vector<Network *> networks;
       RunConfig* runconfig = RunConfig::getInstance();      
 
       Network* first_network = new Network();
       first_network->parse(ctbndl_files[0]);
       networks.push_back(first_network);
+
+      std::vector<ConfigOpt>::const_iterator begin = runconfig_file_or_expr_v.begin();
+      std::vector<ConfigOpt>::const_iterator end = runconfig_file_or_expr_v.end();
+      while (begin != end) {
+        const ConfigOpt& cfg = *begin;
+        if (cfg.isExpr()) {
+
+          runconfig->parseExpression(networks[0], (cfg.getExpr() + ";").c_str());
+        } else {
+          std::cout << "parsing config with network " << 0 << std::endl;
+          runconfig->parse(networks[0], cfg.getFile().c_str());
+        }
+        ++begin;
+      }
+
+      IStateGroup::checkAndComplete(networks[0]);
 
       std::map<std::string, NodeIndex> nodes_indexes;
       std::vector<Node*> first_network_nodes = first_network->getNodes();
@@ -248,49 +262,22 @@ int main(int argc, char* argv[])
         Network* network = new Network();
         network->parse(ctbndl_files[i], &nodes_indexes);
         networks.push_back(network);
-      
-        // if (generate_config_template) {
-        //   IStateGroup::checkAndComplete(network);
-        //   runconfig->generateTemplate(network, std::cout);
-        //   return 0;
-        // }
-
-        // if (setConfigVariables(prog, runconfig_var_v)) {
-        //   return 1;
-        // }  
-
-        std::vector<ConfigOpt>::const_iterator begin = runconfig_file_or_expr_v.begin();
-        std::vector<ConfigOpt>::const_iterator end = runconfig_file_or_expr_v.end();
-        while (begin != end) {
-          const ConfigOpt& cfg = *begin;
-          if (cfg.isExpr()) {
-      runconfig->parseExpression(networks[i], (cfg.getExpr() + ";").c_str());
-          } else {
-      runconfig->parse(networks[i], cfg.getFile().c_str());
-          }
-          ++begin;
-        }
 
         IStateGroup::checkAndComplete(networks[i]);
       }
       SymbolTable::getInstance()->checkSymbols();
-      
+
       // output_run = new std::ofstream((std::string(output) + "_run.txt").c_str());
       output_probtraj = new std::ofstream((std::string(output) + "_probtraj.csv").c_str());
       output_statdist = new std::ofstream((std::string(output) + "_statdist.csv").c_str());
       output_fp = new std::ofstream((std::string(output) + "_fp.csv").c_str());
 
-
+      time(&start_time);
       EnsembleEngine engine(networks, runconfig);
       engine.run(NULL);
       engine.display(*output_probtraj, *output_statdist, *output_fp, hexfloat);
       time(&end_time);
 
-      // runconfig->display(network, start_time, end_time, mabest, *output_run);
-
-
-      // std::cout << "Models loaded in " << (end_time - start_time) << "s" << std::endl;
-      
       // ((std::ofstream*)output_run)->close();
       ((std::ofstream*)output_probtraj)->close();
       ((std::ofstream*)output_statdist)->close();
