@@ -27,24 +27,30 @@ import re
 import sys
 import os
 
+def compatible_input(message):
+    if sys.version_info[0] >= 3:
+        return input(message)
+    else:
+        return raw_input(message)
+
 def createSimulation (profilFileName):
     with open(profilFileName,  'a') as profilFile:
-            profilFile.write(raw_input("Simulation name : ")+'\n')
-            profilFile.write(raw_input("Inactive inputs (ex : O_stress,AA_starvation,TLR4) : ")+'\n')
-            profilFile.write(raw_input("Active inputs (ex : Inflamation,DAN_damage) : ")+'\n')
-            profilFile.write(raw_input("Custom rate nodes (ex : u:node1:0.15,u:node2:0.1,d:node2:0.1)  : ")+'\n')
-            profilFile.write(raw_input("Custom state nodes ( ex : node1:0.1,node2:0.4) : ") +'\n')
-            profilFile.write(raw_input("Outputs (ex : BECN1,Ulk_C,PIK3C3) : ")+'\n')
+            profilFile.write(compatible_input("Simulation name : ")+'\n')
+            profilFile.write(compatible_input("Inactive inputs (ex : O_stress,AA_starvation,TLR4) : ")+'\n')
+            profilFile.write(compatible_input("Active inputs (ex : Inflamation,DAN_damage) : ")+'\n')
+            profilFile.write(compatible_input("Custom rate nodes (ex : u:node1:0.15,u:node2:0.1,d:node2:0.1)  : ")+'\n')
+            profilFile.write(compatible_input("Custom state nodes ( ex : node1:0.1,node2:0.4) : ") +'\n')
+            profilFile.write(compatible_input("Outputs (ex : BECN1,Ulk_C,PIK3C3) : ")+'\n')
   
 ######################################################################  
 
 def createProfil (configFileName):
-    choice = raw_input("No profil file was given. Do you wish to create a new profil file ? (y/n)")
+    choice = compatible_input("No profil file was given. Do you wish to create a new profil file ? (y/n)")
     if choice == "n":
         print("Quitting...")
         exit(-3)
     else :
-        name = raw_input("Base name of the profil file (no path) : ")
+        name = compatible_input("Base name of the profil file (no path) : ")
         dirName = os.path.dirname(configFileName)
         if dirName != "" :
             profileFileName = os.path.dirname(configFileName)+name
@@ -68,7 +74,7 @@ def displaySimulations (profilFileName):
         
 def deleteSimulation(profilFileName):
     displaySimulations(profilFileName)
-    simulationNumbers = raw_input("Select single (ex : 1) or multiple simulations to be deleted (ex : 1,2,3) :").split(',')
+    simulationNumbers = compatible_input("Select single (ex : 1) or multiple simulations to be deleted (ex : 1,2,3) :").split(',')
     
     with open(profilFileName,  'r') as profilFile:
         profilFileLines = profilFile.readlines()
@@ -100,7 +106,7 @@ def createConfigFiles(configFileName, profilFileName,  mutationFileName):
     with open(configFileName,  'r') as cfgFile:
         cfgFileLines = cfgFile.readlines()
     
-    selectedSimulations = raw_input("Select simulations to use(ex : 1,3,5,6) : ").split(',')
+    selectedSimulations = compatible_input("Select simulations to use(ex : 1,3,5,6) : ").split(',')
     selectedSimulations = [(int(number)-1)*6 for number in selectedSimulations]
     
     configFileList = []
@@ -286,7 +292,7 @@ else :
     
 choice = "1"
 while (choice != "0" ):
-    choice = raw_input("generate config files using exiting simulations (0), create a new simulation (1) or delete a simulation (2): ")
+    choice = compatible_input("generate config files using exiting simulations (0), create a new simulation (1) or delete a simulation (2): ")
     if choice == "0" or choice == "1" or choice == "2":
         if choice == "1":
             createSimulation(profilFileName)
@@ -301,7 +307,7 @@ while (choice != "0" ):
                 createSimulation(profilFileName)
 
 while (choice != "y" and choice != "n"):
-    choice = raw_input("Launch simulation on cluster ? (y/n)")
+    choice = compatible_input("Launch simulation on cluster ? (y/n)")
     if choice == "y":
         PBSProcedure(configFileList)
     else :
