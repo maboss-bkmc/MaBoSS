@@ -73,6 +73,7 @@ class RunConfig {
   unsigned int getSampleCount() const {return sample_count;}
   bool isDiscreteTime() const {return discrete_time;}
   int getSeedPseudoRandom() const {return seed_pseudorand;}
+  void setSeedPseudoRandom(int seed) { seed_pseudorand = seed;}
   void display(Network* network, time_t start_time, time_t end_time, MaBEstEngine& mabest, std::ostream& os) const;
   bool displayTrajectories() const {return display_traj;}
   unsigned int getThreadCount() const {return thread_count;}
