@@ -97,50 +97,27 @@ tbchecked="MaBoSS-env-2.0 tools requirements"
 echo Checking ${tbchecked}...
 echo
 
-check_python3_module()
+check_python_module()
 {
     cat > ${tmpfile}.py <<EOF
 import $1
 EOF
-    python3 ${tmpfile}.py > /dev/null 2>&1
+    python ${tmpfile}.py > /dev/null 2>&1
     if [ $? != 0 ]; then
-	display_error "python3 module $1: MISSING"
+	display_error "python module $1: MISSING"
     else
-	display_ok "python3 module $1"
+	display_ok "python module $1"
     fi
 }
 
 check_prog perl
 
-type -p python > /dev/null 2>&1
-
-if [ $? != 0 ]; then
-    type -p python2 > /dev/null 2>&1
-    if [ $? = 0 ]; then
-	echo "python not found, but python2 found => must replace #!/usr/bin/env python by #!/usr/bin/env python2 in tools/MBSS_MultipleSim.py"
-    else
-	display_error "python version 2: MISSING"
-    fi
-else
-    python --version 2>&1 | awk '{print $2;}' | grep "3\." > /dev/null 2>&1
-    if [ $? = 0 ]; then
-	type -p python2 > /dev/null 2>&1
-	if [ $? = 0 ]; then
-	    echo "python found, but is python version 3; python2 found => must replace #!/usr/bin/env python by #!/usr/bin/env python2 in tools/MBSS_MultipleSim.py"
-	else
-	    display_error "python found, but is python version 3; python version 2: MISSING"
-	fi
-    else
-	display_ok python
-    fi
-fi
-
-check_prog python3
+check_prog python
 
 if [ $? = 0 ]; then
     for module in matplotlib matplotlib.gridspec matplotlib.patches matplotlib.pylab numpy pandas seaborn xlsxwriter
     do
-	check_python3_module $module
+	check_python_module $module
     done
 fi
 
