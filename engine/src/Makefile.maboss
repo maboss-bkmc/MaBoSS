@@ -21,8 +21,9 @@ MABOSS := MaBoSS$(INFIX)
 MABOSS_SERVER := MaBoSS$(INFIX)-server
 MABOSS_CLIENT := MaBoSS-client
 
-MABOSS_LIBNAME = maboss$(INFIX)
+MABOSS_LIBNAME = MaBoSS$(INFIX)
 MABOSS_LIB = lib$(MABOSS_LIBNAME).so
+MABOSS_ALIB = lib$(MABOSS_LIBNAME).a
 
 ifeq ($(shell grep @HAS_UNORDERED_MAP maboss-config.h > /dev/null 2> /dev/null && echo OK), OK)
 EXTRA_FLAGS = -std=c++0x
@@ -53,6 +54,9 @@ MABOSS_OBJS = $(LIB_OBJS)
 endif
 
 all: $(MABOSS_LIB) $(MABOSS) $(MABOSS_SERVER) $(MABOSS_CLIENT)
+
+$(MABOSS_ALIB): $(LIB_OBJS)
+	ar rcs $(MABOSS_ALIB) $+
 
 $(MABOSS_LIB): $(LIB_OBJS)
 	g++ -shared -o $(MABOSS_LIB) $+ -lpthread -ldl
@@ -143,7 +147,13 @@ install_lib: $(MABOSS_LIB)
 	cp $(MABOSS_LIB) ../lib
 	mkdir -p ../include/
 	cp *.h ../include/
-	
+
+install_alib: $(MABOSS_ALIB)
+	mkdir -p ../lib
+	cp $(MABOSS_ALIB) ../lib
+	mkdir -p ../include/
+	cp *.h ../include/
+
 #### OBSOLETE
 
 #	g++ -dynamiclib -undefined suppress -flat_namespace -o $(MABOSS_LIB) $+ -lpthread
