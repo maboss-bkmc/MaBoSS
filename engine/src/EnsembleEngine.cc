@@ -77,44 +77,45 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
   }
   for (unsigned int i=0; i < networks.size(); i++) {
     networks[i]->updateRandomGenerator(runconfig);
-
-    const std::vector<Node*>& nodes = networks[i]->getNodes();
-    std::vector<Node*>::const_iterator begin = nodes.begin();
-    std::vector<Node*>::const_iterator end = nodes.end();
-
-    NetworkState internal_state;
-    bool has_internal = false;
-    refnode_count = 0;
-    while (begin != end) {
-      Node* node = *begin;
-      if (node->isInternal()) {
-        has_internal = true;
-        internal_state.setNodeState(node, true);
-      }
-      if (node->isReference()) {
-        reference_state.setNodeState(node, node->getReferenceState());
-        refnode_count++;
-      }
-      ++begin;
-    }
-  
-    merged_cumulator = NULL;
-    cumulator_v.resize(thread_count);
-    unsigned int count = sample_count / thread_count;
-    unsigned int firstcount = count + sample_count - count * thread_count;
-    for (unsigned int nn = 0; nn < thread_count; ++nn) {
-      Cumulator* cumulator = new Cumulator(runconfig->getTimeTick(), runconfig->getMaxTime(), (nn == 0 ? firstcount : count));
-      if (has_internal) {
-  #ifdef USE_BITSET
-        NetworkState_Impl state2 = ~internal_state.getState();
-        cumulator->setOutputMask(state2);
-  #else
-        cumulator->setOutputMask(~internal_state.getState());
-  #endif
-      }
-      cumulator_v[nn] = cumulator;
-    }
   }
+  
+  const std::vector<Node*>& nodes = networks[0]->getNodes();
+  std::vector<Node*>::const_iterator begin = nodes.begin();
+  std::vector<Node*>::const_iterator end = nodes.end();
+
+  NetworkState internal_state;
+  bool has_internal = false;
+  refnode_count = 0;
+  while (begin != end) {
+    Node* node = *begin;
+    if (node->isInternal()) {
+      has_internal = true;
+      internal_state.setNodeState(node, true);
+    }
+    if (node->isReference()) {
+      reference_state.setNodeState(node, node->getReferenceState());
+      refnode_count++;
+    }
+    ++begin;
+  }
+
+  merged_cumulator = NULL;
+  cumulator_v.resize(thread_count);
+  unsigned int count = sample_count / thread_count;
+  unsigned int firstcount = count + sample_count - count * thread_count;
+  for (unsigned int nn = 0; nn < thread_count; ++nn) {
+    Cumulator* cumulator = new Cumulator(runconfig->getTimeTick(), runconfig->getMaxTime(), (nn == 0 ? firstcount : count));
+    if (has_internal) {
+#ifdef USE_BITSET
+      NetworkState_Impl state2 = ~internal_state.getState();
+      cumulator->setOutputMask(state2);
+#else
+      cumulator->setOutputMask(~internal_state.getState());
+#endif
+    }
+    cumulator_v[nn] = cumulator;
+  }
+
 }
 
 NodeIndex EnsembleEngine::getTargetNode(Network* network, RandomGenerator* random_generator, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const
