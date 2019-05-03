@@ -73,6 +73,10 @@ MaBEstEngine::MaBEstEngine(Network* network, RunConfig* runconfig) :
 
   tid = NULL;
 
+  if (thread_count > sample_count) {
+    thread_count = sample_count;
+  }
+
   if (thread_count > 1 && !runconfig->getRandomGeneratorFactory()->isThreadSafe()) {
     std::cerr << "Warning: non reentrant random, may not work properly in multi-threaded mode\n";
   }
