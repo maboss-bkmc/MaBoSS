@@ -53,6 +53,8 @@ else
 MABOSS_OBJS = $(LIB_OBJS)
 endif
 
+maboss: $(MABOSS)
+
 all: $(MABOSS_LIB) $(MABOSS) $(MABOSS_SERVER) $(MABOSS_CLIENT)
 
 $(MABOSS_ALIB): $(LIB_OBJS)
