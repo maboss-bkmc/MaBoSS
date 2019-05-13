@@ -32,7 +32,11 @@
 #include "MetaEngine.h"
 #include "Probe.h"
 #include "Utils.h"
-#include <dlfcn.h>
+#ifndef WINDOWS
+  #include <dlfcn.h>
+#else
+  #include <windows.h>
+#endif
 
 static const char* MABOSS_USER_FUNC_INIT = "maboss_user_func_init";
 
@@ -46,13 +50,28 @@ void MetaEngine::loadUserFuncs(const char* module)
 {
   init();
 
+#ifndef WINDOWS
   void* dl = dlopen(module, RTLD_LAZY);
+#else
+  void* dl = LoadLibrary(module);
+#endif
+
   if (NULL == dl) {
-    std::cerr << dlerror() << "\n";
+#ifndef WINDOWS    
+    std::cerr << dlerror() << std::endl;
+#else
+    std::cerr << GetLastError() << std::endl;
+#endif
     exit(1);
   }
 
+#ifndef WINDOWS
   void* sym = dlsym(dl, MABOSS_USER_FUNC_INIT);
+#else
+  typedef void (__cdecl *MYPROC)(std::map<std::string, Function*>*);
+  MYPROC sym = (MYPROC) GetProcAddress((HINSTANCE) dl, MABOSS_USER_FUNC_INIT);
+#endif
+
   if (sym == NULL) {
     std::cerr << "symbol " << MABOSS_USER_FUNC_INIT << "() not found in user func module: " << module << "\n";
     exit(1);

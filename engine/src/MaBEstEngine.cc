@@ -34,7 +34,6 @@
 #include <stdlib.h>
 #include <math.h>
 #include <iomanip>
-#include <dlfcn.h>
 #include <iostream>
 
 const std::string MaBEstEngine::VERSION = "2.3.3";
