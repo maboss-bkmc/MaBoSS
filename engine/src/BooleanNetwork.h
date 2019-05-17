@@ -1319,7 +1319,7 @@ class FuncCallExpression : public Expression {
   std::string funname;
   ArgumentList* arg_list;
   Function* function;
-  bool is_const;
+  bool is_const = false;
   double value;
 
 public:
@@ -1330,12 +1330,14 @@ public:
       throw BNException("unknown function " + funname);
     }
     function->check(arg_list);
-
-    is_const = function->isDeterministic() && isConstantExpression();
-    if (is_const) {
-      NetworkState network_state;
-      value = function->eval(NULL, network_state, arg_list);
-    }
+    
+    // This part is evaluating the formula, but if there is a parameter its value
+    // has not been parsed yet. So this will fail. 
+    // is_const = function->isDeterministic() && isConstantExpression();
+    // if (is_const) {
+    //   NetworkState network_state;
+    //   value = function->eval(NULL, network_state, arg_list);
+    // }
  }
 
   Expression* clone() const {return new FuncCallExpression(funname, arg_list->clone());}
