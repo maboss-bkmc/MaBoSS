@@ -34,6 +34,7 @@
 #include <string>
 #include <vector>
 #include <assert.h>
+#include <iostream>
 
 class ConfigOpt {
   std::string file_or_expr;
@@ -59,5 +60,14 @@ extern std::string stringReplaceAll(const std::string& subject, const std::strin
 
 extern const std::string NL_PATTERN;
 extern const char* fmthexdouble(double d);
+
+class NullBuffer : public std::streambuf
+{
+public:
+  int overflow(int c) { return c; }
+};
+
+static NullBuffer null_buffer;
+
 
 #endif
