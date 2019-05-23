@@ -237,7 +237,8 @@ int main(int argc, char* argv[])
   std::ostream* output_probtraj = NULL;
   std::ostream* output_statdist = NULL;
   std::ostream* output_fp = NULL;
-  
+  std::vector<std::ostream*> output_individual_probtraj(0);
+
   try {
     time_t start_time, end_time;
 
@@ -298,18 +299,34 @@ int main(int argc, char* argv[])
       output_probtraj = new std::ofstream((std::string(output) + "_probtraj.csv").c_str());
       output_statdist = new std::ofstream((std::string(output) + "_statdist.csv").c_str());
       output_fp = new std::ofstream((std::string(output) + "_fp.csv").c_str());
+      
+      if (ensemble_save_individual_probtrajs) {
+
+        for (unsigned int i=0; i < networks.size(); i++) {
+          std::ostream* t_file = new std::ofstream(
+            (std::string(output) + "_model_" + std::to_string(i) + "_probtraj.csv").c_str()
+          );
+          output_individual_probtraj.push_back(t_file);
+        }
+      }
 
       time(&start_time);
       EnsembleEngine engine(networks, runconfig, ensemble_save_individual_probtrajs, ensemble_random_sampling);
       engine.run(NULL);
-      engine.display(*output_probtraj, *output_statdist, *output_fp, hexfloat);
+      engine.display(*output_probtraj, *output_statdist, *output_fp, output_individual_probtraj, hexfloat);
       time(&end_time);
 
       // ((std::ofstream*)output_run)->close();
       ((std::ofstream*)output_probtraj)->close();
       ((std::ofstream*)output_statdist)->close();
       ((std::ofstream*)output_fp)->close();
-
+      
+      if (ensemble_save_individual_probtrajs) {
+        for (unsigned int i=0; i < networks.size(); i++) {
+          ((std::ofstream*) output_individual_probtraj[i])->close();
+        }
+      }
+      
     } else {
         
       Network* network = new Network();
