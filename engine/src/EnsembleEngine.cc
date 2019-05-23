@@ -327,44 +327,69 @@ struct EnsembleArgWrapper {
   unsigned int start_count_thread;
   unsigned int sample_count_thread;
   Cumulator* cumulator;
+
+  std::vector<unsigned int> simulations_per_model;
+  std::vector<Cumulator*> models_cumulators;
+  
   RandomGeneratorFactory* randgen_factory;
   int seed;
   STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map;
   std::ostream* output_traj;
 
-  EnsembleArgWrapper(EnsembleEngine* mabest, unsigned int start_count_thread, unsigned int sample_count_thread, Cumulator* cumulator, RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj) :
-    mabest(mabest), start_count_thread(start_count_thread), sample_count_thread(sample_count_thread), cumulator(cumulator), randgen_factory(randgen_factory), seed(seed), fixpoint_map(fixpoint_map), output_traj(output_traj) { }
+  EnsembleArgWrapper(
+    EnsembleEngine* mabest, unsigned int start_count_thread, unsigned int sample_count_thread, 
+    Cumulator* cumulator, std::vector<unsigned int> simulations_per_model, std::vector<Cumulator*> models_cumulators,
+    RandomGeneratorFactory* randgen_factory, int seed, 
+    STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj) :
+
+      mabest(mabest), start_count_thread(start_count_thread), sample_count_thread(sample_count_thread), 
+      cumulator(cumulator), simulations_per_model(simulations_per_model), models_cumulators(models_cumulators),
+      randgen_factory(randgen_factory), seed(seed), 
+      fixpoint_map(fixpoint_map), output_traj(output_traj) {
+
+    }
 };
 
 void* EnsembleEngine::threadWrapper(void *arg)
 {
   EnsembleArgWrapper* warg = (EnsembleArgWrapper*)arg;
   try {
-    warg->mabest->runThread(warg->cumulator, warg->start_count_thread, warg->sample_count_thread, warg->randgen_factory, warg->seed, warg->fixpoint_map, warg->output_traj);
+    warg->mabest->runThread(
+      warg->cumulator, warg->start_count_thread, warg->sample_count_thread, 
+      warg->randgen_factory, warg->seed, warg->fixpoint_map, warg->output_traj, 
+      warg->simulations_per_model, warg->models_cumulators);
   } catch(const BNException& e) {
     std::cerr << e;
   }
   return NULL;
 }
 
-void EnsembleEngine::runThread(Cumulator* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj)
+void EnsembleEngine::runThread(Cumulator* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj, std::vector<unsigned int> simulation_ind, std::vector<Cumulator*> t_models_cumulators)
 {
   unsigned int stable_cnt = 0;
   NetworkState network_state; 
   
+  int model_ind = 0;
   RandomGenerator* random_generator = randgen_factory->generateRandomGenerator(seed);
   for (unsigned int nn = 0; nn < sample_count_thread; ++nn) {
 
     random_generator->setSeed(seed+start_count_thread+nn);
-    int network_index = floor(random_generator->generate()*networks.size());
+    unsigned int network_index = simulation_ind[nn];
     
+    if (nn > 0 && network_index != simulation_ind[nn-1]) {
+      model_ind++;
+    }
+
     Network* network = networks[network_index];
     const std::vector<Node*>& nodes = network->getNodes();
     std::vector<Node*>::const_iterator begin = nodes.begin();
     std::vector<Node*>::const_iterator end = nodes.end();
- 
- 
+  
     cumulator->rewind();
+    if (save_individual_probtraj){
+      t_models_cumulators[model_ind]->rewind();
+    }
+    
     network->initStates(network_state);
     double tm = 0.;
     unsigned int step = 0;
@@ -445,6 +470,9 @@ void EnsembleEngine::runThread(Cumulator* cumulator, unsigned int start_count_th
   //     }
 
       cumulator->cumul(network_state, tm, TH);
+      if (save_individual_probtraj){
+        t_models_cumulators[model_ind]->cumul(network_state, tm, TH);
+      }
 
       if (tm >= max_time) {
 	      break;
@@ -454,7 +482,11 @@ void EnsembleEngine::runThread(Cumulator* cumulator, unsigned int start_count_th
       network_state.flipState(network->getNode(node_idx));
       step++;
     }
+
     cumulator->trajectoryEpilogue();
+    if (save_individual_probtraj){
+      t_models_cumulators[model_ind]->trajectoryEpilogue();
+    }
   }
   delete random_generator;
 }
@@ -469,7 +501,7 @@ void EnsembleEngine::run(std::ostream* output_traj)
   for (unsigned int nn = 0; nn < thread_count; ++nn) {
     STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map = new STATE_MAP<NetworkState_Impl, unsigned int>();
     fixpoint_map_v.push_back(fixpoint_map);
-    EnsembleArgWrapper* warg = new EnsembleArgWrapper(this, start_sample_count, cumulator_v[nn]->getSampleCount(), cumulator_v[nn], randgen_factory, seed, fixpoint_map, output_traj);
+    EnsembleArgWrapper* warg = new EnsembleArgWrapper(this, start_sample_count, cumulator_v[nn]->getSampleCount(), cumulator_v[nn], simulation_indices_v[nn], cumulator_models_v[nn], randgen_factory, seed, fixpoint_map, output_traj);
     pthread_create(&tid[nn], NULL, EnsembleEngine::threadWrapper, warg);
     arg_wrapper_v.push_back(warg);
 
