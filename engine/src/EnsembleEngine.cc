@@ -101,6 +101,36 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
 
   merged_cumulator = NULL;
   cumulator_v.resize(thread_count);
+
+  std::vector<unsigned int> simulations_per_model(networks.size(), 0);
+
+  // Here we write a dict with the number of simulation by model
+  unsigned int network_index;
+  if (random_sampling){
+    // Here we need the random generator to compute the list of simulations
+    RandomGeneratorFactory* randgen_factory = RunConfig::getInstance()->getRandomGeneratorFactory();
+    int seed = RunConfig::getInstance()->getSeedPseudoRandom();
+    RandomGenerator* random_generator = randgen_factory->generateRandomGenerator(seed);
+    
+    for (unsigned int nn = 0; nn < sample_count; nn++) {
+      // This will need sample_count random numbers... maybe there is another way ?
+      network_index = (unsigned int) floor(random_generator->generate()*networks.size());
+      simulations_per_model[network_index] += 1;
+    }
+    
+    delete random_generator;
+
+  } else{
+    
+    for (unsigned int nn = 0; nn < networks.size(); ++nn) {
+      if (nn == 0) {
+        simulations_per_model[nn] = floor(sample_count/networks.size()) + (sample_count % networks.size());
+      } else {
+        simulations_per_model[nn] = floor(sample_count/networks.size());
+      }
+    }
+  }
+
   unsigned int count = sample_count / thread_count;
   unsigned int firstcount = count + sample_count - count * thread_count;
   for (unsigned int nn = 0; nn < thread_count; ++nn) {
