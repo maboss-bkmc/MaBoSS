@@ -102,6 +102,7 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
   merged_cumulator = NULL;
   cumulator_v.resize(thread_count);
 
+  simulation_indices_v.resize(thread_count); // Per thread
   std::vector<unsigned int> simulations_per_model(networks.size(), 0);
 
   // Here we write a dict with the number of simulation by model
@@ -130,11 +131,20 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
       }
     }
   }
+  
+  cumulator_models_v.resize(thread_count); // Per thread
+
+  if (save_individual_probtraj) {
+    cumulators_thread_v.resize(networks.size());
+  }
 
   unsigned int count = sample_count / thread_count;
   unsigned int firstcount = count + sample_count - count * thread_count;
+  unsigned int position = 0;
+  unsigned int offset = 0;
   for (unsigned int nn = 0; nn < thread_count; ++nn) {
-    Cumulator* cumulator = new Cumulator(runconfig->getTimeTick(), runconfig->getMaxTime(), (nn == 0 ? firstcount : count));
+    unsigned int t_count = (nn == 0 ? firstcount : count);
+    Cumulator* cumulator = new Cumulator(runconfig->getTimeTick(), runconfig->getMaxTime(), t_count);
     if (has_internal) {
 #ifdef USE_BITSET
       NetworkState_Impl state2 = ~internal_state.getState();
@@ -144,8 +154,112 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
 #endif
     }
     cumulator_v[nn] = cumulator;
-  }
 
+    // Setting the size of the list of indices to the thread's sample count
+    simulation_indices_v[nn].resize(t_count); 
+
+    // Here we build the indice of simulation for this thread
+    // We have two counters : 
+    // - nnn, which is the counter of simulation indices
+    // - j, k which are the index of the model, and the counter of repetition of this model
+    unsigned int nnn = 0; // Simulation indice (< t_count, thus inside a thread)
+    unsigned int j = position; // Model indice
+    unsigned int k = offset; // Indice of simulation for a model
+
+    // Aside from the simulation indice, we are building
+    // a dict with the number of model simulations by model
+    int m = 0;
+    std::vector<unsigned int> count_by_models(1);
+    
+    while(nnn < t_count) {
+      assert(j <= networks.size());
+      // If we assigned all the simulation of the model j
+      if (k == simulations_per_model[j])
+      {
+        if (k > 0) { // If we indeed assigned something
+
+          // We add another element to the vector
+          count_by_models.resize(count_by_models.size()+1); 
+     
+          // If this is the first model assigned in this thread
+          if (m == 0) {
+            // Then we need to count those who were assigned in the previous thread
+            count_by_models[m] = k - offset;
+          } else {
+            // Otherwise we did assigned them all in this thread
+            count_by_models[m] = k;
+          }
+          
+          m++; // One model assigned ! 
+        }
+        
+        j++; // One model completely assigned
+        k = 0; // We reset the model simulation counter
+      // }
+      // Otherwise, we keep assigning them
+      } else {
+        simulation_indices_v[nn][nnn] = j;
+        k++; // One model simulation assigned
+        nnn++; // One thread simulation assigned
+      }
+    }
+
+    // If we didn't finished assigning this model, 
+    // then we need to put in the counts up to where we went
+    if (k > 0) {
+      // We add another element to the vector
+      count_by_models.resize(count_by_models.size()+1); 
+
+      // // If this is the first model assigned in this thread
+      if (m == 0) {
+        // Then we need to substract those who were assigned in the previous thread
+        count_by_models[m] = k - offset;
+      } else {
+        // Otherwise we did assigned them all in this thread
+        count_by_models[m] = k;
+      }
+    }
+
+    // Here we update the position and offset for the next thread
+    // If we just finished a model, the position will be set to the next model
+    if (k == simulations_per_model[j]) {
+      offset = 0;
+      position = ++j;
+
+    // Otherwise we keep with this model
+    } else {
+      offset = k;
+      position = j;
+    }
+
+    // If we want to save the individual trajectories, then we 
+    // initialize the cumulators, and we add them to the vector of 
+    // cumulators by model
+    unsigned int c = 0;
+    if (save_individual_probtraj) {
+      cumulator_models_v[nn].resize(count_by_models.size());
+      for (nnn = 0; nnn < count_by_models.size(); nnn++) {
+        if (count_by_models[nnn] > 0) {
+          Cumulator* t_cumulator = new Cumulator(
+            runconfig->getTimeTick(), runconfig->getMaxTime(), count_by_models[nnn]
+          );
+      
+          if (has_internal) {
+
+#ifdef USE_BITSET
+          NetworkState_Impl state2 = ~internal_state.getState();
+          t_cumulator->setOutputMask(state2);
+#else
+          t_cumulator->setOutputMask(~internal_state.getState());
+#endif
+          }
+          cumulator_models_v[nn][nnn] = t_cumulator;
+          cumulators_thread_v[simulation_indices_v[nn][c]].push_back(t_cumulator);
+        }
+        c += count_by_models[nnn];
+      }
+    }
+  }
 }
 
 NodeIndex EnsembleEngine::getTargetNode(Network* network, RandomGenerator* random_generator, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const
