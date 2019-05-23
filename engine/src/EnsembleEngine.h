@@ -101,6 +101,10 @@ class EnsembleEngine : MetaEngine {
   bool save_individual_probtraj; // Do we want to save individual model simulation
   bool random_sampling; // Randomly select the number of simulation per model
 
+  std::vector<std::vector<unsigned int> > simulation_indices_v; // The list of indices of models to simulate for each thread
+  std::vector<std::vector<Cumulator*> > cumulator_models_v; // The results for each model, by thread
+  std::vector<std::vector<Cumulator*> > cumulators_thread_v; // The results for each model, by model 
+
   std::vector<EnsembleArgWrapper*> arg_wrapper_v;
   NodeIndex getTargetNode(Network* network, RandomGenerator* random_generator, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
   double computeTH(const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
