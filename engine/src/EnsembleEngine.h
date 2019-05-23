@@ -98,6 +98,9 @@ class EnsembleEngine : MetaEngine {
 
   std::vector<Network*> networks;
   
+  bool save_individual_probtraj; // Do we want to save individual model simulation
+  bool random_sampling; // Randomly select the number of simulation per model
+
   std::vector<EnsembleArgWrapper*> arg_wrapper_v;
   NodeIndex getTargetNode(Network* network, RandomGenerator* random_generator, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
   double computeTH(const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
@@ -108,7 +111,7 @@ class EnsembleEngine : MetaEngine {
 public:
   static const std::string VERSION;
 
-  EnsembleEngine(std::vector<Network*> network, RunConfig* runconfig);
+  EnsembleEngine(std::vector<Network*> network, RunConfig* runconfig, bool save_individual_probtraj=false, bool random_sampling=false);
 
   void run(std::ostream* output_traj);
 

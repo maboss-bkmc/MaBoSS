@@ -67,8 +67,8 @@ void MetaEngine::loadUserFuncs(const char* module)
   init_fun(Function::getFuncMap());
 }
 
-EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runconfig) :
-  MetaEngine(runconfig), networks(networks) {
+EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runconfig, bool save_individual_probtraj, bool random_sampling) :
+  MetaEngine(runconfig), networks(networks), save_individual_probtraj(save_individual_probtraj), random_sampling(random_sampling) {
 
   tid = NULL;
 
