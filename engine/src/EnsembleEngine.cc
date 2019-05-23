@@ -552,6 +552,25 @@ void EnsembleEngine::epilogue()
   merged_cumulator = Cumulator::mergeCumulators(cumulator_v);
   merged_cumulator->epilogue(networks[0], reference_state);
 
+if (save_individual_probtraj) {
+
+    cumulators_per_model.resize(networks.size(), NULL);
+
+    for (unsigned int i=0; i < networks.size(); i++) {
+      std::vector<Cumulator*> model_cumulator = cumulators_thread_v[i];
+      if (model_cumulator.size() > 0) {
+        
+        Cumulator* t_cumulator = Cumulator::mergeCumulators(model_cumulator);
+        t_cumulator->epilogue(networks[i], reference_state);
+        cumulators_per_model[i] = t_cumulator;
+        
+        for (auto t_cumulator: model_cumulator) {
+          delete t_cumulator;
+        }
+      }
+    }
+  }
+
   STATE_MAP<NetworkState_Impl, unsigned int>* merged_fixpoint_map = mergeFixpointMaps();
 
   STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator b = merged_fixpoint_map->begin();
@@ -623,6 +642,13 @@ EnsembleEngine::~EnsembleEngine()
   }
 
   delete merged_cumulator;
+
+  for (unsigned int i=0; i < cumulators_per_model.size(); i++) {
+    if (cumulators_per_model[i] != NULL){
+      delete cumulators_per_model[i];
+    } 
+  }
+
   delete [] tid;
 }
 

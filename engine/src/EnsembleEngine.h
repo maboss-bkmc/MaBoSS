@@ -97,7 +97,8 @@ public:
 class EnsembleEngine : MetaEngine {
 
   std::vector<Network*> networks;
-  
+  std::vector<Cumulator*> cumulators_per_model; // The final Cumulators for each model
+    
   bool save_individual_probtraj; // Do we want to save individual model simulation
   bool random_sampling; // Randomly select the number of simulation per model
 
