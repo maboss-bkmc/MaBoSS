@@ -120,7 +120,7 @@ public:
 
   void run(std::ostream* output_traj);
 
-  void display(std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat = false) const;
+  void display(std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, std::vector<std::ostream*> output_individual_probtraj, bool hexfloat = false) const;
 
   ~EnsembleEngine();
 };

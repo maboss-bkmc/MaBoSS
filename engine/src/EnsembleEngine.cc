@@ -583,10 +583,18 @@ if (save_individual_probtraj) {
   delete merged_fixpoint_map;
 }
 
-void EnsembleEngine::display(std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat) const
+void EnsembleEngine::display(std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, std::vector<std::ostream*> output_individual_probtraj, bool hexfloat) const
 {
   Probe probe;
   merged_cumulator->displayCSV(networks[0], refnode_count, output_probtraj, output_statdist, hexfloat);
+  for (unsigned int i=0; i < cumulators_per_model.size(); i++) {
+    if (cumulators_per_model[i] != NULL){
+      std::ostream null_stream(&null_buffer);
+      std::ostream& t_buffer = *(output_individual_probtraj[i]);
+      cumulators_per_model[i]->displayCSV(networks[0], refnode_count, t_buffer, output_statdist, hexfloat);
+    }
+  }
+  
   probe.stop();
   elapsed_statdist_runtime = probe.elapsed_msecs();
   user_statdist_runtime = probe.user_msecs();
