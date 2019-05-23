@@ -50,6 +50,7 @@ static int usage(std::ostream& os = std::cerr)
   os << "  " << prog << " [--override]\n";
   os << "  " << prog << " [--augment]\n";
   os << "  " << prog << " [--hexfloat]\n";
+  os << "  " << prog << " [--ensemble [--save-individual-probtrajs] [--random-sampling]]\n";
   return 1;
 }
 
@@ -93,6 +94,9 @@ int main(int argc, char* argv[])
   std::vector<std::string> runconfig_var_v;
   const char* ctbndl_file = NULL;
   bool ensemble = false;
+  bool ensemble_save_individual_probtrajs = false;
+  bool ensemble_random_sampling = false;
+
   std::vector<char *> ctbndl_files;
   bool dump_config = false;
   bool generate_config_template = false;
@@ -125,6 +129,18 @@ int main(int argc, char* argv[])
 	dont_shrink_logical_expressions = true;
       } else if (!strcmp(s, "--ensemble")) {
   ensemble = true;
+      } else if (!strcmp(s, "--save-individual-probtrajs")) {
+        if (ensemble) {
+          ensemble_save_individual_probtrajs = true;
+        } else {
+          std::cerr << "\n" << prog << ": --save-individual-probtrajs only usable if --ensemble is used" << std::endl;
+        }
+      } else if (!strcmp(s, "--random-sampling")) {
+        if (ensemble) {
+          ensemble_random_sampling = true;
+        } else {
+          std::cerr << "\n" << prog << ": --random-sampling only usable if --ensemble is used" << std::endl;
+        }
       } else if (!strcmp(s, "--load-user-functions")) {
 	if (nn == argc-1) {std::cerr << '\n' << prog << ": missing value after option " << s << '\n'; return usage();}
 	MaBEstEngine::loadUserFuncs(argv[++nn]);
@@ -221,7 +237,7 @@ int main(int argc, char* argv[])
   std::ostream* output_probtraj = NULL;
   std::ostream* output_statdist = NULL;
   std::ostream* output_fp = NULL;
-
+  
   try {
     time_t start_time, end_time;
 
@@ -284,7 +300,7 @@ int main(int argc, char* argv[])
       output_fp = new std::ofstream((std::string(output) + "_fp.csv").c_str());
 
       time(&start_time);
-      EnsembleEngine engine(networks, runconfig);
+      EnsembleEngine engine(networks, runconfig, ensemble_save_individual_probtrajs, ensemble_random_sampling);
       engine.run(NULL);
       engine.display(*output_probtraj, *output_statdist, *output_fp, hexfloat);
       time(&end_time);
