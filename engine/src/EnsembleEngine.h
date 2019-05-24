@@ -98,20 +98,24 @@ class EnsembleEngine : MetaEngine {
 
   std::vector<Network*> networks;
   std::vector<Cumulator*> cumulators_per_model; // The final Cumulators for each model
-    
+  std::vector<STATE_MAP<NetworkState_Impl, unsigned int>* > fixpoints_per_model; // The final fixpoints for each model
+  
   bool save_individual_probtraj; // Do we want to save individual model simulation
   bool random_sampling; // Randomly select the number of simulation per model
 
   std::vector<std::vector<unsigned int> > simulation_indices_v; // The list of indices of models to simulate for each thread
   std::vector<std::vector<Cumulator*> > cumulator_models_v; // The results for each model, by thread
-  std::vector<std::vector<Cumulator*> > cumulators_thread_v; // The results for each model, by model 
+  std::vector<std::vector<Cumulator*> > cumulators_thread_v; // The results for each model, by model
+  std::vector<std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*> > fixpoints_models_v; // The fixpoints for each model, by thread
+  std::vector<std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*> > fixpoints_threads_v; // The fixpoints for each model, by thread
 
   std::vector<EnsembleArgWrapper*> arg_wrapper_v;
   NodeIndex getTargetNode(Network* network, RandomGenerator* random_generator, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
   double computeTH(const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
   void epilogue();
   static void* threadWrapper(void *arg);
-  void runThread(Cumulator* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj, std::vector<unsigned int> simulation_ind, std::vector<Cumulator*> t_models_cumulators);
+  void runThread(Cumulator* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj, std::vector<unsigned int> simulation_ind, std::vector<Cumulator*> t_models_cumulators, std::vector<STATE_MAP<NetworkState_Impl, unsigned int>* > t_models_fixpoints);
+  void mergeEnsembleFixpointMaps();
 
 public:
   static const std::string VERSION;
