@@ -133,9 +133,11 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
   }
   
   cumulator_models_v.resize(thread_count); // Per thread
+  fixpoints_models_v.resize(thread_count);
 
   if (save_individual_probtraj) {
     cumulators_thread_v.resize(networks.size());
+    fixpoints_threads_v.resize(networks.size());
   }
 
   unsigned int count = sample_count / thread_count;
@@ -238,6 +240,8 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
     unsigned int c = 0;
     if (save_individual_probtraj) {
       cumulator_models_v[nn].resize(count_by_models.size());
+      fixpoints_models_v[nn].resize(count_by_models.size());
+
       for (nnn = 0; nnn < count_by_models.size(); nnn++) {
         if (count_by_models[nnn] > 0) {
           Cumulator* t_cumulator = new Cumulator(
@@ -255,6 +259,11 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
           }
           cumulator_models_v[nn][nnn] = t_cumulator;
           cumulators_thread_v[simulation_indices_v[nn][c]].push_back(t_cumulator);
+        
+
+          STATE_MAP<NetworkState_Impl, unsigned int>* t_fixpoints_map = new STATE_MAP<NetworkState_Impl, unsigned int>();
+          fixpoints_models_v[nn][nnn] = t_fixpoints_map;
+          fixpoints_threads_v[simulation_indices_v[nn][c]].push_back(t_fixpoints_map);
         }
         c += count_by_models[nnn];
       }
@@ -330,6 +339,7 @@ struct EnsembleArgWrapper {
 
   std::vector<unsigned int> simulations_per_model;
   std::vector<Cumulator*> models_cumulators;
+  std::vector<STATE_MAP<NetworkState_Impl, unsigned int>* > models_fixpoints;
   
   RandomGeneratorFactory* randgen_factory;
   int seed;
@@ -338,12 +348,14 @@ struct EnsembleArgWrapper {
 
   EnsembleArgWrapper(
     EnsembleEngine* mabest, unsigned int start_count_thread, unsigned int sample_count_thread, 
-    Cumulator* cumulator, std::vector<unsigned int> simulations_per_model, std::vector<Cumulator*> models_cumulators,
+    Cumulator* cumulator, std::vector<unsigned int> simulations_per_model, 
+    std::vector<Cumulator*> models_cumulators, std::vector<STATE_MAP<NetworkState_Impl, unsigned int>* > models_fixpoints,
     RandomGeneratorFactory* randgen_factory, int seed, 
     STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj) :
 
       mabest(mabest), start_count_thread(start_count_thread), sample_count_thread(sample_count_thread), 
-      cumulator(cumulator), simulations_per_model(simulations_per_model), models_cumulators(models_cumulators),
+      cumulator(cumulator), simulations_per_model(simulations_per_model), 
+      models_cumulators(models_cumulators), models_fixpoints(models_fixpoints),
       randgen_factory(randgen_factory), seed(seed), 
       fixpoint_map(fixpoint_map), output_traj(output_traj) {
 
@@ -357,14 +369,16 @@ void* EnsembleEngine::threadWrapper(void *arg)
     warg->mabest->runThread(
       warg->cumulator, warg->start_count_thread, warg->sample_count_thread, 
       warg->randgen_factory, warg->seed, warg->fixpoint_map, warg->output_traj, 
-      warg->simulations_per_model, warg->models_cumulators);
+      warg->simulations_per_model, warg->models_cumulators, warg->models_fixpoints);
   } catch(const BNException& e) {
     std::cerr << e;
   }
   return NULL;
 }
 
-void EnsembleEngine::runThread(Cumulator* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj, std::vector<unsigned int> simulation_ind, std::vector<Cumulator*> t_models_cumulators)
+void EnsembleEngine::runThread(Cumulator* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, 
+  RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj, 
+  std::vector<unsigned int> simulation_ind, std::vector<Cumulator*> t_models_cumulators, std::vector<STATE_MAP<NetworkState_Impl, unsigned int>* > t_models_fixpoints)
 {
   unsigned int stable_cnt = 0;
   NetworkState network_state; 
@@ -449,6 +463,16 @@ void EnsembleEngine::runThread(Cumulator* cumulator, unsigned int start_count_th
         } else {
           (*fixpoint_map)[network_state.getState()]++;
         }
+
+        if (save_individual_probtraj) {
+          STATE_MAP<NetworkState_Impl, unsigned int>* t_fixpoint_map = t_models_fixpoints[model_ind];
+          if (t_fixpoint_map->find(network_state.getState()) == t_fixpoint_map->end()) {
+            (*t_fixpoint_map)[network_state.getState()] = 1;
+          } else {
+            (*t_fixpoint_map)[network_state.getState()]++;
+          }
+        }
+
         stable_cnt++;
             } else {
         double transition_time ;
@@ -501,7 +525,7 @@ void EnsembleEngine::run(std::ostream* output_traj)
   for (unsigned int nn = 0; nn < thread_count; ++nn) {
     STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map = new STATE_MAP<NetworkState_Impl, unsigned int>();
     fixpoint_map_v.push_back(fixpoint_map);
-    EnsembleArgWrapper* warg = new EnsembleArgWrapper(this, start_sample_count, cumulator_v[nn]->getSampleCount(), cumulator_v[nn], simulation_indices_v[nn], cumulator_models_v[nn], randgen_factory, seed, fixpoint_map, output_traj);
+    EnsembleArgWrapper* warg = new EnsembleArgWrapper(this, start_sample_count, cumulator_v[nn]->getSampleCount(), cumulator_v[nn], simulation_indices_v[nn], cumulator_models_v[nn], fixpoints_models_v[nn], randgen_factory, seed, fixpoint_map, output_traj);
     pthread_create(&tid[nn], NULL, EnsembleEngine::threadWrapper, warg);
     arg_wrapper_v.push_back(warg);
 
@@ -547,12 +571,54 @@ STATE_MAP<NetworkState_Impl, unsigned int>* MetaEngine::mergeFixpointMaps()
   return fixpoint_map;
 }
 
+void EnsembleEngine::mergeEnsembleFixpointMaps()
+{
+  fixpoints_per_model.resize(networks.size(), NULL);
+
+  for (unsigned int i=0; i < networks.size(); i++) {
+    std::vector<STATE_MAP<NetworkState_Impl, unsigned int>* > model_fixpoints = fixpoints_threads_v[i];
+    if (model_fixpoints.size() > 0) {
+      if (1 == model_fixpoints.size()) {
+        fixpoints_per_model[i] = new STATE_MAP<NetworkState_Impl, unsigned int>(*model_fixpoints[0]);
+        
+      } else {
+
+        STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map = new STATE_MAP<NetworkState_Impl, unsigned int>();
+        std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*>::iterator begin = model_fixpoints.begin();
+        std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*>::iterator end = model_fixpoints.end();
+        unsigned int iii = 0;
+        while (begin != end) {
+          STATE_MAP<NetworkState_Impl, unsigned int>* fp_map = *begin;
+          STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator b = fp_map->begin();
+          STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator e = fp_map->end();
+          while (b != e) {
+            NetworkState_Impl state = (*b).first;
+            if (fixpoint_map->find(state) == fixpoint_map->end()) {
+        (*fixpoint_map)[state] = (*b).second;
+            } else {
+        (*fixpoint_map)[state] += (*b).second;
+            }
+            ++b;
+          }
+          ++begin;
+          ++iii;
+        }
+        fixpoints_per_model[i] = fixpoint_map;
+        for (auto t_model_fixpoint: model_fixpoints) {
+          delete t_model_fixpoint;
+        }
+      }
+    }
+  }
+}
+
+
 void EnsembleEngine::epilogue()
 {
   merged_cumulator = Cumulator::mergeCumulators(cumulator_v);
   merged_cumulator->epilogue(networks[0], reference_state);
 
-if (save_individual_probtraj) {
+  if (save_individual_probtraj) {
 
     cumulators_per_model.resize(networks.size(), NULL);
 
@@ -581,6 +647,11 @@ if (save_individual_probtraj) {
     ++b;
   }
   delete merged_fixpoint_map;
+
+  if (save_individual_probtraj) {
+    mergeEnsembleFixpointMaps();
+  }
+
 }
 
 void EnsembleEngine::display(std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, std::vector<std::ostream*> output_individual_probtraj, bool hexfloat) const
