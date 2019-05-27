@@ -658,7 +658,8 @@ void EnsembleEngine::epilogue()
 
 }
 
-void EnsembleEngine::display(std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, std::vector<std::ostream*> output_individual_probtraj, bool hexfloat) const
+void EnsembleEngine::display(std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, 
+  std::vector<std::ostream*> output_individual_probtraj, std::vector<std::ostream*> output_individual_fixpoints, bool hexfloat) const
 {
   Probe probe;
   merged_cumulator->displayCSV(networks[0], refnode_count, output_probtraj, output_statdist, hexfloat);
@@ -680,34 +681,70 @@ void EnsembleEngine::display(std::ostream& output_probtraj, std::ostream& output
   }
 
   output_fp << "Fixed Points (" << fixpoints.size() << ")\n";
-  if (0 == fixpoints.size()) {
-    return;
-  }
+  if (0 < fixpoints.size()) {
 
 #ifdef HAS_STD_HEXFLOAT
-  if (hexfloat) {
-    output_fp << std::hexfloat;
-  }
+    if (hexfloat) {
+      output_fp << std::hexfloat;
+    }
 #endif
 
-  STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator begin = fixpoints.begin();
-  STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator end = fixpoints.end();
-  
-  output_fp << "FP\tProba\tState\t";
-  networks[0]->displayHeader(output_fp);
-  for (unsigned int nn = 0; begin != end; ++nn) {
-    const NetworkState& network_state = (*begin).first;
-    output_fp << "#" << (nn+1) << "\t";
-    if (hexfloat) {
-      output_fp << fmthexdouble((double)(*begin).second / sample_count) <<  "\t";
-    } else {
-      output_fp << ((double)(*begin).second / sample_count) <<  "\t";
+    STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator begin = fixpoints.begin();
+    STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator end = fixpoints.end();
+    
+    output_fp << "FP\tProba\tState\t";
+    networks[0]->displayHeader(output_fp);
+    for (unsigned int nn = 0; begin != end; ++nn) {
+      const NetworkState& network_state = (*begin).first;
+      output_fp << "#" << (nn+1) << "\t";
+      if (hexfloat) {
+        output_fp << fmthexdouble((double)(*begin).second / sample_count) <<  "\t";
+      } else {
+        output_fp << ((double)(*begin).second / sample_count) <<  "\t";
+      }
+      network_state.displayOneLine(output_fp, networks[0]);
+      output_fp << '\t';
+      network_state.display(output_fp, networks[0]);
+      ++begin;
     }
-    network_state.displayOneLine(output_fp, networks[0]);
-    output_fp << '\t';
-    network_state.display(output_fp, networks[0]);
-    ++begin;
   }
+
+
+  if (save_individual_probtraj) {
+    for (unsigned int i=0; i < networks.size(); i++) {
+
+      *(output_individual_fixpoints[i]) << "Fixed Points (" << fixpoints_per_model[i]->size() << ")\n";
+      if (0 < fixpoints_per_model[i]->size()) {
+
+#ifdef HAS_STD_HEXFLOAT
+        if (hexfloat) {
+          *(output_individual_fixpoints[i]) << std::hexfloat;
+        }
+#endif
+
+        STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator begin = fixpoints_per_model[i]->begin();
+        STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator end = fixpoints_per_model[i]->end();
+        
+        *(output_individual_fixpoints[i]) << "FP\tProba\tState\t";
+        networks[i]->displayHeader(*(output_individual_fixpoints[i]));
+        for (unsigned int nn = 0; begin != end; ++nn) {
+          const NetworkState& network_state = (*begin).first;
+          *(output_individual_fixpoints[i]) << "#" << (nn+1) << "\t";
+          if (hexfloat) {
+            *(output_individual_fixpoints[i]) << fmthexdouble((double)(*begin).second / sample_count) <<  "\t";
+          } else {
+            *(output_individual_fixpoints[i]) << ((double)(*begin).second / sample_count) <<  "\t";
+          }
+          network_state.displayOneLine(*(output_individual_fixpoints[i]), networks[i]);
+          *(output_individual_fixpoints[i]) << '\t';
+          network_state.display(*(output_individual_fixpoints[i]), networks[i]);
+          ++begin;
+        }
+      }
+    }
+  }
+
+
 }
 
 EnsembleEngine::~EnsembleEngine()
@@ -729,6 +766,12 @@ EnsembleEngine::~EnsembleEngine()
   for (unsigned int i=0; i < cumulators_per_model.size(); i++) {
     if (cumulators_per_model[i] != NULL){
       delete cumulators_per_model[i];
+    } 
+  }
+  
+  for (unsigned int i=0; i < fixpoints_per_model.size(); i++) {
+    if (fixpoints_per_model[i] != NULL){
+      delete fixpoints_per_model[i];
     } 
   }
 
