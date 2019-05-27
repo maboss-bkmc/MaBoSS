@@ -171,7 +171,7 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
     // Aside from the simulation indice, we are building
     // a dict with the number of model simulations by model
     int m = 0;
-    std::vector<unsigned int> count_by_models(1);
+    std::vector<unsigned int> count_by_models;
     
     while(nnn < t_count) {
       assert(j <= networks.size());
@@ -181,15 +181,17 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
         if (k > 0) { // If we indeed assigned something
 
           // We add another element to the vector
-          count_by_models.resize(count_by_models.size()+1); 
+          // count_by_models.resize(count_by_models.size()+1); 
      
           // If this is the first model assigned in this thread
           if (m == 0) {
             // Then we need to count those who were assigned in the previous thread
-            count_by_models[m] = k - offset;
+            // count_by_models[m] = k - offset;
+            count_by_models.push_back(k - offset);
           } else {
             // Otherwise we did assigned them all in this thread
-            count_by_models[m] = k;
+            // count_by_models[m] = k;
+            count_by_models.push_back(k);
           }
           
           m++; // One model assigned ! 
@@ -210,15 +212,17 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
     // then we need to put in the counts up to where we went
     if (k > 0) {
       // We add another element to the vector
-      count_by_models.resize(count_by_models.size()+1); 
+      // count_by_models.resize(count_by_models.size()+1); 
 
       // // If this is the first model assigned in this thread
       if (m == 0) {
         // Then we need to substract those who were assigned in the previous thread
-        count_by_models[m] = k - offset;
+        // count_by_models[m] = k - offset;
+        count_by_models.push_back(k - offset);
       } else {
         // Otherwise we did assigned them all in this thread
-        count_by_models[m] = k;
+        // count_by_models[m] = k;
+        count_by_models.push_back(k);
       }
     }
 
