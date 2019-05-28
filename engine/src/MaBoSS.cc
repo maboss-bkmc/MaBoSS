@@ -50,7 +50,7 @@ static int usage(std::ostream& os = std::cerr)
   os << "  " << prog << " [--override]\n";
   os << "  " << prog << " [--augment]\n";
   os << "  " << prog << " [--hexfloat]\n";
-  os << "  " << prog << " [--ensemble [--save-individual-probtrajs] [--random-sampling]]\n";
+  os << "  " << prog << " [--ensemble [--save-individual] [--random-sampling]]\n";
   return 1;
 }
 
@@ -94,7 +94,7 @@ int main(int argc, char* argv[])
   std::vector<std::string> runconfig_var_v;
   const char* ctbndl_file = NULL;
   bool ensemble = false;
-  bool ensemble_save_individual_probtrajs = false;
+  bool ensemble_save_individual_results = false;
   bool ensemble_random_sampling = false;
 
   std::vector<char *> ctbndl_files;
@@ -129,11 +129,11 @@ int main(int argc, char* argv[])
 	dont_shrink_logical_expressions = true;
       } else if (!strcmp(s, "--ensemble")) {
   ensemble = true;
-      } else if (!strcmp(s, "--save-individual-probtrajs")) {
+      } else if (!strcmp(s, "--save-individual")) {
         if (ensemble) {
-          ensemble_save_individual_probtrajs = true;
+          ensemble_save_individual_results = true;
         } else {
-          std::cerr << "\n" << prog << ": --save-individual-probtrajs only usable if --ensemble is used" << std::endl;
+          std::cerr << "\n" << prog << ": --save-individual only usable if --ensemble is used" << std::endl;
         }
       } else if (!strcmp(s, "--random-sampling")) {
         if (ensemble) {
@@ -301,7 +301,7 @@ int main(int argc, char* argv[])
       output_statdist = new std::ofstream((std::string(output) + "_statdist.csv").c_str());
       output_fp = new std::ofstream((std::string(output) + "_fp.csv").c_str());
       
-      if (ensemble_save_individual_probtrajs) {
+      if (ensemble_save_individual_results) {
 
         for (unsigned int i=0; i < networks.size(); i++) {
           std::ostream* t_file = new std::ofstream(
@@ -317,7 +317,7 @@ int main(int argc, char* argv[])
       }
 
       time(&start_time);
-      EnsembleEngine engine(networks, runconfig, ensemble_save_individual_probtrajs, ensemble_random_sampling);
+      EnsembleEngine engine(networks, runconfig, ensemble_save_individual_results, ensemble_random_sampling);
       engine.run(NULL);
       engine.display(*output_probtraj, *output_statdist, *output_fp, output_individual_probtraj, output_individual_fixpoints, hexfloat);
       time(&end_time);
@@ -327,7 +327,7 @@ int main(int argc, char* argv[])
       ((std::ofstream*)output_statdist)->close();
       ((std::ofstream*)output_fp)->close();
       
-      if (ensemble_save_individual_probtrajs) {
+      if (ensemble_save_individual_results) {
         for (unsigned int i=0; i < networks.size(); i++) {
           ((std::ofstream*) output_individual_probtraj[i])->close();
           ((std::ofstream*) output_individual_fixpoints[i])->close();

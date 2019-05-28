@@ -67,8 +67,8 @@ void MetaEngine::loadUserFuncs(const char* module)
   init_fun(Function::getFuncMap());
 }
 
-EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runconfig, bool save_individual_probtraj, bool random_sampling) :
-  MetaEngine(runconfig), networks(networks), save_individual_probtraj(save_individual_probtraj), random_sampling(random_sampling) {
+EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runconfig, bool save_individual_result, bool random_sampling) :
+  MetaEngine(runconfig), networks(networks), save_individual_result(save_individual_result), random_sampling(random_sampling) {
 
   tid = NULL;
 
@@ -135,7 +135,7 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
   cumulator_models_v.resize(thread_count); // Per thread
   fixpoints_models_v.resize(thread_count);
 
-  if (save_individual_probtraj) {
+  if (save_individual_result) {
     cumulators_thread_v.resize(networks.size());
     fixpoints_threads_v.resize(networks.size());
   }
@@ -242,7 +242,7 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
     // initialize the cumulators, and we add them to the vector of 
     // cumulators by model
     unsigned int c = 0;
-    if (save_individual_probtraj) {
+    if (save_individual_result) {
       cumulator_models_v[nn].resize(count_by_models.size());
       fixpoints_models_v[nn].resize(count_by_models.size());
 
@@ -404,7 +404,7 @@ void EnsembleEngine::runThread(Cumulator* cumulator, unsigned int start_count_th
     std::vector<Node*>::const_iterator end = nodes.end();
   
     cumulator->rewind();
-    if (save_individual_probtraj){
+    if (save_individual_result){
       t_models_cumulators[model_ind]->rewind();
     }
     
@@ -468,7 +468,7 @@ void EnsembleEngine::runThread(Cumulator* cumulator, unsigned int start_count_th
           (*fixpoint_map)[network_state.getState()]++;
         }
 
-        if (save_individual_probtraj) {
+        if (save_individual_result) {
           STATE_MAP<NetworkState_Impl, unsigned int>* t_fixpoint_map = t_models_fixpoints[model_ind];
           if (t_fixpoint_map->find(network_state.getState()) == t_fixpoint_map->end()) {
             (*t_fixpoint_map)[network_state.getState()] = 1;
@@ -498,7 +498,7 @@ void EnsembleEngine::runThread(Cumulator* cumulator, unsigned int start_count_th
   //     }
 
       cumulator->cumul(network_state, tm, TH);
-      if (save_individual_probtraj){
+      if (save_individual_result){
         t_models_cumulators[model_ind]->cumul(network_state, tm, TH);
       }
 
@@ -512,7 +512,7 @@ void EnsembleEngine::runThread(Cumulator* cumulator, unsigned int start_count_th
     }
 
     cumulator->trajectoryEpilogue();
-    if (save_individual_probtraj){
+    if (save_individual_result){
       t_models_cumulators[model_ind]->trajectoryEpilogue();
     }
   }
@@ -622,7 +622,7 @@ void EnsembleEngine::epilogue()
   merged_cumulator = Cumulator::mergeCumulators(cumulator_v);
   merged_cumulator->epilogue(networks[0], reference_state);
 
-  if (save_individual_probtraj) {
+  if (save_individual_result) {
 
     cumulators_per_model.resize(networks.size(), NULL);
 
@@ -652,7 +652,7 @@ void EnsembleEngine::epilogue()
   }
   delete merged_fixpoint_map;
 
-  if (save_individual_probtraj) {
+  if (save_individual_result) {
     mergeEnsembleFixpointMaps();
   }
 
@@ -710,7 +710,7 @@ void EnsembleEngine::display(std::ostream& output_probtraj, std::ostream& output
   }
 
 
-  if (save_individual_probtraj) {
+  if (save_individual_result) {
     for (unsigned int i=0; i < networks.size(); i++) {
 
       *(output_individual_fixpoints[i]) << "Fixed Points (" << fixpoints_per_model[i]->size() << ")\n";
