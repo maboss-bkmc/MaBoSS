@@ -100,7 +100,7 @@ class EnsembleEngine : MetaEngine {
   std::vector<Cumulator*> cumulators_per_model; // The final Cumulators for each model
   std::vector<STATE_MAP<NetworkState_Impl, unsigned int>* > fixpoints_per_model; // The final fixpoints for each model
   
-  bool save_individual_probtraj; // Do we want to save individual model simulation
+  bool save_individual_result; // Do we want to save individual model simulation result
   bool random_sampling; // Randomly select the number of simulation per model
 
   std::vector<std::vector<unsigned int> > simulation_indices_v; // The list of indices of models to simulate for each thread
@@ -120,7 +120,7 @@ class EnsembleEngine : MetaEngine {
 public:
   static const std::string VERSION;
 
-  EnsembleEngine(std::vector<Network*> network, RunConfig* runconfig, bool save_individual_probtraj=false, bool random_sampling=false);
+  EnsembleEngine(std::vector<Network*> network, RunConfig* runconfig, bool save_individual_result=false, bool random_sampling=false);
 
   void run(std::ostream* output_traj);
 
