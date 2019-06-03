@@ -658,19 +658,10 @@ void EnsembleEngine::epilogue()
 
 }
 
-void EnsembleEngine::display(std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, 
-  std::vector<std::ostream*> output_individual_probtraj, std::vector<std::ostream*> output_individual_fixpoints, bool hexfloat) const
+void EnsembleEngine::display(std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat) const
 {
   Probe probe;
   merged_cumulator->displayCSV(networks[0], refnode_count, output_probtraj, output_statdist, hexfloat);
-  for (unsigned int i=0; i < cumulators_per_model.size(); i++) {
-    if (cumulators_per_model[i] != NULL){
-      std::ostream null_stream(&null_buffer);
-      std::ostream& t_buffer = *(output_individual_probtraj[i]);
-      cumulators_per_model[i]->displayCSV(networks[0], refnode_count, t_buffer, output_statdist, hexfloat);
-    }
-  }
-  
   probe.stop();
   elapsed_statdist_runtime = probe.elapsed_msecs();
   user_statdist_runtime = probe.user_msecs();
@@ -708,43 +699,42 @@ void EnsembleEngine::display(std::ostream& output_probtraj, std::ostream& output
       ++begin;
     }
   }
+}
 
+void EnsembleEngine::displayIndividual(unsigned int model_id, std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat) const {
 
-  if (save_individual_result) {
-    for (unsigned int i=0; i < networks.size(); i++) {
-
-      *(output_individual_fixpoints[i]) << "Fixed Points (" << fixpoints_per_model[i]->size() << ")\n";
-      if (0 < fixpoints_per_model[i]->size()) {
-
-#ifdef HAS_STD_HEXFLOAT
-        if (hexfloat) {
-          *(output_individual_fixpoints[i]) << std::hexfloat;
-        }
-#endif
-
-        STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator begin = fixpoints_per_model[i]->begin();
-        STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator end = fixpoints_per_model[i]->end();
-        
-        *(output_individual_fixpoints[i]) << "FP\tProba\tState\t";
-        networks[i]->displayHeader(*(output_individual_fixpoints[i]));
-        for (unsigned int nn = 0; begin != end; ++nn) {
-          const NetworkState& network_state = (*begin).first;
-          *(output_individual_fixpoints[i]) << "#" << (nn+1) << "\t";
-          if (hexfloat) {
-            *(output_individual_fixpoints[i]) << fmthexdouble((double)(*begin).second / sample_count) <<  "\t";
-          } else {
-            *(output_individual_fixpoints[i]) << ((double)(*begin).second / sample_count) <<  "\t";
-          }
-          network_state.displayOneLine(*(output_individual_fixpoints[i]), networks[i]);
-          *(output_individual_fixpoints[i]) << '\t';
-          network_state.display(*(output_individual_fixpoints[i]), networks[i]);
-          ++begin;
-        }
-      }
-    }
+  if (cumulators_per_model[model_id] != NULL){
+    cumulators_per_model[model_id]->displayCSV(networks[0], refnode_count, output_probtraj, output_statdist, hexfloat);
   }
 
+  output_fp << "Fixed Points (" << fixpoints_per_model[model_id]->size() << ")\n";
+  if (0 < fixpoints_per_model[model_id]->size()) {
 
+#ifdef HAS_STD_HEXFLOAT
+    if (hexfloat) {
+      output_fp << std::hexfloat;
+    }
+#endif
+
+    STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator begin = fixpoints_per_model[model_id]->begin();
+    STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator end = fixpoints_per_model[model_id]->end();
+    
+    output_fp << "FP\tProba\tState\t";
+    networks[model_id]->displayHeader(output_fp);
+    for (unsigned int nn = 0; begin != end; ++nn) {
+      const NetworkState& network_state = (*begin).first;
+      output_fp << "#" << (nn+1) << "\t";
+      if (hexfloat) {
+        output_fp << fmthexdouble((double)(*begin).second / sample_count) <<  "\t";
+      } else {
+        output_fp << ((double)(*begin).second / sample_count) <<  "\t";
+      }
+      network_state.displayOneLine(output_fp, networks[model_id]);
+      output_fp << '\t';
+      network_state.display(output_fp, networks[model_id]);
+      ++begin;
+    }
+  }
 }
 
 EnsembleEngine::~EnsembleEngine()
