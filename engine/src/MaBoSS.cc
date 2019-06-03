@@ -237,9 +237,7 @@ int main(int argc, char* argv[])
   std::ostream* output_probtraj = NULL;
   std::ostream* output_statdist = NULL;
   std::ostream* output_fp = NULL;
-  std::vector<std::ostream*> output_individual_probtraj(0);
-  std::vector<std::ostream*> output_individual_fixpoints(0);
-
+  
   try {
     time_t start_time, end_time;
 
@@ -301,39 +299,41 @@ int main(int argc, char* argv[])
       output_statdist = new std::ofstream((std::string(output) + "_statdist.csv").c_str());
       output_fp = new std::ofstream((std::string(output) + "_fp.csv").c_str());
       
-      if (ensemble_save_individual_results) {
-
-        for (unsigned int i=0; i < networks.size(); i++) {
-          std::ostream* t_file = new std::ofstream(
-            (std::string(output) + "_model_" + std::to_string(i) + "_probtraj.csv").c_str()
-          );
-          output_individual_probtraj.push_back(t_file);
-
-          t_file = new std::ofstream(
-            (std::string(output) + "_model_" + std::to_string(i) + "_fp.csv").c_str()
-          );
-          output_individual_fixpoints.push_back(t_file);
-        }
-      }
-
       time(&start_time);
       EnsembleEngine engine(networks, runconfig, ensemble_save_individual_results, ensemble_random_sampling);
       engine.run(NULL);
-      engine.display(*output_probtraj, *output_statdist, *output_fp, output_individual_probtraj, output_individual_fixpoints, hexfloat);
+      engine.display(*output_probtraj, *output_statdist, *output_fp, hexfloat);
+
+      if (ensemble_save_individual_results) {
+        for (unsigned int i=0; i < networks.size(); i++) {
+          
+          std::ostream* i_output_probtraj = new std::ofstream(
+            (std::string(output) + "_model_" + std::to_string(i) + "_probtraj.csv").c_str()
+          );
+          
+          std::ostream* i_output_fp = new std::ofstream(
+            (std::string(output) + "_model_" + std::to_string(i) + "_fp.csv").c_str()
+          );
+          
+          std::ostream* i_output_statdist = new std::ofstream(
+            (std::string(output) + "_model_" + std::to_string(i) + "_statdist.csv").c_str()
+          );
+
+          engine.displayIndividual(i, *i_output_probtraj, *i_output_statdist, *i_output_fp, hexfloat);
+
+          ((std::ofstream*) i_output_probtraj)->close();
+          ((std::ofstream*) i_output_statdist)->close();
+          ((std::ofstream*) i_output_fp)->close();
+
+        }
+      }
       time(&end_time);
 
       // ((std::ofstream*)output_run)->close();
       ((std::ofstream*)output_probtraj)->close();
       ((std::ofstream*)output_statdist)->close();
       ((std::ofstream*)output_fp)->close();
-      
-      if (ensemble_save_individual_results) {
-        for (unsigned int i=0; i < networks.size(); i++) {
-          ((std::ofstream*) output_individual_probtraj[i])->close();
-          ((std::ofstream*) output_individual_fixpoints[i])->close();
-        }
-      }
-      
+        
     } else {
         
       Network* network = new Network();
