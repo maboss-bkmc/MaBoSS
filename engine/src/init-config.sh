@@ -62,7 +62,7 @@ int main()
 }
 EOF
 
-$CXX -c $tmpfile -std=c++0x > /dev/null 2>&1
+$CXX -c $tmpfile -std=c++11 > /dev/null 2>&1
 
 if [ $? = 0 ]
 then
