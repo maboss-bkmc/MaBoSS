@@ -10,13 +10,10 @@ build:
 
 requirements:
   build:
-    - gcc
+    - {{ compiler('cxx') }}
     - flex
     - bison
     - make
-  run:
-    - libgcc-ng
-    - libstdcxx-ng
 
 about:
   home:  https://maboss.curie.fr
