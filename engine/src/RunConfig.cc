@@ -168,8 +168,12 @@ int RunConfig::parseExpression(Network* network, const char* expr)
 
   char tmpfile[] = "/tmp/maboss_XXXXXX";
   int fd = mkstemp(tmpfile);
+#ifndef NDEBUG
   ssize_t ret = write(fd, expr, strlen(expr));
   assert(ret > 0);
+#else
+  write(fd, expr, strlen(expr));
+#endif
   close(fd);
 
   RCin = fopen(tmpfile, "r");

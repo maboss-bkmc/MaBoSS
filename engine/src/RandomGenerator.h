@@ -93,8 +93,14 @@ class PhysicalRandomGenerator : public RandomGenerator {
     return ~0U/2;
 #endif
     unsigned int result;
+    // When compiling with NDEBUG, we don't have asserts, to res is not used
+    // This is just to make the compiler happy even in this case
+#ifndef NDEBUG 
     int ret = read(fd, &result, sizeof(result));
     assert(ret == sizeof(result));
+#else
+    read(fd, &result, sizeof(result));
+#endif
 #ifdef RANDOM_TRACE
     std::cout << result << '\n';
 #endif
