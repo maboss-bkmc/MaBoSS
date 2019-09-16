@@ -565,6 +565,8 @@ public:
 
   void display(std::ostream& os, Network* network) const;
 
+  std::string getName(Network * network, const std::string& sep=" -- ") const;
+ 
   void displayOneLine(std::ostream& os, Network* network, const std::string& sep = " -- ") const;
 
 #ifndef USE_UNORDERED_MAP
