@@ -1,4 +1,4 @@
-from distutils.core import setup, Extension
+from setuptools import setup, Extension
 
 maboss_sources = [
    "MaBEstEngine.cc", "EnsembleEngine.cc", "Cumulator.cc", "ProbaDist.cc", 
@@ -9,7 +9,11 @@ maboss_sources = [
 
 
 # define the extension module
-maboss_module = Extension('maboss_module', sources=['maboss_module.cpp'] + ["../src/%s" % source for source in maboss_sources], language = "c++")
+maboss_module = Extension(
+   'maboss_module', 
+   sources=['maboss_module.cpp'] + ["../src/%s" % source for source in maboss_sources], 
+   language = "c++"
+)
 
 setup (name = 'maboss_module',
    version = '2.0',
