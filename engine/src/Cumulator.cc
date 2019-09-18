@@ -449,7 +449,13 @@ Cumulator* Cumulator::mergeCumulators(std::vector<Cumulator*>& cumulator_v)
   }
 
   RunConfig* runconfig = RunConfig::getInstance();
-  Cumulator* ret_cumul = new Cumulator(runconfig->getTimeTick(), runconfig->getMaxTime(), runconfig->getSampleCount());
+
+  unsigned int t_cumulator_size = 0;
+  for (auto& cum: cumulator_v) {
+    t_cumulator_size += cum->sample_count;
+  }
+
+  Cumulator* ret_cumul = new Cumulator(runconfig->getTimeTick(), runconfig->getMaxTime(), t_cumulator_size);
   size_t min_cumul_size = ~0ULL;
   size_t min_tick_index_size = ~0ULL;
   std::vector<Cumulator*>::iterator begin = cumulator_v.begin();
