@@ -1,6 +1,6 @@
 package:
   name: maboss
-  version: "2.2.0"
+  version: "2.2.2"
 
 source:
   git_url: https://github.com/maboss-bkmc/MaBoSS-env-2.0.git
