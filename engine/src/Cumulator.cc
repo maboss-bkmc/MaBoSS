@@ -362,6 +362,82 @@ void Cumulator::displayCSV(Network* network, unsigned int refnode_count, std::os
   clusterFactory->displayStationaryDistribution(network, os_statdist, hexfloat);
 }
 
+void Cumulator::displayAsymptoticCSV(Network *network, unsigned int refnode_count, std::ostream &os_asymptprob, bool hexfloat, bool proba) const
+{
+
+  std::vector<Node *>::const_iterator begin_network;
+
+  os_asymptprob << "Time";
+
+  double ratio;
+  if (proba)
+  {
+    ratio = time_tick * sample_count;
+  }
+  else
+  {
+    ratio = time_tick;
+  }
+
+  // Choosing the last tick
+  int nn = max_tick_index - 1;
+
+#ifdef HAS_STD_HEXFLOAT
+  if (hexfloat)
+  {
+    os_asymptprob << std::hexfloat;
+  }
+#endif
+  // TH
+  const CumulMap &mp = get_map(nn);
+  CumulMap::Iterator iter = mp.iterator();
+
+
+    while (iter.hasNext())
+  {
+    NetworkState_Impl state;
+    TickValue tick_value;
+    iter.next(state, tick_value);
+
+    os_asymptprob << '\t';
+    NetworkState network_state(state);
+    network_state.displayOneLine(os_asymptprob, network);
+  }
+
+  os_asymptprob << '\n';
+  iter.rewind();
+  os_asymptprob << std::setprecision(4) << std::fixed << (nn * time_tick);
+
+  
+  std::string zero_hexfloat = fmthexdouble(0.0);
+  
+  // Proba, ErrorProba
+  while (iter.hasNext())
+  {
+    NetworkState_Impl state;
+    TickValue tick_value;
+    iter.next(state, tick_value);
+    double proba = tick_value.tm_slice / ratio;
+    if (proba)
+    {
+      if (hexfloat)
+      {
+        os_asymptprob << '\t' << std::setprecision(6) << fmthexdouble(proba);
+      }
+      else
+      {
+        os_asymptprob << '\t' << std::setprecision(6) << proba;
+      }
+    }
+    else
+    {
+      int t_proba = static_cast<int>(round(proba));
+      os_asymptprob << '\t' << std::fixed << t_proba;
+    }
+  }
+  os_asymptprob << '\n';
+}
+
 const std::map<double, STATE_MAP<NetworkState_Impl, double> > Cumulator::getStateDists() const
 {
   std::map<double, STATE_MAP<NetworkState_Impl, double> > result;

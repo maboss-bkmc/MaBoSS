@@ -51,6 +51,8 @@ static int usage(std::ostream& os = std::cerr)
   os << "  " << prog << " [--augment]\n";
   os << "  " << prog << " [--hexfloat]\n";
   os << "  " << prog << " [--ensemble [--save-individual] [--random-sampling]]\n";
+  os << "  " << prog << " [--export-asymptotic]\n";
+  os << "  " << prog << " [--counts]\n";
   return 1;
 }
 
@@ -73,6 +75,8 @@ static int help()
   std::cout << "  -l --generate-logical-expressions       : generates the logical expressions and exits\n";
   std::cout << "  --check                                 : checks network and configuration files and exits\n";
   std::cout << "  --hexfloat                              : displays double in hexadecimal format\n";
+  std::cout << "  --export-asymptotic                     : create a special file for asymptotic probabilities\n";
+  std::cout << "  --counts                                : exports counts instead of probabilities (only works with asymptotic states)\n";
   std::cout << "  -h --help                               : displays this message\n";
   std::cout << "\nNotices:\n";
   std::cout << "\n1. --config and --config-expr options can be used multiple times;\n";
@@ -104,7 +108,8 @@ int main(int argc, char* argv[])
   bool hexfloat = false;
   bool check = false;
   dont_shrink_logical_expressions = false; // global flag
-  
+  bool export_asymptotic = false;
+  bool counts = false;
   MaBEstEngine::init();
 
   for (int nn = 1; nn < argc; ++nn) {
@@ -141,6 +146,10 @@ int main(int argc, char* argv[])
         } else {
           std::cerr << "\n" << prog << ": --random-sampling only usable if --ensemble is used" << std::endl;
         }
+      } else if (!strcmp(s, "--export-asymptotic")) {
+        export_asymptotic = true;
+      } else if (!strcmp(s, "--counts")) {
+        counts = true;
       } else if (!strcmp(s, "--load-user-functions")) {
 	if (nn == argc-1) {std::cerr << '\n' << prog << ": missing value after option " << s << '\n'; return usage();}
 	MaBEstEngine::loadUserFuncs(argv[++nn]);
@@ -237,6 +246,7 @@ int main(int argc, char* argv[])
   std::ostream* output_probtraj = NULL;
   std::ostream* output_statdist = NULL;
   std::ostream* output_fp = NULL;
+  std::ostream* output_asymptprob = NULL;
   
   try {
     time_t start_time, end_time;
@@ -395,6 +405,10 @@ int main(int argc, char* argv[])
       output_statdist = new std::ofstream((std::string(output) + "_statdist.csv").c_str());
       output_fp = new std::ofstream((std::string(output) + "_fp.csv").c_str());
 
+      if (export_asymptotic) {
+        output_asymptprob = new std::ofstream((std::string(output) + "_asymptprob.csv").c_str());
+      }
+
       time(&start_time);
       MaBEstEngine mabest(network, runconfig);
       mabest.run(output_traj);
@@ -403,6 +417,10 @@ int main(int argc, char* argv[])
 
       runconfig->display(network, start_time, end_time, mabest, *output_run);
 
+      if (export_asymptotic) {
+        mabest.displayAsymptotic(*output_asymptprob, hexfloat, !counts);
+        ((std::ofstream*)output_asymptprob)->close();
+      }
       ((std::ofstream*)output_run)->close();
       if (NULL != output_traj) {
         ((std::ofstream*)output_traj)->close();
