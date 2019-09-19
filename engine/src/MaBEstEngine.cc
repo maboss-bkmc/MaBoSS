@@ -424,6 +424,11 @@ void MaBEstEngine::display(std::ostream& output_probtraj, std::ostream& output_s
   }
 }
 
+void MaBEstEngine::displayAsymptotic(std::ostream& output_asymptprob, bool hexfloat, bool proba) const
+{
+  merged_cumulator->displayAsymptoticCSV(network, refnode_count, output_asymptprob, hexfloat, proba);
+}
+
 const std::map<double, STATE_MAP<NetworkState_Impl, double> > MaBEstEngine::getStateDists() const {
   return merged_cumulator->getStateDists();
 }

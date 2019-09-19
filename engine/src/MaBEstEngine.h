@@ -86,6 +86,7 @@ public:
   bool converges() const {return fixpoints.size() > 0;}
 
   void display(std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat = false) const;
+  void displayAsymptotic(std::ostream& output_asymptprob, bool hexfloat = false, bool proba = true) const;
 
   const std::map<double, STATE_MAP<NetworkState_Impl, double> > getStateDists() const;
   const STATE_MAP<NetworkState_Impl, double> getNthStateDist(int nn) const;
