@@ -80,6 +80,7 @@ class Network;
 class Node;
 class RandomGenerator;
 class RunConfig;
+class IStateGroup;
 
 class LogicalExprGenContext {
 
@@ -417,6 +418,7 @@ class Network {
   RandomGenerator* random_generator; // used for node initial states
 
   MAP<std::string, bool> node_def_map;
+  std::vector<IStateGroup*>* istate_group_list;
 
 public:
 
@@ -426,6 +428,10 @@ public:
   Network& operator=(const Network& network);
 
   int parse(const char* file = NULL, std::map<std::string, NodeIndex>* nodes_indexes = NULL);
+
+  std::vector<IStateGroup*>* getIStateGroup() {
+    return istate_group_list;
+  }
 
   Node* defineNode(const std::string& label, const std::string& description = "");
 
@@ -1411,7 +1417,7 @@ public:
     void normalizeProbaValue(double proba_sum) {proba_value /= proba_sum;}
   };
   
-  IStateGroup(std::vector<const Node*>* nodes, std::vector<ProbaIState*>* proba_istates, std::string& error_msg) : nodes(nodes), proba_istates(proba_istates) {
+  IStateGroup(Network* network, std::vector<const Node*>* nodes, std::vector<ProbaIState*>* proba_istates, std::string& error_msg) : nodes(nodes), proba_istates(proba_istates) {
     is_random = false;
     size_t node_size = nodes->size();
     std::vector<IStateGroup::ProbaIState*>::iterator begin = proba_istates->begin();
@@ -1425,26 +1431,26 @@ public:
       }
       ++begin;
     }
-    epilogue();
+    epilogue(network);
  }
 
-  IStateGroup(const Node* node) {
+  IStateGroup(Network * network, const Node* node) {
     is_random = true;
     nodes = new std::vector<const Node*>();
     nodes->push_back(node);
     proba_istates = new std::vector<ProbaIState*>();
     proba_istates->push_back(new ProbaIState(0.5, 0.));
     proba_istates->push_back(new ProbaIState(0.5, 1.));
-    epilogue();
+    epilogue(network);
   }
 
-  IStateGroup(const Node* node, Expression* expr) {
+  IStateGroup(Network * network, const Node* node, Expression* expr) {
     is_random = false;
     nodes = new std::vector<const Node*>();
     nodes->push_back(node);
     proba_istates = new std::vector<ProbaIState*>();
     proba_istates->push_back(new ProbaIState(1., expr));
-    epilogue();
+    epilogue(network);
   }
 
   std::vector<const Node*>* getNodes() {return nodes;}
@@ -1464,13 +1470,13 @@ public:
   static void checkAndComplete(Network* network);
   static void initStates(Network* network, NetworkState& initial_state);
   static void display(Network* network, std::ostream& os);
-  static void reset();
+  static void reset(Network* network);
   
 
     static void setNodeProba(Network * network, Node * node, double value) {
 
-    std::vector<IStateGroup*>::iterator begin = istate_group_list->begin();
-    std::vector<IStateGroup*>::iterator end = istate_group_list->end();
+    std::vector<IStateGroup*>::iterator begin = network->getIStateGroup()->begin();
+    std::vector<IStateGroup*>::iterator end = network->getIStateGroup()->end();
 
     while (begin != end) {
       IStateGroup* istate_group = *begin;
@@ -1532,7 +1538,7 @@ public:
 
           std::string message = "";
 
-          new IStateGroup(new_nodes, new_proba_istates, message);
+          new IStateGroup(network, new_nodes, new_proba_istates, message);
         }
       }
       ++begin;
@@ -1575,12 +1581,10 @@ private:
     }
   }
 
-  void epilogue() {
+  void epilogue(Network* network) {
     computeProbaSum();
-    istate_group_list->push_back(this);
+    network->getIStateGroup()->push_back(this);
   }
-
-  static std::vector<IStateGroup*>* istate_group_list;
 };
 
 extern const bool backward_istate;

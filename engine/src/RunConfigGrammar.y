@@ -113,9 +113,9 @@ node_attr_decl: SYMBOL '.' SYMBOL '=' expression ';'
       node->setIState((bool)value);
     } else {
       if (value < 0) {
-	new IStateGroup(node);
+	new IStateGroup(network, node);
       } else {
-	new IStateGroup(node, $5);
+	new IStateGroup(network, node, $5);
       }
     }
   } else if (!strcasecmp($3, "is_internal")) {
@@ -136,7 +136,7 @@ node_attr_decl: SYMBOL '.' SYMBOL '=' expression ';'
     throw BNException(std::string(yy_error_head() + "invalid node group attribute: ") + $3 + ", valid attribute is istate");
   }
   std::string error_msg;
-  new IStateGroup($1, $5, error_msg);
+  new IStateGroup(network, $1, $5, error_msg);
   if (error_msg.length() > 0) {
     throw BNException(std::string(yy_error_head() + error_msg));
   }
