@@ -231,6 +231,9 @@ class Node {
 
   void setIndex(NodeIndex new_index) {
     index = new_index;
+#if !defined(USE_BITSET) && !defined(USE_BOOST_BITSET)
+    node_bit = 1ULL << new_index;
+#endif
   }
 
   const std::string& getLabel() const {
