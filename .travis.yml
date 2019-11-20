@@ -1,0 +1,24 @@
+language: cpp
+
+matrix:
+  include:
+    - os: linux
+      dist: xenial
+      sudo: required
+    - os: osx
+
+before_install:
+  - if [ $TRAVIS_OS_NAME = 'osx' ]; then
+      brew install flex bison;
+      pip install numpy;
+    else
+      sudo apt-get -qq update && sudo apt-get install -y flex bison;
+      sudo pip install numpy;
+    fi
+
+install:
+  - bash -c "cd engine/src; make install";
+
+script:
+  - bash -c "source MaBoSS.env; cd engine/tests; bash ./test-cellcycle.sh";
+
