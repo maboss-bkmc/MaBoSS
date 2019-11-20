@@ -2,6 +2,8 @@ cd engine/src
 make install
 make MAXNODES=128 install
 make MAXNODES=256 install
+make MAXNODES=512 install
+make MAXNODES=1024 install
 mkdir -p ${PREFIX}/bin
 mv ../pub/MaBoSS  ../pub/MaBoSS_*n ${PREFIX}/bin
 mv ../pub/MaBoSS-server  ../pub/MaBoSS_*n-server ${PREFIX}/bin
