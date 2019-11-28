@@ -1,9 +1,13 @@
+{% set name = "MaBoSS" %}
+{% set version = "2.3.0" %}
+
 package:
-  name: maboss
-  version: "2.3.0"
+  name: '{{ name|lower }}'
+  version: '{{ version }}'
 
 source:
   git_url: https://github.com/sysbio-curie/MaBoSS-env-2.0.git
+  git_rev: v{{ version }}
 
 build:
   number: 0
