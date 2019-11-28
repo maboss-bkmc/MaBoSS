@@ -41,7 +41,6 @@ SymbolTable* SymbolTable::instance;
 extern FILE* CTBNDLin;
 extern int CTBNDLparse();
 
-std::vector<IStateGroup*>* IStateGroup::istate_group_list = new std::vector<IStateGroup*>();
 const bool backward_istate = getenv("MABOSS_BACKWARD_ISTATE") != NULL;
 
 bool Node::override = false;
@@ -91,6 +90,7 @@ bool Node::isInputNode() const
 
 Network::Network() : last_index(0U), random_generator(NULL)
 {
+  istate_group_list = new std::vector<IStateGroup*>();
 }
 
 int Network::parse(const char* file, std::map<std::string, NodeIndex>* nodes_indexes)
@@ -470,8 +470,10 @@ std::ostream& operator<<(std::ostream& os, const BNException& e)
 void IStateGroup::checkAndComplete(Network* network)
 {
   std::map<std::string, bool> node_label_map;
-  std::vector<IStateGroup*>::iterator begin = istate_group_list->begin();
-  std::vector<IStateGroup*>::iterator end = istate_group_list->end();
+  std::vector<IStateGroup*>::iterator begin = network->getIStateGroup()->begin();
+  std::vector<IStateGroup*>::iterator end = network->getIStateGroup()->end();
+  
+  
   while (begin != end) {
     IStateGroup* istate_group = *begin;
     std::vector<const Node*>* nodes = istate_group->getNodes();
@@ -496,7 +498,7 @@ void IStateGroup::checkAndComplete(Network* network)
   while (bb != ee) {
     const Node* node = *bb;
     if (node_label_map.find(node->getLabel()) == node_label_map.end()) {
-      new IStateGroup(node);
+      new IStateGroup(network, node);
     }
     ++bb;
   }
@@ -506,8 +508,9 @@ void IStateGroup::checkAndComplete(Network* network)
 
 void IStateGroup::initStates(Network* network, NetworkState& initial_state)
 {
-  std::vector<IStateGroup*>::iterator istate_group_iter = istate_group_list->begin();
-  std::vector<IStateGroup*>::iterator istate_group_end = istate_group_list->end();
+  std::vector<IStateGroup*>::iterator istate_group_iter = network->getIStateGroup()->begin();
+  std::vector<IStateGroup*>::iterator istate_group_end = network->getIStateGroup()->end();
+  
   while (istate_group_iter != istate_group_end) {
     IStateGroup* istate_group = *istate_group_iter;
     std::vector<const Node*>* nodes = istate_group->getNodes();
@@ -559,8 +562,9 @@ void IStateGroup::initStates(Network* network, NetworkState& initial_state)
 
 void IStateGroup::display(Network* network, std::ostream& os)
 {
-  std::vector<IStateGroup*>::iterator begin = istate_group_list->begin();
-  std::vector<IStateGroup*>::iterator end = istate_group_list->end();
+  std::vector<IStateGroup*>::iterator begin = network->getIStateGroup()->begin();
+  std::vector<IStateGroup*>::iterator end = network->getIStateGroup()->end();
+  
   while (begin != end) {
     IStateGroup* istate_group = *begin;
     std::vector<const Node*>* nodes = istate_group->getNodes();
@@ -609,8 +613,8 @@ void IStateGroup::display(Network* network, std::ostream& os)
   }
 }
 
-void IStateGroup::reset() {
-  istate_group_list->clear();
+void IStateGroup::reset(Network * network) {
+  network->getIStateGroup()->clear();
 }
 
 Node::~Node()
