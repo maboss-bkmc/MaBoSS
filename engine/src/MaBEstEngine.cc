@@ -38,7 +38,7 @@
 #include <dlfcn.h>
 #include <iostream>
 
-const std::string MaBEstEngine::VERSION = "2.2.3";
+const std::string MaBEstEngine::VERSION = "2.3.0";
 size_t RandomGenerator::generated_number_count = 0;
 static const char* MABOSS_USER_FUNC_INIT = "maboss_user_func_init";
 
