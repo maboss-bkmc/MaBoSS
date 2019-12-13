@@ -153,6 +153,18 @@ namespace std {
       return val1 == val2;
     }
   };
+
+  // Added less operator, necessary for maps, sets. Code from https://stackoverflow.com/a/21245301/11713763
+  template <> struct less<bitset<MAXNODES> > : public binary_function<bitset<MAXNODES>, bitset<MAXNODES>, bool>
+  {
+    size_t operator()(const bitset<MAXNODES>& val1, const bitset<MAXNODES>& val2) const {
+    for (int i = MAXNODES-1; i >= 0; i--) {
+        if (val1[i] ^ val2[i]) return val2[i];
+    }
+    return false;
+
+    }
+  };
 }
 
 #else
