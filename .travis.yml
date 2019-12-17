@@ -35,7 +35,13 @@ jobs:
       python: 3.8
       dist: xenial
       env: TASK=BuildMaBoSSSingularity
-
+    - stage: deploy
+      os: linux
+      dist: xenial
+      sudo: required
+      services: docker
+      env: TASK=BuildCMaBoSS
+      
 before_install:
   if [ $TASK = 'TestMaBoSS' ]; then
     if [ $TRAVIS_OS_NAME = 'osx' ]; then
@@ -60,6 +66,13 @@ before_install:
     sudo apt-get -qq update;
     sudo apt-get install -yq python-virtualenv singularity-container debootstrap;
     sudo pip install numpy;
+
+  elif [ $TASK = 'BuildCMaBoSS' ]; then
+    cd engine/src;
+    make;
+    cd ../python;
+    cp -r ../src .;
+    docker run --rm -e PLAT=manylinux1_x86_64 -v `pwd`:/io quay.io/pypa/manylinux1_x86_64 /io/build-wheels.sh;
 
   fi
 install:

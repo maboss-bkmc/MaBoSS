@@ -16,6 +16,6 @@ done
 
 # Install packages and test
 for PYBIN in /opt/python/cp3*/bin/; do
-    "${PYBIN}/pip" install maboss_module --no-index -f /io/wheelhouse
+    "${PYBIN}/pip" install cmaboss --no-index -f /io/wheelhouse
     # (cd "$HOME"; "${PYBIN}/nosetests" maboss_module)
 done
