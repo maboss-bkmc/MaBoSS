@@ -153,7 +153,7 @@ static PyMethodDef cMaBoSSSim_methods[] = {
 static PyTypeObject cMaBoSSSim = []{
     PyTypeObject sim{PyVarObject_HEAD_INIT(NULL, 0)};
 
-    sim.tp_name = "maboss_module.cMaBoSSSimObject";
+    sim.tp_name = "cmaboss.cMaBoSSSimObject";
     sim.tp_basicsize = sizeof(cMaBoSSSimObject);
     sim.tp_itemsize = 0;
     sim.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;

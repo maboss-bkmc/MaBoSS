@@ -23,10 +23,10 @@ static struct PyModuleDef cMaBoSSDef =
 {
     PyModuleDef_HEAD_INIT,
 #if ! defined (MAXNODES) || MAXNODES <= 64 
-    "maboss_module", 
+    "cmaboss", 
 #else
 #define MODULE_NODES NAME1(MAXNODES, n)
-#define MODULE_NAME NAME1(maboss_module_, MODULE_NODES)
+#define MODULE_NAME NAME1(cmaboss_, MODULE_NODES)
     STR(MODULE_NAME),
 #endif
     "Some documentation",
@@ -36,10 +36,10 @@ static struct PyModuleDef cMaBoSSDef =
 
 PyMODINIT_FUNC
 #if ! defined (MAXNODES) || MAXNODES <= 64 
-PyInit_maboss_module(void)
+PyInit_cmaboss(void)
 #else
 #define MODULE_NODES NAME1(MAXNODES, n)
-#define MODULE_NAME NAME1(maboss_module_, MODULE_NODES)
+#define MODULE_NAME NAME1(cmaboss_, MODULE_NODES)
 #define MODULE_INIT_NAME NAME1(PyInit_, MODULE_NAME)
 MODULE_INIT_NAME(void)
 #endif
