@@ -2,8 +2,8 @@
 
 #include <Python.h>
 #include <set>
-#include "../src/BooleanNetwork.h"
-#include "../src/MaBEstEngine.h"
+#include "src/BooleanNetwork.h"
+#include "src/MaBEstEngine.h"
 
 typedef struct {
   PyObject_HEAD

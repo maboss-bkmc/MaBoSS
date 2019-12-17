@@ -17,14 +17,14 @@ def getExtensionByMaxnodes(maxnodes=64):
    if maxnodes <= 64:
       return Extension(
          'maboss_module', 
-         sources= maboss_module_sources + ["../src/%s" % source for source in maboss_sources], 
+         sources= maboss_module_sources + ["src/%s" % source for source in maboss_sources], 
          extra_compile_args=extra_compile_args,
          language="c++"
       )
    else:
       return Extension(
          'maboss_module_%dn' % maxnodes, 
-         sources=maboss_module_sources + ["../src/%s" % source for source in maboss_sources], 
+         sources=maboss_module_sources + ["src/%s" % source for source in maboss_sources], 
          extra_compile_args=extra_compile_args + ['-DMAXNODES=%d' % maxnodes],
          language="c++"
       )
