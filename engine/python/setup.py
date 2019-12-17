@@ -33,33 +33,11 @@ setup (name = 'maboss_module',
    version = maboss_version,
    author = "contact@vincent-noel.fr",
    description = """MaBoSS python bindings""",
-   ext_modules = [getExtensionByMaxnodes()],
-)
-
-setup (name = 'maboss_module_128n',
-   version = maboss_version,
-   author = "contact@vincent-noel.fr",
-   description = """MaBoSS python bindings""",
-   ext_modules = [getExtensionByMaxnodes(128)],
-)
-
-setup (name = 'maboss_module_256n',
-   version = maboss_version,
-   author = "contact@vincent-noel.fr",
-   description = """MaBoSS python bindings""",
-   ext_modules = [getExtensionByMaxnodes(256)],
-)
-
-setup (name = 'maboss_module_512',
-   version = maboss_version,
-   author = "contact@vincent-noel.fr",
-   description = """MaBoSS python bindings""",
-   ext_modules = [getExtensionByMaxnodes(512)],
-)
-
-setup (name = 'maboss_module_1024',
-   version = maboss_version,
-   author = "contact@vincent-noel.fr",
-   description = """MaBoSS python bindings""",
-   ext_modules = [getExtensionByMaxnodes(1024)],
+   ext_modules = [
+      getExtensionByMaxnodes(), 
+      getExtensionByMaxnodes(128), 
+      getExtensionByMaxnodes(256), 
+      getExtensionByMaxnodes(512),
+      getExtensionByMaxnodes(1024)
+   ],
 )
