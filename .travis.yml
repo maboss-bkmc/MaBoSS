@@ -2,6 +2,7 @@ language: cpp
 
 env:
   global:
+    - secure: "ChCJe8+CMCJdFcCAtk9o2LsLj/DaZCHykTq1NokqpjxHeEr6Lo03FjXRl3jSu9jwOLSJiH05jTjkmbsuIxAsZWFMLRY7X1rc+Z282uQ/GTUCecSpMjKHly2UUjaCtQbTikqDgqbUQAcll2cKHngJ5u1lzLmdLRtICoNaOQO4Ei9gHz1xacybPepJFjUpxRzABkjj7XVKxMx+MSkKNl7AVljaGN0flyQVTrdHifT7AOSoNVyl96J0Xxinzt6BDat2zj3nAMeEP5DGByaKx1Ef2SvaqtLyzl7UfOw9kr7oHOsxRfKXGnfLCXyRYu5jWklxLQUIRRDO4IRbvXsqCgyTzrewGzg+pjn9Iv0C6gyVCnosZ6x7BnWnYpkSoCyiLbjaCxBUCFKHqXEqYXDcrq9zPGKrGcN+NIpkdp3BkniLsvg9CQNLByl90is/6iSeiIxcKlIdq30fPjGlmX0T+pM68wNL749xpUeBp5SJhbKV2xHXKFJassNpr9HRMmEWGwTVJuXZ9Oi81WZFcoSj7TERDE5A78ThckBDASLB9SglIFKDbapqrPt6K4ArB+87vcCJ3F6GT7DyBHoLoWKiwig/BOka+r1Xb+Qb7wqX2VA4hxe+ORwuhUzvyguGB0BgdsEwUCKqWrGPlS8Qrf+HYX4jji7ng/hB4haiJd27XG5HepM="
     - secure: "N/DlgYl7l0jGCaYdlsyGXKdlm1w+8cbcYdoQrlI36PxwE26FHQQraxWpNF9X2VZ9DfVzOc9rj+3bJU9iAfPc5PiGJONCj/KnUGJ6Rk2V/Vlo4RvP6GPmQUK8OvgO2B/zCPn6X8ry466MgLw1p634B+ARJZ0AzHLR/qp5Li2gHSpZ7qHl4Z4GsBTMBd8hBFkFZKqz7xsTSRJSvPtjR3OPK+eC9x3eyMpqxqTkM264JfS+Fo5k8CUB/IUz6SVK2hA2JUHKis7MnaquSAufACEyU3I7LNKDQTXTlfsVNF/9YRSNuugkemzX8U9XKwqHOuksH9442RmFbrl2A8oKafN3oJjyhjgbt9yEsCjPwz2efcs08h6aHRrAq4FOQqs2ECPXr1os/99em2nAJv2hhN12nJvhbwrNGaxAg8GiarEkNYcWSklgCQcV0Vzuz/P1Mm6ObgaeUzU9qydhkR2eN7jw7d22vM87evIqDNuKwd/KmYbCbQmugNu6La4TCdPOyq+OnZF4QhHnGDkzErx8i5FakRm2Vf0vi4Mi1h7oliu8ZrrC2Sk+iqLLaW3vUrROwxLV2pfskzscdCHV0GzUJkKAC1FFkYJR8kloOL/M9NcYHQCO4o+BacKK61Y+dS0tV6kztl7FB2/ZPaXzkvp7ad2xGz9YhUscVBIBHGT712hp5cs="
 
 jobs:
@@ -41,7 +42,20 @@ jobs:
       sudo: required
       services: docker
       env: TASK=BuildCMaBoSS
-      
+    - stage: deploy
+      os: osx
+      env: PYTHON_VERSION=3.5 TASK=BuildCMaBoSS
+    - stage: deploy
+      os: osx
+      env: PYTHON_VERSION=3.6 TASK=BuildCMaBoSS
+    - stage: deploy
+      os: osx
+      env: PYTHON_VERSION=3.7 TASK=BuildCMaBoSS
+    - stage: deploy
+      os: osx
+      env: PYTHON_VERSION=3.8 TASK=BuildCMaBoSS
+
+
 before_install:
   if [ $TASK = 'TestMaBoSS' ]; then
     if [ $TRAVIS_OS_NAME = 'osx' ]; then
@@ -72,9 +86,18 @@ before_install:
     make;
     cd ../python;
     cp -r ../src .;
-    docker run --rm -e PLAT=manylinux1_x86_64 -v `pwd`:/io quay.io/pypa/manylinux1_x86_64 /io/build-wheels.sh;
+        
+    if [ $TRAVIS_OS_NAME = 'osx' ]; then
+      FULL_PYTHON_VERSION=`pyenv install -l | sed 's/ *//' | grep -e "^$PYTHON_VERSION\.[0-9]*$" | tail -n 1`;
+      CONFIGURE_OPTS="--with-openssl=$(brew --prefix openssl)" pyenv install $FULL_PYTHON_VERSION;
+      pyenv local $FULL_PYTHON_VERSION;
+      /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/pip install wheel twine;
 
+    else
+      sudo pip install twine;
+    fi
   fi
+
 install:
   if [ $TASK = 'TestMaBoSS' ]; then
     bash -c "cd engine/src; make install; make MAXNODES=128 install";
@@ -99,6 +122,14 @@ install:
     sudo apt-get -qq update;
     sudo apt-get install -yq python-virtualenv singularity-container debootstrap;
 
+  elif [ $TASK = 'BuildCMaBoSS' ]; then  
+    if [ $TRAVIS_OS_NAME = 'osx' ]; then
+      /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/pip wheel . -w wheelhouse;
+  
+    else
+      docker run --rm -e PLAT=manylinux1_x86_64 -v `pwd`:/io quay.io/pypa/manylinux1_x86_64 /io/build-wheels.sh;
+    
+    fi
   fi
 
 script:
@@ -119,6 +150,15 @@ script:
 
   elif [ $TASK = 'BuildMaBoSSSingularity' ]; then
     sudo singularity build maboss-server.simg containers/singularity/Singularity;
+
+  elif [ $TASK = 'BuildCMaBoSS' ]; then
+    if [ $TRAVIS_OS_NAME = 'osx' ]; then
+      /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/twine upload -u vincent-noel -p $PYPI_PASS --skip-existing wheelhouse/*;
+  
+    else
+      twine upload -u vincent-noel -p $PYPI_PASS --skip-existing wheelhouse/*;
+  
+    fi
   fi
 
 after_success:
