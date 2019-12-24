@@ -100,6 +100,9 @@ public:
   double getNthNodeDist(Node * node, int nn) const;
   double getAsymptoticNodeDist(Node * node) const;
   
+  const std::map<unsigned int, std::pair<NetworkState, double> > getFixPointsDists() const;
+
+
   int getMaxTickIndex() const {return merged_cumulator->getMaxTickIndex();} 
 
   long long getElapsedCoreRunTime() const {return elapsed_core_runtime;}

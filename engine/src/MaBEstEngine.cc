@@ -424,6 +424,25 @@ void MaBEstEngine::display(std::ostream& output_probtraj, std::ostream& output_s
   }
 }
 
+const std::map<unsigned int, std::pair<NetworkState, double> > MaBEstEngine::getFixPointsDists() const {
+  
+  std::map<unsigned int, std::pair<NetworkState, double> > res;
+  if (0 == fixpoints.size()) {
+    return res;
+  }
+
+  STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator begin = fixpoints.begin();
+  STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator end = fixpoints.end();
+  
+  for (unsigned int nn = 0; begin != end; ++nn) {
+    const NetworkState& network_state = (*begin).first;
+    res[nn] = std::make_pair(network_state,(double) (*begin).second / sample_count);
+    ++begin;
+  }
+  return res;
+}
+
+
 void MaBEstEngine::displayAsymptotic(std::ostream& output_asymptprob, bool hexfloat, bool proba) const
 {
   merged_cumulator->displayAsymptoticCSV(network, refnode_count, output_asymptprob, hexfloat, proba);
