@@ -48,6 +48,9 @@ MODULE_INIT_NAME(void)
     if (PyType_Ready(&cMaBoSSSim) < 0){
         return NULL;
     }
+    if (PyType_Ready(&cMaBoSSResult) < 0){
+        return NULL;
+    }
 
     m = PyModule_Create(&cMaBoSSDef);
 
