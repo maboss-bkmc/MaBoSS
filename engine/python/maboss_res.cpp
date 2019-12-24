@@ -25,6 +25,22 @@ static PyObject * cMaBoSSResult_new(PyTypeObject* type, PyObject *args, PyObject
   return (PyObject*) res;
 }
 
+static PyObject* cMaBoSSResult_get_fp_table(cMaBoSSResultObject* self) {
+
+  PyObject *dict = PyDict_New();
+
+  for (auto& result: self->engine->getFixPointsDists()) {
+    PyObject *tuple = PyTuple_Pack(2, 
+      PyFloat_FromDouble(result.second.second),
+      PyUnicode_FromString(result.second.first.getName(self->network).c_str())
+    );
+
+    PyDict_SetItem(dict, PyLong_FromUnsignedLong(result.first), tuple);
+  }
+
+  return dict;
+}
+
 static PyObject* cMaBoSSResult_get_last_probtraj(cMaBoSSResultObject* self) {
   
   PyObject *dict = PyDict_New();
@@ -180,6 +196,7 @@ static PyObject* cMaBoSSResult_get_raw_nodes_probtrajs(cMaBoSSResultObject* self
 }
 
 static PyMethodDef cMaBoSSResult_methods[] = {
+    {"get_fp_table", (PyCFunction) cMaBoSSResult_get_fp_table, METH_NOARGS, "gets the fixpoints table"},
     {"get_last_probtraj", (PyCFunction) cMaBoSSResult_get_last_probtraj, METH_NOARGS, "gets the last probtraj of the simulation"},
     {"get_states", (PyCFunction) cMaBoSSResult_get_states, METH_NOARGS, "gets the states visited by the simulation"},
     {"get_raw_probtrajs", (PyCFunction) cMaBoSSResult_get_raw_probtrajs, METH_NOARGS, "gets the raw states probability trajectories of the simulation"},
