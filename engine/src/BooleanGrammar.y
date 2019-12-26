@@ -342,4 +342,3 @@ Network* get_current_network()
 {
   return current_network;
 }
-

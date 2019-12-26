@@ -440,6 +440,7 @@ public:
   Network& operator=(const Network& network);
 
   int parse(const char* file = NULL, std::map<std::string, NodeIndex>* nodes_indexes = NULL);
+  int parseExpression(const char* content = NULL, std::map<std::string, NodeIndex>* nodes_indexes = NULL);
 
   std::vector<IStateGroup*>* getIStateGroup() {
     return istate_group_list;

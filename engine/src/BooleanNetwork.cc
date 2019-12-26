@@ -35,12 +35,12 @@
 #include "RunConfig.h"
 #include "Utils.h"
 #include <iostream>
-
+// #include "lex.CTBNDL.cc"
 // Network* Network::instance;
 SymbolTable* SymbolTable::instance;
 extern FILE* CTBNDLin;
+extern void CTBNDL_scan_expression(const char *);
 extern int CTBNDLparse();
-
 const bool backward_istate = getenv("MABOSS_BACKWARD_ISTATE") != NULL;
 
 bool Node::override = false;
@@ -92,6 +92,24 @@ Network::Network() : last_index(0U), random_generator(NULL)
 {
   istate_group_list = new std::vector<IStateGroup*>();
 }
+
+int Network::parseExpression(const char* content, std::map<std::string, NodeIndex>* nodes_indexes){
+  
+  set_current_network(this);
+  
+  CTBNDL_scan_expression(content);
+  int r = CTBNDLparse();
+  
+  set_current_network(NULL);
+
+  if (r) {
+    return 1;
+  }
+  compile(nodes_indexes);
+    
+  return 0;
+}
+
 
 int Network::parse(const char* file, std::map<std::string, NodeIndex>* nodes_indexes)
 {

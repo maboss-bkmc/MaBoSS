@@ -190,6 +190,11 @@ static void yyerror(const char *)
   throw BNException("BND syntax error at line #" + std::string(tok));
 }
 
+void yy_scan_expression(const char* str)
+{
+    yy_switch_to_buffer(yy_scan_string(str));
+}
+
 // to avoid compiler warning when using -Wall option
 void boolean_grammar_to_make_compiler_happy()
 {
