@@ -33,6 +33,8 @@
 #include "BooleanNetwork.h"
 #include "MaBEstEngine.h"
 
+extern void RC_scan_expression(const char *);
+
 RunConfig* RunConfig::instance;
 
 RunConfig::RunConfig()
@@ -175,20 +177,7 @@ int RunConfig::parse(Network* network, const char* file)
 int RunConfig::parseExpression(Network* network, const char* expr)
 {
   runconfig_setNetwork(network);
-
-  char tmpfile[] = "/tmp/maboss_XXXXXX";
-  int fd = mkstemp(tmpfile);
-#ifndef NDEBUG
-  ssize_t ret = write(fd, expr, strlen(expr));
-  assert(ret > 0);
-#else
-  write(fd, expr, strlen(expr));
-#endif
-  close(fd);
-
-  RCin = fopen(tmpfile, "r");
-  RC_set_expr(expr);
-  unlink(tmpfile);
+  RC_scan_expression(expr);
   return RCparse();
 }
 
