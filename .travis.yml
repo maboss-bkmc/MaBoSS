@@ -36,6 +36,14 @@ jobs:
       python: 3.8
       dist: xenial
       env: TASK=BuildMaBoSSSingularity
+    - stage: test
+      os: linux
+      dist: xenial
+      python: 3.8
+      env: TASK=TestCMaBoSS
+    - stage: test
+      os: osx
+      env: TASK=TestCMaBoSS PYTHON_VERSION=3.8
     - stage: deploy
       os: linux
       dist: xenial
@@ -81,6 +89,16 @@ before_install:
     sudo apt-get install -yq python-virtualenv singularity-container debootstrap;
     sudo pip install numpy;
 
+  elif [ $TASK = 'TestCMaBoSS' ]; then
+    if [ $TRAVIS_OS_NAME = 'osx' ]; then
+      brew install flex bison;
+      FULL_PYTHON_VERSION=`pyenv install -l | sed 's/ *//' | grep -e "^$PYTHON_VERSION\.[0-9]*$" | tail -n 1`;
+      CONFIGURE_OPTS="--with-openssl=$(brew --prefix openssl)" pyenv install $FULL_PYTHON_VERSION;
+      pyenv local $FULL_PYTHON_VERSION;
+    else
+      sudo apt-get -qq update && sudo apt-get install -y flex bison;
+    fi
+  
   elif [ $TASK = 'BuildCMaBoSS' ]; then
     cd engine/src;
     make;
@@ -122,6 +140,17 @@ install:
     sudo apt-get -qq update;
     sudo apt-get install -yq python-virtualenv singularity-container debootstrap;
 
+  elif [ $TASK = 'TestCMaBoSS' ]; then
+    cd engine/src;
+    make;
+    cd ../python;
+    cp -r ../src .;  
+    if [ $TRAVIS_OS_NAME = 'osx' ]; then
+      /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/python3 setup.py build_ext --inplace;
+    else
+      python3 setup.py build_ext --inplace;
+    fi
+  
   elif [ $TASK = 'BuildCMaBoSS' ]; then  
     if [ $TRAVIS_OS_NAME = 'osx' ]; then
       /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/pip wheel . -w wheelhouse;
@@ -150,6 +179,15 @@ script:
 
   elif [ $TASK = 'BuildMaBoSSSingularity' ]; then
     sudo singularity build maboss-server.simg containers/singularity/Singularity;
+
+  elif [ $TASK = 'TestCMaBoSS' ]; then
+    if [ $TRAVIS_OS_NAME = 'osx' ]; then
+      /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/python3 -m unittest test;
+      /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/python3 -m unittest test_128n;
+    else
+      python3 -m unittest test;
+      python3 -m unittest test_128n;
+    fi
 
   elif [ $TASK = 'BuildCMaBoSS' ]; then
     if [ $TRAVIS_OS_NAME = 'osx' ]; then

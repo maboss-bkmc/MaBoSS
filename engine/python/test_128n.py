@@ -1,10 +1,10 @@
-import cmaboss
+import cmaboss_128n
 from unittest import TestCase
 
 class TestCMaBoSS(TestCase):
 
     def test_load_model(self):
-        sim = cmaboss.MaBoSSSim(network="metastasis.bnd", config="metastasis.cfg")
+        sim = cmaboss_128n.MaBoSSSim(network="metastasis.bnd", config="metastasis.cfg")
         res = sim.run()
         res.get_states()
         res.get_nodes()
@@ -16,7 +16,7 @@ class TestCMaBoSS(TestCase):
 
     def test_load_model_str(self):
         with open("metastasis.bnd", "r") as bnd, open("metastasis.cfg", "r") as cfg:    
-            sim = cmaboss.MaBoSSSim(network_str=bnd.read(),config_str=cfg.read())
+            sim = cmaboss_128n.MaBoSSSim(network_str=bnd.read(),config_str=cfg.read())
             res = sim.run()
             res.get_states()
             res.get_nodes()
