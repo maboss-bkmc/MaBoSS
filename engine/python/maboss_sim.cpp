@@ -21,30 +21,44 @@ static PyObject * cMaBoSSSim_new(PyTypeObject* type, PyObject *args, PyObject* k
 {
   try {
     // Loading arguments
-    char * network_file;
-    char * config_file;
-    // char * network_str;
-    // char * config_str;
-    // static const char *kwargs_list[] = {"network", "config", "network_str", "config_str", NULL};
-    static const char *kwargs_list[] = {"network", "config", NULL};
+    char * network_file = NULL;
+    char * config_file = NULL;
+    char * network_str = NULL;
+    char * config_str = NULL;
+    static const char *kwargs_list[] = {"network", "config", "network_str", "config_str", NULL};
     if (!PyArg_ParseTupleAndKeywords(
-      args, kwargs, "|ss", const_cast<char **>(kwargs_list), 
-      &network_file, &config_file//, &network_str, &config_str
+      args, kwargs, "|ssss", const_cast<char **>(kwargs_list), 
+      &network_file, &config_file, &network_str, &config_str
     ))
       return NULL;
       
-    // Loading bnd file
-    Network* network = new Network();
-    network->parse(network_file);
+    Network* network;
+    if (network_file != NULL && config_file != NULL) {
+      // Loading bnd file
+      network = new Network();
+      network->parse(network_file);
 
-    // Loading cfg file
-    RunConfig* runconfig = RunConfig::getInstance();
-    IStateGroup::reset(network);
-    runconfig->parse(network, config_file);
+      // Loading cfg file
+      RunConfig* runconfig = RunConfig::getInstance();
+      IStateGroup::reset(network);
+      runconfig->parse(network, config_file);
 
+    } 
+    else if (network_str != NULL && config_str != NULL) {
+      // Loading bnd file
+      network = new Network();
+      network->parseExpression((const char *) network_str);
+      
+      // Loading cfg file
+      RunConfig* runconfig = RunConfig::getInstance();
+      IStateGroup::reset(network);
+      runconfig->parseExpression(network, config_str);
+
+    }
+    
     // Error checking
     IStateGroup::checkAndComplete(network);
-
+    
     cMaBoSSSimObject* simulation;
     simulation = (cMaBoSSSimObject *) type->tp_alloc(type, 0);
     simulation->network = network;
