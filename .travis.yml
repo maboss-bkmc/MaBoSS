@@ -2,23 +2,33 @@ language: cpp
 
 matrix:
   include:
-    - os: linux
+    - stage: test
+      os: linux
       dist: xenial
       sudo: required
-    - os: osx
+      env: TASK=TestMaBoSS
+    - stage: test
+      os: osx
+      env: TASK=TestMaBoSS
 
 before_install:
-  - if [ $TRAVIS_OS_NAME = 'osx' ]; then
-      brew install flex bison;
-      pip install numpy;
-    else
-      sudo apt-get -qq update && sudo apt-get install -y flex bison;
-      sudo pip install numpy;
-    fi
-
+  if [ $TASK = 'TestMaBoSS' ]; then
+    if [ $TRAVIS_OS_NAME = 'osx' ]; then
+        brew install flex bison;
+        pip install numpy;
+      else
+        sudo apt-get -qq update && sudo apt-get install -y flex bison;
+        sudo pip install numpy;
+      fi
+  fi
 install:
-  - bash -c "cd engine/src; make install";
+  if [ $TASK = 'TestMaBoSS' ]; then
+    bash -c "cd engine/src; make install";
+
+  fi
 
 script:
-  - bash -c "source MaBoSS.env; cd engine/tests; bash ./test-cellcycle.sh";
+  if [ $TASK = 'TestMaBoSS' ]; then
+      bash -c "source MaBoSS.env; cd engine/tests; bash ./test-cellcycle.sh";
 
+  fi
