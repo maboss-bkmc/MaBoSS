@@ -52,17 +52,7 @@ jobs:
       env: TASK=BuildCMaBoSS
     - stage: deploy
       os: osx
-      env: PYTHON_VERSION=3.5 TASK=BuildCMaBoSS
-    - stage: deploy
-      os: osx
-      env: PYTHON_VERSION=3.6 TASK=BuildCMaBoSS
-    - stage: deploy
-      os: osx
-      env: PYTHON_VERSION=3.7 TASK=BuildCMaBoSS
-    - stage: deploy
-      os: osx
-      env: PYTHON_VERSION=3.8 TASK=BuildCMaBoSS
-
+      env: TASK=BuildCMaBoSS
 
 before_install:
   if [ $TASK = 'TestMaBoSS' ]; then
@@ -104,11 +94,22 @@ before_install:
     cp -r ../src .;
         
     if [ $TRAVIS_OS_NAME = 'osx' ]; then
-      FULL_PYTHON_VERSION=`pyenv install -l | sed 's/ *//' | grep -e "^$PYTHON_VERSION\.[0-9]*$" | tail -n 1`;
+
+      FULL_PYTHON_VERSION=`pyenv install -l | sed 's/ *//' | grep -e "^3.5\.[0-9]*$" | tail -n 1`;
       CONFIGURE_OPTS="--with-openssl=$(brew --prefix openssl)" pyenv install $FULL_PYTHON_VERSION;
       pyenv local $FULL_PYTHON_VERSION;
       /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/pip install wheel twine;
-
+      FULL_PYTHON_VERSION=`pyenv install -l | sed 's/ *//' | grep -e "^3.6\.[0-9]*$" | tail -n 1`;
+      CONFIGURE_OPTS="--with-openssl=$(brew --prefix openssl)" pyenv install $FULL_PYTHON_VERSION;
+      pyenv local $FULL_PYTHON_VERSION;
+      /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/pip install wheel twine;
+      FULL_PYTHON_VERSION=`pyenv install -l | sed 's/ *//' | grep -e "^3.7\.[0-9]*$" | tail -n 1`;
+      CONFIGURE_OPTS="--with-openssl=$(brew --prefix openssl)" pyenv install $FULL_PYTHON_VERSION;
+      /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/pip install wheel twine;
+      FULL_PYTHON_VERSION=`pyenv install -l | sed 's/ *//' | grep -e "^3.8\.[0-9]*$" | tail -n 1`;
+      CONFIGURE_OPTS="--with-openssl=$(brew --prefix openssl)" pyenv install $FULL_PYTHON_VERSION;
+      pyenv local $FULL_PYTHON_VERSION;
+      /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/pip install wheel twine;
     else
       sudo pip install twine;
     fi
@@ -151,7 +152,20 @@ install:
   
   elif [ $TASK = 'BuildCMaBoSS' ]; then  
     if [ $TRAVIS_OS_NAME = 'osx' ]; then
-      /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/pip wheel . -w wheelhouse;
+    FULL_PYTHON_VERSION=`pyenv install -l | sed 's/ *//' | grep -e "^3.5\.[0-9]*$" | tail -n 1`;
+    pyenv local $FULL_PYTHON_VERSION;
+    /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/pip wheel . -w wheelhouse;
+    FULL_PYTHON_VERSION=`pyenv install -l | sed 's/ *//' | grep -e "^3.6\.[0-9]*$" | tail -n 1`;
+    pyenv local $FULL_PYTHON_VERSION;
+    /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/pip wheel . -w wheelhouse;
+    FULL_PYTHON_VERSION=`pyenv install -l | sed 's/ *//' | grep -e "^3.7\.[0-9]*$" | tail -n 1`;
+    pyenv local $FULL_PYTHON_VERSION;
+    /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/pip wheel . -w wheelhouse;
+    FULL_PYTHON_VERSION=`pyenv install -l | sed 's/ *//' | grep -e "^3.8\.[0-9]*$" | tail -n 1`;
+    pyenv local $FULL_PYTHON_VERSION;
+    /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/pip wheel . -w wheelhouse;
+    
+
   
     else
       docker run --rm -e PLAT=manylinux1_x86_64 -v `pwd`:/io quay.io/pypa/manylinux1_x86_64 /io/build-wheels.sh;
