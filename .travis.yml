@@ -17,9 +17,9 @@ before_install:
         brew install flex bison;
         pip install numpy;
       else
-        sudo apt-get -qq update && sudo apt-get install -y flex bison;
         sudo pip install numpy;
       fi
+
   fi
 install:
   if [ $TASK = 'TestMaBoSS' ]; then
