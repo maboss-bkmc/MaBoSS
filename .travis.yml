@@ -95,8 +95,6 @@ before_install:
       FULL_PYTHON_VERSION=`pyenv install -l | sed 's/ *//' | grep -e "^$PYTHON_VERSION\.[0-9]*$" | tail -n 1`;
       CONFIGURE_OPTS="--with-openssl=$(brew --prefix openssl)" pyenv install $FULL_PYTHON_VERSION;
       pyenv local $FULL_PYTHON_VERSION;
-    else
-      sudo apt-get -qq update && sudo apt-get install -y flex bison;
     fi
   
   elif [ $TASK = 'BuildCMaBoSS' ]; then
