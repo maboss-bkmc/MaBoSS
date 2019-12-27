@@ -21,6 +21,13 @@ matrix:
       services: docker
       python: 3.8
       env: TASK=TestMaBoSSDocker
+    - stage: test
+      os: linux
+      dist: xenial
+      sudo: required
+      services: docker
+      python: 3.8
+      env: TASK=TestMaBoSSSingularity
     - stage: deploy
       os: linux
       python: 3.8
@@ -51,6 +58,14 @@ before_install:
     echo "$DOCKER_HUB_PASSWORD" | docker login --username vnoel --password-stdin;
     sudo apt-get -qq update;
     sudo apt-get install -yq python3-pip python3-setuptools;
+
+  elif [ $TASK = 'TestMaBoSSSingularity' ]; then
+    wget -O- http://neuro.debian.net/lists/xenial.us-ca.full | sudo tee /etc/apt/sources.list.d/neurodebian.sources.list;
+    sudo apt-key adv --recv-keys --keyserver hkp://pool.sks-keyservers.net:80 0xA5D32F012649A5A9;
+    sudo apt-get -qq update;
+    sudo apt-get install -yq python-virtualenv singularity-container debootstrap;
+    sudo pip install numpy;
+
   fi
 install:
   if [ $TASK = 'TestMaBoSS' ]; then
@@ -62,6 +77,11 @@ install:
     docker-compose up -d maboss-server;
     bash -c "cd engine/src; make";
   
+  elif [ $TASK = 'TestMaBoSSSingularity' ]; then
+    sudo singularity build maboss-server.simg containers/singularity/Singularity;
+    singularity run maboss-server.simg & 
+    bash -c "cd engine/src; make";
+
   elif [ $TASK = 'BuildMaBoSSDocker' ]; then
     sudo pip3 install -U docker-compose;
 
@@ -80,6 +100,9 @@ script:
       bash -c "cd engine/tests; bash ./test-server.sh";
 
   elif [ $TASK = 'TestMaBoSSDocker' ]; then
+    bash -c "cd engine/tests; bash ./test-container.sh";
+  
+  elif [ $TASK = 'TestMaBoSSSingularity' ]; then
     bash -c "cd engine/tests; bash ./test-container.sh";
 
   elif [ $TASK = 'BuildMaBoSSDocker' ]; then
