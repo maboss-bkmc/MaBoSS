@@ -27,24 +27,24 @@ check_file()
 echo
 echo "Non regression test: Cell Cycle one thread"
 rm -rf tmp; mkdir -p tmp
-$LAUNCHER /usr/bin/time -p $MABOSS cellcycle.bnd -c cellcycle_runcfg.cfg -c cellcycle_runcfg-thread_1.cfg -o tmp/Cell_cycle_thread_1
+$LAUNCHER /usr/bin/time -p $MABOSS cellcycle/cellcycle.bnd -c cellcycle/cellcycle_runcfg.cfg -c cellcycle/cellcycle_runcfg-thread_1.cfg -o tmp/Cell_cycle_thread_1
 if [ $? != 0 ]; then exit 1; fi
-python compare_probtrajs.py refer/Cell_cycle_thread_1_probtraj.csv tmp/Cell_cycle_thread_1_probtraj.csv --exact
+python compare_probtrajs.py cellcycle/refer/Cell_cycle_thread_1_probtraj.csv tmp/Cell_cycle_thread_1_probtraj.csv --exact
 check_file "projtraj"
 
-python compare_statdist.py refer/Cell_cycle_thread_1_statdist.csv tmp/Cell_cycle_thread_1_statdist.csv --exact # || echo '**** error test #1.b (non regression) ****'
+python compare_statdist.py cellcycle/refer/Cell_cycle_thread_1_statdist.csv tmp/Cell_cycle_thread_1_statdist.csv --exact # || echo '**** error test #1.b (non regression) ****'
 check_file "statdist"
 
 if [ "$ONE_THREAD_ONLY" != "" ]; then exit 0; fi
 
 echo
 echo "Non regression test: Cell Cycle 6 threads"
-$LAUNCHER /usr/bin/time -p $MABOSS cellcycle.bnd -c cellcycle_runcfg.cfg -c cellcycle_runcfg-thread_6.cfg -o tmp/Cell_cycle_thread_6
+$LAUNCHER /usr/bin/time -p $MABOSS cellcycle/cellcycle.bnd -c cellcycle/cellcycle_runcfg.cfg -c cellcycle/cellcycle_runcfg-thread_6.cfg -o tmp/Cell_cycle_thread_6
 
-python compare_probtrajs.py refer/Cell_cycle_thread_6_probtraj.csv tmp/Cell_cycle_thread_6_probtraj.csv --exact
+python compare_probtrajs.py cellcycle/refer/Cell_cycle_thread_6_probtraj.csv tmp/Cell_cycle_thread_6_probtraj.csv --exact
 check_file "projtraj"
 
-python compare_statdist.py refer/Cell_cycle_thread_6_statdist.csv tmp/Cell_cycle_thread_6_statdist.csv --exact #|| echo '**** error test #2.b (non regression) ****'
+python compare_statdist.py cellcycle/refer/Cell_cycle_thread_6_statdist.csv tmp/Cell_cycle_thread_6_statdist.csv --exact #|| echo '**** error test #2.b (non regression) ****'
 check_file "statdist"
 
 echo
