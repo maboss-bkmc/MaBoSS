@@ -60,6 +60,7 @@ script:
   if [ $TASK = 'TestMaBoSS' ]; then
       bash -c "cd engine/tests; bash ./test-cellcycle.sh";
       bash -c "cd engine/tests; bash ./test-ensemble.sh";
+      bash -c "cd engine/tests; bash ./test-server.sh";
 
   elif [ $TASK = 'BuildMaBoSSDocker' ]; then
     docker-compose build maboss-server;
