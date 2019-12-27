@@ -24,11 +24,9 @@ check_file()
 }
 
 echo
-echo "Server test"
+echo "Server test through container"
 rm -rf tmp; mkdir -p tmp
-$MABOSS_SERVER --host 0.0.0.0 --port 7777 &
-sleep 5s
-$LAUNCHER /usr/bin/time -p $MABOSS_CLIENT --host 127.0.0.1 --port 7777 cellcycle/cellcycle.bnd -c cellcycle/cellcycle_runcfg.cfg -c cellcycle/cellcycle_runcfg-thread_1.cfg -o tmp/Cell_cycle_thread_1
+$LAUNCHER /usr/bin/time -p $MABOSS_CLIENT --host localhost --port 7777 -c cellcycle/cellcycle_runcfg.cfg -c cellcycle/cellcycle_runcfg-thread_1.cfg -o tmp/Cell_cycle_thread_1 cellcycle/cellcycle.bnd 
 if [ $? != 0 ]; then exit 1; fi
 python compare_probtrajs.py cellcycle/refer/Cell_cycle_thread_1_probtraj.csv tmp/Cell_cycle_thread_1_probtraj.csv --exact
 check_file "projtraj"

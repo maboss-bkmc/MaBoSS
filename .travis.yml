@@ -14,6 +14,13 @@ matrix:
     - stage: test
       os: osx
       env: TASK=TestMaBoSS
+    - stage: test
+      os: linux
+      dist: xenial
+      sudo: required
+      services: docker
+      python: 3.8
+      env: TASK=TestMaBoSSDocker
     - stage: deploy
       os: linux
       python: 3.8
@@ -36,6 +43,10 @@ before_install:
         sudo pip install numpy;
       fi
 
+  elif [ $TASK = 'TestMaBoSSDocker' ]; then
+    sudo apt-get -qq update;
+    sudo apt-get install -yq python3-pip python3-setuptools;
+
   elif [ $TASK = 'BuildMaBoSSDocker' ]; then
     echo "$DOCKER_HUB_PASSWORD" | docker login --username vnoel --password-stdin;
     sudo apt-get -qq update;
@@ -45,6 +56,12 @@ install:
   if [ $TASK = 'TestMaBoSS' ]; then
     bash -c "cd engine/src; make install";
 
+  elif [ $TASK = 'TestMaBoSSDocker' ]; then
+    sudo pip3 install -U docker-compose;
+    sudo pip install numpy;
+    docker-compose up -d maboss-server;
+    bash -c "cd engine/src; make";
+  
   elif [ $TASK = 'BuildMaBoSSDocker' ]; then
     sudo pip3 install -U docker-compose;
 
@@ -61,6 +78,9 @@ script:
       bash -c "cd engine/tests; bash ./test-cellcycle.sh";
       bash -c "cd engine/tests; bash ./test-ensemble.sh";
       bash -c "cd engine/tests; bash ./test-server.sh";
+
+  elif [ $TASK = 'TestMaBoSSDocker' ]; then
+    bash -c "cd engine/tests; bash ./test-container.sh";
 
   elif [ $TASK = 'BuildMaBoSSDocker' ]; then
     docker-compose build maboss-server;
