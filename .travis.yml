@@ -69,7 +69,7 @@ before_install:
   fi
 install:
   if [ $TASK = 'TestMaBoSS' ]; then
-    bash -c "cd engine/src; make install";
+    bash -c "cd engine/src; make install; make MAXNODES=128 install";
 
   elif [ $TASK = 'TestMaBoSSDocker' ]; then
     sudo pip3 install -U docker-compose;
@@ -97,6 +97,7 @@ script:
   if [ $TASK = 'TestMaBoSS' ]; then
       bash -c "cd engine/tests; bash ./test-cellcycle.sh";
       bash -c "cd engine/tests; bash ./test-ensemble.sh";
+      bash -c "cd engine/tests; bash ./test-ewing.sh";
       bash -c "cd engine/tests; bash ./test-server.sh";
 
   elif [ $TASK = 'TestMaBoSSDocker' ]; then
