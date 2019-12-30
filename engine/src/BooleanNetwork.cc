@@ -428,20 +428,18 @@ void NetworkState::display(std::ostream& os, Network* network) const
   os << '\n';
 }
 
-void NetworkState::displayOneLine(std::ostream& os, Network* network, const std::string& sep) const
-{
-#if defined(USE_BITSET) || defined(USE_BOOST_BITSET)
+std::string NetworkState::getName(Network* network, const std::string& sep) const {
+   #if defined(USE_BITSET) || defined(USE_BOOST_BITSET)
   if (state.none()) {
-    os << "<nil>";
-    return;
+    return "<nil>";
   }
 #else
   if (!state) {
-    os << "<nil>";
-    return;
+    return "<nil>";
   }
 #endif
 
+  std::string result = "";
   const std::vector<Node*>& nodes = network->getNodes();
   std::vector<Node*>::const_iterator begin = nodes.begin();
   std::vector<Node*>::const_iterator end = nodes.end();
@@ -451,14 +449,21 @@ void NetworkState::displayOneLine(std::ostream& os, Network* network, const std:
     Node* node = *begin;
     if (getNodeState(node)) {
       if (displayed) {
-	os << sep;
+	    result += sep;
       } else {
 	displayed = true;
       }
-      os << node->getLabel();
+      result += node->getLabel();
     }
     ++begin;
   }
+  return result;
+  }
+
+
+void NetworkState::displayOneLine(std::ostream& os, Network* network, const std::string& sep) const
+{
+  os << getName(network, sep);
 }
 
 std::ostream& operator<<(std::ostream& os, const BNException& e)

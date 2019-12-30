@@ -52,6 +52,8 @@ extern std::string yy_error_head();
   std::vector<Expression*>* expr_list;
   IStateGroup::ProbaIState* istate_expr;
   std::vector<IStateGroup::ProbaIState*>* istate_expr_list;
+  ArgumentList* arg_list;
+
 }
 
 %type<expr> primary_expression 
@@ -71,6 +73,7 @@ extern std::string yy_error_head();
 %type<expr_list> expression_list
 %type<istate_expr> istate_expression
 %type<istate_expr_list> istate_expression_list
+%type<arg_list> argument_expression_list
 
 %token<str> VARIABLE
 %token<str> SYMBOL
@@ -218,11 +221,33 @@ primary_expression: INTEGER
 }
 ;
 
+argument_expression_list: expression
+{
+  $$ = new ArgumentList();
+  $$->push_back($1);
+}
+| argument_expression_list ',' expression
+{
+  $$ = $1;
+  $$->push_back($3);
+}
+;
+
+
 postfix_expression: primary_expression
 {
   $$ = $1;
 }
+| SYMBOL '(' argument_expression_list ')'
+{
+  $$ = new FuncCallExpression($1, $3);
+}
+| SYMBOL '(' ')'
+{
+  $$ = new FuncCallExpression($1, NULL);
+}
 ;
+
 
 unary_expression: postfix_expression
 {

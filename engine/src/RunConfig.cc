@@ -43,6 +43,8 @@ RunConfig::RunConfig()
   discrete_time = false;
   //  use_physrandgen = true;
   use_physrandgen = false;
+  use_glibcrandgen = false;
+  use_mtrandgen = false;
   seed_pseudorand = 0;
   randgen_factory = NULL;
   display_traj = false;
@@ -65,6 +67,10 @@ void RunConfig::setParameter(const std::string& param, double value)
     discrete_time = (bool)value;
   } else if (!strcasecmp(str, "use_physrandgen")) {
     use_physrandgen = (bool)value;
+  } else if (!strcasecmp(str, "use_glibcrandgen")) {
+    use_glibcrandgen = (bool)value;
+  } else if (!strcasecmp(str, "use_mtrandgen")) {
+    use_mtrandgen = (bool)value;
   } else if (!strcasecmp(str, "seed_pseudorandom")) {
     seed_pseudorand = (int)value;
   } else if (!strcasecmp(str, "display_traj")) {
@@ -88,8 +94,12 @@ RandomGeneratorFactory* RunConfig::getRandomGeneratorFactory() const
   if (NULL == randgen_factory) {
     if (use_physrandgen) {
       randgen_factory = new RandomGeneratorFactory(RandomGeneratorFactory::PHYSICAL);
+    } else if (use_mtrandgen) {
+      randgen_factory = new RandomGeneratorFactory(RandomGeneratorFactory::MERSENNE_TWISTER);
+    } else if (use_glibcrandgen) {
+      randgen_factory = new RandomGeneratorFactory(RandomGeneratorFactory::GLIBC);
     } else {
-      randgen_factory = new RandomGeneratorFactory(RandomGeneratorFactory::STANDARD);
+      randgen_factory = new RandomGeneratorFactory(RandomGeneratorFactory::DEFAULT);
     }
   }
   return randgen_factory;
@@ -168,8 +178,12 @@ int RunConfig::parseExpression(Network* network, const char* expr)
 
   char tmpfile[] = "/tmp/maboss_XXXXXX";
   int fd = mkstemp(tmpfile);
+#ifndef NDEBUG
   ssize_t ret = write(fd, expr, strlen(expr));
   assert(ret > 0);
+#else
+  write(fd, expr, strlen(expr));
+#endif
   close(fd);
 
   RCin = fopen(tmpfile, "r");

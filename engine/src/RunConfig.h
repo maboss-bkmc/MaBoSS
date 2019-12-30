@@ -45,6 +45,8 @@ class RunConfig {
   unsigned int sample_count;
   bool discrete_time;
   bool use_physrandgen;
+  bool use_glibcrandgen;
+  bool use_mtrandgen;
   int seed_pseudorand;
   bool display_traj;
   unsigned int thread_count;

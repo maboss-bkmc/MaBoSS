@@ -1,24 +1,116 @@
 language: cpp
 
-matrix:
+env:
+  global:
+    - secure: "N/DlgYl7l0jGCaYdlsyGXKdlm1w+8cbcYdoQrlI36PxwE26FHQQraxWpNF9X2VZ9DfVzOc9rj+3bJU9iAfPc5PiGJONCj/KnUGJ6Rk2V/Vlo4RvP6GPmQUK8OvgO2B/zCPn6X8ry466MgLw1p634B+ARJZ0AzHLR/qp5Li2gHSpZ7qHl4Z4GsBTMBd8hBFkFZKqz7xsTSRJSvPtjR3OPK+eC9x3eyMpqxqTkM264JfS+Fo5k8CUB/IUz6SVK2hA2JUHKis7MnaquSAufACEyU3I7LNKDQTXTlfsVNF/9YRSNuugkemzX8U9XKwqHOuksH9442RmFbrl2A8oKafN3oJjyhjgbt9yEsCjPwz2efcs08h6aHRrAq4FOQqs2ECPXr1os/99em2nAJv2hhN12nJvhbwrNGaxAg8GiarEkNYcWSklgCQcV0Vzuz/P1Mm6ObgaeUzU9qydhkR2eN7jw7d22vM87evIqDNuKwd/KmYbCbQmugNu6La4TCdPOyq+OnZF4QhHnGDkzErx8i5FakRm2Vf0vi4Mi1h7oliu8ZrrC2Sk+iqLLaW3vUrROwxLV2pfskzscdCHV0GzUJkKAC1FFkYJR8kloOL/M9NcYHQCO4o+BacKK61Y+dS0tV6kztl7FB2/ZPaXzkvp7ad2xGz9YhUscVBIBHGT712hp5cs="
+
+jobs:
   include:
-    - os: linux
+    - stage: test
+      os: linux
       dist: xenial
-      sudo: required
-    - os: osx
+      env: TASK=TestMaBoSS
+    - stage: test
+      os: osx
+      env: TASK=TestMaBoSS
+    - stage: test
+      os: linux
+      dist: xenial
+      services: docker
+      python: 3.8
+      env: TASK=TestMaBoSSDocker
+    - stage: test
+      os: linux
+      dist: xenial
+      services: docker
+      python: 3.8
+      env: TASK=TestMaBoSSSingularity
+    - stage: deploy
+      os: linux
+      python: 3.8
+      dist: xenial
+      env: TASK=BuildMaBoSSDocker
+    - stage: deploy
+      os: linux
+      python: 3.8
+      dist: xenial
+      env: TASK=BuildMaBoSSSingularity
 
 before_install:
-  - if [ $TRAVIS_OS_NAME = 'osx' ]; then
-      brew install flex bison;
-      pip install numpy;
-    else
-      sudo apt-get -qq update && sudo apt-get install -y flex bison;
-      sudo pip install numpy;
-    fi
+  if [ $TASK = 'TestMaBoSS' ]; then
+    if [ $TRAVIS_OS_NAME = 'osx' ]; then
+        brew install flex bison;
+        pip install numpy;
+      else
+        sudo pip install numpy;
+      fi
 
+  elif [ $TASK = 'TestMaBoSSDocker' ]; then
+    sudo apt-get -qq update;
+    sudo apt-get install -yq python3-pip python3-setuptools;
+
+  elif [ $TASK = 'BuildMaBoSSDocker' ]; then
+    echo "$DOCKER_HUB_PASSWORD" | docker login --username vnoel --password-stdin;
+    sudo apt-get -qq update;
+    sudo apt-get install -yq python3-pip python3-setuptools;
+
+  elif [ $TASK = 'TestMaBoSSSingularity' ]; then
+    wget -O- http://neuro.debian.net/lists/xenial.us-ca.full | sudo tee /etc/apt/sources.list.d/neurodebian.sources.list;
+    sudo apt-key adv --recv-keys --keyserver hkp://pool.sks-keyservers.net:80 0xA5D32F012649A5A9;
+    sudo apt-get -qq update;
+    sudo apt-get install -yq python-virtualenv singularity-container debootstrap;
+    sudo pip install numpy;
+
+  fi
 install:
-  - bash -c "cd engine/src; make install";
+  if [ $TASK = 'TestMaBoSS' ]; then
+    bash -c "cd engine/src; make install; make MAXNODES=128 install";
+
+  elif [ $TASK = 'TestMaBoSSDocker' ]; then
+    sudo pip3 install -U docker-compose;
+    sudo pip install numpy;
+    docker-compose up -d maboss-server;
+    bash -c "cd engine/src; make";
+  
+  elif [ $TASK = 'TestMaBoSSSingularity' ]; then
+    sudo singularity build maboss-server.simg containers/singularity/Singularity;
+    singularity run maboss-server.simg & 
+    bash -c "cd engine/src; make";
+
+  elif [ $TASK = 'BuildMaBoSSDocker' ]; then
+    sudo pip3 install -U docker-compose;
+
+  elif [ $TASK = 'BuildMaBoSSSingularity' ]; then
+    wget -O- http://neuro.debian.net/lists/xenial.us-ca.full | sudo tee /etc/apt/sources.list.d/neurodebian.sources.list;
+    sudo apt-key adv --recv-keys --keyserver hkp://pool.sks-keyservers.net:80 0xA5D32F012649A5A9;
+    sudo apt-get -qq update;
+    sudo apt-get install -yq python-virtualenv singularity-container debootstrap;
+
+  fi
 
 script:
-  - bash -c "source MaBoSS.env; cd engine/tests; bash ./test-cellcycle.sh";
+  if [ $TASK = 'TestMaBoSS' ]; then
+      bash -c "cd engine/tests; bash ./test-cellcycle.sh";
+      bash -c "cd engine/tests; bash ./test-ensemble.sh";
+      bash -c "cd engine/tests; bash ./test-ewing.sh";
+      bash -c "cd engine/tests; bash ./test-server.sh";
 
+  elif [ $TASK = 'TestMaBoSSDocker' ]; then
+    bash -c "cd engine/tests; bash ./test-container.sh";
+  
+  elif [ $TASK = 'TestMaBoSSSingularity' ]; then
+    bash -c "cd engine/tests; bash ./test-container.sh";
+
+  elif [ $TASK = 'BuildMaBoSSDocker' ]; then
+    docker-compose build maboss-server;
+
+  elif [ $TASK = 'BuildMaBoSSSingularity' ]; then
+    sudo singularity build maboss-server.simg containers/singularity/Singularity;
+  fi
+
+after_success:
+  if [ $TASK = 'BuildMaBoSSDocker' ]; then
+    docker tag maboss-server:latest vnoel/maboss-server:latest;
+    docker push vnoel/maboss-server:latest;
+
+  fi
