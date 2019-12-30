@@ -4,12 +4,11 @@ env:
   global:
     - secure: "N/DlgYl7l0jGCaYdlsyGXKdlm1w+8cbcYdoQrlI36PxwE26FHQQraxWpNF9X2VZ9DfVzOc9rj+3bJU9iAfPc5PiGJONCj/KnUGJ6Rk2V/Vlo4RvP6GPmQUK8OvgO2B/zCPn6X8ry466MgLw1p634B+ARJZ0AzHLR/qp5Li2gHSpZ7qHl4Z4GsBTMBd8hBFkFZKqz7xsTSRJSvPtjR3OPK+eC9x3eyMpqxqTkM264JfS+Fo5k8CUB/IUz6SVK2hA2JUHKis7MnaquSAufACEyU3I7LNKDQTXTlfsVNF/9YRSNuugkemzX8U9XKwqHOuksH9442RmFbrl2A8oKafN3oJjyhjgbt9yEsCjPwz2efcs08h6aHRrAq4FOQqs2ECPXr1os/99em2nAJv2hhN12nJvhbwrNGaxAg8GiarEkNYcWSklgCQcV0Vzuz/P1Mm6ObgaeUzU9qydhkR2eN7jw7d22vM87evIqDNuKwd/KmYbCbQmugNu6La4TCdPOyq+OnZF4QhHnGDkzErx8i5FakRm2Vf0vi4Mi1h7oliu8ZrrC2Sk+iqLLaW3vUrROwxLV2pfskzscdCHV0GzUJkKAC1FFkYJR8kloOL/M9NcYHQCO4o+BacKK61Y+dS0tV6kztl7FB2/ZPaXzkvp7ad2xGz9YhUscVBIBHGT712hp5cs="
 
-matrix:
+jobs:
   include:
     - stage: test
       os: linux
       dist: xenial
-      sudo: required
       env: TASK=TestMaBoSS
     - stage: test
       os: osx
@@ -17,14 +16,12 @@ matrix:
     - stage: test
       os: linux
       dist: xenial
-      sudo: required
       services: docker
       python: 3.8
       env: TASK=TestMaBoSSDocker
     - stage: test
       os: linux
       dist: xenial
-      sudo: required
       services: docker
       python: 3.8
       env: TASK=TestMaBoSSSingularity
@@ -32,13 +29,11 @@ matrix:
       os: linux
       python: 3.8
       dist: xenial
-      sudo: required
       env: TASK=BuildMaBoSSDocker
     - stage: deploy
       os: linux
       python: 3.8
       dist: xenial
-      sudo: required
       env: TASK=BuildMaBoSSSingularity
 
 before_install:
