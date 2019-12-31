@@ -45,6 +45,7 @@
 #include <string>
 #include <iostream>
 #include <random>
+#include <exception>
 #include "maboss-config.h"
 
 class RandomGenerator {
@@ -99,7 +100,9 @@ class PhysicalRandomGenerator : public RandomGenerator {
     int ret = read(fd, &result, sizeof(result));
     assert(ret == sizeof(result));
 #else
-    read(fd, &result, sizeof(result));
+    int res = read(fd, &result, sizeof(result));
+    if (res != sizeof(result)) 
+      throw std::exception();
 #endif
 #ifdef RANDOM_TRACE
     std::cout << result << '\n';
