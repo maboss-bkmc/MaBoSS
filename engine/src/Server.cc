@@ -121,7 +121,7 @@ void Server::run(const ClientData& client_data, ServerData& server_data)
   std::string statdist_file = std::string(output) + "_statdist.csv";
   std::string fp_file = std::string(output) + "_fp.csv";
 
-  std::vector<std::string> files_to_delete_v;
+  std::vector<std::string> files_to_delete_v(0);
 
   try {
     time_t start_time, end_time;
@@ -147,16 +147,16 @@ void Server::run(const ClientData& client_data, ServerData& server_data)
 
     network->parse(network_file.c_str());
 
-    RunConfig* runconfig = RunConfig::getInstance();
+    RunConfig* runconfig = new RunConfig();
     const std::string& config_vars = client_data.getConfigVars();
     if (config_vars.length() > 0) {
       std::vector<std::string> runconfig_var_v;
       runconfig_var_v.push_back(config_vars);
-      if (setConfigVariables(prog, runconfig_var_v)) {
-	delete_temp_files(files_to_delete_v);
-	//return 1;
-	// TBD: error
-	return;
+      if (setConfigVariables(network, prog, runconfig_var_v)) {
+        delete_temp_files(files_to_delete_v);
+        //return 1;
+        // TBD: error
+        return;
       }      
     }
 
@@ -172,7 +172,7 @@ void Server::run(const ClientData& client_data, ServerData& server_data)
 
     IStateGroup::checkAndComplete(network);
 
-    SymbolTable::getInstance()->checkSymbols();
+    network->getSymbolTable()->checkSymbols();
 
     if (client_data.getCommand() == DataStreamer::CHECK_COMMAND) {
       delete_temp_files(files_to_delete_v);
@@ -204,12 +204,17 @@ void Server::run(const ClientData& client_data, ServerData& server_data)
     runconfig->display(network, start_time, end_time, mabest, *output_run);
 
     ((std::ofstream*)output_run)->close();
+    delete output_run;
     if (NULL != output_traj) {
       ((std::ofstream*)output_traj)->close();
+      delete output_traj;
     }
     ((std::ofstream*)output_probtraj)->close();
+    delete output_probtraj;
     ((std::ofstream*)output_statdist)->close();
+    delete output_statdist;
     ((std::ofstream*)output_fp)->close();
+    delete output_fp;
     server_data.setStatus(0);
     std::string contents;
     fileGetContents(statdist_file, contents);

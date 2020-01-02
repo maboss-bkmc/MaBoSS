@@ -147,7 +147,7 @@ primary_expression: IDENTIFIER
 }
 | VARIABLE
 {
-  $$ = new SymbolExpression(SymbolTable::getInstance()->getOrMakeSymbol($1));
+  $$ = new SymbolExpression(current_network->getSymbolTable(), current_network->getSymbolTable()->getOrMakeSymbol($1));
 }
 | INTEGER
 {

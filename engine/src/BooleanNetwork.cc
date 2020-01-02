@@ -35,9 +35,7 @@
 #include "RunConfig.h"
 #include "Utils.h"
 #include <iostream>
-// #include "lex.CTBNDL.cc"
-// Network* Network::instance;
-SymbolTable* SymbolTable::instance;
+
 extern FILE* CTBNDLin;
 extern void CTBNDL_scan_expression(const char *);
 extern int CTBNDLparse();
@@ -91,6 +89,7 @@ bool Node::isInputNode() const
 Network::Network() : last_index(0U), random_generator(NULL)
 {
   istate_group_list = new std::vector<IStateGroup*>();
+  symbol_table = new SymbolTable();
 }
 
 int Network::parseExpression(const char* content, std::map<std::string, NodeIndex>* nodes_indexes){
@@ -668,12 +667,14 @@ Network& Network::operator=(const Network& network)
   input_nodes = network.input_nodes;
   non_input_nodes = network.non_input_nodes;
   nodes = network.nodes;
+  symbol_table = network.symbol_table;
   return *this;
 }
 
 Network::~Network()
 {
   delete random_generator;
+  delete symbol_table;
   /*
   for (MAP<std::string, Node*>::iterator iter = node_map.begin(); iter != node_map.end(); ++iter) {
     delete (*iter).second;
@@ -690,9 +691,9 @@ void SymbolTable::reset()
   last_symb_idx = 0;
 }
 
-int setConfigVariables(const std::string& prog, std::vector<std::string>& runvar_v)
+int setConfigVariables(Network* network, const std::string& prog, std::vector<std::string>& runvar_v)
 {
-  SymbolTable* symtab = SymbolTable::getInstance();
+  SymbolTable* symtab = network->getSymbolTable();
   std::vector<std::string>::const_iterator begin = runvar_v.begin();
   std::vector<std::string>::const_iterator end = runvar_v.end();
 
@@ -734,11 +735,11 @@ int setConfigVariables(const std::string& prog, std::vector<std::string>& runvar
   return 0;
 }
 
-int setConfigVariables(const std::string& prog, const std::string& runvar)
+int setConfigVariables(Network* network, const std::string& prog, const std::string& runvar)
 {
   std::vector<std::string> runvar_v;
   runvar_v.push_back(runvar);
-  return setConfigVariables(prog, runvar_v);
+  return setConfigVariables(network, prog, runvar_v);
 }
 
 void SymbolTable::unsetSymbolExpressions() {

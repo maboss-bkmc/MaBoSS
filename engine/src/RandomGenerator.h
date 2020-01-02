@@ -349,7 +349,7 @@ private:
 public:
   RandomGeneratorFactory(Type type) : type(type) { }
 
-  RandomGenerator* generateRandomGenerator(int seed) const {
+  RandomGenerator* generateRandomGenerator(int seed=1) const {
     switch(type) {
     case DEFAULT:
 #if defined(HAS_RAND48_T) || defined(HAS_RAND48)

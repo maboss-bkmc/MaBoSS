@@ -38,7 +38,6 @@ class MaBEstEngine;
 
 class RunConfig {
 
-  static RunConfig* instance;
   mutable RandomGeneratorFactory* randgen_factory;
   double time_tick;
   double max_time;
@@ -55,15 +54,8 @@ class RunConfig {
   unsigned int statdist_similarity_cache_max_size;
   void dump_perform(Network* network, std::ostream& os, bool is_template) const;
 
-  RunConfig();
-
  public:
-  static RunConfig* getInstance() {
-    if (NULL == instance) {
-      instance = new RunConfig();
-    }
-    return instance;
-  }
+  RunConfig();
 
   int parse(Network* network, const char* file = NULL);
   int parseExpression(Network* network, const char* expr);
@@ -90,6 +82,7 @@ class RunConfig {
 extern FILE* RCin;
 extern int RCparse();
 extern void runconfig_setNetwork(Network* network);
+extern void runconfig_setConfig(RunConfig* config);
 extern void RC_set_file(const char* file);
 extern void RC_set_expr(const char* expr);
 

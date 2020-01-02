@@ -262,7 +262,7 @@ int main(int argc, char* argv[])
 
       if (ensemble_istates) {
         std::vector<Network *> networks;
-        RunConfig* runconfig = RunConfig::getInstance();      
+        RunConfig* runconfig = new RunConfig();      
 
         Network* first_network = new Network();
         first_network->parse(ctbndl_files[0]);
@@ -316,8 +316,8 @@ int main(int argc, char* argv[])
           }
 
           IStateGroup::checkAndComplete(networks[i]);
+          networks[i]->getSymbolTable()->checkSymbols();
         }
-        SymbolTable::getInstance()->checkSymbols();
 
         // output_run = new std::ofstream((std::string(output) + "_run.txt").c_str());
         output_probtraj = new std::ofstream((std::string(output) + "_probtraj.csv").c_str());
@@ -361,7 +361,7 @@ int main(int argc, char* argv[])
       } else {
 
         std::vector<Network *> networks;
-        RunConfig* runconfig = RunConfig::getInstance();      
+        RunConfig* runconfig = new RunConfig();      
 
         Network* first_network = new Network();
         first_network->parse(ctbndl_files[0]);
@@ -408,8 +408,8 @@ int main(int argc, char* argv[])
           }
 
           IStateGroup::checkAndComplete(networks[i]);
+          networks[i]->getSymbolTable()->checkSymbols();
         }
-        SymbolTable::getInstance()->checkSymbols();
 
         // output_run = new std::ofstream((std::string(output) + "_run.txt").c_str());
         output_probtraj = new std::ofstream((std::string(output) + "_probtraj.csv").c_str());
@@ -458,7 +458,7 @@ int main(int argc, char* argv[])
 
       network->parse(ctbndl_file);
 
-      RunConfig* runconfig = RunConfig::getInstance();
+      RunConfig* runconfig = new RunConfig();
 
       if (generate_config_template) {
         IStateGroup::checkAndComplete(network);
@@ -466,7 +466,7 @@ int main(int argc, char* argv[])
         return 0;
       }
 
-      if (setConfigVariables(prog, runconfig_var_v)) {
+      if (setConfigVariables(network, prog, runconfig_var_v)) {
         return 1;
       }      
 
@@ -484,7 +484,7 @@ int main(int argc, char* argv[])
 
       IStateGroup::checkAndComplete(network);
 
-      SymbolTable::getInstance()->checkSymbols();
+      network->getSymbolTable()->checkSymbols();
 
       if (check) {
         return 0;

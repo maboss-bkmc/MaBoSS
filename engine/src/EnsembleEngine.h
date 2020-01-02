@@ -46,7 +46,9 @@ struct EnsembleArgWrapper;
 class MetaEngine {
 
 protected:
-  
+
+  RunConfig* runconfig;
+
   double time_tick;
   double max_time;
   unsigned int sample_count;
@@ -70,6 +72,7 @@ protected:
 public:
 
   MetaEngine(RunConfig* runconfig) : 
+    runconfig(runconfig),
     time_tick(runconfig->getTimeTick()), 
     max_time(runconfig->getMaxTime()), 
     sample_count(runconfig->getSampleCount()), 

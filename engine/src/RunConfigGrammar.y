@@ -39,6 +39,7 @@ extern int yylex();
 
 static void yyerror(const char *s);
 static Network* network;
+static RunConfig* config;
 
 extern std::string yy_error_head();
 %}
@@ -102,7 +103,7 @@ runconfig_decl: SYMBOL '=' expression ';'
 {
   NetworkState network_state;
   double value = $3->eval(NULL, network_state);
-  RunConfig::getInstance()->setParameter($1, value);
+  config->setParameter($1, value);
 }
 ;
 
@@ -196,10 +197,9 @@ expression_list: primary_expression
 
 var_decl: VARIABLE '=' expression ';'
 {
-  SymbolTable* symtab = SymbolTable::getInstance();
-  const Symbol* symbol = symtab->getOrMakeSymbol($1);
+  const Symbol* symbol = network->getSymbolTable()->getOrMakeSymbol($1);
   NetworkState dummy_state;
-  symtab->setSymbolValue(symbol, $3->eval(NULL, dummy_state));
+  network->getSymbolTable()->setSymbolValue(symbol, $3->eval(NULL, dummy_state));
 }
 ;
 
@@ -213,7 +213,7 @@ primary_expression: INTEGER
 }
 | VARIABLE
 {
-  $$ = new SymbolExpression(SymbolTable::getInstance()->getOrMakeSymbol($1));
+  $$ = new SymbolExpression(network->getSymbolTable(), network->getSymbolTable()->getOrMakeSymbol($1));
 }
 | '(' expression ')'
 {
@@ -390,6 +390,11 @@ expression: conditional_expression
 void runconfig_setNetwork(Network* _network)
 {
   network = _network;
+}
+
+void runconfig_setConfig(RunConfig* _config)
+{
+  config = _config;
 }
 
 #include "lex.RC.cc"

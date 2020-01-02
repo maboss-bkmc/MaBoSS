@@ -418,6 +418,86 @@ class Node {
   ~Node();
 };
 
+// symbol entry (i.e. variables)
+class Symbol {
+  std::string symb;
+  SymbolIndex symb_idx;
+
+public:
+  Symbol(const std::string& symb, SymbolIndex symb_idx) : symb(symb), symb_idx(symb_idx) { }
+
+  const std::string& getName() const {return symb;}
+  SymbolIndex getIndex() const {return symb_idx;}
+};
+
+//The symbol table
+class SymbolTable {
+  SymbolIndex last_symb_idx;
+  MAP<std::string, Symbol*> symb_map;
+  std::vector<double> symb_value;
+  std::vector<bool> symb_def;
+  std::map<SymbolIndex, bool> symb_dont_set;
+  
+  std::vector<SymbolExpression *> symbolExpressions;
+
+public:
+  SymbolTable() : last_symb_idx(0) { }
+  
+  const Symbol* getSymbol(const std::string& symb) {
+    if (symb_map.find(symb) == symb_map.end()) {
+      return NULL;
+    }
+    return symb_map[symb];
+  }
+
+  const Symbol* getOrMakeSymbol(const std::string& symb) {
+    if (symb_map.find(symb) == symb_map.end()) {
+      symb_def.push_back(false);
+      symb_value.push_back(0.0);
+      symb_map[symb] = new Symbol(symb, last_symb_idx++);
+      assert(symb_value.size() == last_symb_idx);
+      assert(symb_def.size() == last_symb_idx);
+    }
+    return symb_map[symb];
+  }
+
+  double getSymbolValue(const Symbol* symbol, bool check = true) const {
+    SymbolIndex idx = symbol->getIndex();
+    if (!symb_def[idx]) {
+      if (check) {
+	throw BNException("symbol " + symbol->getName() + " is not defined"); 
+      }
+      return 0.;
+   }
+    return symb_value[idx];
+  }
+
+  size_t getSymbolCount() const {return symb_map.size();}
+
+  void setSymbolValue(const Symbol* symbol, double value) {
+    SymbolIndex idx = symbol->getIndex();
+    if (symb_dont_set.find(idx) == symb_dont_set.end()) {
+      symb_def[idx] = true;
+      symb_value[idx] = value;
+    }
+  }
+
+  void overrideSymbolValue(const Symbol* symbol, double value) {
+    setSymbolValue(symbol, value);
+    symb_dont_set[symbol->getIndex()] = true;
+  }
+
+  void display(std::ostream& os, bool check = true) const;
+  void checkSymbols() const;
+
+  void reset();
+
+  void addSymbolExpression(SymbolExpression * exp) {
+    symbolExpressions.push_back(exp);
+  }
+
+  void unsetSymbolExpressions();
+};
 
 // the boolean network (also used as a Node factory)
 class Network {
@@ -431,6 +511,7 @@ class Network {
 
   MAP<std::string, bool> node_def_map;
   std::vector<IStateGroup*>* istate_group_list;
+  SymbolTable* symbol_table;
 
 public:
 
@@ -446,6 +527,9 @@ public:
     return istate_group_list;
   }
 
+  SymbolTable* getSymbolTable() { 
+    return symbol_table;
+  };
   Node* defineNode(const std::string& label, const std::string& description = "");
 
   Node* getNode(const std::string& label);
@@ -596,94 +680,6 @@ public:
     return state & nodeBit(node);
 #endif
   }
-};
-
-// symbol entry (i.e. variables)
-class Symbol {
-  std::string symb;
-  SymbolIndex symb_idx;
-
-public:
-  Symbol(const std::string& symb, SymbolIndex symb_idx) : symb(symb), symb_idx(symb_idx) { }
-
-  const std::string& getName() const {return symb;}
-  SymbolIndex getIndex() const {return symb_idx;}
-};
-
-class SymbolTable {
-  SymbolIndex last_symb_idx;
-  MAP<std::string, Symbol*> symb_map;
-  std::vector<double> symb_value;
-  std::vector<bool> symb_def;
-  std::map<SymbolIndex, bool> symb_dont_set;
-  static SymbolTable* instance;
-
-  SymbolTable() : last_symb_idx(0) { }
-
-  std::vector<SymbolExpression *> symbolExpressions;
-
-public:
-  static SymbolTable* getInstance() {
-    if (instance == NULL) {
-      instance = new SymbolTable();
-    }
-    return instance;
-  }
-
-  const Symbol* getSymbol(const std::string& symb) {
-    if (symb_map.find(symb) == symb_map.end()) {
-      return NULL;
-    }
-    return symb_map[symb];
-  }
-
-  const Symbol* getOrMakeSymbol(const std::string& symb) {
-    if (symb_map.find(symb) == symb_map.end()) {
-      symb_def.push_back(false);
-      symb_value.push_back(0.0);
-      symb_map[symb] = new Symbol(symb, last_symb_idx++);
-      assert(symb_value.size() == last_symb_idx);
-      assert(symb_def.size() == last_symb_idx);
-    }
-    return symb_map[symb];
-  }
-
-  double getSymbolValue(const Symbol* symbol, bool check = true) const {
-    SymbolIndex idx = symbol->getIndex();
-    if (!symb_def[idx]) {
-      if (check) {
-	throw BNException("symbol " + symbol->getName() + " is not defined"); 
-      }
-      return 0.;
-   }
-    return symb_value[idx];
-  }
-
-  size_t getSymbolCount() const {return symb_map.size();}
-
-  void setSymbolValue(const Symbol* symbol, double value) {
-    SymbolIndex idx = symbol->getIndex();
-    if (symb_dont_set.find(idx) == symb_dont_set.end()) {
-      symb_def[idx] = true;
-      symb_value[idx] = value;
-    }
-  }
-
-  void overrideSymbolValue(const Symbol* symbol, double value) {
-    setSymbolValue(symbol, value);
-    symb_dont_set[symbol->getIndex()] = true;
-  }
-
-  void display(std::ostream& os, bool check = true) const;
-  void checkSymbols() const;
-
-  void reset();
-
-  void addSymbolExpression(SymbolExpression * exp) {
-    symbolExpressions.push_back(exp);
-  }
-
-  void unsetSymbolExpressions();
 };
 
 // abstract base class used for expression evaluation
@@ -1068,20 +1064,21 @@ public:
 
 class SymbolExpression : public Expression {
 
+  SymbolTable* symbol_table;
   const Symbol* symbol;
   mutable bool value_set;
   mutable double value;
 
 public:
-  SymbolExpression(const Symbol* symbol) : symbol(symbol), value_set(false) { 
-    SymbolTable::getInstance()->addSymbolExpression(this);
+  SymbolExpression(SymbolTable* symbol_table, const Symbol* symbol) : symbol_table(symbol_table), symbol(symbol), value_set(false) { 
+    symbol_table->addSymbolExpression(this);
   }
 
-  Expression* clone() const {return new SymbolExpression(symbol);}
+  Expression* clone() const {return new SymbolExpression(symbol_table, symbol);}
 
   double eval(const Node* this_node, const NetworkState& network_state) const {
     if (!value_set) {
-      value = SymbolTable::getInstance()->getSymbolValue(symbol);
+      value = symbol_table->getSymbolValue(symbol);
       value_set = true;
     }
     return value;
@@ -1605,7 +1602,7 @@ private:
 extern const bool backward_istate;
 
 extern bool dont_shrink_logical_expressions;
-extern int setConfigVariables(const std::string& prog, const std::string& runvar);
-extern int setConfigVariables(const std::string& prog, std::vector<std::string>& runvar_v);
+extern int setConfigVariables(Network* network, const std::string& prog, const std::string& runvar);
+extern int setConfigVariables(Network* network, const std::string& prog, std::vector<std::string>& runvar_v);
 
 #endif

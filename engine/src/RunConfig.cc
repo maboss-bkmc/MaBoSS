@@ -35,8 +35,6 @@
 
 extern void RC_scan_expression(const char *);
 
-RunConfig* RunConfig::instance;
-
 RunConfig::RunConfig()
 {
   time_tick = 0.5;
@@ -151,7 +149,7 @@ void RunConfig::display(Network* network, time_t start_time, time_t end_time, Ma
 
   sprintf(bufstr, sepfmt, " Variables ");
   os << bufstr;
-  SymbolTable::getInstance()->display(os);
+  network->getSymbolTable()->display(os);
   sprintf(bufstr, sepfmt, "-----------");
   os << bufstr << '\n';
 }
@@ -159,15 +157,18 @@ void RunConfig::display(Network* network, time_t start_time, time_t end_time, Ma
 int RunConfig::parse(Network* network, const char* file)
 {
   runconfig_setNetwork(network);
+  runconfig_setConfig(this);
   if (NULL != file) {
     RCin = fopen(file, "r");
     if (RCin == NULL) {
       throw BNException("variable parsing: cannot open file:" + std::string(file) + " for reading");
     }
   }
-
   RC_set_file(file);
   int res = RCparse();
+  runconfig_setNetwork(NULL);
+  runconfig_setConfig(NULL);
+
   if (NULL != file)
     fclose(RCin);
     
@@ -177,8 +178,14 @@ int RunConfig::parse(Network* network, const char* file)
 int RunConfig::parseExpression(Network* network, const char* expr)
 {
   runconfig_setNetwork(network);
+  runconfig_setConfig(this);
   RC_scan_expression(expr);
-  return RCparse();
+
+  int res = RCparse();
+  runconfig_setNetwork(NULL);
+  runconfig_setConfig(NULL);
+
+  return res;
 }
 
 void RunConfig::generateTemplate(Network* network, std::ostream& os) const
@@ -217,11 +224,11 @@ void RunConfig::dump_perform(Network* network, std::ostream& os, bool is_templat
   os << "statdist_similarity_cache_max_size = " << statdist_similarity_cache_max_size << ";\n";
 
   os << '\n';
-  if (SymbolTable::getInstance()->getSymbolCount() != 0) {
+  if (network->getSymbolTable()->getSymbolCount() != 0) {
     if (is_template) {
       os << "// variables to be set in the configuration file or by using the --config-vars option\n";
     }
-    SymbolTable::getInstance()->display(os, false);
+    network->getSymbolTable()->display(os, false);
     os << '\n';
   }
 

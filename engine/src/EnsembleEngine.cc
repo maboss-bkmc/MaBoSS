@@ -109,8 +109,8 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
   unsigned int network_index;
   if (random_sampling){
     // Here we need the random generator to compute the list of simulations
-    RandomGeneratorFactory* randgen_factory = RunConfig::getInstance()->getRandomGeneratorFactory();
-    int seed = RunConfig::getInstance()->getSeedPseudoRandom();
+    RandomGeneratorFactory* randgen_factory = runconfig->getRandomGeneratorFactory();
+    int seed = runconfig->getSeedPseudoRandom();
     RandomGenerator* random_generator = randgen_factory->generateRandomGenerator(seed);
     
     for (unsigned int nn = 0; nn < sample_count; nn++) {
@@ -146,7 +146,7 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
   unsigned int offset = 0;
   for (unsigned int nn = 0; nn < thread_count; ++nn) {
     unsigned int t_count = (nn == 0 ? firstcount : count);
-    Cumulator* cumulator = new Cumulator(runconfig->getTimeTick(), runconfig->getMaxTime(), t_count);
+    Cumulator* cumulator = new Cumulator(runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), t_count);
     if (has_internal) {
 #ifdef USE_BITSET
       NetworkState_Impl state2 = ~internal_state.getState();
@@ -249,7 +249,7 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
       for (nnn = 0; nnn < count_by_models.size(); nnn++) {
         if (count_by_models[nnn] > 0) {
           Cumulator* t_cumulator = new Cumulator(
-            runconfig->getTimeTick(), runconfig->getMaxTime(), count_by_models[nnn]
+            runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), count_by_models[nnn]
           );
       
           if (has_internal) {
@@ -522,8 +522,8 @@ void EnsembleEngine::runThread(Cumulator* cumulator, unsigned int start_count_th
 void EnsembleEngine::run(std::ostream* output_traj)
 {
   tid = new pthread_t[thread_count];
-  RandomGeneratorFactory* randgen_factory = RunConfig::getInstance()->getRandomGeneratorFactory();
-  int seed = RunConfig::getInstance()->getSeedPseudoRandom();
+  RandomGeneratorFactory* randgen_factory = runconfig->getRandomGeneratorFactory();
+  int seed = runconfig->getSeedPseudoRandom();
   unsigned int start_sample_count = 0;
   Probe probe;
   for (unsigned int nn = 0; nn < thread_count; ++nn) {
@@ -619,7 +619,7 @@ void EnsembleEngine::mergeEnsembleFixpointMaps()
 
 void EnsembleEngine::epilogue()
 {
-  merged_cumulator = Cumulator::mergeCumulators(cumulator_v);
+  merged_cumulator = Cumulator::mergeCumulators(runconfig, cumulator_v);
   merged_cumulator->epilogue(networks[0], reference_state);
 
   if (save_individual_result) {
@@ -630,7 +630,7 @@ void EnsembleEngine::epilogue()
       std::vector<Cumulator*> model_cumulator = cumulators_thread_v[i];
       if (model_cumulator.size() > 0) {
         
-        Cumulator* t_cumulator = Cumulator::mergeCumulators(model_cumulator);
+        Cumulator* t_cumulator = Cumulator::mergeCumulators(runconfig, model_cumulator);
         t_cumulator->epilogue(networks[i], reference_state);
         cumulators_per_model[i] = t_cumulator;
         
@@ -666,7 +666,7 @@ void EnsembleEngine::display(std::ostream& output_probtraj, std::ostream& output
   elapsed_statdist_runtime = probe.elapsed_msecs();
   user_statdist_runtime = probe.user_msecs();
 
-  unsigned int statdist_traj_count = RunConfig::getInstance()->getStatDistTrajCount();
+  unsigned int statdist_traj_count = runconfig->getStatDistTrajCount();
   if (statdist_traj_count == 0) {
     output_statdist << "Trajectory\tState\tProba\n";
   }

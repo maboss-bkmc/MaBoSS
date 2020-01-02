@@ -47,6 +47,7 @@ struct ArgWrapper;
 class MaBEstEngine {
 
   Network* network;
+  RunConfig* runconfig;
   double time_tick;
   double max_time;
   unsigned int sample_count;

@@ -206,11 +206,19 @@ class ProbaDistClusterFactory {
 
   void cacheSimilarities();
 
-  void makeClusters(double threshold);
+  void makeClusters(RunConfig* runconfig);
   void computeStationaryDistribution();
   void displayStationaryDistribution(Network* network, std::ostream& os, bool hexfloat) const;
 
   void display(Network* network, std::ostream& os, bool hexfloat) const;
+
+  // ~ProbaDistClusterFactory() {
+    
+  //   // for (unsigned int nn1 = 0; nn1 < statdist_traj_count; ++nn1) {
+  //   //   delete [] similarity_cache[nn1];
+  //   // }
+  //   delete [] similarity_cache;
+  // }
 };
 
 #endif

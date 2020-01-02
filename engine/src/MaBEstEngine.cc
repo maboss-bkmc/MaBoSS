@@ -69,7 +69,7 @@ void MaBEstEngine::loadUserFuncs(const char* module)
 }
 
 MaBEstEngine::MaBEstEngine(Network* network, RunConfig* runconfig) :
-  network(network), time_tick(runconfig->getTimeTick()), max_time(runconfig->getMaxTime()), sample_count(runconfig->getSampleCount()), discrete_time(runconfig->isDiscreteTime()), thread_count(runconfig->getThreadCount()) {
+  network(network), runconfig(runconfig), time_tick(runconfig->getTimeTick()), max_time(runconfig->getMaxTime()), sample_count(runconfig->getSampleCount()), discrete_time(runconfig->isDiscreteTime()), thread_count(runconfig->getThreadCount()) {
 
   tid = NULL;
 
@@ -107,7 +107,7 @@ MaBEstEngine::MaBEstEngine(Network* network, RunConfig* runconfig) :
   unsigned int count = sample_count / thread_count;
   unsigned int firstcount = count + sample_count - count * thread_count;
   for (unsigned int nn = 0; nn < thread_count; ++nn) {
-    Cumulator* cumulator = new Cumulator(runconfig->getTimeTick(), runconfig->getMaxTime(), (nn == 0 ? firstcount : count));
+    Cumulator* cumulator = new Cumulator(runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), (nn == 0 ? firstcount : count));
     if (has_internal) {
 #ifdef USE_BITSET
       NetworkState_Impl state2 = ~internal_state.getState();
@@ -310,8 +310,8 @@ void MaBEstEngine::runThread(Cumulator* cumulator, unsigned int start_count_thre
 void MaBEstEngine::run(std::ostream* output_traj)
 {
   tid = new pthread_t[thread_count];
-  RandomGeneratorFactory* randgen_factory = RunConfig::getInstance()->getRandomGeneratorFactory();
-  int seed = RunConfig::getInstance()->getSeedPseudoRandom();
+  RandomGeneratorFactory* randgen_factory = runconfig->getRandomGeneratorFactory();
+  int seed = runconfig->getSeedPseudoRandom();
   unsigned int start_sample_count = 0;
   Probe probe;
   for (unsigned int nn = 0; nn < thread_count; ++nn) {
@@ -365,7 +365,7 @@ STATE_MAP<NetworkState_Impl, unsigned int>* MaBEstEngine::mergeFixpointMaps()
 
 void MaBEstEngine::epilogue()
 {
-  merged_cumulator = Cumulator::mergeCumulators(cumulator_v);
+  merged_cumulator = Cumulator::mergeCumulators(runconfig, cumulator_v);
   merged_cumulator->epilogue(network, reference_state);
 
   STATE_MAP<NetworkState_Impl, unsigned int>* merged_fixpoint_map = mergeFixpointMaps();
@@ -388,7 +388,7 @@ void MaBEstEngine::display(std::ostream& output_probtraj, std::ostream& output_s
   elapsed_statdist_runtime = probe.elapsed_msecs();
   user_statdist_runtime = probe.user_msecs();
 
-  unsigned int statdist_traj_count = RunConfig::getInstance()->getStatDistTrajCount();
+  unsigned int statdist_traj_count = runconfig->getStatDistTrajCount();
   if (statdist_traj_count == 0) {
     output_statdist << "Trajectory\tState\tProba\n";
   }
@@ -658,6 +658,6 @@ MaBEstEngine::~MaBEstEngine()
   }
 
   delete merged_cumulator;
-  delete [] tid;
+  // delete [] tid;
 }
 

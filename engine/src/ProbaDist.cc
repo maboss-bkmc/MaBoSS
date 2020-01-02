@@ -104,16 +104,16 @@ void ProbaDistCluster::complete(double threshold, unsigned int statdist_traj_cou
   }
 }
 
-void ProbaDistClusterFactory::makeClusters(double threshold)
+void ProbaDistClusterFactory::makeClusters(RunConfig* runconfig)
 {
-  if (statdist_traj_count <= RunConfig::getInstance()->getStatDistSimilarityCacheMaxSize()) {
+  if (statdist_traj_count <= runconfig->getStatDistSimilarityCacheMaxSize()) {
     cacheSimilarities();
   }
   for (unsigned int nn1 = 0; nn1 < statdist_traj_count; ++nn1) { // optimization: should avoid to scan all proba_dist, using a complement map
     if (!isClusterized(nn1)) {
       ProbaDistCluster* cluster = newCluster();
       cluster->add(nn1, getProbaDist(nn1));
-      cluster->complete(threshold, statdist_traj_count);
+      cluster->complete(runconfig->getStatdistClusterThreshold(), statdist_traj_count);
     }
   }
 }

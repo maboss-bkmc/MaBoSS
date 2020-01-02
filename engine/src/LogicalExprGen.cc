@@ -181,7 +181,7 @@ void ConstantExpression::generateLogicalExpression(LogicalExprGenContext& genctx
 void SymbolExpression::generateLogicalExpression(LogicalExprGenContext& genctx) const
 {
   std::ostream& os = genctx.getOStream();
-  double value = SymbolTable::getInstance()->getSymbolValue(symbol);
+  double value = symbol_table->getSymbolValue(symbol);
   os << (value != 0 ? 1 : 0);
 }
 

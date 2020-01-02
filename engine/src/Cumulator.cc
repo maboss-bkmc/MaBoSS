@@ -298,7 +298,7 @@ void Cumulator::displayCSV(Network* network, unsigned int refnode_count, std::os
   // should not be in cumulator, but somehwere in ProbaDist*
 
   // Probability distribution
-  unsigned int statdist_traj_count = RunConfig::getInstance()->getStatDistTrajCount();
+  unsigned int statdist_traj_count = runconfig->getStatDistTrajCount();
   if (statdist_traj_count == 0) {
     return;
   }
@@ -356,10 +356,11 @@ void Cumulator::displayCSV(Network* network, unsigned int refnode_count, std::os
 
   // should not be called from here, but from MaBestEngine
   ProbaDistClusterFactory* clusterFactory = new ProbaDistClusterFactory(proba_dist_v, statdist_traj_count);
-  clusterFactory->makeClusters(RunConfig::getInstance()->getStatdistClusterThreshold());
+  clusterFactory->makeClusters(runconfig);
   clusterFactory->display(network, os_statdist, hexfloat);
   clusterFactory->computeStationaryDistribution();
   clusterFactory->displayStationaryDistribution(network, os_statdist, hexfloat);
+  // delete clusterFactory;
 }
 
 void Cumulator::displayAsymptoticCSV(Network *network, unsigned int refnode_count, std::ostream &os_asymptprob, bool hexfloat, bool proba) const
@@ -516,7 +517,7 @@ void Cumulator::add(unsigned int where, const HDCumulMap& add_hd_cumul_map)
 }
 #endif
 
-Cumulator* Cumulator::mergeCumulators(std::vector<Cumulator*>& cumulator_v)
+Cumulator* Cumulator::mergeCumulators(RunConfig* runconfig, std::vector<Cumulator*>& cumulator_v)
 {
   size_t size = cumulator_v.size();
   if (1 == size) {
@@ -524,14 +525,12 @@ Cumulator* Cumulator::mergeCumulators(std::vector<Cumulator*>& cumulator_v)
     return new Cumulator(*cumulator);
   }
 
-  RunConfig* runconfig = RunConfig::getInstance();
-
   unsigned int t_cumulator_size = 0;
   for (auto& cum: cumulator_v) {
     t_cumulator_size += cum->sample_count;
   }
 
-  Cumulator* ret_cumul = new Cumulator(runconfig->getTimeTick(), runconfig->getMaxTime(), t_cumulator_size);
+  Cumulator* ret_cumul = new Cumulator(runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), t_cumulator_size);
   size_t min_cumul_size = ~0ULL;
   size_t min_tick_index_size = ~0ULL;
   std::vector<Cumulator*>::iterator begin = cumulator_v.begin();
