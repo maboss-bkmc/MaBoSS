@@ -9,6 +9,7 @@
 typedef struct {
   PyObject_HEAD
   Network* network;
+  RunConfig* runconfig;
   // MaBEstEngine* simulation;
 } cMaBoSSSimObject;
 
@@ -32,14 +33,15 @@ static PyObject * cMaBoSSSim_new(PyTypeObject* type, PyObject *args, PyObject* k
     ))
       return NULL;
       
-    Network* network;
+    Network* network = nullptr;
+    RunConfig* runconfig = nullptr;
     if (network_file != NULL && config_file != NULL) {
       // Loading bnd file
       network = new Network();
       network->parse(network_file);
 
       // Loading cfg file
-      RunConfig* runconfig = RunConfig::getInstance();
+      runconfig = new RunConfig();
       IStateGroup::reset(network);
       runconfig->parse(network, config_file);
 
@@ -50,20 +52,23 @@ static PyObject * cMaBoSSSim_new(PyTypeObject* type, PyObject *args, PyObject* k
       network->parseExpression((const char *) network_str);
       
       // Loading cfg file
-      RunConfig* runconfig = RunConfig::getInstance();
+      runconfig = new RunConfig();
       IStateGroup::reset(network);
       runconfig->parseExpression(network, config_str);
 
     }
     
-    // Error checking
-    IStateGroup::checkAndComplete(network);
-    
-    cMaBoSSSimObject* simulation;
-    simulation = (cMaBoSSSimObject *) type->tp_alloc(type, 0);
-    simulation->network = network;
+    if (network != nullptr && runconfig != nullptr) {
+      // Error checking
+      IStateGroup::checkAndComplete(network);
+      
+      cMaBoSSSimObject* simulation;
+      simulation = (cMaBoSSSimObject *) type->tp_alloc(type, 0);
+      simulation->network = network;
+      simulation->runconfig = runconfig;
 
-    return (PyObject *) simulation;
+      return (PyObject *) simulation;
+    } else return Py_None;
   }
   catch (BNException& e) {
     std::cout << "EXCEPTION" << std::endl;
@@ -74,7 +79,7 @@ static PyObject * cMaBoSSSim_new(PyTypeObject* type, PyObject *args, PyObject* k
 
 static PyObject* cMaBoSSSim_run(cMaBoSSSimObject* self, PyObject*Py_UNUSED) {
   
-  MaBEstEngine* simulation = new MaBEstEngine(self->network, RunConfig::getInstance());
+  MaBEstEngine* simulation = new MaBEstEngine(self->network, self->runconfig);
 
   simulation->run(NULL);
   
