@@ -360,7 +360,7 @@ void Cumulator::displayCSV(Network* network, unsigned int refnode_count, std::os
   clusterFactory->display(network, os_statdist, hexfloat);
   clusterFactory->computeStationaryDistribution();
   clusterFactory->displayStationaryDistribution(network, os_statdist, hexfloat);
-  // delete clusterFactory;
+  delete clusterFactory;
 }
 
 void Cumulator::displayAsymptoticCSV(Network *network, unsigned int refnode_count, std::ostream &os_asymptprob, bool hexfloat, bool proba) const

@@ -56,7 +56,8 @@ class RunConfig {
 
  public:
   RunConfig();
-
+  ~RunConfig();
+  
   int parse(Network* network, const char* file = NULL);
   int parseExpression(Network* network, const char* expr);
   void setParameter(const std::string& param, double value);
@@ -81,6 +82,8 @@ class RunConfig {
 
 extern FILE* RCin;
 extern int RCparse();
+extern void RC_scan_expression(const char *);
+
 extern void runconfig_setNetwork(Network* network);
 extern void runconfig_setConfig(RunConfig* config);
 extern void RC_set_file(const char* file);

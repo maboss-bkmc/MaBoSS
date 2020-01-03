@@ -425,7 +425,6 @@ class Symbol {
 
 public:
   Symbol(const std::string& symb, SymbolIndex symb_idx) : symb(symb), symb_idx(symb_idx) { }
-
   const std::string& getName() const {return symb;}
   SymbolIndex getIndex() const {return symb_idx;}
 };
@@ -497,6 +496,12 @@ public:
   }
 
   void unsetSymbolExpressions();
+
+  ~SymbolTable() {
+    for (auto& symbol : symb_map) {
+      delete symbol.second;
+    }
+  }
 };
 
 // the boolean network (also used as a Node factory)
@@ -1060,6 +1065,7 @@ public:
   bool isLogicalExpression() const {return value == 0 || value == 1;}
 
   void generateLogicalExpression(LogicalExprGenContext& genctx) const;
+
 };
 
 class SymbolExpression : public Expression {
@@ -1241,6 +1247,10 @@ public:
   bool isLogicalExpression() const {return true;}
 
   void generateLogicalExpression(LogicalExprGenContext& genctx) const;
+
+  ~NotLogicalExpression() {
+    delete expr;
+  }
 };
 
 class ParenthesisExpression : public Expression {
@@ -1424,6 +1434,10 @@ public:
       state_value_list = new std::vector<double>();
       state_value_list->push_back(istate_value);
     }
+
+    ~ProbaIState() {
+      delete state_value_list;
+    }
     double getProbaValue() {return proba_value;}
     std::vector<double>* getStateValueList() {return state_value_list;}
     void normalizeProbaValue(double proba_sum) {proba_value /= proba_sum;}
@@ -1463,6 +1477,14 @@ public:
     proba_istates = new std::vector<ProbaIState*>();
     proba_istates->push_back(new ProbaIState(1., expr));
     epilogue(network);
+  }
+
+  ~IStateGroup() {
+    delete nodes;
+    for (std::vector<IStateGroup::ProbaIState*>::iterator it = proba_istates->begin(); it != proba_istates->end(); ++it) {
+      delete *it;
+    }
+    delete proba_istates;
   }
 
   std::vector<const Node*>* getNodes() {return nodes;}

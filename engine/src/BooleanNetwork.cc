@@ -39,6 +39,7 @@
 extern FILE* CTBNDLin;
 extern void CTBNDL_scan_expression(const char *);
 extern int CTBNDLparse();
+extern void CTBNDLlex_destroy();
 const bool backward_istate = getenv("MABOSS_BACKWARD_ISTATE") != NULL;
 
 bool Node::override = false;
@@ -105,7 +106,7 @@ int Network::parseExpression(const char* content, std::map<std::string, NodeInde
     return 1;
   }
   compile(nodes_indexes);
-    
+  CTBNDLlex_destroy();
   return 0;
 }
 
@@ -132,7 +133,8 @@ int Network::parse(const char* file, std::map<std::string, NodeIndex>* nodes_ind
 
   if (NULL != file)
     fclose(CTBNDLin);
-    
+  CTBNDLlex_destroy();
+
   return 0;
 }
 
@@ -648,7 +650,8 @@ Node::~Node()
   MAP<std::string, const Expression*>::const_iterator attr_expr_begin = attr_expr_map.begin();
   MAP<std::string, const Expression*>::const_iterator attr_expr_end = attr_expr_map.end();
   while (attr_expr_begin != attr_expr_end) {
-    //delete (*attr_expr_begin).second;
+    delete (*attr_expr_begin).second;
+    attr_expr_begin++;
   }
 }
 
@@ -675,11 +678,16 @@ Network::~Network()
 {
   delete random_generator;
   delete symbol_table;
-  /*
+  
+  for (std::vector<IStateGroup*>::iterator iter = istate_group_list->begin(); iter != istate_group_list->end(); ++iter) {
+    delete *iter;
+  }
+  delete istate_group_list;
+  
   for (MAP<std::string, Node*>::iterator iter = node_map.begin(); iter != node_map.end(); ++iter) {
     delete (*iter).second;
   }
-  */
+  
 }
 
 void SymbolTable::reset()

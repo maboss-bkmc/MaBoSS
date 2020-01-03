@@ -65,8 +65,6 @@ protected:
   Cumulator* merged_cumulator;
   std::vector<Cumulator*> cumulator_v;
 
-  pthread_t* tid;
-
   STATE_MAP<NetworkState_Impl, unsigned int>* mergeFixpointMaps();
 
 public:

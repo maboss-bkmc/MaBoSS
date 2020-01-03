@@ -31,6 +31,7 @@
 
 #include "MaBEstEngine.h"
 #include "EnsembleEngine.h"
+#include "Function.h"
 #include <fstream>
 #include <stdlib.h>
 #include "Utils.h"
@@ -439,8 +440,11 @@ int main(int argc, char* argv[])
             engine.displayIndividual(i, *i_output_probtraj, *i_output_statdist, *i_output_fp, hexfloat);
 
             ((std::ofstream*) i_output_probtraj)->close();
+            delete i_output_probtraj;
             ((std::ofstream*) i_output_statdist)->close();
+            delete i_output_statdist;
             ((std::ofstream*) i_output_fp)->close();
+            delete i_output_fp;
 
           }
         }
@@ -448,8 +452,18 @@ int main(int argc, char* argv[])
 
         // ((std::ofstream*)output_run)->close();
         ((std::ofstream*)output_probtraj)->close();
+        delete output_probtraj;
         ((std::ofstream*)output_statdist)->close();
+        delete output_statdist;
         ((std::ofstream*)output_fp)->close();
+        delete output_fp;
+
+        delete runconfig;
+        for (std::vector<Network*>::iterator it = networks.begin(); it != networks.end(); ++it)
+          delete *it;
+
+        Function::destroyFuncMap();  
+
       }
         
     } else {
@@ -528,14 +542,25 @@ int main(int argc, char* argv[])
       if (export_asymptotic) {
         mabest.displayAsymptotic(*output_asymptprob, hexfloat, !counts);
         ((std::ofstream*)output_asymptprob)->close();
+        delete output_asymptprob;
       }
       ((std::ofstream*)output_run)->close();
+      delete output_run;
       if (NULL != output_traj) {
         ((std::ofstream*)output_traj)->close();
+        delete output_traj;
       }
       ((std::ofstream*)output_probtraj)->close();
+      delete output_probtraj;
       ((std::ofstream*)output_statdist)->close();
+      delete output_statdist;
       ((std::ofstream*)output_fp)->close();
+      delete output_fp;
+
+      delete runconfig;
+      delete network;
+
+      Function::destroyFuncMap();  
     }
   } catch(const BNException& e) {
     std::cerr << '\n' << prog << ": " << e;

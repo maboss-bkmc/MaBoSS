@@ -56,14 +56,12 @@ class MaBEstEngine {
   //std::map<NetworkState, unsigned int> fixpoints;
   STATE_MAP<NetworkState_Impl, unsigned int> fixpoints;
   mutable long long elapsed_core_runtime, user_core_runtime, elapsed_statdist_runtime, user_statdist_runtime, elapsed_epilogue_runtime, user_epilogue_runtime;
-
   NetworkState reference_state;
   unsigned int refnode_count;
   Cumulator* merged_cumulator;
   std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*> fixpoint_map_v;
   std::vector<Cumulator*> cumulator_v;
   std::vector<ArgWrapper*> arg_wrapper_v;
-  pthread_t* tid;
   NodeIndex getTargetNode(RandomGenerator* random_generator, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
   double computeTH(const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
   void epilogue();
@@ -73,10 +71,9 @@ class MaBEstEngine {
 
 public:
   static const std::string VERSION;
-
   static void init();
   static void loadUserFuncs(const char* module);
-
+  
   MaBEstEngine(Network* network, RunConfig* runconfig);
 
   void run(std::ostream* output_traj);

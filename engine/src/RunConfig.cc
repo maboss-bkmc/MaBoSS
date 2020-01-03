@@ -32,8 +32,7 @@
 #include "RunConfig.h"
 #include "BooleanNetwork.h"
 #include "MaBEstEngine.h"
-
-extern void RC_scan_expression(const char *);
+extern void RClex_destroy();
 
 RunConfig::RunConfig()
 {
@@ -52,6 +51,11 @@ RunConfig::RunConfig()
   statdist_traj_count = 0;
   statdist_cluster_threshold = 1.0;
   statdist_similarity_cache_max_size = 20000;
+}
+
+RunConfig::~RunConfig()
+{
+  delete randgen_factory;
 }
 
 void RunConfig::setParameter(const std::string& param, double value)
@@ -171,7 +175,8 @@ int RunConfig::parse(Network* network, const char* file)
 
   if (NULL != file)
     fclose(RCin);
-    
+  RClex_destroy();
+
   return res;
 }
 
@@ -184,7 +189,9 @@ int RunConfig::parseExpression(Network* network, const char* expr)
   int res = RCparse();
   runconfig_setNetwork(NULL);
   runconfig_setConfig(NULL);
-
+  
+  RClex_destroy();
+  
   return res;
 }
 

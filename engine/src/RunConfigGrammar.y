@@ -104,6 +104,8 @@ runconfig_decl: SYMBOL '=' expression ';'
   NetworkState network_state;
   double value = $3->eval(NULL, network_state);
   config->setParameter($1, value);
+  free($1);
+  delete $3;
 }
 ;
 
@@ -133,6 +135,10 @@ node_attr_decl: SYMBOL '.' SYMBOL '=' expression ';'
   } else {
     throw BNException(std::string(yy_error_head() + "invalid node attribute: ") + $3 + ", valid attributes are: istate or is_internal");
   }
+
+  free($1);
+  free($3);
+  delete $5;
 }
 | symbol_istate_list '.' SYMBOL '=' istate_expression_list ';'
 {
@@ -144,6 +150,8 @@ node_attr_decl: SYMBOL '.' SYMBOL '=' expression ';'
   if (error_msg.length() > 0) {
     throw BNException(std::string(yy_error_head() + error_msg));
   }
+  
+  free($3);
 }
 ;
 
@@ -157,6 +165,7 @@ symbol_list: SYMBOL
 {
   $$ = new std::vector<const Node*>();
   $$->push_back(network->getNode($1));
+  free($1);
 }
 | symbol_list ',' SYMBOL
 {
@@ -180,6 +189,11 @@ istate_expression_list: istate_expression
 istate_expression: primary_expression '[' expression_list ']'
 {
   $$ = new IStateGroup::ProbaIState($1, $3);
+  delete $1;
+  for (std::vector<Expression*>::iterator it = $3->begin(); it != $3->end(); ++it) {
+    delete *it;
+  }
+  delete $3;
 }
 ;
 
@@ -198,8 +212,10 @@ expression_list: primary_expression
 var_decl: VARIABLE '=' expression ';'
 {
   const Symbol* symbol = network->getSymbolTable()->getOrMakeSymbol($1);
+  free($1);
   NetworkState dummy_state;
   network->getSymbolTable()->setSymbolValue(symbol, $3->eval(NULL, dummy_state));
+  delete $3;
 }
 ;
 
@@ -214,6 +230,7 @@ primary_expression: INTEGER
 | VARIABLE
 {
   $$ = new SymbolExpression(network->getSymbolTable(), network->getSymbolTable()->getOrMakeSymbol($1));
+  free($1);
 }
 | '(' expression ')'
 {
@@ -241,10 +258,12 @@ postfix_expression: primary_expression
 | SYMBOL '(' argument_expression_list ')'
 {
   $$ = new FuncCallExpression($1, $3);
+  free($1);
 }
 | SYMBOL '(' ')'
 {
   $$ = new FuncCallExpression($1, NULL);
+  free($1);
 }
 ;
 

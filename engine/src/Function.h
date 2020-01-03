@@ -69,6 +69,13 @@ public:
   static void displayFunctionDescriptions(std::ostream& os);
   static std::map<std::string, Function*>* getFuncMap() {return func_map;}
   static void setFuncMap(std::map<std::string, Function*>* _func_map) {func_map = _func_map;}
+  static void destroyFuncMap() { 
+     for (std::map<std::string, Function*>::iterator it = func_map->begin(); it != func_map->end(); ++it) {
+        delete it->second;
+      }
+     delete func_map; 
+    }
+    virtual ~Function() {}
 };
 
 #endif

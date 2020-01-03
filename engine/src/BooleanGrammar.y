@@ -35,7 +35,6 @@
 
 extern int yylex();
 static void yyerror(const char *s);
-// MAP<std::string, bool> NodeDecl::node_def_map;
 static Network* current_network;
 %}
 
@@ -51,7 +50,6 @@ static Network* current_network;
   long long l;
 }
 
-%type<node_decl_list> translation_unit
 %type<node_decl> node_decl
 %type<node_decl_item_list> node_decl_item_list
 %type<node_decl_item> node_decl_item
@@ -81,30 +79,41 @@ static Network* current_network;
 
 translation_unit: node_decl
 {
-  $$ = new std::vector<NodeDecl*>();
-  $$->push_back($1);
 }
 | translation_unit node_decl
 {
-  $1->push_back($2);
-  $$ = $1;
 }
 ;
 
 node_decl: NODE IDENTIFIER '{' node_decl_item_list '}'
 {
-  $$ = new NodeDecl($2, $4);
+  NodeDecl* truc = new NodeDecl($2, $4);
+  free($2);
+  for (std::vector<NodeDeclItem*>::iterator it = $4->begin(); it != $4->end(); ++it) {
+    delete *it;
+  }
+  delete $4;
+  delete truc;
 }
 | NODE IDENTIFIER '{' '}'
 {
-  $$ = new NodeDecl($2, NULL);
+  NodeDecl* truc = new NodeDecl($2, NULL);
+  free($2);
+  delete truc;
 }
 | IDENTIFIER colon_comma expression term_opt
 {
   NodeDeclItem* decl_item = new NodeDeclItem("logic", $3);
   std::vector<NodeDeclItem*>* decl_item_v = new std::vector<NodeDeclItem*>();
   decl_item_v->push_back(decl_item);
-  $$ = new NodeDecl($1, decl_item_v);
+
+  NodeDecl* truc = new NodeDecl($1, decl_item_v);
+  free($1);
+  for (std::vector<NodeDeclItem*>::iterator it = decl_item_v->begin(); it != decl_item_v->end(); ++it) {
+    delete *it;
+  }
+  delete decl_item_v;
+  delete truc;
 }
 ;
 
@@ -129,10 +138,12 @@ node_decl_item_list: node_decl_item
 node_decl_item: IDENTIFIER '=' expression ';'
 {
   $$ = new NodeDeclItem($1, $3);
+  free($1);
 }
 | IDENTIFIER '=' STRING ';'
 {
   $$ = new NodeDeclItem($1, $3);
+  free($1);
 }
 ;
 
@@ -140,14 +151,17 @@ primary_expression: IDENTIFIER
 {
   Node* node = current_network->getOrMakeNode($1);
   $$ = new NodeExpression(node);
+  free($1);
 }
 | '@' IDENTIFIER
 {
   $$ = new AliasExpression($2);
+  free($2);
 }
 | VARIABLE
 {
   $$ = new SymbolExpression(current_network->getSymbolTable(), current_network->getSymbolTable()->getOrMakeSymbol($1));
+  free($1);
 }
 | INTEGER
 {
@@ -170,10 +184,12 @@ postfix_expression: primary_expression
 | IDENTIFIER '(' argument_expression_list ')'
 {
   $$ = new FuncCallExpression($1, $3);
+  free($1);
 }
 | IDENTIFIER '(' ')'
 {
   $$ = new FuncCallExpression($1, NULL);
+  free($1);
 }
 ;
 

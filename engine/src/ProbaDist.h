@@ -212,13 +212,16 @@ class ProbaDistClusterFactory {
 
   void display(Network* network, std::ostream& os, bool hexfloat) const;
 
-  // ~ProbaDistClusterFactory() {
+  ~ProbaDistClusterFactory() {
     
-  //   // for (unsigned int nn1 = 0; nn1 < statdist_traj_count; ++nn1) {
-  //   //   delete [] similarity_cache[nn1];
-  //   // }
-  //   delete [] similarity_cache;
-  // }
+    for (unsigned int nn1 = 0; nn1 < statdist_traj_count; ++nn1) {
+      delete [] similarity_cache[nn1];
+    }
+    delete [] similarity_cache;
+    for (auto& proba_dist_cluster: proba_dist_cluster_v) {
+      delete proba_dist_cluster;
+    }
+  }
 };
 
 #endif

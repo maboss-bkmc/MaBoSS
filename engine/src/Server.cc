@@ -40,6 +40,7 @@
 #include "RPC.h"
 #include "Utils.h"
 #include "MaBEstEngine.h"
+#include "Function.h"
 
 Server* Server::server;
 static const char* RPC_portname;
@@ -121,7 +122,7 @@ void Server::run(const ClientData& client_data, ServerData& server_data)
   std::string statdist_file = std::string(output) + "_statdist.csv";
   std::string fp_file = std::string(output) + "_fp.csv";
 
-  std::vector<std::string> files_to_delete_v(0);
+  std::vector<std::string> files_to_delete_v;
 
   try {
     time_t start_time, end_time;
@@ -238,6 +239,9 @@ void Server::run(const ClientData& client_data, ServerData& server_data)
     if (!quiet) {
       std::cerr << hst << " " << prog << " simulation finished at " << timebuf << " " << hst << "\n";;
     }
+    delete runconfig;
+    delete network;
+
   } catch(const BNException& e) {
     if (!quiet) {
       std::cerr << "\n" << hst << " " << prog << " simulation error [[\n" << e << "]] " << hst << "\n";
@@ -245,8 +249,10 @@ void Server::run(const ClientData& client_data, ServerData& server_data)
     delete_temp_files(files_to_delete_v);
     server_data.setStatus(1);
     server_data.setErrorMessage(e.getMessage());
+
     return;
   }
+  Function::destroyFuncMap();
   delete_temp_files(files_to_delete_v);
 }
 

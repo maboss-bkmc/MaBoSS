@@ -71,8 +71,6 @@ void MaBEstEngine::loadUserFuncs(const char* module)
 MaBEstEngine::MaBEstEngine(Network* network, RunConfig* runconfig) :
   network(network), runconfig(runconfig), time_tick(runconfig->getTimeTick()), max_time(runconfig->getMaxTime()), sample_count(runconfig->getSampleCount()), discrete_time(runconfig->isDiscreteTime()), thread_count(runconfig->getThreadCount()) {
 
-  tid = NULL;
-
   if (thread_count > sample_count) {
     thread_count = sample_count;
   }
@@ -309,7 +307,7 @@ void MaBEstEngine::runThread(Cumulator* cumulator, unsigned int start_count_thre
 
 void MaBEstEngine::run(std::ostream* output_traj)
 {
-  tid = new pthread_t[thread_count];
+  pthread_t* tid = new pthread_t[thread_count];
   RandomGeneratorFactory* randgen_factory = runconfig->getRandomGeneratorFactory();
   int seed = runconfig->getSeedPseudoRandom();
   unsigned int start_sample_count = 0;
@@ -334,6 +332,7 @@ void MaBEstEngine::run(std::ostream* output_traj)
   probe.stop();
   elapsed_epilogue_runtime = probe.elapsed_msecs();
   user_epilogue_runtime = probe.user_msecs();
+  delete [] tid;
 }  
 
 STATE_MAP<NetworkState_Impl, unsigned int>* MaBEstEngine::mergeFixpointMaps()
@@ -645,19 +644,15 @@ double MaBEstEngine::getAsymptoticNodeDist(Node * node) const {
 
 MaBEstEngine::~MaBEstEngine()
 {
-  for (std::vector<Cumulator*>::iterator iter = cumulator_v.begin(); iter < cumulator_v.end(); ++iter) {
-    delete *iter;
-  }
+  for (auto t_cumulator: cumulator_v)
+    delete t_cumulator;
 
-  for (std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*>::iterator iter = fixpoint_map_v.begin(); iter < fixpoint_map_v.end(); ++iter) {
-    delete *iter;
-  }
-
-  for (std::vector<ArgWrapper*>::iterator iter = arg_wrapper_v.begin(); iter < arg_wrapper_v.end(); ++iter) {
-    delete *iter;
-  }
+  for (auto t_fixpoint_map: fixpoint_map_v)
+    delete t_fixpoint_map;
+  
+  for (auto t_arg_wrapper: arg_wrapper_v)
+    delete t_arg_wrapper;
 
   delete merged_cumulator;
-  // delete [] tid;
 }
 

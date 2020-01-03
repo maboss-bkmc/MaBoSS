@@ -82,6 +82,8 @@ protected:
   virtual void manageRequest(int fd, const char* request) = 0;
 
   virtual ~rpc_Server() {
+    free(port_h->portname);
+    delete port_h;
   }
 };
 
