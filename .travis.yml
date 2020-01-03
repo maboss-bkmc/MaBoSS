@@ -8,212 +8,221 @@ env:
 jobs:
   include:
     - stage: test
+      name: Linux MaBoSS tests
+      
       os: linux
       dist: xenial
-      env: TASK=TestMaBoSS
+
+      before_install:
+        - sudo pip install numpy
+
+      install:
+        - bash -c "cd engine/src; make install; make MAXNODES=128 install"
+        
+      script:
+        - bash -c "cd engine/tests; bash ./test-cellcycle.sh"
+        - bash -c "cd engine/tests; bash ./test-ensemble.sh"
+        - bash -c "cd engine/tests; bash ./test-ewing.sh"
+        - bash -c "cd engine/tests; bash ./test-server.sh"
+    
+
     - stage: test
+      name: MacOSX MaBoSS tests
+
       os: osx
-      env: TASK=TestMaBoSS
+
+      before_install:
+        - brew install flex bison;
+        - pip install numpy;
+
+      install:
+        - bash -c "cd engine/src; make install; make MAXNODES=128 install"
+        
+      script:
+        - bash -c "cd engine/tests; bash ./test-cellcycle.sh"
+        - bash -c "cd engine/tests; bash ./test-ensemble.sh"
+        - bash -c "cd engine/tests; bash ./test-ewing.sh"
+        - bash -c "cd engine/tests; bash ./test-server.sh"
+
+
     - stage: test
+      name: MaBoSS-server docker test
+
       os: linux
       dist: xenial
       services: docker
       python: 3.8
-      env: TASK=TestMaBoSSDocker
+
+      before_install:
+        - sudo apt-get -qq update
+        - sudo apt-get install -yq python3-pip python3-setuptools
+        - sudo pip3 install -U docker-compose
+        - sudo pip install numpy
+
+      install:
+        - docker-compose up -d maboss-server
+        - bash -c "cd engine/src; make"
+
+      script:
+        - bash -c "cd engine/tests; bash ./test-container.sh"
+
+
     - stage: test
+      name: MaBoSS-server singularity test
+
       os: linux
       dist: xenial
       services: docker
       python: 3.8
-      env: TASK=TestMaBoSSSingularity
-    - stage: deploy
-      os: linux
-      python: 3.8
-      dist: xenial
-      env: TASK=BuildMaBoSSDocker
-    - stage: deploy
-      os: linux
-      python: 3.8
-      dist: xenial
-      env: TASK=BuildMaBoSSSingularity
+
+      before_install:
+        - wget -O- http://neuro.debian.net/lists/xenial.us-ca.full | sudo tee /etc/apt/sources.list.d/neurodebian.sources.list
+        - sudo apt-get -qq update
+        - sudo apt-get install -yq --allow-unauthenticated python-virtualenv singularity-container debootstrap
+        - sudo pip install numpy
+
+      install:
+        - sudo singularity build maboss-server.simg containers/singularity/Singularity
+        - singularity run maboss-server.simg & 
+        - bash -c "cd engine/src; make"
+
+      script:
+        - bash -c "cd engine/tests; bash ./test-container.sh"
+
+
     - stage: test
+      name: Linux cMaBoSS tests
+
       os: linux
       dist: xenial
       python: 3.8
-      env: TASK=TestCMaBoSS
+
+      install:
+        - bash -c "cd engine/src; make;"
+        - bash -c "cd engine/python; cp -r ../src .; python3 setup.py build_ext --inplace"
+      
+      script:
+        - bash -c "cd engine/python; python3 -m unittest test"
+        - bash -c "cd engine/python; python3 -m unittest test_128n"
+
+
     - stage: test
+      name: MacOSX cMaBoSS tests
+
       os: osx
-      env: TASK=TestCMaBoSS PYTHON_VERSION=3.8
+
+      before_install:
+        - brew install flex bison
+        - FULL_PYTHON_VERSION=`pyenv install -l | sed 's/ *//' | grep -e "^3.8\.[0-9]*$" | tail -n 1`
+        - CONFIGURE_OPTS="--with-openssl=$(brew --prefix openssl)" pyenv install $FULL_PYTHON_VERSION
+      
+      install:
+        - bash -c "cd engine/src; make"
+        - bash -c "cd engine/python; cp -r ../src ."
+        - cd engine/python;
+        - /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/python3 setup.py build_ext --inplace
+
+      script:
+        - bash -c "cd engine/python; /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/python3 -m unittest test"
+        - bash -c "cd engine/python; /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/python3 -m unittest test_128n"
+
+
     - stage: deploy
+      name: MaBoSS-server docker hub image update
+
+      os: linux
+      python: 3.8
+      dist: xenial
+      
+      install:
+        - echo "$DOCKER_HUB_PASSWORD" | docker login --username vnoel --password-stdin
+        - sudo apt-get -qq update
+        - sudo apt-get install -yq python3-pip python3-setuptools
+        - sudo pip3 install -U docker-compose
+
+      script:
+        - docker-compose build maboss-server
+
+      after_success:
+        - docker tag maboss-server:latest vnoel/maboss-server:latest
+        - docker push vnoel/maboss-server:latest
+
+
+    - stage: deploy
+      name: MaBoSS-server singularity image upload
+
+      os: linux
+      python: 3.8
+      dist: xenial
+
+      install:
+        - wget -O- http://neuro.debian.net/lists/xenial.us-ca.full | sudo tee /etc/apt/sources.list.d/neurodebian.sources.list
+        - sudo apt-get -qq update
+        - sudo apt-get install -yq --allow-unauthenticated python-virtualenv singularity-container debootstrap
+      
+      script: 
+        - sudo singularity build maboss-server.simg containers/singularity/Singularity
+
+    - stage: deploy
+      name: Linux cMaBoSS upload on pypi
+
       os: linux
       dist: xenial
       sudo: required
       services: docker
-      env: TASK=BuildCMaBoSS
+      
+      install:
+        - bash -c "cd engine/src; make"
+        - bash -c "cd engine/python; cp -r ../src ."
+        - sudo pip install twine
+      
+      script:
+        - cd engine/python
+        - docker run --rm -e PLAT=manylinux1_x86_64 -v `pwd`:/io quay.io/pypa/manylinux1_x86_64 /io/build-wheels.sh
+
+      after_success:
+        - twine upload -u vincent-noel -p $PYPI_PASS --skip-existing wheelhouse/*
+
+
     - stage: deploy
+      name: MacOSX cMaBoSS upload on pypi
+
       os: osx
-      env: TASK=BuildCMaBoSS
-
-before_install:
-  if [ $TASK = 'TestMaBoSS' ]; then
-    if [ $TRAVIS_OS_NAME = 'osx' ]; then
-        brew install flex bison;
-        pip install numpy;
-      else
-        sudo pip install numpy;
-      fi
-
-  elif [ $TASK = 'TestMaBoSSDocker' ]; then
-    sudo apt-get -qq update;
-    sudo apt-get install -yq python3-pip python3-setuptools;
-
-  elif [ $TASK = 'BuildMaBoSSDocker' ]; then
-    echo "$DOCKER_HUB_PASSWORD" | docker login --username vnoel --password-stdin;
-    sudo apt-get -qq update;
-    sudo apt-get install -yq python3-pip python3-setuptools;
-
-  elif [ $TASK = 'TestMaBoSSSingularity' ]; then
-    wget -O- http://neuro.debian.net/lists/xenial.us-ca.full | sudo tee /etc/apt/sources.list.d/neurodebian.sources.list;
-    sudo apt-key adv --recv-keys --keyserver hkp://pool.sks-keyservers.net:80 0xA5D32F012649A5A9;
-    sudo apt-get -qq update;
-    sudo apt-get install -yq python-virtualenv singularity-container debootstrap;
-    sudo pip install numpy;
-
-  elif [ $TASK = 'TestCMaBoSS' ]; then
-    if [ $TRAVIS_OS_NAME = 'osx' ]; then
-      brew install flex bison;
-      FULL_PYTHON_VERSION=`pyenv install -l | sed 's/ *//' | grep -e "^$PYTHON_VERSION\.[0-9]*$" | tail -n 1`;
-      CONFIGURE_OPTS="--with-openssl=$(brew --prefix openssl)" pyenv install $FULL_PYTHON_VERSION;
-      pyenv local $FULL_PYTHON_VERSION;
-    fi
-  
-  elif [ $TASK = 'BuildCMaBoSS' ]; then
-    cd engine/src;
-    make;
-    cd ../python;
-    cp -r ../src .;
+      
+      install:
+        - bash -c "cd engine/src; make"
+        - bash -c "cd engine/python; cp -r ../src ."
         
-    if [ $TRAVIS_OS_NAME = 'osx' ]; then
+        - FULL_PYTHON_VERSION=`pyenv install -l | sed 's/ *//' | grep -e "^3.5\.[0-9]*$" | tail -n 1` 
+        - CONFIGURE_OPTS="--with-openssl=$(brew --prefix openssl)" pyenv install $FULL_PYTHON_VERSION
+        - /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/pip install wheel twine
+        
+        - FULL_PYTHON_VERSION=`pyenv install -l | sed 's/ *//' | grep -e "^3.6\.[0-9]*$" | tail -n 1` 
+        - CONFIGURE_OPTS="--with-openssl=$(brew --prefix openssl)" pyenv install $FULL_PYTHON_VERSION
+        - /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/pip install wheel twine
+        
+        - FULL_PYTHON_VERSION=`pyenv install -l | sed 's/ *//' | grep -e "^3.7\.[0-9]*$" | tail -n 1` 
+        - CONFIGURE_OPTS="--with-openssl=$(brew --prefix openssl)" pyenv install $FULL_PYTHON_VERSION
+        - /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/pip install wheel twine
+        
+        - FULL_PYTHON_VERSION=`pyenv install -l | sed 's/ *//' | grep -e "^3.8\.[0-9]*$" | tail -n 1` 
+        - CONFIGURE_OPTS="--with-openssl=$(brew --prefix openssl)" pyenv install $FULL_PYTHON_VERSION
+        - /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/pip install wheel twine
 
-      FULL_PYTHON_VERSION=`pyenv install -l | sed 's/ *//' | grep -e "^3.5\.[0-9]*$" | tail -n 1`;
-      CONFIGURE_OPTS="--with-openssl=$(brew --prefix openssl)" pyenv install $FULL_PYTHON_VERSION;
-      pyenv local $FULL_PYTHON_VERSION;
-      /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/pip install wheel twine;
-      FULL_PYTHON_VERSION=`pyenv install -l | sed 's/ *//' | grep -e "^3.6\.[0-9]*$" | tail -n 1`;
-      CONFIGURE_OPTS="--with-openssl=$(brew --prefix openssl)" pyenv install $FULL_PYTHON_VERSION;
-      pyenv local $FULL_PYTHON_VERSION;
-      /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/pip install wheel twine;
-      FULL_PYTHON_VERSION=`pyenv install -l | sed 's/ *//' | grep -e "^3.7\.[0-9]*$" | tail -n 1`;
-      CONFIGURE_OPTS="--with-openssl=$(brew --prefix openssl)" pyenv install $FULL_PYTHON_VERSION;
-      /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/pip install wheel twine;
-      FULL_PYTHON_VERSION=`pyenv install -l | sed 's/ *//' | grep -e "^3.8\.[0-9]*$" | tail -n 1`;
-      CONFIGURE_OPTS="--with-openssl=$(brew --prefix openssl)" pyenv install $FULL_PYTHON_VERSION;
-      pyenv local $FULL_PYTHON_VERSION;
-      /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/pip install wheel twine;
-    else
-      sudo pip install twine;
-    fi
-  fi
+      script:
+        - cd engine/python
+        
+        - FULL_PYTHON_VERSION=`pyenv install -l | sed 's/ *//' | grep -e "^3.5\.[0-9]*$" | tail -n 1` 
+        - /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/pip wheel . -w wheelhouse
+        
+        - FULL_PYTHON_VERSION=`pyenv install -l | sed 's/ *//' | grep -e "^3.6\.[0-9]*$" | tail -n 1` 
+        - /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/pip wheel . -w wheelhouse
+        
+        - FULL_PYTHON_VERSION=`pyenv install -l | sed 's/ *//' | grep -e "^3.7\.[0-9]*$" | tail -n 1` 
+        - /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/pip wheel . -w wheelhouse
+        
+        - FULL_PYTHON_VERSION=`pyenv install -l | sed 's/ *//' | grep -e "^3.8\.[0-9]*$" | tail -n 1` 
+        - /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/pip wheel . -w wheelhouse
 
-install:
-  if [ $TASK = 'TestMaBoSS' ]; then
-    bash -c "cd engine/src; make install; make MAXNODES=128 install";
-
-  elif [ $TASK = 'TestMaBoSSDocker' ]; then
-    sudo pip3 install -U docker-compose;
-    sudo pip install numpy;
-    docker-compose up -d maboss-server;
-    bash -c "cd engine/src; make";
-  
-  elif [ $TASK = 'TestMaBoSSSingularity' ]; then
-    sudo singularity build maboss-server.simg containers/singularity/Singularity;
-    singularity run maboss-server.simg & 
-    bash -c "cd engine/src; make";
-
-  elif [ $TASK = 'BuildMaBoSSDocker' ]; then
-    sudo pip3 install -U docker-compose;
-
-  elif [ $TASK = 'BuildMaBoSSSingularity' ]; then
-    wget -O- http://neuro.debian.net/lists/xenial.us-ca.full | sudo tee /etc/apt/sources.list.d/neurodebian.sources.list;
-    sudo apt-key adv --recv-keys --keyserver hkp://pool.sks-keyservers.net:80 0xA5D32F012649A5A9;
-    sudo apt-get -qq update;
-    sudo apt-get install -yq python-virtualenv singularity-container debootstrap;
-
-  elif [ $TASK = 'TestCMaBoSS' ]; then
-    cd engine/src;
-    make;
-    cd ../python;
-    cp -r ../src .;  
-    if [ $TRAVIS_OS_NAME = 'osx' ]; then
-      /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/python3 setup.py build_ext --inplace;
-    else
-      python3 setup.py build_ext --inplace;
-    fi
-  
-  elif [ $TASK = 'BuildCMaBoSS' ]; then  
-    if [ $TRAVIS_OS_NAME = 'osx' ]; then
-    FULL_PYTHON_VERSION=`pyenv install -l | sed 's/ *//' | grep -e "^3.5\.[0-9]*$" | tail -n 1`;
-    pyenv local $FULL_PYTHON_VERSION;
-    /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/pip wheel . -w wheelhouse;
-    FULL_PYTHON_VERSION=`pyenv install -l | sed 's/ *//' | grep -e "^3.6\.[0-9]*$" | tail -n 1`;
-    pyenv local $FULL_PYTHON_VERSION;
-    /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/pip wheel . -w wheelhouse;
-    FULL_PYTHON_VERSION=`pyenv install -l | sed 's/ *//' | grep -e "^3.7\.[0-9]*$" | tail -n 1`;
-    pyenv local $FULL_PYTHON_VERSION;
-    /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/pip wheel . -w wheelhouse;
-    FULL_PYTHON_VERSION=`pyenv install -l | sed 's/ *//' | grep -e "^3.8\.[0-9]*$" | tail -n 1`;
-    pyenv local $FULL_PYTHON_VERSION;
-    /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/pip wheel . -w wheelhouse;
-    
-
-  
-    else
-      docker run --rm -e PLAT=manylinux1_x86_64 -v `pwd`:/io quay.io/pypa/manylinux1_x86_64 /io/build-wheels.sh;
-    
-    fi
-  fi
-
-script:
-  if [ $TASK = 'TestMaBoSS' ]; then
-      bash -c "cd engine/tests; bash ./test-cellcycle.sh";
-      bash -c "cd engine/tests; bash ./test-ensemble.sh";
-      bash -c "cd engine/tests; bash ./test-ewing.sh";
-      bash -c "cd engine/tests; bash ./test-server.sh";
-
-  elif [ $TASK = 'TestMaBoSSDocker' ]; then
-    bash -c "cd engine/tests; bash ./test-container.sh";
-  
-  elif [ $TASK = 'TestMaBoSSSingularity' ]; then
-    bash -c "cd engine/tests; bash ./test-container.sh";
-
-  elif [ $TASK = 'BuildMaBoSSDocker' ]; then
-    docker-compose build maboss-server;
-
-  elif [ $TASK = 'BuildMaBoSSSingularity' ]; then
-    sudo singularity build maboss-server.simg containers/singularity/Singularity;
-
-  elif [ $TASK = 'TestCMaBoSS' ]; then
-    if [ $TRAVIS_OS_NAME = 'osx' ]; then
-      /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/python3 -m unittest test;
-      /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/python3 -m unittest test_128n;
-    else
-      python3 -m unittest test;
-      python3 -m unittest test_128n;
-    fi
-
-  elif [ $TASK = 'BuildCMaBoSS' ]; then
-    if [ $TRAVIS_OS_NAME = 'osx' ]; then
-      /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/twine upload -u vincent-noel -p $PYPI_PASS --skip-existing wheelhouse/*;
-  
-    else
-      twine upload -u vincent-noel -p $PYPI_PASS --skip-existing wheelhouse/*;
-  
-    fi
-  fi
-
-after_success:
-  if [ $TASK = 'BuildMaBoSSDocker' ]; then
-    docker tag maboss-server:latest vnoel/maboss-server:latest;
-    docker push vnoel/maboss-server:latest;
-
-  fi
+      after_success:
+        - /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/twine upload -u vincent-noel -p $PYPI_PASS --skip-existing wheelhouse/*
