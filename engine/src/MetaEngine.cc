@@ -284,3 +284,8 @@ double MetaEngine::getAsymptoticNodeDist(Node * node) const {
 
   return result;  
 }
+
+const double MetaEngine::getFinalTime() const {
+  return merged_cumulator->getFinalTime();
+}
+

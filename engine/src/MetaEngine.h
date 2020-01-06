@@ -107,8 +107,7 @@ public:
   
   const std::map<unsigned int, std::pair<NetworkState, double> > getFixPointsDists() const;
   int getMaxTickIndex() const {return merged_cumulator->getMaxTickIndex();} 
-
-
+  const double getFinalTime() const;
 };
 
 #endif

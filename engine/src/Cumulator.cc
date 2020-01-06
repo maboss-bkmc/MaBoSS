@@ -489,6 +489,9 @@ const STATE_MAP<NetworkState_Impl, double> Cumulator::getNthStateDist(int nn) co
 const STATE_MAP<NetworkState_Impl, double> Cumulator::getAsymptoticStateDist() const 
 { return getNthStateDist(getMaxTickIndex()-1); }
 
+const double Cumulator::getFinalTime() const {
+  return time_tick*(getMaxTickIndex()-1);
+}
 void Cumulator::add(unsigned int where, const CumulMap& add_cumul_map)
 {
   CumulMap& to_cumul_map = get_map(where);

@@ -393,7 +393,8 @@ public:
   const std::map<double, STATE_MAP<NetworkState_Impl, double> > getStateDists() const;
   const STATE_MAP<NetworkState_Impl, double> getNthStateDist(int nn) const;
   const STATE_MAP<NetworkState_Impl, double> getAsymptoticStateDist() const;
-  
+  const double getFinalTime() const;
+
   void computeMaxTickIndex();
   int getMaxTickIndex() const { return max_tick_index;} 
 
