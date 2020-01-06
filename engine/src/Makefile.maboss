@@ -31,7 +31,7 @@ endif
 
 CXX = g++
 CXXOPT = -O2
-CXXFLAGS = $(CXXOPT) -Wall -DMAXNODES=$(MAXNODES) $(EXTRA_FLAGS) -fpic
+CXXFLAGS = $(CXXOPT) -Wall -DMAXNODES=$(MAXNODES) $(EXTRA_FLAGS) -fpic -ggdb -DNDEBUG
 
 MAKEDEPEND = gcc -M $(EXTRA_FLAGS)
 
@@ -41,7 +41,7 @@ BISON = bison
 CHECK_FLEX  = $(FLEX) --version > /dev/null
 CHECK_BISON = $(BISON) --version > /dev/null
 
-LIB_OBJS := MaBEstEngine$(INFIX).o EnsembleEngine$(INFIX).o Cumulator$(INFIX).o ProbaDist$(INFIX).o BooleanNetwork$(INFIX).o BooleanGrammar$(INFIX).o RunConfigGrammar$(INFIX).o Function$(INFIX).o BuiltinFunctions$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o Utils$(INFIX).o
+LIB_OBJS := MetaEngine$(INFIX).o MaBEstEngine$(INFIX).o EnsembleEngine$(INFIX).o Cumulator$(INFIX).o ProbaDist$(INFIX).o BooleanNetwork$(INFIX).o BooleanGrammar$(INFIX).o RunConfigGrammar$(INFIX).o Function$(INFIX).o BuiltinFunctions$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o Utils$(INFIX).o
 SERVER_OBJS := Server.o DataStreamer.o RPC.o
 
 # if USE_LIB is set, maboss library will be used for MaBoSS and MaBoSS-server programs => that will oblige the user to set LD_LIBRARY_PATH or DYLD_LIBRARY_PATH environment variable to execute MaBoSS or MaBoSS-server

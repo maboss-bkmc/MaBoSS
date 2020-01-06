@@ -5,7 +5,7 @@ from os.path import join, dirname
 maboss_version = '1.0.0-alpha-3'
 
 maboss_sources = [
-   "MaBEstEngine.cc", "EnsembleEngine.cc", "Cumulator.cc", "ProbaDist.cc", 
+   "MetaEngine.cc", "MaBEstEngine.cc", "EnsembleEngine.cc", "Cumulator.cc", "ProbaDist.cc", 
    "BooleanNetwork.cc", "BooleanGrammar.cc", "RunConfigGrammar.cc", 
    "Function.cc", "BuiltinFunctions.cc", "RunConfig.cc", "LogicalExprGen.cc", "Utils.cc"
 ]

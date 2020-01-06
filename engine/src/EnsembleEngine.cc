@@ -38,37 +38,9 @@
 #include <iostream>
 
 const std::string EnsembleEngine::VERSION = "1.2.0";
-// size_t RandomGenerator::generated_number_count = 0;
-static const char* MABOSS_USER_FUNC_INIT = "maboss_user_func_init";
-
-void MetaEngine::init()
-{
-  extern void builtin_functions_init();
-  builtin_functions_init();
-}
-
-void MetaEngine::loadUserFuncs(const char* module)
-{
-  init();
-
-  void* dl = dlopen(module, RTLD_LAZY);
-  if (NULL == dl) {
-    std::cerr << dlerror() << "\n";
-    exit(1);
-  }
-
-  void* sym = dlsym(dl, MABOSS_USER_FUNC_INIT);
-  if (sym == NULL) {
-    std::cerr << "symbol " << MABOSS_USER_FUNC_INIT << "() not found in user func module: " << module << "\n";
-    exit(1);
-  }
-  typedef void (*init_t)(std::map<std::string, Function*>*);
-  init_t init_fun = (init_t)sym;
-  init_fun(Function::getFuncMap());
-}
 
 EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runconfig, bool save_individual_result, bool random_sampling) :
-  MetaEngine(runconfig), networks(networks), save_individual_result(save_individual_result), random_sampling(random_sampling) {
+  MetaEngine(networks[0], runconfig), networks(networks), save_individual_result(save_individual_result), random_sampling(random_sampling) {
 
   if (thread_count > 1 && !runconfig->getRandomGeneratorFactory()->isThreadSafe()) {
     std::cerr << "Warning: non reentrant random, may not work properly in multi-threaded mode\n";
