@@ -41,7 +41,7 @@ static PyObject* cMaBoSSResult_get_fp_table(cMaBoSSResultObject* self) {
   return dict;
 }
 
-static PyObject* cMaBoSSResult_get_last_probtraj(cMaBoSSResultObject* self) {
+static PyObject* cMaBoSSResult_get_last_states_probtraj(cMaBoSSResultObject* self) {
   
   PyObject *dict = PyDict_New();
   
@@ -54,6 +54,12 @@ static PyObject* cMaBoSSResult_get_last_probtraj(cMaBoSSResultObject* self) {
     );
   }
   return (PyObject*) dict;
+}
+
+static PyObject* cMaBoSSResult_get_final_time(cMaBoSSResultObject* self) {
+
+  return PyFloat_FromDouble(self->engine->getFinalTime());
+
 }
 
 static PyObject* cMaBoSSResult_get_last_nodes_probtraj(cMaBoSSResultObject* self) {
@@ -196,8 +202,9 @@ static PyObject* cMaBoSSResult_get_raw_nodes_probtrajs(cMaBoSSResultObject* self
 }
 
 static PyMethodDef cMaBoSSResult_methods[] = {
+    {"get_final_time", (PyCFunction) cMaBoSSResult_get_final_time, METH_NOARGS, "gets the final time of the simulation"},
     {"get_fp_table", (PyCFunction) cMaBoSSResult_get_fp_table, METH_NOARGS, "gets the fixpoints table"},
-    {"get_last_probtraj", (PyCFunction) cMaBoSSResult_get_last_probtraj, METH_NOARGS, "gets the last probtraj of the simulation"},
+    {"get_last_states_probtraj", (PyCFunction) cMaBoSSResult_get_last_states_probtraj, METH_NOARGS, "gets the last probtraj of the simulation"},
     {"get_states", (PyCFunction) cMaBoSSResult_get_states, METH_NOARGS, "gets the states visited by the simulation"},
     {"get_raw_probtrajs", (PyCFunction) cMaBoSSResult_get_raw_probtrajs, METH_NOARGS, "gets the raw states probability trajectories of the simulation"},
     {"get_last_nodes_probtraj", (PyCFunction) cMaBoSSResult_get_last_nodes_probtraj, METH_NOARGS, "gets the last nodes probtraj of the simulation"},
