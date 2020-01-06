@@ -2,7 +2,7 @@ from distutils.core import setup, Extension
 from sys import executable, argv
 from os.path import join, dirname
 
-maboss_version = '1.0.0-alpha-3'
+maboss_version = '1.0.0-alpha-4'
 
 maboss_sources = [
    "MetaEngine.cc", "MaBEstEngine.cc", "EnsembleEngine.cc", "Cumulator.cc", "ProbaDist.cc", 
@@ -35,9 +35,9 @@ setup (name = 'cmaboss',
    description = """MaBoSS python bindings""",
    ext_modules = [
       getExtensionByMaxnodes(), 
-      # getExtensionByMaxnodes(128), 
-      # getExtensionByMaxnodes(256), 
-      # getExtensionByMaxnodes(512),
-      # getExtensionByMaxnodes(1024)
+      getExtensionByMaxnodes(128), 
+      getExtensionByMaxnodes(256), 
+      getExtensionByMaxnodes(512),
+      getExtensionByMaxnodes(1024)
    ],
 )
