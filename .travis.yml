@@ -25,7 +25,8 @@ jobs:
         - bash -c "cd engine/tests; bash ./test-ewing.sh"
         - bash -c "cd engine/tests; bash ./test-server.sh"
         - bash -c "cd engine/tests; bash ./test-user_func.sh"
-    
+        - bash -c "cd engine/tests; bash ./test-prngs.sh"
+
 
     - stage: test
       name: MacOSX MaBoSS tests
@@ -45,6 +46,7 @@ jobs:
         - bash -c "cd engine/tests; bash ./test-ewing.sh"
         - bash -c "cd engine/tests; bash ./test-server.sh"
         - bash -c "cd engine/tests; bash ./test-user_func.sh"
+        - bash -c "cd engine/tests; bash ./test-prngs.sh"
 
 
     - stage: test
