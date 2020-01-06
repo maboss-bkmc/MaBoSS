@@ -480,21 +480,23 @@ const std::map<double, std::map<Node *, double> > MaBEstEngine::getNodesDists() 
 
     while(nodes_begin != nodes_end) {
 
-      double dist = 0;
+      if (!(*nodes_begin)->isInternal())
+      {
+        double dist = 0;
 
-      STATE_MAP<NetworkState_Impl, double>::const_iterator states_begin = present_state_dist.begin();
-      STATE_MAP<NetworkState_Impl, double>::const_iterator states_end = present_state_dist.end();
-    
-      while(states_begin != states_end) {
+        STATE_MAP<NetworkState_Impl, double>::const_iterator states_begin = present_state_dist.begin();
+        STATE_MAP<NetworkState_Impl, double>::const_iterator states_end = present_state_dist.end();
+      
+        while(states_begin != states_end) {
 
-        NetworkState state = states_begin->first;
-        dist += states_begin->second * ((double) state.getNodeState(*nodes_begin));
+          NetworkState state = states_begin->first;
+          dist += states_begin->second * ((double) state.getNodeState(*nodes_begin));
 
-        states_begin++;
+          states_begin++;
+        }
+
+        node_dist[*nodes_begin] = dist;
       }
-
-      node_dist[*nodes_begin] = dist;
-
       nodes_begin++;
     }
 
@@ -517,21 +519,23 @@ const std::map<Node*, double> MaBEstEngine::getNthNodesDist(int nn) const {
 
   while(nodes_begin != nodes_end) {
 
-    double dist = 0;
+    if (!(*nodes_begin)->isInternal())
+    {
+      double dist = 0;
 
-    STATE_MAP<NetworkState_Impl, double>::const_iterator states_begin = state_dist.begin();
-    STATE_MAP<NetworkState_Impl, double>::const_iterator states_end = state_dist.end();
-  
-    while(states_begin != states_end) {
+      STATE_MAP<NetworkState_Impl, double>::const_iterator states_begin = state_dist.begin();
+      STATE_MAP<NetworkState_Impl, double>::const_iterator states_end = state_dist.end();
+    
+      while(states_begin != states_end) {
 
-      NetworkState state = states_begin->first;
-      dist += states_begin->second * ((double) state.getNodeState(*nodes_begin));
+        NetworkState state = states_begin->first;
+        dist += states_begin->second * ((double) state.getNodeState(*nodes_begin));
 
-      states_begin++;
+        states_begin++;
+      }
+
+      result[*nodes_begin] = dist;
     }
-
-    result[*nodes_begin] = dist;
-
     nodes_begin++;
   }
 
@@ -549,21 +553,23 @@ const std::map<Node*, double> MaBEstEngine::getAsymptoticNodesDist() const {
 
   while(nodes_begin != nodes_end) {
 
-    double dist = 0;
+    if (!(*nodes_begin)->isInternal())
+    {
+      double dist = 0;
 
-    STATE_MAP<NetworkState_Impl, double>::const_iterator states_begin = state_dist.begin();
-    STATE_MAP<NetworkState_Impl, double>::const_iterator states_end = state_dist.end();
-  
-    while(states_begin != states_end) {
+      STATE_MAP<NetworkState_Impl, double>::const_iterator states_begin = state_dist.begin();
+      STATE_MAP<NetworkState_Impl, double>::const_iterator states_end = state_dist.end();
+    
+      while(states_begin != states_end) {
 
-      NetworkState state = states_begin->first;
-      dist += states_begin->second * ((double) state.getNodeState(*nodes_begin));
+        NetworkState state = states_begin->first;
+        dist += states_begin->second * ((double) state.getNodeState(*nodes_begin));
 
-      states_begin++;
+        states_begin++;
+      }
+
+      result[*nodes_begin] = dist;
     }
-
-    result[*nodes_begin] = dist;
-
     nodes_begin++;
   }
 
