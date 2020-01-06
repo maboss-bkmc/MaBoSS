@@ -44,6 +44,8 @@ PyInit_cmaboss(void)
 MODULE_INIT_NAME(void)
 #endif
 {
+    MaBEstEngine::init();
+
     PyObject *m;
     if (PyType_Ready(&cMaBoSSSim) < 0){
         return NULL;
