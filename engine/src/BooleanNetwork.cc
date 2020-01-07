@@ -244,7 +244,7 @@ Node* Network::getNode(const std::string& label)
   return node_map[label];
 }
 
-void Network::initStates(NetworkState& initial_state)
+void Network::initStates(NetworkState& initial_state, RandomGenerator * randgen)
 {
   if (backward_istate) {
     std::vector<Node*>::const_iterator begin = nodes.begin();
@@ -256,7 +256,7 @@ void Network::initStates(NetworkState& initial_state)
       ++begin;
     }
   } else {
-    IStateGroup::initStates(this, initial_state);
+    IStateGroup::initStates(this, initial_state, randgen);
   }
 }
 
@@ -530,7 +530,7 @@ void IStateGroup::checkAndComplete(Network* network)
   // now complete missing nodes
 }
 
-void IStateGroup::initStates(Network* network, NetworkState& initial_state)
+void IStateGroup::initStates(Network* network, NetworkState& initial_state, RandomGenerator* randgen)
 {
   std::vector<IStateGroup*>::iterator istate_group_iter = network->getIStateGroup()->begin();
   std::vector<IStateGroup*>::iterator istate_group_end = network->getIStateGroup()->end();
@@ -554,7 +554,8 @@ void IStateGroup::initStates(Network* network, NetworkState& initial_state)
 	++state_value_iter;
       }
     } else {
-      double rand = network->getRandomGenerator()->generate();
+      // double rand = network->getRandomGenerator()->generate();
+      double rand = randgen->generate();
       assert(rand >= 0. && rand <= 1.);
       std::vector<ProbaIState*>::iterator proba_istate_iter = proba_istates->begin();
       std::vector<ProbaIState*>::iterator proba_istate_end = proba_istates->end();

@@ -378,7 +378,7 @@ void EnsembleEngine::runThread(Cumulator* cumulator, unsigned int start_count_th
       t_models_cumulators[model_ind]->rewind();
     }
     
-    network->initStates(network_state);
+    network->initStates(network_state, random_generator);
     double tm = 0.;
     unsigned int step = 0;
   //   if (NULL != output_traj) {

@@ -582,7 +582,7 @@ public:
 
   void updateRandomGenerator(RunConfig* runconfig);
 
-  void initStates(NetworkState& initial_state);
+  void initStates(NetworkState& initial_state, RandomGenerator* randgen);
 
   void displayHeader(std::ostream& os) const;
 
@@ -1502,7 +1502,7 @@ public:
   }
 
   static void checkAndComplete(Network* network);
-  static void initStates(Network* network, NetworkState& initial_state);
+  static void initStates(Network* network, NetworkState& initial_state, RandomGenerator * randgen);
   static void display(Network* network, std::ostream& os);
   static void reset(Network* network);
   

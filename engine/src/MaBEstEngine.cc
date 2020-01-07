@@ -185,7 +185,7 @@ void MaBEstEngine::runThread(Cumulator* cumulator, unsigned int start_count_thre
   for (unsigned int nn = 0; nn < sample_count_thread; ++nn) {
     random_generator->setSeed(seed+start_count_thread+nn);
     cumulator->rewind();
-    network->initStates(network_state);
+    network->initStates(network_state, random_generator);
     double tm = 0.;
     unsigned int step = 0;
     if (NULL != output_traj) {
