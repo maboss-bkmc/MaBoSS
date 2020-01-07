@@ -150,6 +150,8 @@ jobs:
       after_success:
         - docker tag maboss-server:latest vnoel/maboss-server:latest
         - docker push vnoel/maboss-server:latest
+        - docker tag maboss-server:latest sysbiocurie/maboss-server:latest
+        - docker push sysbiocurie/maboss-server:latest
 
 
     - stage: deploy
