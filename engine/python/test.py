@@ -4,7 +4,7 @@ from unittest import TestCase
 class TestCMaBoSS(TestCase):
 
     def test_load_model(self):
-        sim = cmaboss.MaBoSSSim(network="metastasis.bnd", config="metastasis.cfg")
+        sim = cmaboss.MaBoSSSim(network="../examples/metastasis.bnd", config="../examples/metastasis.cfg")
         res = sim.run()
         res.get_states()
         res.get_nodes()
@@ -15,7 +15,7 @@ class TestCMaBoSS(TestCase):
         res.get_fp_table()
 
     def test_load_model_str(self):
-        with open("metastasis.bnd", "r") as bnd, open("metastasis.cfg", "r") as cfg:    
+        with open("../examples/metastasis.bnd", "r") as bnd, open("../examples/metastasis.cfg", "r") as cfg:    
             sim = cmaboss.MaBoSSSim(network_str=bnd.read(),config_str=cfg.read())
             res = sim.run()
             res.get_states()
