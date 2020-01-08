@@ -13,6 +13,8 @@ typedef struct {
   // MaBEstEngine* simulation;
 } cMaBoSSSimObject;
 
+static PyObject *PyBNException = NULL;
+
 static void cMaBoSSSim_dealloc(cMaBoSSSimObject *self)
 {
     Py_TYPE(self)->tp_free((PyObject *) self);
@@ -71,9 +73,8 @@ static PyObject * cMaBoSSSim_new(PyTypeObject* type, PyObject *args, PyObject* k
     } else return Py_None;
   }
   catch (BNException& e) {
-    std::cout << "EXCEPTION" << std::endl;
-    std::cout << e.getMessage() << std::endl;
-    return Py_None;
+    PyErr_SetString(PyBNException, e.getMessage().c_str());
+    return NULL;
   }
 }
 

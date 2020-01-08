@@ -14,6 +14,10 @@ class TestCMaBoSS(TestCase):
         res.get_raw_nodes_probtrajs()
         res.get_fp_table()
 
+    def test_load_model_error(self):
+        with self.assertRaises(cmaboss_128n.BNException):
+            sim = cmaboss_128n.MaBoSSSim(network="../tests/ewing/ewing_full-error.bnd", config="../tests/ewing/ewing.cfg")
+
     def test_load_model_str(self):
         with open("../tests/ewing/ewing_full.bnd", "r") as bnd, open("../tests/ewing/ewing.cfg", "r") as cfg:    
             sim = cmaboss_128n.MaBoSSSim(network_str=bnd.read(),config_str=cfg.read())
@@ -25,3 +29,8 @@ class TestCMaBoSS(TestCase):
             res.get_last_nodes_probtraj()
             res.get_raw_nodes_probtrajs()
             res.get_fp_table()
+
+    def test_load_model_str_error(self):
+        with open("../tests/ewing/ewing_full-error.bnd", "r") as bnd, open("../tests/ewing/ewing.cfg", "r") as cfg:    
+            with self.assertRaises(cmaboss_128n.BNException):
+                cmaboss_128n.MaBoSSSim(network_str=bnd.read(),config_str=cfg.read())

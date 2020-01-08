@@ -56,6 +56,17 @@ MODULE_INIT_NAME(void)
 
     m = PyModule_Create(&cMaBoSSDef);
 
+#if ! defined (MAXNODES) || MAXNODES <= 64 
+    char exception_name[50] = "cmaboss.BNException";
+#else
+#define MODULE_NODES NAME1(MAXNODES, n)
+#define MODULE_NAME NAME1(cmaboss_, MODULE_NODES)
+    char exception_name[50] = STR(MODULE_NAME);
+    strcat(exception_name, ".BNException");
+#endif
+    PyBNException = PyErr_NewException(exception_name, NULL, NULL);
+    PyModule_AddObject(m, "BNException", PyBNException);
+        
     Py_INCREF(&cMaBoSSSim);
     if (PyModule_AddObject(m, "MaBoSSSim", (PyObject *) &cMaBoSSSim) < 0) {
         Py_DECREF(&cMaBoSSSim);
