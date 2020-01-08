@@ -14,20 +14,12 @@ maboss_module_sources = ['maboss_module.cpp', 'maboss_sim.cpp']
 extra_compile_args = ['-std=c++11']
 
 def getExtensionByMaxnodes(maxnodes=64):
-   if maxnodes <= 64:
-      return Extension(
-         'cmaboss', 
-         sources= maboss_module_sources + ["src/%s" % source for source in maboss_sources], 
-         extra_compile_args=extra_compile_args,
-         language="c++"
-      )
-   else:
-      return Extension(
-         'cmaboss_%dn' % maxnodes, 
-         sources=maboss_module_sources + ["src/%s" % source for source in maboss_sources], 
-         extra_compile_args=extra_compile_args + ['-DMAXNODES=%d' % maxnodes],
-         language="c++"
-      )
+   return Extension(
+      "cmaboss" if maxnodes <= 64 else "cmaboss_%dn" % maxnodes, 
+      sources=maboss_module_sources + ["src/%s" % source for source in maboss_sources], 
+      extra_compile_args=(extra_compile_args + ([] if maxnodes <= 64 else ['-DMAXNODES=%d' % maxnodes])),
+      language="c++"
+   )
 
 setup (name = 'cmaboss',
    version = maboss_version,
