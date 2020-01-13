@@ -63,6 +63,9 @@ public:
   void run(std::ostream* output_traj);
 
   void display(std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat = false) const;
+  void displayStatDist(std::ostream& output_statdist, bool hexfloat = false) const;
+  void displayProbTraj(std::ostream& output_probtraj, bool hexfloat = false) const;
+  void displayFixpoints(std::ostream& output_fp, bool hexfloat = false) const;
   void displayAsymptotic(std::ostream& output_asymptprob, bool hexfloat = false, bool proba = true) const;
 
   ~MaBEstEngine();

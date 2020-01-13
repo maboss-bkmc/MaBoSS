@@ -388,6 +388,8 @@ public:
   }
 
   void displayCSV(Network* network, unsigned int refnode_count, std::ostream& os_probtraj = std::cout, std::ostream& os_statdist = std::cout, bool hexfloat = false) const;
+  void displayProbTrajCSV(Network* network, unsigned int refnode_count, std::ostream& os_probtraj = std::cout, bool hexfloat = false) const;
+  void displayStatDistCSV(Network* network, unsigned int refnode_count, std::ostream& os_statdist = std::cout, bool hexfloat = false) const;
   void displayAsymptoticCSV(Network* network, unsigned int refnode_count, std::ostream& os_asymptprob = std::cout, bool hexfloat = false, bool proba = true) const;
 
   const std::map<double, STATE_MAP<NetworkState_Impl, double> > getStateDists() const;

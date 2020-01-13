@@ -174,10 +174,9 @@ void Cumulator::epilogue(Network* network, const NetworkState& reference_state)
   }
 #endif
 }
-
-void Cumulator::displayCSV(Network* network, unsigned int refnode_count, std::ostream& os_probtraj, std::ostream& os_statdist, bool hexfloat) const
+void Cumulator::displayProbTrajCSV(Network* network, unsigned int refnode_count, std::ostream& os_probtraj, bool hexfloat) const
 {
-  std::vector<Node*>::const_iterator begin_network;
+ std::vector<Node*>::const_iterator begin_network;
 
   os_probtraj << "Time\tTH" << (COMPUTE_ERRORS ? "\tErrorTH" : "") << "\tH";
 
@@ -294,7 +293,9 @@ void Cumulator::displayCSV(Network* network, unsigned int refnode_count, std::os
     }
     os_probtraj << '\n';
   }
-
+}
+void Cumulator::displayStatDistCSV(Network* network, unsigned int refnode_count, std::ostream& os_statdist, bool hexfloat) const
+{
   // should not be in cumulator, but somehwere in ProbaDist*
 
   // Probability distribution
@@ -361,6 +362,12 @@ void Cumulator::displayCSV(Network* network, unsigned int refnode_count, std::os
   clusterFactory->computeStationaryDistribution();
   clusterFactory->displayStationaryDistribution(network, os_statdist, hexfloat);
   delete clusterFactory;
+}
+
+void Cumulator::displayCSV(Network* network, unsigned int refnode_count, std::ostream& os_probtraj, std::ostream& os_statdist, bool hexfloat) const
+{
+  displayProbTrajCSV(network, refnode_count, os_probtraj, hexfloat);
+  displayStatDistCSV(network, refnode_count, os_statdist, hexfloat);
 }
 
 void Cumulator::displayAsymptoticCSV(Network *network, unsigned int refnode_count, std::ostream &os_asymptprob, bool hexfloat, bool proba) const
