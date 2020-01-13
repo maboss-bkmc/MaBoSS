@@ -1,6 +1,8 @@
 #define PY_SSIZE_T_CLEAN
 
 #include <Python.h>
+#include <fstream>
+#include <stdlib.h>
 #include <set>
 #include "src/BooleanNetwork.h"
 #include "src/MaBEstEngine.h"
@@ -201,6 +203,51 @@ static PyObject* cMaBoSSResult_get_raw_nodes_probtrajs(cMaBoSSResultObject* self
   return timepoints;
 }
 
+static PyObject* cMaBoSSResult_display_fp(cMaBoSSResultObject* self, PyObject *args) 
+{
+  char * filename = NULL;
+  int hexfloat = 0;
+  if (!PyArg_ParseTuple(args, "si", &filename, &hexfloat))
+    return NULL;
+    
+  std::ostream* output_fp = new std::ofstream(filename);
+  self->engine->displayFixpoints(*output_fp, (bool) hexfloat);
+  ((std::ofstream*) output_fp)->close();
+  delete output_fp;
+
+  return Py_None;
+}
+
+static PyObject* cMaBoSSResult_display_probtraj(cMaBoSSResultObject* self, PyObject *args) 
+{
+  char * filename = NULL;
+  int hexfloat = 0;
+  if (!PyArg_ParseTuple(args, "si", &filename, &hexfloat))
+    return NULL;
+    
+  std::ostream* output_probtraj = new std::ofstream(filename);
+  self->engine->displayProbTraj(*output_probtraj, (bool) hexfloat);
+  ((std::ofstream*) output_probtraj)->close();
+  delete output_probtraj;
+
+  return Py_None;
+}
+
+static PyObject* cMaBoSSResult_display_statdist(cMaBoSSResultObject* self, PyObject *args) 
+{
+  char * filename = NULL;
+  int hexfloat = 0;
+  if (!PyArg_ParseTuple(args, "si", &filename, &hexfloat))
+    return NULL;
+    
+  std::ostream* output_statdist = new std::ofstream(filename);
+  self->engine->displayStatDist(*output_statdist, (bool) hexfloat);
+  ((std::ofstream*) output_statdist)->close();
+  delete output_statdist;
+
+  return Py_None;
+}
+
 static PyMethodDef cMaBoSSResult_methods[] = {
     {"get_final_time", (PyCFunction) cMaBoSSResult_get_final_time, METH_NOARGS, "gets the final time of the simulation"},
     {"get_fp_table", (PyCFunction) cMaBoSSResult_get_fp_table, METH_NOARGS, "gets the fixpoints table"},
@@ -210,6 +257,9 @@ static PyMethodDef cMaBoSSResult_methods[] = {
     {"get_last_nodes_probtraj", (PyCFunction) cMaBoSSResult_get_last_nodes_probtraj, METH_NOARGS, "gets the last nodes probtraj of the simulation"},
     {"get_nodes", (PyCFunction) cMaBoSSResult_get_nodes, METH_NOARGS, "gets the nodes visited by the simulation"},
     {"get_raw_nodes_probtrajs", (PyCFunction) cMaBoSSResult_get_raw_nodes_probtrajs, METH_NOARGS, "gets the raw nodes probability trajectories of the simulation"},
+    {"display_fp", (PyCFunction) cMaBoSSResult_display_fp, METH_VARARGS, "prints the fixpoints to a file"},
+    {"display_probtraj", (PyCFunction) cMaBoSSResult_display_probtraj, METH_VARARGS, "prints the probtraj to a file"},
+    {"display_statdist", (PyCFunction) cMaBoSSResult_display_statdist, METH_VARARGS, "prints the statdist to a file"},
     {NULL}  /* Sentinel */
 };
 
