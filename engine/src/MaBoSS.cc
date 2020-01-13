@@ -31,6 +31,7 @@
 
 #include "MaBEstEngine.h"
 #include "EnsembleEngine.h"
+#include "StochasticSimulationEngine.h"
 #include "Function.h"
 #include <fstream>
 #include <stdlib.h>
@@ -98,6 +99,7 @@ int main(int argc, char* argv[])
   std::vector<ConfigOpt> runconfig_file_or_expr_v;
   std::vector<std::string> runconfig_var_v;
   const char* ctbndl_file = NULL;
+  bool single_simulation = false;
   bool ensemble = false;
   bool ensemble_save_individual_results = false;
   bool ensemble_random_sampling = false;
@@ -135,6 +137,8 @@ int main(int argc, char* argv[])
 	dont_shrink_logical_expressions = true;
       } else if (!strcmp(s, "--ensemble")) {
   ensemble = true;
+      } else if (!strcmp(s, "--single")) {
+  single_simulation = true;
       } else if (!strcmp(s, "--save-individual")) {
         if (ensemble) {
           ensemble_save_individual_results = true;
@@ -466,6 +470,54 @@ int main(int argc, char* argv[])
 
       }
         
+    } else if (single_simulation) {
+
+      Network* network = new Network();
+
+      network->parse(ctbndl_file);
+
+      RunConfig* runconfig = new RunConfig();
+
+      if (generate_config_template) {
+        IStateGroup::checkAndComplete(network);
+        runconfig->generateTemplate(network, std::cout);
+        return 0;
+      }
+
+      if (setConfigVariables(network, prog, runconfig_var_v)) {
+        return 1;
+      }      
+
+      std::vector<ConfigOpt>::const_iterator begin = runconfig_file_or_expr_v.begin();
+      std::vector<ConfigOpt>::const_iterator end = runconfig_file_or_expr_v.end();
+      while (begin != end) {
+        const ConfigOpt& cfg = *begin;
+        if (cfg.isExpr()) {
+          runconfig->parseExpression(network, (cfg.getExpr() + ";").c_str());
+        } else {
+          runconfig->parse(network, cfg.getFile().c_str());
+        }
+        ++begin;
+      }
+
+      IStateGroup::checkAndComplete(network);
+
+      network->getSymbolTable()->checkSymbols();
+
+      output_run = new std::ofstream((std::string(output) + "_run.txt").c_str());
+      
+      StochasticSimulationEngine single_simulation(network, runconfig);
+      [[maybe_unused]] NetworkState_Impl final_state = single_simulation.run(NULL, output_run);
+
+      ((std::ofstream*)output_run)->close();
+      delete output_run;
+
+
+      delete runconfig;
+      delete network;
+
+      Function::destroyFuncMap();  
+      
     } else {
         
       Network* network = new Network();
