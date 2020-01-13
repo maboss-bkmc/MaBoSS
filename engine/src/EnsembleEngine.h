@@ -44,7 +44,7 @@
 
 struct EnsembleArgWrapper;
 
-class EnsembleEngine : MetaEngine {
+class EnsembleEngine : public MetaEngine {
 
   std::vector<Network*> networks;
   std::vector<Cumulator*> cumulators_per_model; // The final Cumulators for each model
@@ -74,7 +74,6 @@ public:
 
   void run(std::ostream* output_traj);
 
-  void display(std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat = false) const;
   void displayIndividual(unsigned int model_id, std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat = false) const;
 
   ~EnsembleEngine();

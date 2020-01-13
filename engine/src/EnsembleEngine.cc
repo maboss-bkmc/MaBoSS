@@ -629,49 +629,6 @@ void EnsembleEngine::epilogue()
 
 }
 
-void EnsembleEngine::display(std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat) const
-{
-  Probe probe;
-  merged_cumulator->displayCSV(networks[0], refnode_count, output_probtraj, output_statdist, hexfloat);
-  probe.stop();
-  elapsed_statdist_runtime = probe.elapsed_msecs();
-  user_statdist_runtime = probe.user_msecs();
-
-  unsigned int statdist_traj_count = runconfig->getStatDistTrajCount();
-  if (statdist_traj_count == 0) {
-    output_statdist << "Trajectory\tState\tProba\n";
-  }
-
-  output_fp << "Fixed Points (" << fixpoints.size() << ")\n";
-  if (0 < fixpoints.size()) {
-
-#ifdef HAS_STD_HEXFLOAT
-    if (hexfloat) {
-      output_fp << std::hexfloat;
-    }
-#endif
-
-    STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator begin = fixpoints.begin();
-    STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator end = fixpoints.end();
-    
-    output_fp << "FP\tProba\tState\t";
-    networks[0]->displayHeader(output_fp);
-    for (unsigned int nn = 0; begin != end; ++nn) {
-      const NetworkState& network_state = (*begin).first;
-      output_fp << "#" << (nn+1) << "\t";
-      if (hexfloat) {
-        output_fp << fmthexdouble((double)(*begin).second / sample_count) <<  "\t";
-      } else {
-        output_fp << ((double)(*begin).second / sample_count) <<  "\t";
-      }
-      network_state.displayOneLine(output_fp, networks[0]);
-      output_fp << '\t';
-      network_state.display(output_fp, networks[0]);
-      ++begin;
-    }
-  }
-}
-
 void EnsembleEngine::displayIndividual(unsigned int model_id, std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat) const {
 
   if (cumulators_per_model[model_id] != NULL){
