@@ -86,14 +86,14 @@ endif
 $(MABOSS_CLIENT): MaBoSS-client.o Client.o DataStreamer.o RPC.o Utils$(INFIX).o
 	$(CXX) -o $(MABOSS_CLIENT) $+ -lpthread -ldl
 
-OpenMpExample.o: openmp_example.cc 
-	$(CXX) $(CXXFLAGS) -c openmp_example.cc -o OpenMpExample.o -fopenmp
+OpenMpExample.o: openmp_example.cpp 
+	$(CXX) $(CXXFLAGS) -c openmp_example.cpp -o OpenMpExample.o -fopenmp
 
 OpenMpExample: OpenMpExample.o $(MABOSS_OBJS)
 	$(CXX) -o OpenMpExample $+ -lpthread -ldl -fopenmp
 
-OpenMpExampleMutant.o: openmp_example_mutant.cc
-	$(CXX) $(CXXFLAGS) -c openmp_example_mutant.cc -o OpenMpExampleMutant.o -fopenmp
+OpenMpExampleMutant.o: openmp_example_mutant.cpp
+	$(CXX) $(CXXFLAGS) -c openmp_example_mutant.cpp -o OpenMpExampleMutant.o -fopenmp
 
 OpenMpExampleMutant: OpenMpExampleMutant.o $(MABOSS_OBJS)
 	$(CXX) -o OpenMpExampleMutant $+ -lpthread -ldl -fopenmp
