@@ -1,0 +1,29 @@
+Node A {
+    rate_up = 0.0;
+    rate_down = 0.0;
+}
+
+Node B {
+    rate_up = 0.0;
+    rate_down = 0.0;
+}
+
+Node C {
+    rate_up = A ? 1.0 : 0.0;
+    rate_down = !A ? 1.0 : 0.0;
+}
+
+Node D {
+    rate_up = B ? 1.0 : 0.0;
+    rate_down = !B ? 1.0 : 0.0; 
+}
+
+Node E { 
+    rate_up = C ? $E_act : 0.0;
+    rate_down = !C ? $E_deact : 0.0;
+}
+
+Node F {
+    rate_up = D ? $F_act : 0.0;
+    rate_down = !D ? $F_deact : 0.0;
+}

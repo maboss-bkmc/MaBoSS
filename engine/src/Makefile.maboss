@@ -86,6 +86,20 @@ endif
 $(MABOSS_CLIENT): MaBoSS-client.o Client.o DataStreamer.o RPC.o Utils$(INFIX).o
 	$(CXX) -o $(MABOSS_CLIENT) $+ -lpthread -ldl
 
+OpenMpExample.o: openmp_example.cc 
+	$(CXX) $(CXXFLAGS) -c openmp_example.cc -o OpenMpExample.o -fopenmp
+
+OpenMpExample: OpenMpExample.o $(MABOSS_OBJS)
+	$(CXX) -o OpenMpExample $+ -lpthread -ldl -fopenmp
+
+OpenMpExampleMutant.o: openmp_example_mutant.cc
+	$(CXX) $(CXXFLAGS) -c openmp_example_mutant.cc -o OpenMpExampleMutant.o -fopenmp
+
+OpenMpExampleMutant: OpenMpExampleMutant.o $(MABOSS_OBJS)
+	$(CXX) -o OpenMpExampleMutant $+ -lpthread -ldl -fopenmp
+
+OpenMpExamples: OpenMpExample OpenMpExampleMutant
+
 init:
 	@CXX=$(CXX) sh init-config.sh
 
@@ -122,7 +136,7 @@ lex.RC.cc: RunConfigGrammar.l
 	$(FLEX) -t $+ | sed -e 's/yy/RC/g' -e 's/register //g' > lex.RC.cc
 
 clean: cleanobj
-	rm -f Test TestApi KMC $(MABOSS) $(MABOSS_CLIENT) $(MABOSS_SERVER) lex.yy.c lex.CTBNDL.cc BooleanGrammar.tab.h BooleanGrammar.tab.c BooleanGrammar.cc BooleanGrammar.tab.h lex.CTBNDL.cc lex.RC.cc RunConfigGrammar.cc RunConfigGrammar.tab.h RunConfigGrammar.tab.c BooleanGrammar.output RunConfigGrammar.output maboss-config.h
+	rm -f OpenMpExampleMutant OpenMpExample Test TestApi KMC $(MABOSS) $(MABOSS_CLIENT) $(MABOSS_SERVER) lex.yy.c lex.CTBNDL.cc BooleanGrammar.tab.h BooleanGrammar.tab.c BooleanGrammar.cc BooleanGrammar.tab.h lex.CTBNDL.cc lex.RC.cc RunConfigGrammar.cc RunConfigGrammar.tab.h RunConfigGrammar.tab.c BooleanGrammar.output RunConfigGrammar.output maboss-config.h
 
 cleanobj:
 	rm -f *$(INFIX).o *$(INFIX).so *$(INFIX).dylib
