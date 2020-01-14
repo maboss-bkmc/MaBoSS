@@ -5,6 +5,8 @@
 #include "BooleanNetwork.h"
 #include "RunConfig.h"
 
+int omp_get_thread_num();
+
 int main ( int argc, char *argv[] )
 {
     try{
@@ -21,8 +23,10 @@ int main ( int argc, char *argv[] )
 #pragma omp parallel
 {
         StochasticSimulationEngine* engine = new StochasticSimulationEngine(network, config);
+        int seed = config->getSeedPseudoRandom() + omp_get_thread_num();
+        engine->setSeed(seed);
+        
         NetworkState_Impl state = engine->run(NULL, NULL);
-
         NetworkState_Impl next_state = engine->run(&state, NULL);
 
     #pragma omp critical

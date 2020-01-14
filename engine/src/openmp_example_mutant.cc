@@ -28,15 +28,19 @@ int main ( int argc, char *argv[] )
 #pragma omp parallel
 {
         StochasticSimulationEngine* engine = new StochasticSimulationEngine(network, config);
+        int seed = config->getSeedPseudoRandom() + omp_get_thread_num();
+        engine->setSeed(seed);
+
         // First argument of run is a pointer to the initial state. 
         // If NULL, it will use initial states as defined by the cfg
         NetworkState_Impl state = engine->run(NULL, NULL);
-
         NetworkState_Impl next_state = engine->run(&state, NULL);
 
         StochasticSimulationEngine* engine_mut = new StochasticSimulationEngine(network_mut, config_mut);
-        NetworkState_Impl state_mut = engine_mut->run(NULL, NULL);
+        int seed_mut = config_mut->getSeedPseudoRandom() + omp_get_thread_num();
+        engine_mut->setSeed(seed_mut);
 
+        NetworkState_Impl state_mut = engine_mut->run(NULL, NULL);
         NetworkState_Impl next_state_mut = engine_mut->run(&state_mut, NULL);
 
     #pragma omp critical

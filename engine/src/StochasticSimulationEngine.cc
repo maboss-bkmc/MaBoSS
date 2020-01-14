@@ -66,8 +66,8 @@ NetworkState_Impl StochasticSimulationEngine::run(NetworkState_Impl* initial_sta
   NetworkState network_state;
 
   RandomGeneratorFactory *randgen_factory = runconfig->getRandomGeneratorFactory();
-  RandomGenerator *random_generator = randgen_factory->generateRandomGenerator(runconfig->getSeedPseudoRandom());
-  
+  RandomGenerator *random_generator = randgen_factory->generateRandomGenerator(seed);
+    
   if (initial_state != NULL) {
     network_state = *initial_state;
   } else {
