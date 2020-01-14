@@ -4,6 +4,7 @@ env:
   global:
     - secure: "ChCJe8+CMCJdFcCAtk9o2LsLj/DaZCHykTq1NokqpjxHeEr6Lo03FjXRl3jSu9jwOLSJiH05jTjkmbsuIxAsZWFMLRY7X1rc+Z282uQ/GTUCecSpMjKHly2UUjaCtQbTikqDgqbUQAcll2cKHngJ5u1lzLmdLRtICoNaOQO4Ei9gHz1xacybPepJFjUpxRzABkjj7XVKxMx+MSkKNl7AVljaGN0flyQVTrdHifT7AOSoNVyl96J0Xxinzt6BDat2zj3nAMeEP5DGByaKx1Ef2SvaqtLyzl7UfOw9kr7oHOsxRfKXGnfLCXyRYu5jWklxLQUIRRDO4IRbvXsqCgyTzrewGzg+pjn9Iv0C6gyVCnosZ6x7BnWnYpkSoCyiLbjaCxBUCFKHqXEqYXDcrq9zPGKrGcN+NIpkdp3BkniLsvg9CQNLByl90is/6iSeiIxcKlIdq30fPjGlmX0T+pM68wNL749xpUeBp5SJhbKV2xHXKFJassNpr9HRMmEWGwTVJuXZ9Oi81WZFcoSj7TERDE5A78ThckBDASLB9SglIFKDbapqrPt6K4ArB+87vcCJ3F6GT7DyBHoLoWKiwig/BOka+r1Xb+Qb7wqX2VA4hxe+ORwuhUzvyguGB0BgdsEwUCKqWrGPlS8Qrf+HYX4jji7ng/hB4haiJd27XG5HepM="
     - secure: "N/DlgYl7l0jGCaYdlsyGXKdlm1w+8cbcYdoQrlI36PxwE26FHQQraxWpNF9X2VZ9DfVzOc9rj+3bJU9iAfPc5PiGJONCj/KnUGJ6Rk2V/Vlo4RvP6GPmQUK8OvgO2B/zCPn6X8ry466MgLw1p634B+ARJZ0AzHLR/qp5Li2gHSpZ7qHl4Z4GsBTMBd8hBFkFZKqz7xsTSRJSvPtjR3OPK+eC9x3eyMpqxqTkM264JfS+Fo5k8CUB/IUz6SVK2hA2JUHKis7MnaquSAufACEyU3I7LNKDQTXTlfsVNF/9YRSNuugkemzX8U9XKwqHOuksH9442RmFbrl2A8oKafN3oJjyhjgbt9yEsCjPwz2efcs08h6aHRrAq4FOQqs2ECPXr1os/99em2nAJv2hhN12nJvhbwrNGaxAg8GiarEkNYcWSklgCQcV0Vzuz/P1Mm6ObgaeUzU9qydhkR2eN7jw7d22vM87evIqDNuKwd/KmYbCbQmugNu6La4TCdPOyq+OnZF4QhHnGDkzErx8i5FakRm2Vf0vi4Mi1h7oliu8ZrrC2Sk+iqLLaW3vUrROwxLV2pfskzscdCHV0GzUJkKAC1FFkYJR8kloOL/M9NcYHQCO4o+BacKK61Y+dS0tV6kztl7FB2/ZPaXzkvp7ad2xGz9YhUscVBIBHGT712hp5cs="
+    - secure: "Iwh6udChY5CqXp42b7QFH7oY2byHFFqQv4WnB6/vzoQwGPe8zqMvRqhzNR1rkrwmid2gvWyyImb9tVIvCIBgdxobQIt7QN65Fii+x22vspyOgraiYe0loG8BLOUta8jbL8NtohwvcTme8UcUedlwXs8GzCtxBD/87IsZ/xnMu2jndIHRWnoOi8UA4dCXQK0oI5AhvNy8F2Vi6/c4PvF7ItW/wlUt/PXOd+j5NeyyILNnrWX4osLec6MLledFaXq+nzSnyRhsvM6ObwsYlWiX8dyytMOI9Ge6Ll+fdTvIcepRILqe6Aqk4i0m0vfZdmFDgJ6KixYI6VB2wGRVtuy74rtKyLvtrySxxhekD4wdXyTDvsRH0WprtQKwdXTf1TvtThqeayR9RnFYCdm1f0TKSuillAykUOonr51p2pmgkjhNM0jEM4luJz8SOlCnnIFeL1HnGYOF2iHcl5Pg9K+lT83GcIBQ6RbKq06Vk2tQya/5GMS5V9SjmX85SI06RBVGESOp/H1nFy0YqV9SBuEoHZZzRjg61G4pBDLxlDvyWhrwlJsZk/O6odgQ/yRjOepASgFCBJwaqjw1o+xWEniDxkrGvEgAP4ojjnyTkZqITZEtwztu6CxKMoYk4UKv7iwssDHOpdHaTZFMu4FaaVhuv8IH5wV4sfNz8XAPlae0e7o="
 
 jobs:
   include:
@@ -132,6 +133,7 @@ jobs:
 
 
     - stage: deploy
+      if: type != pull_request
       name: MaBoSS-server docker hub image update
 
       os: linux
@@ -139,7 +141,11 @@ jobs:
       dist: xenial
       
       install:
-        - echo "$DOCKER_HUB_PASSWORD" | docker login --username vnoel --password-stdin
+
+        - (test $TRAVIS_REPO_SLUG = "vincent-noel/MaBoSS-env-2.0" && 
+          echo "$DOCKER_HUB_PASSWORD" | docker login --username vnoel --password-stdin) ||
+          (test $TRAVIS_REPO_SLUG = "sysbio-curie/MaBoSS-env-2.0" && 
+          echo "$DOCKER_HUB_PASSWORD_SYSBIO_CURIE" | docker login --username vnoel --password-stdin)
         - sudo apt-get -qq update
         - sudo apt-get install -yq python3-pip python3-setuptools
         - sudo pip3 install -U docker-compose
@@ -155,6 +161,7 @@ jobs:
 
 
     - stage: deploy
+      if: type != pull_request
       name: MaBoSS-server singularity image upload
 
       os: linux
@@ -170,6 +177,7 @@ jobs:
         - sudo singularity build maboss-server.simg containers/singularity/Singularity
 
     - stage: deploy
+      if: type != pull_request
       name: Linux cMaBoSS upload on pypi
 
       os: linux
@@ -191,6 +199,7 @@ jobs:
 
 
     - stage: deploy
+      if: type != pull_request
       name: MacOSX cMaBoSS upload on pypi
 
       os: osx
