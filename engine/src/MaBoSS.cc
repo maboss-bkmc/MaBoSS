@@ -32,6 +32,7 @@
 #include "MaBEstEngine.h"
 #include "EnsembleEngine.h"
 #include "StochasticSimulationEngine.h"
+#include "FinalStateSimulationEngine.h"
 #include "Function.h"
 #include <fstream>
 #include <stdlib.h>
@@ -100,6 +101,7 @@ int main(int argc, char* argv[])
   std::vector<std::string> runconfig_var_v;
   const char* ctbndl_file = NULL;
   bool single_simulation = false;
+  bool final_simulation = false;
   bool ensemble = false;
   bool ensemble_save_individual_results = false;
   bool ensemble_random_sampling = false;
@@ -139,6 +141,8 @@ int main(int argc, char* argv[])
   ensemble = true;
       } else if (!strcmp(s, "--single")) {
   single_simulation = true;
+      } else if (!strcmp(s, "--final")) {
+  final_simulation = true;
       } else if (!strcmp(s, "--save-individual")) {
         if (ensemble) {
           ensemble_save_individual_results = true;
@@ -574,41 +578,52 @@ int main(int argc, char* argv[])
         }
       }
 
-      output_run = new std::ofstream((std::string(output) + "_run.txt").c_str());
-      output_probtraj = new std::ofstream((std::string(output) + "_probtraj.csv").c_str());
-      output_statdist = new std::ofstream((std::string(output) + "_statdist.csv").c_str());
-      output_fp = new std::ofstream((std::string(output) + "_fp.csv").c_str());
+      if (final_simulation) {
+          std::ostream* output_final = new std::ofstream((std::string(output) + "_finalprob.csv").c_str());
+          FinalStateSimulationEngine engine(network, runconfig);
+          engine.run(NULL);
+          engine.displayFinal(*output_final, hexfloat);
+          ((std::ofstream*)output_final)->close();
+          delete output_final;
+        
 
-      if (export_asymptotic) {
-        output_asymptprob = new std::ofstream((std::string(output) + "_asymptprob.csv").c_str());
+      } else {
+
+        output_run = new std::ofstream((std::string(output) + "_run.txt").c_str());
+        output_probtraj = new std::ofstream((std::string(output) + "_probtraj.csv").c_str());
+        output_statdist = new std::ofstream((std::string(output) + "_statdist.csv").c_str());
+        output_fp = new std::ofstream((std::string(output) + "_fp.csv").c_str());
+
+        if (export_asymptotic) {
+          output_asymptprob = new std::ofstream((std::string(output) + "_asymptprob.csv").c_str());
+        }
+
+        time(&start_time);
+        MaBEstEngine mabest(network, runconfig);
+        mabest.run(output_traj);
+        mabest.display(*output_probtraj, *output_statdist, *output_fp, hexfloat);
+        time(&end_time);
+
+        runconfig->display(network, start_time, end_time, mabest, *output_run);
+
+        if (export_asymptotic) {
+          mabest.displayAsymptotic(*output_asymptprob, hexfloat, !counts);
+          ((std::ofstream*)output_asymptprob)->close();
+          delete output_asymptprob;
+        }
+        ((std::ofstream*)output_run)->close();
+        delete output_run;
+        if (NULL != output_traj) {
+          ((std::ofstream*)output_traj)->close();
+          delete output_traj;
+        }
+        ((std::ofstream*)output_probtraj)->close();
+        delete output_probtraj;
+        ((std::ofstream*)output_statdist)->close();
+        delete output_statdist;
+        ((std::ofstream*)output_fp)->close();
+        delete output_fp;
       }
-
-      time(&start_time);
-      MaBEstEngine mabest(network, runconfig);
-      mabest.run(output_traj);
-      mabest.display(*output_probtraj, *output_statdist, *output_fp, hexfloat);
-      time(&end_time);
-
-      runconfig->display(network, start_time, end_time, mabest, *output_run);
-
-      if (export_asymptotic) {
-        mabest.displayAsymptotic(*output_asymptprob, hexfloat, !counts);
-        ((std::ofstream*)output_asymptprob)->close();
-        delete output_asymptprob;
-      }
-      ((std::ofstream*)output_run)->close();
-      delete output_run;
-      if (NULL != output_traj) {
-        ((std::ofstream*)output_traj)->close();
-        delete output_traj;
-      }
-      ((std::ofstream*)output_probtraj)->close();
-      delete output_probtraj;
-      ((std::ofstream*)output_statdist)->close();
-      delete output_statdist;
-      ((std::ofstream*)output_fp)->close();
-      delete output_fp;
-
       delete runconfig;
       delete network;
 
