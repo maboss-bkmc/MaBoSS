@@ -54,6 +54,10 @@ MODULE_INIT_NAME(void)
         return NULL;
     }
 
+    if (PyType_Ready(&cMaBoSSResultFinal) < 0){
+        return NULL;
+    }
+
     m = PyModule_Create(&cMaBoSSDef);
 
 #if ! defined (MAXNODES) || MAXNODES <= 64 

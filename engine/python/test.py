@@ -18,6 +18,22 @@ class TestCMaBoSS(TestCase):
         with self.assertRaises(cmaboss.BNException):
             cmaboss.MaBoSSSim(network="../examples/metastasis-error.bnd", config="../examples/metastasis.cfg")
 
+    def test_last_states(self):
+        expected = {
+            '<nil>': 0.206, 'Apoptosis -- CellCycleArrest': 0.426, 'CellCycleArrest': 0.068, 
+            'Migration -- Metastasis -- Invasion -- CellCycleArrest': 0.3
+        }
+
+        sim = cmaboss.MaBoSSSim(network="../examples/metastasis.bnd", config="../examples/metastasis.cfg")
+        res = sim.run(only_last_state=False)
+        for key, value in res.get_last_states_probtraj().items():
+            self.assertAlmostEqual(value, expected[key])
+        
+        simfinal = cmaboss.MaBoSSSim(network="../examples/metastasis.bnd", config="../examples/metastasis.cfg")
+        resfinal = simfinal.run(only_last_state=True)    
+        for key, value in resfinal.get_last_states_probtraj().items():
+            self.assertAlmostEqual(value, expected[key])
+            
     def test_load_model_str(self):
         with open("../examples/metastasis.bnd", "r") as bnd, open("../examples/metastasis.cfg", "r") as cfg:    
             sim = cmaboss.MaBoSSSim(network_str=bnd.read(),config_str=cfg.read())

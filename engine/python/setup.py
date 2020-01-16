@@ -2,11 +2,11 @@ from distutils.core import setup, Extension
 from sys import executable, argv
 from os.path import join, dirname
 
-maboss_version = '1.0.0-alpha-6'
+maboss_version = '1.0.0-alpha-7'
 
 maboss_sources = [
-   "MetaEngine.cc", "MaBEstEngine.cc", "EnsembleEngine.cc", "Cumulator.cc", "ProbaDist.cc", 
-   "BooleanNetwork.cc", "BooleanGrammar.cc", "RunConfigGrammar.cc", 
+   "FinalStateSimulationEngine.cc", "MetaEngine.cc", "MaBEstEngine.cc", "EnsembleEngine.cc", 
+   "Cumulator.cc", "ProbaDist.cc", "BooleanNetwork.cc", "BooleanGrammar.cc", "RunConfigGrammar.cc", 
    "Function.cc", "BuiltinFunctions.cc", "RunConfig.cc", "LogicalExprGen.cc", "Utils.cc"
 ]
 

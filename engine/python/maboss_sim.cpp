@@ -4,16 +4,16 @@
 #include <set>
 #include "src/BooleanNetwork.h"
 #include "src/MaBEstEngine.h"
+#include "src/FinalStateSimulationEngine.h"
 #include "maboss_res.cpp"
+#include "maboss_resfinal.cpp"
+#include "maboss_commons.h"
 
 typedef struct {
   PyObject_HEAD
   Network* network;
   RunConfig* runconfig;
-  // MaBEstEngine* simulation;
 } cMaBoSSSimObject;
-
-static PyObject *PyBNException = NULL;
 
 static void cMaBoSSSim_dealloc(cMaBoSSSimObject *self)
 {
@@ -78,21 +78,43 @@ static PyObject * cMaBoSSSim_new(PyTypeObject* type, PyObject *args, PyObject* k
   }
 }
 
-static PyObject* cMaBoSSSim_run(cMaBoSSSimObject* self, PyObject*Py_UNUSED) {
+static PyObject* cMaBoSSSim_run(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs) {
   
-  MaBEstEngine* simulation = new MaBEstEngine(self->network, self->runconfig);
+  int only_last_state = 0;
+  static const char *kwargs_list[] = {"only_last_state", NULL};
+  if (!PyArg_ParseTupleAndKeywords(
+    args, kwargs, "|i", const_cast<char **>(kwargs_list), 
+    &only_last_state
+  ))
+    return NULL;
+    
+  bool b_only_last_state = PyObject_IsTrue(PyBool_FromLong(only_last_state));
+  if (b_only_last_state) {
+    FinalStateSimulationEngine* simulation = new FinalStateSimulationEngine(self->network, self->runconfig);
 
-  simulation->run(NULL);
-  
-  cMaBoSSResultObject* res = (cMaBoSSResultObject*) PyObject_New(cMaBoSSResultObject, &cMaBoSSResult);
-  res->network = self->network;
-  res->engine = simulation;
-  
-  return (PyObject*) res;
+    simulation->run(NULL);
+    
+    cMaBoSSResultFinalObject* res = (cMaBoSSResultFinalObject*) PyObject_New(cMaBoSSResultFinalObject, &cMaBoSSResultFinal);
+    res->network = self->network;
+    res->engine = simulation;
+    
+    return (PyObject*) res;
+  } else {
+
+    MaBEstEngine* simulation = new MaBEstEngine(self->network, self->runconfig);
+
+    simulation->run(NULL);
+    
+    cMaBoSSResultObject* res = (cMaBoSSResultObject*) PyObject_New(cMaBoSSResultObject, &cMaBoSSResult);
+    res->network = self->network;
+    res->engine = simulation;
+    
+    return (PyObject*) res;
+  }
 }
 
 static PyMethodDef cMaBoSSSim_methods[] = {
-    {"run", (PyCFunction) cMaBoSSSim_run, METH_NOARGS, "runs the simulation"},
+    {"run", (PyCFunction) cMaBoSSSim_run, METH_VARARGS | METH_KEYWORDS, "runs the simulation"},
     {NULL}  /* Sentinel */
 };
 
