@@ -115,8 +115,20 @@ NetworkState_Impl StochasticSimulationEngine::run(NetworkState_Impl* initial_sta
     }
 
     // double TH;
-    if (total_rate == 0)
+    if (total_rate == 0) {
       tm = max_time;
+    } else {
+      
+      double transition_time ;
+      if (discrete_time) {
+        transition_time = time_tick;
+      } else {
+        double U_rand1 = random_generator->generate();
+        transition_time = -log(U_rand1) / total_rate;
+      }
+      
+      tm += transition_time;
+    }
 
     if (NULL != output_traj)
     {

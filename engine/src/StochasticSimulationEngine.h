@@ -49,13 +49,14 @@ class StochasticSimulationEngine {
 
   double time_tick;
   double max_time;
+  bool discrete_time;
   int seed; 
   NodeIndex getTargetNode(RandomGenerator* random_generator, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
 
 public:
   static const std::string VERSION;
   
-  StochasticSimulationEngine(Network* network, RunConfig* runconfig): network(network), runconfig(runconfig), time_tick(runconfig->getTimeTick()), max_time(runconfig->getMaxTime()), seed(runconfig->getSeedPseudoRandom()) {}
+  StochasticSimulationEngine(Network* network, RunConfig* runconfig): network(network), runconfig(runconfig), time_tick(runconfig->getTimeTick()), max_time(runconfig->getMaxTime()), discrete_time(runconfig->isDiscreteTime()), seed(runconfig->getSeedPseudoRandom()) {}
   void setSeed(int _seed) { seed = _seed; }
   NetworkState_Impl run(NetworkState_Impl* initial_state = NULL, std::ostream* output_traj = NULL);
 };
