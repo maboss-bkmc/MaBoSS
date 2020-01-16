@@ -373,10 +373,6 @@ void Cumulator::displayCSV(Network* network, unsigned int refnode_count, std::os
 void Cumulator::displayAsymptoticCSV(Network *network, unsigned int refnode_count, std::ostream &os_asymptprob, bool hexfloat, bool proba) const
 {
 
-  std::vector<Node *>::const_iterator begin_network;
-
-  os_asymptprob << "Time";
-
   double ratio;
   if (proba)
   {
@@ -401,49 +397,37 @@ void Cumulator::displayAsymptoticCSV(Network *network, unsigned int refnode_coun
   CumulMap::Iterator iter = mp.iterator();
 
 
-    while (iter.hasNext())
-  {
-    NetworkState_Impl state;
-    TickValue tick_value;
-    iter.next(state, tick_value);
-
-    os_asymptprob << '\t';
-    NetworkState network_state(state);
-    network_state.displayOneLine(os_asymptprob, network);
-  }
-
-  os_asymptprob << '\n';
-  iter.rewind();
-  os_asymptprob << std::setprecision(4) << std::fixed << (nn * time_tick);
-
-  
-  std::string zero_hexfloat = fmthexdouble(0.0);
-  
-  // Proba, ErrorProba
   while (iter.hasNext())
   {
     NetworkState_Impl state;
     TickValue tick_value;
     iter.next(state, tick_value);
+
     double proba = tick_value.tm_slice / ratio;
     if (proba)
     {
       if (hexfloat)
       {
-        os_asymptprob << '\t' << std::setprecision(6) << fmthexdouble(proba);
+        os_asymptprob << std::setprecision(6) << fmthexdouble(proba);
       }
       else
       {
-        os_asymptprob << '\t' << std::setprecision(6) << proba;
+        os_asymptprob << std::setprecision(6) << proba;
       }
     }
     else
     {
       int t_proba = static_cast<int>(round(proba));
-      os_asymptprob << '\t' << std::fixed << t_proba;
+      os_asymptprob << std::fixed << t_proba;
     }
+
+    os_asymptprob << '\t';
+    NetworkState network_state(state);
+    network_state.displayOneLine(os_asymptprob, network);
+
+    os_asymptprob << '\n';
+
   }
-  os_asymptprob << '\n';
 }
 
 const std::map<double, STATE_MAP<NetworkState_Impl, double> > Cumulator::getStateDists() const

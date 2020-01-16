@@ -595,7 +595,7 @@ int main(int argc, char* argv[])
         output_fp = new std::ofstream((std::string(output) + "_fp.csv").c_str());
 
         if (export_asymptotic) {
-          output_asymptprob = new std::ofstream((std::string(output) + "_asymptprob.csv").c_str());
+          output_asymptprob = new std::ofstream((std::string(output) + "_finalprob.csv").c_str());
         }
 
         time(&start_time);
