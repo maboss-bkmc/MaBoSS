@@ -207,7 +207,7 @@ static PyObject* cMaBoSSResult_display_fp(cMaBoSSResultObject* self, PyObject *a
 {
   char * filename = NULL;
   int hexfloat = 0;
-  if (!PyArg_ParseTuple(args, "si", &filename, &hexfloat))
+  if (!PyArg_ParseTuple(args, "s|i", &filename, &hexfloat))
     return NULL;
     
   std::ostream* output_fp = new std::ofstream(filename);
@@ -222,7 +222,7 @@ static PyObject* cMaBoSSResult_display_probtraj(cMaBoSSResultObject* self, PyObj
 {
   char * filename = NULL;
   int hexfloat = 0;
-  if (!PyArg_ParseTuple(args, "si", &filename, &hexfloat))
+  if (!PyArg_ParseTuple(args, "s|i", &filename, &hexfloat))
     return NULL;
     
   std::ostream* output_probtraj = new std::ofstream(filename);
@@ -237,7 +237,7 @@ static PyObject* cMaBoSSResult_display_statdist(cMaBoSSResultObject* self, PyObj
 {
   char * filename = NULL;
   int hexfloat = 0;
-  if (!PyArg_ParseTuple(args, "si", &filename, &hexfloat))
+  if (!PyArg_ParseTuple(args, "s|i", &filename, &hexfloat))
     return NULL;
     
   std::ostream* output_statdist = new std::ofstream(filename);

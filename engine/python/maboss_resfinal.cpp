@@ -42,25 +42,46 @@ static PyObject* cMaBoSSResultFinal_get_last_states_probtraj(cMaBoSSResultFinalO
   return (PyObject*) dict;
 }
 
-// static PyObject* cMaBoSSResult_get_last_nodes_probtraj(cMaBoSSResultFinalObject* self) {
+static PyObject* cMaBoSSResultFinal_get_last_nodes_probtraj(cMaBoSSResultFinalObject* self) {
   
-//   PyObject *dict = PyDict_New();
+  PyObject *dict = PyDict_New();
   
-//   // Building the results as a python dict
-//   for (auto& result : self->engine->getFinalStates()) {
-//     PyDict_SetItem(
-//       dict, 
-//       PyUnicode_FromString(result.first->getLabel().c_str()), 
-//       PyFloat_FromDouble(result.second)
-//     );
-//   }
-//   return (PyObject*) dict;
-// }
+  // Building the results as a python dict
+  for (auto& result : self->engine->getFinalNodes()) {
+    PyDict_SetItem(
+      dict, 
+      PyUnicode_FromString(result.first->getLabel().c_str()), 
+      PyFloat_FromDouble(result.second)
+    );
+  }
+  return (PyObject*) dict;
+}
+static PyObject* cMaBoSSResultFinal_display_final_states(cMaBoSSResultFinalObject* self, PyObject* args) {
 
+  char * filename = NULL;
+  int hexfloat = 0;
+  if (!PyArg_ParseTuple(args, "s|i", &filename, &hexfloat))
+    return NULL;
+
+  std::ostream* output_final = new std::ofstream(filename);
+
+  self->engine->displayFinal(*output_final, PyObject_IsTrue(PyBool_FromLong(hexfloat)));
+
+  ((std::ofstream*) output_final)->close();
+  delete output_final;
+
+  return Py_None;
+}
+
+static PyObject* cMaBoSSResultFinal_get_final_time(cMaBoSSResultFinalObject* self) {
+  return PyFloat_FromDouble(self->engine->getFinalTime());
+}
 
 static PyMethodDef cMaBoSSResultFinal_methods[] = {
+    {"get_final_time", (PyCFunction) cMaBoSSResultFinal_get_final_time, METH_NOARGS, "gets the final time of the simulation"},
     {"get_last_states_probtraj", (PyCFunction) cMaBoSSResultFinal_get_last_states_probtraj, METH_NOARGS, "gets the last probtraj of the simulation"},
-    // {"get_last_nodes_probtraj", (PyCFunction) cMaBoSSResultFinal_get_last_nodes_probtraj, METH_NOARGS, "gets the last nodes probtraj of the simulation"},
+    {"display_final_states", (PyCFunction) cMaBoSSResultFinal_display_final_states, METH_VARARGS, "display the final state"},
+    {"get_last_nodes_probtraj", (PyCFunction) cMaBoSSResultFinal_get_last_nodes_probtraj, METH_NOARGS, "gets the last nodes probtraj of the simulation"},
     {NULL}  /* Sentinel */
 };
 
