@@ -299,5 +299,35 @@ FinalStateSimulationEngine::~FinalStateSimulationEngine()
 
 void FinalStateSimulationEngine::displayFinal(std::ostream& output_final, bool hexfloat) const
 {
-  
+  for (auto final_state: final_states) {
+    if (hexfloat)
+      output_final << std::setprecision(6) << fmthexdouble(final_state.second);
+    
+    else
+      output_final << std::setprecision(6) << final_state.second << "\t";
+    
+    NetworkState(final_state.first).displayOneLine(output_final, network);
+    output_final << "\n";
+  }
 }
+
+const STATE_MAP<Node*, double> FinalStateSimulationEngine::getFinalNodes() const {
+
+  STATE_MAP<Node *, double> node_dist;
+  for (auto& node: network->getNodes())
+  {
+    if (!(node->isInternal()))
+    {
+      double dist = 0;
+      for (auto final_state: final_states) {
+        NetworkState state = final_state.first;
+        dist += final_state.second * ((double) state.getNodeState(node));
+      }
+
+      node_dist[node] = dist;
+    }
+  }
+
+  return node_dist;
+}
+

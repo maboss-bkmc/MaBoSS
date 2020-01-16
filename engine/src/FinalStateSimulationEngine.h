@@ -57,7 +57,7 @@ class FinalStateSimulationEngine {
   unsigned int thread_count;
   bool has_internal = false;
   NetworkState internal_state;
-  
+
   NetworkState reference_state;
   unsigned int refnode_count;
 
@@ -81,7 +81,10 @@ public:
   void run(std::ostream* output_traj);
   ~FinalStateSimulationEngine();
 
-  const STATE_MAP<NetworkState_Impl, double>& getFinalStates() const {return final_states;}
+  const STATE_MAP<NetworkState_Impl, double> getFinalStates() const {return final_states;}
+  const STATE_MAP<Node*, double> getFinalNodes() const;
+  const double getFinalTime() const { return max_time; }
+
   void displayFinal(std::ostream& output_final, bool hexfloat=false) const;
 
 };
