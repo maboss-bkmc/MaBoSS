@@ -39,14 +39,11 @@
 
 const std::string EnsembleEngine::VERSION = "1.2.0";
 
-EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runconfig, bool save_individual_result, bool random_sampling) :
-  MetaEngine(networks[0], runconfig), networks(networks), save_individual_result(save_individual_result), random_sampling(random_sampling) {
+EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runconfig, bool save_individual_result, bool _random_sampling) :
+  MetaEngine(networks[0], runconfig), networks(networks), save_individual_result(save_individual_result), random_sampling(_random_sampling) {
 
   if (thread_count > 1 && !runconfig->getRandomGeneratorFactory()->isThreadSafe()) {
     std::cerr << "Warning: non reentrant random, may not work properly in multi-threaded mode\n";
-  }
-  for (unsigned int i=0; i < networks.size(); i++) {
-    networks[i]->updateRandomGenerator(runconfig);
   }
   
   const std::vector<Node*>& nodes = networks[0]->getNodes();

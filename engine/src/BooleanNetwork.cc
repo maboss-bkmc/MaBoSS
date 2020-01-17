@@ -87,7 +87,7 @@ bool Node::isInputNode() const
   return getLogicalInputExpression() == NULL && getRateUpExpression() == NULL && getRateDownExpression() == NULL;
 }
 
-Network::Network() : last_index(0U), random_generator(NULL)
+Network::Network() : last_index(0U)
 {
   istate_group_list = new std::vector<IStateGroup*>();
   symbol_table = new SymbolTable();
@@ -171,12 +171,6 @@ void SymbolTable::checkSymbols() const
   }
 }
 
-void Network::updateRandomGenerator(RunConfig* runconfig)
-{
-  delete random_generator;
-  random_generator = runconfig->getRandomGeneratorFactory()->generateRandomGenerator(runconfig->getSeedPseudoRandom());
-}
-
 void Network::compile(std::map<std::string, NodeIndex>* nodes_indexes)
 {
   MAP<std::string, Node*>::iterator begin = node_map.begin();
@@ -252,7 +246,7 @@ void Network::initStates(NetworkState& initial_state, RandomGenerator * randgen)
   
     while (begin != end) {
       Node* node = *begin;
-      initial_state.setNodeState(node, node->getIState(this));
+      initial_state.setNodeState(node, node->getIState(this, randgen));
       ++begin;
     }
   } else {
@@ -314,14 +308,14 @@ bool Node::computeNodeState(NetworkState& network_state, NodeState& node_state) 
   return network_state.computeNodeState(this, node_state);
 }
 
-NodeState Node::getIState(const Network* network) const
+NodeState Node::getIState(const Network* network, RandomGenerator* rangen) const
 {
   if (!istate_set) {
 #if 1
-    double rand = network->getRandomGenerator()->generate();
+    double rand = rangen->generate();
     istate = rand > 0.5; // >= 0.5 ?
 #else
-    istate = (network->getRandomGenerator()->generateUInt32() % 2) == 0;
+    istate = (rangen->generateUInt32() % 2) == 0;
 #endif
   }
   return istate;
@@ -658,14 +652,11 @@ Node::~Node()
 
 Network::Network(const Network& network)
 {
-  random_generator = NULL;
   *this = network;
 }
 
 Network& Network::operator=(const Network& network)
 {
-  delete random_generator;
-  random_generator = NULL;
   node_map = network.node_map;
   last_index = network.last_index;
   input_nodes = network.input_nodes;
@@ -677,7 +668,6 @@ Network& Network::operator=(const Network& network)
 
 Network::~Network()
 {
-  delete random_generator;
   delete symbol_table;
   
   for (std::vector<IStateGroup*>::iterator iter = istate_group_list->begin(); iter != istate_group_list->end(); ++iter) {

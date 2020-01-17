@@ -291,6 +291,9 @@ int main(int argc, char* argv[])
 
         IStateGroup::checkAndComplete(networks[0]);
 
+        // RandomGeneratorFactory* randgen_factory = runconfig->getRandomGeneratorFactory();
+        // RandomGenerator* randgen = randgen_factory->generateRandomGenerator(runconfig->getSeedPseudoRandom());
+
         std::map<std::string, NodeIndex> nodes_indexes;
         std::vector<Node*> first_network_nodes = first_network->getNodes();
         for (unsigned int i=0; i < first_network_nodes.size(); i++) {
@@ -311,10 +314,11 @@ int main(int argc, char* argv[])
             runconfig->parse(networks[i], cfg.getFile().c_str());
           }
 
+
           const std::vector<Node*> nodes = networks[i]->getNodes();
           for (unsigned int j=0; j < nodes.size(); j++) {
               // if (!first_network_nodes[j]->istateSetRandomly()) {
-              //     nodes[j]->setIState(first_network_nodes[j]->getIState(first_network));
+              //     nodes[j]->setIState(first_network_nodes[j]->getIState(first_network, randgen));
               // }
 
               nodes[j]->isInternal(first_network_nodes[j]->isInternal());
@@ -390,6 +394,9 @@ int main(int argc, char* argv[])
 
         IStateGroup::checkAndComplete(networks[0]);
 
+        RandomGeneratorFactory* randgen_factory = runconfig->getRandomGeneratorFactory();
+        RandomGenerator* randgen = randgen_factory->generateRandomGenerator(runconfig->getSeedPseudoRandom());
+
         std::map<std::string, NodeIndex> nodes_indexes;
         std::vector<Node*> first_network_nodes = first_network->getNodes();
         for (unsigned int i=0; i < first_network_nodes.size(); i++) {
@@ -406,7 +413,7 @@ int main(int argc, char* argv[])
           const std::vector<Node*> nodes = networks[i]->getNodes();
           for (unsigned int j=0; j < nodes.size(); j++) {
               if (!first_network_nodes[j]->istateSetRandomly()) {
-                  nodes[j]->setIState(first_network_nodes[j]->getIState(first_network));
+                  nodes[j]->setIState(first_network_nodes[j]->getIState(first_network, randgen));
               }
 
               nodes[j]->isInternal(first_network_nodes[j]->isInternal());

@@ -51,7 +51,6 @@ MaBEstEngine::MaBEstEngine(Network* network, RunConfig* runconfig) :
   if (thread_count > 1 && !runconfig->getRandomGeneratorFactory()->isThreadSafe()) {
     std::cerr << "Warning: non reentrant random, may not work properly in multi-threaded mode\n";
   }
-  network->updateRandomGenerator(runconfig);
 
   const std::vector<Node*>& nodes = network->getNodes();
   std::vector<Node*>::const_iterator begin = nodes.begin();

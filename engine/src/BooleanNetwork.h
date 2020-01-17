@@ -295,7 +295,7 @@ class Node {
     attr_expr_map[attr_name] = expr;
   }
 
-  NodeState getIState(const Network* network) const;
+  NodeState getIState(const Network* network, RandomGenerator* randgen) const;
 
   void setIState(NodeState istate) {
     istate_set = true;
@@ -511,8 +511,6 @@ class Network {
   std::vector<Node*> input_nodes;
   std::vector<Node*> non_input_nodes;
   std::vector<Node*> nodes;
-  // static Network* instance;
-  RandomGenerator* random_generator; // used for node initial states
 
   MAP<std::string, bool> node_def_map;
   std::vector<IStateGroup*>* istate_group_list;
@@ -562,9 +560,6 @@ public:
 
   void compile(std::map<std::string, NodeIndex>* nodes_indexes = NULL);
 
-
-  RandomGenerator* getRandomGenerator() const {return random_generator;}
-
   // vector of nodes which do not depend on other nodes
   const std::vector<Node*>& getInputNodes() const {return input_nodes;}
 
@@ -579,9 +574,7 @@ public:
     display(ostr);
     return ostr.str();
   }
-
-  void updateRandomGenerator(RunConfig* runconfig);
-
+  
   void initStates(NetworkState& initial_state, RandomGenerator* randgen);
 
   void displayHeader(std::ostream& os) const;
