@@ -209,12 +209,6 @@ void FinalStateSimulationEngine::runThread(unsigned int start_count_thread, unsi
     if (has_internal) {
 
       final_state &= ~internal_state.getState();
-
-      // std::cout << "Filtering state ";
-      // network_state.displayOneLine(std::cout, network);
-      // std::cout << " into ";
-      // (NetworkState(final_state)).displayOneLine(std::cout, network);
-      // std::cout << std::endl;
     }
 
     if (final_state_map->find(final_state) == final_state_map->end()) {

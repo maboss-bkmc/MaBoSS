@@ -89,25 +89,36 @@ static PyObject* cMaBoSSSim_run(cMaBoSSSimObject* self, PyObject *args, PyObject
     return NULL;
     
   bool b_only_last_state = PyObject_IsTrue(PyBool_FromLong(only_last_state));
-  if (b_only_last_state) {
-    FinalStateSimulationEngine* simulation = new FinalStateSimulationEngine(self->network, self->runconfig);
+  time_t start_time, end_time;
 
+  RandomGenerator::resetGeneratedNumberCount();
+  if (b_only_last_state) {
+  
+    FinalStateSimulationEngine* simulation = new FinalStateSimulationEngine(self->network, self->runconfig);
+    time(&start_time);
     simulation->run(NULL);
-    
+    time(&end_time);
     cMaBoSSResultFinalObject* res = (cMaBoSSResultFinalObject*) PyObject_New(cMaBoSSResultFinalObject, &cMaBoSSResultFinal);
     res->network = self->network;
+    res->runconfig = self->runconfig;
     res->engine = simulation;
+    res->start_time = start_time;
+    res->end_time = end_time;
     
     return (PyObject*) res;
   } else {
 
     MaBEstEngine* simulation = new MaBEstEngine(self->network, self->runconfig);
-
+    time(&start_time);
     simulation->run(NULL);
+    time(&end_time);
     
     cMaBoSSResultObject* res = (cMaBoSSResultObject*) PyObject_New(cMaBoSSResultObject, &cMaBoSSResult);
     res->network = self->network;
+    res->runconfig = self->runconfig;
     res->engine = simulation;
+    res->start_time = start_time;
+    res->end_time = end_time;
     
     return (PyObject*) res;
   }

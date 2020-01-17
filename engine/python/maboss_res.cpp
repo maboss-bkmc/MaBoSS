@@ -10,7 +10,10 @@
 typedef struct {
   PyObject_HEAD
   Network* network;
+  RunConfig* runconfig;
   MaBEstEngine* engine;
+  time_t start_time;
+  time_t end_time;
 } cMaBoSSResultObject;
 
 static void cMaBoSSResult_dealloc(cMaBoSSResultObject *self)
@@ -248,6 +251,21 @@ static PyObject* cMaBoSSResult_display_statdist(cMaBoSSResultObject* self, PyObj
   return Py_None;
 }
 
+static PyObject* cMaBoSSResult_display_run(cMaBoSSResultObject* self, PyObject* args) 
+{
+  char * filename = NULL;
+  int hexfloat = 0;
+  if (!PyArg_ParseTuple(args, "s|i", &filename, &hexfloat))
+    return NULL;
+    
+  std::ostream* output_run = new std::ofstream(filename);
+  self->runconfig->display(self->network, self->start_time, self->end_time,*(self->engine), *output_run);
+  ((std::ofstream*) output_run)->close();
+  delete output_run;
+
+  return Py_None;
+}
+
 static PyMethodDef cMaBoSSResult_methods[] = {
     {"get_final_time", (PyCFunction) cMaBoSSResult_get_final_time, METH_NOARGS, "gets the final time of the simulation"},
     {"get_fp_table", (PyCFunction) cMaBoSSResult_get_fp_table, METH_NOARGS, "gets the fixpoints table"},
@@ -260,6 +278,7 @@ static PyMethodDef cMaBoSSResult_methods[] = {
     {"display_fp", (PyCFunction) cMaBoSSResult_display_fp, METH_VARARGS, "prints the fixpoints to a file"},
     {"display_probtraj", (PyCFunction) cMaBoSSResult_display_probtraj, METH_VARARGS, "prints the probtraj to a file"},
     {"display_statdist", (PyCFunction) cMaBoSSResult_display_statdist, METH_VARARGS, "prints the statdist to a file"},
+    {"display_run", (PyCFunction) cMaBoSSResult_display_run, METH_VARARGS, "prints the run of the simulation to a file"},
     {NULL}  /* Sentinel */
 };
 
