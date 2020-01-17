@@ -32,6 +32,8 @@
 #include "RunConfig.h"
 #include "BooleanNetwork.h"
 #include "MaBEstEngine.h"
+#include "FinalStateSimulationEngine.h"
+
 extern void RClex_destroy();
 
 RunConfig::RunConfig()
@@ -130,6 +132,47 @@ void RunConfig::display(Network* network, time_t start_time, time_t end_time, Ma
 
   os << "StatDist user runtime: " << (mabest.getUserStatDistRunTime()/1000.) << " secs using 1 thread\n";
   os << "StatDist elapsed runtime: " << (mabest.getElapsedStatDistRunTime()/1000.) << " secs using 1 thread\n\n";
+  os << "Time Tick: " << getTimeTick() << '\n';
+  os << "Max Time: " <<getMaxTime() << '\n';
+  os << "Sample Count: " << getSampleCount() << '\n';
+  os << "StatDist Trajectory Count: " << getStatDistTrajCount() << '\n';
+  os << "StatDist Similarity Cache Maximum Size: " << getStatDistSimilarityCacheMaxSize() << '\n';
+  os << "Discrete Time: " << (isDiscreteTime() ? "TRUE" : "FALSE") << '\n';
+  os << "Random Generator: " << getRandomGeneratorFactory()->getName() << '\n';
+  if (getRandomGeneratorFactory()->isPseudoRandom()) {
+    os << "Seed Pseudo Random: " << getSeedPseudoRandom() << '\n';
+  }
+  os << "Generated Number Count: " << RandomGenerator::getGeneratedNumberCount() << "\n\n";
+
+  sprintf(bufstr, sepfmt, "-----------");
+  os << bufstr << '\n';
+
+  sprintf(bufstr, sepfmt, "- Network -");
+  os << bufstr;
+  network->display(os);
+  sprintf(bufstr, sepfmt, "-----------");
+  os << bufstr << '\n';
+
+  sprintf(bufstr, sepfmt, " Variables ");
+  os << bufstr;
+  network->getSymbolTable()->display(os);
+  sprintf(bufstr, sepfmt, "-----------");
+  os << bufstr << '\n';
+}
+
+void RunConfig::display(Network* network, time_t start_time, time_t end_time, FinalStateSimulationEngine& mabest, std::ostream& os) const
+{
+  const char sepfmt[] = "-----------------------------------------------%s-----------------------------------------------\n";
+  char bufstr[1024];
+
+  os << '\n';
+  sprintf(bufstr, sepfmt, "--- Run ---");
+  os << bufstr;
+
+  os << "MaBoSS version: " << FinalStateSimulationEngine::VERSION << " [networks up to " << MAXNODES << " nodes]\n";
+  os << "\nRun start time: " << ctime(&start_time);
+  os << "Run end time: " << ctime(&end_time);
+
   os << "Time Tick: " << getTimeTick() << '\n';
   os << "Max Time: " <<getMaxTime() << '\n';
   os << "Sample Count: " << getSampleCount() << '\n';

@@ -35,6 +35,7 @@
 #include "RandomGenerator.h"
 #include "BooleanNetwork.h"
 class MaBEstEngine;
+class FinalStateSimulationEngine;
 
 class RunConfig {
 
@@ -70,6 +71,7 @@ class RunConfig {
   int getSeedPseudoRandom() const {return seed_pseudorand;}
   void setSeedPseudoRandom(int seed) { seed_pseudorand = seed;}
   void display(Network* network, time_t start_time, time_t end_time, MaBEstEngine& mabest, std::ostream& os) const;
+  void display(Network* network, time_t start_time, time_t end_time, FinalStateSimulationEngine& engine, std::ostream& os) const;
   bool displayTrajectories() const {return display_traj;}
   unsigned int getThreadCount() const {return thread_count;}
   unsigned int getStatDistTrajCount() const {return statdist_traj_count <= sample_count ? statdist_traj_count : sample_count;}
