@@ -56,6 +56,8 @@ class RandomGenerator {
   static void incrGeneratedNumberCount() {generated_number_count++;}
 
  public:
+
+  static void resetGeneratedNumberCount() {generated_number_count = 0;}
   virtual std::string getName() const = 0;
 
   virtual bool isPseudoRandom() const = 0;
@@ -125,23 +127,41 @@ class PhysicalRandomGenerator : public RandomGenerator {
   }
 };
 
-#if defined(HAS_RAND48) || defined(HAS_RAND48_T)
 class Rand48RandomGenerator: public RandomGenerator
 {
-#ifdef HAS_RAND48_T
-  drand48_data data;
-#endif
-  int seed;
 
+#define RAND48_N	16
+#define RAND48_MASK	((unsigned)(1 << (RAND48_N - 1)) + (1 << (RAND48_N - 1)) - 1)
+#define RAND48_LOW(x)	((unsigned)(x) & RAND48_MASK)
+#define RAND48_HIGH(x)	RAND48_LOW((x) >> RAND48_N)
+#define RAND48_MUL(x, y, z)	{ long l = (long)(x) * (long)(y); \
+		(z)[0] = RAND48_LOW(l); (z)[1] = RAND48_HIGH(l); }
+#define RAND48_CARRY(x, y)	((long)(x) + (long)(y) > RAND48_MASK)
+#define RAND48_ADDEQU(x, y, z)	(z = RAND48_CARRY(x, (y)), x = RAND48_LOW(x + (y)))
+#define RAND48_X0	0x330E
+#define RAND48_X1	0xABCD
+#define RAND48_X2	0x1234
+#define RAND48_A0	0xE66D
+#define RAND48_A1	0xDEEC
+#define RAND48_A2	0x5
+#define RAND48_C	0xB
+#define RAND48_SET3(x, x0, x1, x2)	((x)[0] = (x0), (x)[1] = (x1), (x)[2] = (x2))
+#define RAND48_SETLOW(x, y, n) RAND48_SET3(x, RAND48_LOW((y)[n]), RAND48_LOW((y)[(n)+1]), RAND48_LOW((y)[(n)+2]))
+#define RAND48_SEED(x0, x1, x2) (RAND48_SET3(x, x0, x1, x2), RAND48_SET3(a, RAND48_A0, RAND48_A1, RAND48_A2), c = RAND48_C)
+#define RAND48_REST(v)	for (i = 0; i < 3; i++) { xsubi[i] = x[i]; x[i] = temp[i]; } \
+		return (v);
+#define RAND48_NEST(TYPE, f, F)	TYPE f(xsubi) register unsigned short *xsubi; { \
+	register int i; register TYPE v; unsigned temp[3]; \
+	for (i = 0; i < 3; i++) { temp[i] = x[i]; x[i] = RAND48_LOW(xsubi[i]); }  \
+	v = F(); RAND48_REST(v); }
+#define RAND48_HI_BIT	(1L << (2 * RAND48_N - 1))
+
+  unsigned x[3] = { RAND48_X0, RAND48_X1, RAND48_X2 }, a[3] = { RAND48_A0, RAND48_A1, RAND48_A2 }, c = RAND48_C;
+  int seed;
 public:
-  Rand48RandomGenerator(int seed) : seed(seed) 
+  Rand48RandomGenerator(int seed)
   {
-#ifdef HAS_RAND48_T
-    memset(&data, 0, sizeof(data));
-    srand48_r(seed, &data);
-#else
-    srand48(seed);
-#endif
+    setSeed(seed);
   }
   bool isPseudoRandom() const {
     return true;
@@ -151,21 +171,34 @@ public:
     return "rand48";
   }
 
+  void next()
+  {
+    unsigned p[2], q[2], r[2], carry0, carry1;
+
+    RAND48_MUL(a[0], x[0], p);
+    RAND48_ADDEQU(p[0], c, carry0);
+    RAND48_ADDEQU(p[1], carry0, carry1);
+    RAND48_MUL(a[0], x[1], q);
+    RAND48_ADDEQU(p[1], q[0], carry0);
+    RAND48_MUL(a[1], x[0], r);
+    x[2] = RAND48_LOW(carry0 + carry1 + RAND48_CARRY(p[1], r[0]) + q[1] + r[1] +
+      a[0] * x[2] + a[1] * x[1] + a[2] * x[0]);
+    x[1] = RAND48_LOW(p[1] + r[0]);
+    x[0] = RAND48_LOW(p[0]);
+  }
+
   unsigned int generateUInt32() {
     incrGeneratedNumberCount();
 #ifdef USE_DUMMY_RANDOM
     return ~0U/2;
 #endif
-#ifdef HAS_RAND48_T
-    long result;
-    lrand48_r(&data, &result);
+	  
+    next();
+	
 #ifdef RANDOM_TRACE
-    std::cout << (unsigned int)result << '\n';
+    std::cout << ((unsigned int)(((long)x[2] << (RAND48_N - 1)) + (x[1] >> 1))) << '\n';
 #endif
-    return (unsigned int)result;
-#else
-    return lrand48();
-#endif
+    return (((unsigned int)x[2] << (RAND48_N - 1)) + (x[1] >> 1));
   }
 
   virtual double generate() {
@@ -173,29 +206,21 @@ public:
 #ifdef USE_DUMMY_RANDOM
     return 0.5;
 #endif
-#ifdef HAS_RAND48_T
-    double result;
-    drand48_r(&data, &result);
-#ifdef RANDOM_TRACE
-    std::cout << result << '\n';
-#endif
-    return result;
-#else
-    return drand48();
-#endif
+    
+    double two16m = 1.0 / (1L << RAND48_N);
+    next();
 
+#ifdef RANDOM_TRACE
+    std::cout << (two16m * (two16m * (two16m * x[0] + x[1]) + x[2])) << '\n';
+#endif
+    return (two16m * (two16m * (two16m * x[0] + x[1]) + x[2]));
   }
 
   virtual void setSeed(int seed) {
     this->seed = seed;
-#ifdef HAS_RAND48_T
-    srand48_r(seed, &data);
-#else
-    srand48(seed);
-#endif
+	  RAND48_SEED(RAND48_X0, RAND48_LOW(seed), RAND48_HIGH(seed));
   }
 };
-#endif
 
 class GLibCRandomGenerator : public RandomGenerator
 {
@@ -352,11 +377,7 @@ public:
   RandomGenerator* generateRandomGenerator(int seed=1) const {
     switch(type) {
     case DEFAULT:
-#if defined(HAS_RAND48_T) || defined(HAS_RAND48)
       return new Rand48RandomGenerator(seed);
-#else 
-      return new GLibCRandomGenerator(seed);
-#endif
     case GLIBC:
       return new GLibCRandomGenerator(seed);
     case MERSENNE_TWISTER:
@@ -372,11 +393,7 @@ public:
   std::string getName() const {
     switch(type) {
     case DEFAULT:
-#if defined(HAS_RAND48_T) || defined(HAS_RAND48)
       return "rand48";
-#else 
-      return "glibc";
-#endif
     case GLIBC:
       return "glibc";   
     case MERSENNE_TWISTER:
@@ -408,13 +425,7 @@ public:
   bool isThreadSafe() const {
     switch(type) {
     case DEFAULT:
-#if defined(HAS_RAND48_T)
       return true;
-#elif defined(HAS_RAND48)
-      return false;
-#else
-      return true;
-#endif
     case GLIBC:
       return true;
     case MERSENNE_TWISTER:
