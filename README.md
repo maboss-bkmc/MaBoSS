@@ -1,5 +1,5 @@
-# MaBoSS : Markovian Boolean Stochastic Simulator <img align="right" height="100" src="https://maboss.curie.fr/images/maboss_logo.jpg">
-[![Build Status](https://travis-ci.org/sysbio-curie/MaBoSS-env-2.0.svg?branch=master)](https://travis-ci.org/sysbio-curie/MaBoSS-env-2.0) [![Anaconda-Server Badge](https://anaconda.org/sysbio-curie/maboss/badges/version.svg)](https://anaconda.org/sysbio-curie/maboss) [![PyPI version](https://badge.fury.io/py/cmaboss.svg)](https://badge.fury.io/py/cmaboss)
+# MaBoSS : Markovian Boolean Stochastic Simulator 
+[![Build Status](https://travis-ci.org/sysbio-curie/MaBoSS-env-2.0.svg?branch=master)](https://travis-ci.org/sysbio-curie/MaBoSS-env-2.0) [![Anaconda-Server Badge](https://anaconda.org/sysbio-curie/maboss/badges/version.svg)](https://anaconda.org/sysbio-curie/maboss) [![PyPI version](https://badge.fury.io/py/cmaboss.svg)](https://badge.fury.io/py/cmaboss) <img align="right" height="100" src="https://maboss.curie.fr/images/maboss_logo.jpg">
 
 
 MaBoSS is a C++ software for simulating continuous/discrete time Markov processes, applied on a Boolean network.
@@ -8,9 +8,11 @@ MaBoSS uses a specific language for associating transition rates to each node. G
 
 ### Contact
 Institut Curie 
-26 rue d'Ulm 75248 PARIS CEDEX 05
 
-Contact: [maboss.bkmc@gmail.com](mailto://maboss.bkmc@gmail.com)
+26 rue d'Ulm 75248 PARIS CEDEX 05 
+
+Contact: [maboss.bkmc@gmail.com](mailto://maboss.bkmc@gmail.com) 
+
 Web Site: [https://maboss.curie.fr](https://maboss.curie.fr)
 
 ### Package Contents

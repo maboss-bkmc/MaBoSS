@@ -6,6 +6,8 @@ env:
     - secure: "N/DlgYl7l0jGCaYdlsyGXKdlm1w+8cbcYdoQrlI36PxwE26FHQQraxWpNF9X2VZ9DfVzOc9rj+3bJU9iAfPc5PiGJONCj/KnUGJ6Rk2V/Vlo4RvP6GPmQUK8OvgO2B/zCPn6X8ry466MgLw1p634B+ARJZ0AzHLR/qp5Li2gHSpZ7qHl4Z4GsBTMBd8hBFkFZKqz7xsTSRJSvPtjR3OPK+eC9x3eyMpqxqTkM264JfS+Fo5k8CUB/IUz6SVK2hA2JUHKis7MnaquSAufACEyU3I7LNKDQTXTlfsVNF/9YRSNuugkemzX8U9XKwqHOuksH9442RmFbrl2A8oKafN3oJjyhjgbt9yEsCjPwz2efcs08h6aHRrAq4FOQqs2ECPXr1os/99em2nAJv2hhN12nJvhbwrNGaxAg8GiarEkNYcWSklgCQcV0Vzuz/P1Mm6ObgaeUzU9qydhkR2eN7jw7d22vM87evIqDNuKwd/KmYbCbQmugNu6La4TCdPOyq+OnZF4QhHnGDkzErx8i5FakRm2Vf0vi4Mi1h7oliu8ZrrC2Sk+iqLLaW3vUrROwxLV2pfskzscdCHV0GzUJkKAC1FFkYJR8kloOL/M9NcYHQCO4o+BacKK61Y+dS0tV6kztl7FB2/ZPaXzkvp7ad2xGz9YhUscVBIBHGT712hp5cs="
     - secure: "K5bXqKsq9xWMhzUtjtn2/cfwtzNrbhKJtYXarxsIjLHWZbUG6h5TD/MVNYqI2b1XlGSjtregsZ9+/Qh/iSss0BWuuRin7yvZ5z6wusjNIiLKTJQOXWVzFIlN3Bb+Dq/xwNzsC242md3nbC0qiqrrczmh90yCwrvaxGVOQoVQIQpulJtUGF51cladNaAPXIB+jESe5/EH5BpEjqko+971mhnr5QveSjFAdMsd+AeX1ZLkfiy6iiFkjucHl+6ZkUPHk9ArEdJ7p7GL6RZYS0IoMsD4XZ7BRytRi9EWQeqWyM6unAj68dwZVZpB+BvJluU3cYW6e5GwuQs7mODn8OGz4sK14LbSzZCH2zMQ4nuqpnD9Z2YEJ+P650TWdwtWPfOSEM13kI3wV/kScYe7wAveb+85StySyr1tG+7WWb31aQrbG78cMAbEcd9Ib/Y7pZGBNPbgq/islwTXmACHJXouc67VTIXloGq8KdO2eRKEBFpKxKPEiNC3PkY7BxL/aCm+wfcETt8RkdZDI6d6Yc5oZapUo20YjNVz/yikiXu3bTUPpgRH5wVgTNEynOC+BMqcyza+wHvS6cp7UIwJinmIywgVbXW8BppyWJerwIhI468wT+qBwsyXmVOavbjb725XJPEk5NUUWLJlIbRHw3WVeM672trPve4xzTpX05KgGec="
     - secure: "UmhdazfnTklI5cBBXwdxbXBdNL649m45WeyM3YapemaS0JOn83hY8XEiOfsXHk82ChDMxdIfC/L55R06jzgUjaZOb2MRWyUTFmzuCWhfDqy/IgbjPUIz2A/P0oKwUy8lMibCpsnaYp0Ztuo0l0VTEexwUZ7ZZadvm4bhKXGR8OZtN1DwDHFoO9zVf/TDZfM2MUFbv0ih6m8quoP8QY/A9a+sdWBXYlgTN3LiaiMQqY+IkECKkM1VxWSfWQEV7Dki3NQW4oL5eHeEE8k/eZZ2jPKCjl6DS1DTrL+dutXT4/RDDpxt3zmPVePd9n3+HPiutyQS03KF9eckX4tXgeeWG2dCFTJ8+BnkVaFH86hmodOBQRb5NhhxMQdX0nax4fyqWKddzuYYFGd04EINWfCsRb5InkgiIl3x2aCcZoTt1GzQVadSI32ka3Ju0BZsVxvvagJo1ZPju29SBZxuCyXVPMhA+2aTlOOF96tMIzVg21aBKc7fKLT1Rl2VKV1qyP3sIJFSVBa9gYDuPpW1aTyMkQz0Jrl+MoyGp59qAxY+teKYbkWz5Xq+s8AIs2tAmX6n7B9w2RmrwVKPRPSjGpSmJnA1LKJXBst4UFt8kFSw4iLnDH5LlxfVkR84LitiWyyk2YxxbvoHBSv3ShMcYTMGQTCfOyRaTLGtbGFxI7g92cs="
+    - secure: "u7kndpcrKB3EJqsoqVNeF6sUH5hFy2100h1rQTmVLyfdbBp6rkjncYCGkxORxe6DtIi9bP7/ALO7BfkQsixa0evmHY2bVMlzarQMztIRnotpAMaJcAfE43TzpkHX5IHU5vSZBWKeBxsIW7hNYlZqqDjmzZUZhOuUzFYkRYq55QX0YG7+4bmaCoHe4rRLiqabdBvaPn6hxmPQaxaI6z0YgGkVCNPdLjdcm5iA+MZLtwDBbblIm7tUhrkA7Z92WcjJH1LZ+K0P+jV5OL3Z3l3/mS6RIIre3VyYA+PCBzALf3ZTOeujFDyzYF0gSPHCZfHNDGrF0yJtuSnSQjkCtMoYw3xW8xYSau13ufSE/M0EFmIpJRXZLcVcep48R6Sl9VzGCBCiiTCyAFMmCFMBAhm0e90qlA5eNwn161cMd7JZ55WUJ/+VBlQplH0nOXRK6BESnID64O0HYveWENy9HprvBURMYXSB2AdOMSyjPYqPNIhIVwpImoWd/GlHIG6QZ9ElOeK5UQKYODBMc2Ratdl6W7iEgmDVrzbyuy+fOuST533izNcbgTaVyXWAbYKCMkw5F/VufgLFeFoavKhYfRjHoTzeqKbTbWxXDgELpsWPXUlMHvVnc38TsMszi2CuWa3W5KaEHh51SHNxwFDA6jjvcAUTiusNrmprMnpQlCNC1sQ="
+    - secure: "kKMUFQ/O3AY31oez2UwKDGg7toxkr73FZBeYSV/WYhI8gYLC+GBZoxFuolJ74trRSnj6kYMSMZSzESRrn5pyvqAiZ75yN5s4zIyke7l5X4GiOtuUmFe4HdVxNKW2ijI3soOx1/lNTI2grXTZPw1WslQhsMuGzePn6xeQz69GkfETxKDiUl1/jEdD/udl7RP2Kbjb5l/q6hgU++QPYnWzAdv5tManRbl9ShO/gzcuSxvRKSFM1QZJYBo7bo2eSD8w69VaPcoAA7C+o43XHU2FXLL8AxJ9rJO4F8ZPTnL8cGMd1At5K7aKPX7fVHMASWxXmvJCT6MfTCw0lkQzG85oLGZUyGQzxfLl+zgyYvZsr60BHsgGN+b7DgEZHMQLNjBoo3iB1Yezsz4zDeHVpPA00h1iSxkXx5Pg61rXuHfsFrGhK28UPjZOT0ABfrheoH3z7XSRhkvww/E2jOUcdRSPnxg5MryvbEW41b5BXfn05ufgrf/5+qpULScVFtHiSomibzSQZbZc9bjMFsMfD9/yCAzHfrmYnGWU610VFQSQUm70RZUT54HLRBQ0AnQLAPrOPDLxb9CzQ8ds2m1XAJnFi4MWhYzP2PEFmbcFCWsPeVNBr1FMgJBbPpQtqXInopQrZXtlPFXgTbQQpdVTosoPYBeBofrwyEp8RXTEdJcMxyI="
 jobs:
   include:
     - stage: test
@@ -175,6 +177,64 @@ jobs:
       
       script: 
         - sudo singularity build maboss-server.simg containers/singularity/Singularity
+
+
+    - stage: deploy
+      if: type != pull_request
+      name: Linux MaBoSS upload on Anaconda cloud
+
+      os: linux
+      dist: xenial
+      
+      install:
+        - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+        - bash miniconda.sh -b -p $HOME/miniconda
+        - export PATH="$HOME/miniconda/bin:$PATH"
+        - hash -r
+        - conda config --set always_yes yes --set changeps1 no
+        - conda update -q conda
+        - conda install conda-build
+        - conda install anaconda-client
+
+      script:
+        - if [ $TRAVIS_REPO_SLUG = 'vincent-noel/MaBoSS-env-2.0' ]; then
+            sed -i "s|sysbio-curie|vincent-noel|" conda/maboss/meta.yaml;
+            sed -ie "s|v{{\sversion\s}}|$TRAVIS_BRANCH|" conda/maboss/meta.yaml;
+            sed -i "s|git_rev|git_tag|" conda/maboss/meta.yaml;
+            conda build conda/maboss;
+            anaconda -t $CONDA_UPLOAD_TOKEN upload -u vincent-noel $HOME/miniconda/conda-bld/$TRAVIS_OS_NAME-64/*.tar.bz2 --force;
+          elif [ $TRAVIS_REPO_SLUG = 'sysbio-curie/MaBoSS-env-2.0' && $TRAVIS_TAG != '' ]; then
+            conda build conda/maboss;
+            anaconda -t $CONDA_UPLOAD_TOKEN_SYSBIO_CURIE upload -u sysbio-curie $HOME/miniconda/conda-bld/$TRAVIS_OS_NAME-64/*.tar.bz2 --force;
+          fi
+
+    - stage: deploy
+      if: type != pull_request
+      name: MacOSX MaBoSS upload on Anaconda cloud
+
+      os: osx
+      
+      install:
+        - wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O ~/miniconda.sh;
+        - bash ~/miniconda.sh -b -p $HOME/miniconda
+        - export PATH="$HOME/miniconda/bin:$PATH"
+        - hash -r
+        - conda config --set always_yes yes --set changeps1 no
+        - conda update -q conda
+        - conda install conda-build
+        - conda install anaconda-client
+
+      script:
+        - if [ $TRAVIS_REPO_SLUG = 'vincent-noel/MaBoSS-env-2.0' ]; then
+            sed -i '' "s|sysbio-curie|vincent-noel|" conda/maboss/meta.yaml;
+            sed -i '' -e "s|v{{[[:space:]]version[[:space:]]}}|$TRAVIS_BRANCH|" conda/maboss/meta.yaml;
+            sed -i '' "s|git_rev|git_tag|" conda/maboss/meta.yaml;
+            conda build conda/maboss;
+            anaconda -t $CONDA_UPLOAD_TOKEN upload -u vincent-noel $HOME/miniconda/conda-bld/$TRAVIS_OS_NAME-64/*.tar.bz2 --force;
+          elif [ $TRAVIS_REPO_SLUG = 'sysbio-curie/MaBoSS-env-2.0' && $TRAVIS_TAG != '' ]; then
+            conda build conda/maboss;
+            anaconda -t $CONDA_UPLOAD_TOKEN_SYSBIO_CURIE upload -u sysbio-curie $HOME/miniconda/conda-bld/$TRAVIS_OS_NAME-64/*.tar.bz2 --force;
+          fi
 
     - stage: deploy
       if: type != pull_request
