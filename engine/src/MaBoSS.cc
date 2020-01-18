@@ -81,6 +81,13 @@ static int help()
   std::cout << "  --export-asymptotic                     : create a special file for asymptotic probabilities\n";
   std::cout << "  --counts                                : exports counts instead of probabilities (only works with asymptotic states)\n";
   std::cout << "  -h --help                               : displays this message\n";
+  std::cout << "\nEnsembles:\n";
+  std::cout << "  -- ensemble                             : simulate ensembles\n";
+  std::cout << "  -- random-sampling                      : randomly select which model to simulate\n";
+  std::cout << "  -- save-individual                      : export results of individual models\n";
+  std::cout << "  -- ensemble-istates                     : Each model will have it's own cfg file. Must provide configs via -c, in the same order as the models\n";
+  std::cout << "\nFinal:\n";
+  std::cout << "  -- final                                : Only export final probabilities\n";
   std::cout << "\nNotices:\n";
   std::cout << "\n1. --config and --config-expr options can be used multiple times;\n";
   std::cout << "   multiple --config and/or --config-expr options are managed in the order given at the command line;\n";
