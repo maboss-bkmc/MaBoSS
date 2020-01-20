@@ -2,7 +2,7 @@ from distutils.core import setup, Extension
 from sys import executable, argv
 from os.path import join, dirname
 
-maboss_version = '1.0.0-alpha-10'
+maboss_version = '1.0.0-beta-0'
 
 maboss_sources = [
    "FinalStateSimulationEngine.cc", "MetaEngine.cc", "MaBEstEngine.cc", "EnsembleEngine.cc", 
