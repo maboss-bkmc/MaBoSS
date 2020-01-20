@@ -145,11 +145,13 @@ jobs:
       dist: xenial
       
       install:
+        - if [ $TRAVIS_REPO_SLUG = "vincent-noel/MaBoSS-env-2.0" ]; then
+            echo "$DOCKER_HUB_PASSWORD" | docker login --username vnoel --password-stdin;
 
-        - (test $TRAVIS_REPO_SLUG = "vincent-noel/MaBoSS-env-2.0" && 
-          echo "$DOCKER_HUB_PASSWORD" | docker login --username vnoel --password-stdin) ||
-          (test $TRAVIS_REPO_SLUG = "sysbio-curie/MaBoSS-env-2.0" && 
-          echo "$DOCKER_HUB_PASSWORD_SYSBIO_CURIE" | docker login --username vnoel --password-stdin)
+          elif [ $TRAVIS_REPO_SLUG = "sysbio-curie/MaBoSS-env-2.0" ]; then
+            echo "$DOCKER_HUB_PASSWORD_SYSBIO_CURIE" | docker login --username vnoel --password-stdin;
+            
+          fi
         - sudo apt-get -qq update
         - sudo apt-get install -yq python3-pip python3-setuptools
         - sudo pip3 install -U docker-compose
@@ -268,10 +270,13 @@ jobs:
         - docker run --rm -e PLAT=manylinux1_x86_64 -v `pwd`:/io quay.io/pypa/manylinux1_x86_64 /io/build-wheels.sh
 
       after_success:
-        - (test $TRAVIS_REPO_SLUG = "vincent-noel/MaBoSS-env-2.0" && 
-          twine upload -u vincent-noel -p $PYPI_PASS --skip-existing wheelhouse/*) ||
-          (test $TRAVIS_REPO_SLUG = "sysbio-curie/MaBoSS-env-2.0" && 
-          twine upload -u vincent-noel -p $PYPI_PASS_SYSBIO_CURIE --skip-existing wheelhouse/*)
+        - if [ $TRAVIS_REPO_SLUG = "vincent-noel/MaBoSS-env-2.0" ]; then
+            twine upload -u vincent-noel -p $PYPI_PASS --skip-existing wheelhouse/*;
+
+          elif [ $TRAVIS_REPO_SLUG = "sysbio-curie/MaBoSS-env-2.0" ]; then
+            twine upload -u vincent-noel -p $PYPI_PASS_SYSBIO_CURIE --skip-existing wheelhouse/*;
+
+          fi
 
 
     - stage: deploy
@@ -317,7 +322,10 @@ jobs:
 
       after_success:
 
-        - (test $TRAVIS_REPO_SLUG = "vincent-noel/MaBoSS-env-2.0" && 
-          /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/twine upload -u vincent-noel -p $PYPI_PASS --skip-existing wheelhouse/*) ||
-          (test $TRAVIS_REPO_SLUG = "vincent-noel/MaBoSS-env-2.0" && 
-          /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/twine upload -u vincent-noel -p $PYPI_PASS_SYSBIO_CURIE --skip-existing wheelhouse/*)
+        - if [ $TRAVIS_REPO_SLUG = "vincent-noel/MaBoSS-env-2.0" ]; then
+            /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/twine upload -u vincent-noel -p $PYPI_PASS --skip-existing wheelhouse/*;
+          
+          elif [ $TRAVIS_REPO_SLUG = "sysbio-curie/MaBoSS-env-2.0" ]; then
+            /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/twine upload -u vincent-noel -p $PYPI_PASS_SYSBIO_CURIE --skip-existing wheelhouse/*;
+
+          fi
