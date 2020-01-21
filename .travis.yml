@@ -329,3 +329,77 @@ jobs:
             /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/twine upload -u vincent-noel -p $PYPI_PASS_SYSBIO_CURIE --skip-existing wheelhouse/*;
 
           fi
+
+
+    - stage: deploy
+      if: type != pull_request
+      name: Linux cMaBoSS upload on Anaconda cloud
+
+      os: linux
+      dist: xenial
+      
+      install:
+        - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+        - bash miniconda.sh -b -p $HOME/miniconda
+        - export PATH="$HOME/miniconda/bin:$PATH"
+        - hash -r
+        - conda config --set always_yes yes --set changeps1 no
+        - conda update -q conda
+        - conda install conda-build
+        - conda install anaconda-client
+
+      script:
+        - if [ $TRAVIS_REPO_SLUG = 'vincent-noel/MaBoSS-env-2.0' ]; then
+            sed -i "s|sysbio-curie|vincent-noel|" conda/cmaboss/meta.yaml;
+            sed -ie "s|release|$TRAVIS_BRANCH|" conda/cmaboss/meta.yaml;
+            sed -i "s|git_rev|git_tag|" conda/cmaboss/meta.yaml;
+            conda build conda/cmaboss;
+            anaconda -t $CONDA_UPLOAD_TOKEN upload -u vincent-noel $HOME/miniconda/conda-bld/$TRAVIS_OS_NAME-64/*.tar.bz2 --force;
+
+          elif [[ $TRAVIS_REPO_SLUG = 'sysbio-curie/MaBoSS-env-2.0' && $TRAVIS_TAG != '' ]]; then
+            sed -ie "s|release|$TRAVIS_TAG|" conda/cmaboss/meta.yaml;
+            conda build conda/cmaboss;
+            anaconda -t $CONDA_UPLOAD_TOKEN_SYSBIO_CURIE upload -u sysbio-curie $HOME/miniconda/conda-bld/$TRAVIS_OS_NAME-64/*.tar.bz2 --force;
+            
+          elif [[ $TRAVIS_REPO_SLUG = 'maboss-bkmc/MaBoSS-env-2.0' && $TRAVIS_TAG != '' ]]; then
+            sed -ie "s|release|$TRAVIS_TAG|" conda/cmaboss/meta.yaml;
+            conda build conda/cmaboss;
+            anaconda -t $CONDA_UPLOAD_TOKEN_BKMC upload -u colomoto $HOME/miniconda/conda-bld/$TRAVIS_OS_NAME-64/*.tar.bz2 --force;
+            
+          fi
+
+    - stage: deploy
+      if: type != pull_request
+      name: MacOSX cMaBoSS upload on Anaconda cloud
+
+      os: osx
+      
+      install:
+        - wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O ~/miniconda.sh;
+        - bash ~/miniconda.sh -b -p $HOME/miniconda
+        - export PATH="$HOME/miniconda/bin:$PATH"
+        - hash -r
+        - conda config --set always_yes yes --set changeps1 no
+        - conda update -q conda
+        - conda install conda-build
+        - conda install anaconda-client
+
+      script:
+        - if [ $TRAVIS_REPO_SLUG = 'vincent-noel/MaBoSS-env-2.0' ]; then
+            sed -i '' "s|sysbio-curie|vincent-noel|" conda/cmaboss/meta.yaml;
+            sed -i '' -e "s|release|$TRAVIS_BRANCH|" conda/cmaboss/meta.yaml;
+            sed -i '' "s|git_rev|git_tag|" conda/cmaboss/meta.yaml;
+            conda build conda/cmaboss;
+            anaconda -t $CONDA_UPLOAD_TOKEN upload -u vincent-noel $HOME/miniconda/conda-bld/$TRAVIS_OS_NAME-64/*.tar.bz2 --force;
+          
+          elif [[ $TRAVIS_REPO_SLUG = 'sysbio-curie/MaBoSS-env-2.0' && $TRAVIS_TAG != '' ]]; then
+            sed -i '' -e "s|release|$TRAVIS_TAG|" conda/cmaboss/meta.yaml;
+            conda build conda/cmaboss;
+            anaconda -t $CONDA_UPLOAD_TOKEN_SYSBIO_CURIE upload -u sysbio-curie $HOME/miniconda/conda-bld/$TRAVIS_OS_NAME-64/*.tar.bz2 --force;
+          
+          elif [[ $TRAVIS_REPO_SLUG = 'maboss-bkmc/MaBoSS-env-2.0' && $TRAVIS_TAG != '' ]]; then
+            sed -i '' -e "s|release|$TRAVIS_TAG|" conda/cmaboss/meta.yaml;
+            conda build conda/cmaboss;
+            anaconda -t $CONDA_UPLOAD_TOKEN_BKMC upload -u colomoto $HOME/miniconda/conda-bld/$TRAVIS_OS_NAME-64/*.tar.bz2 --force;
+          
+          fi
