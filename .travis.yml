@@ -132,8 +132,8 @@ jobs:
         - /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/python3 setup.py build_ext --inplace
 
       script:
-        - bash -c "cd engine/python; /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/python3 -m unittest test"
-        - bash -c "cd engine/python; /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/python3 -m unittest test_128n"
+        - bash -c "/Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/python3 -m unittest test"
+        - bash -c "/Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/python3 -m unittest test_128n"
 
 
     - stage: deploy
