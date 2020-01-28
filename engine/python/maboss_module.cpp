@@ -1,6 +1,8 @@
 #define PY_SSIZE_T_CLEAN
-
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#define PY_ARRAY_UNIQUE_SYMBOL MABOSS_ARRAY_API
 #include <Python.h>
+#include <numpy/arrayobject.h>
 #include "maboss_sim.cpp"
 
 // I use these to define the name of the library, and the init function
@@ -45,7 +47,8 @@ MODULE_INIT_NAME(void)
 #endif
 {
     MaBEstEngine::init();
-
+    import_array();
+    
     PyObject *m;
     if (PyType_Ready(&cMaBoSSSim) < 0){
         return NULL;

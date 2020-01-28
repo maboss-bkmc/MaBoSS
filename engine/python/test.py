@@ -13,7 +13,11 @@ class TestCMaBoSS(TestCase):
         res.get_last_nodes_probtraj()
         res.get_raw_nodes_probtrajs()
         res.get_fp_table()
-
+        res.get_probtrajs()
+        res.get_timepoints()
+        res.get_last_states_probtraj_fast()
+        res.get_numpy_probtraj()
+        
     def test_load_model_error(self):
         with self.assertRaises(cmaboss.BNException):
             cmaboss.MaBoSSSim(network="../examples/metastasis-error.bnd", config="../examples/metastasis.cfg")
