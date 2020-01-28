@@ -1,5 +1,5 @@
 #define PY_SSIZE_T_CLEAN
-
+#ifdef PYTHON_API
 #include <Python.h>
 #include <fstream>
 #include <stdlib.h>
@@ -61,6 +61,11 @@ static PyObject* cMaBoSSResult_get_last_states_probtraj(cMaBoSSResultObject* sel
   return (PyObject*) dict;
 }
 
+static PyObject* cMaBoSSResult_get_last_states_probtraj_fast(cMaBoSSResultObject* self) {
+  return self->engine->getPythonFinalStateDist();
+}
+
+
 static PyObject* cMaBoSSResult_get_final_time(cMaBoSSResultObject* self) {
 
   return PyFloat_FromDouble(self->engine->getFinalTime());
@@ -82,10 +87,16 @@ static PyObject* cMaBoSSResult_get_last_nodes_probtraj(cMaBoSSResultObject* self
   return (PyObject*) dict;
 }
 
+static PyObject* cMaBoSSResult_get_numpy_probtraj(cMaBoSSResultObject* self) {
+
+  return self->engine->getNumpyStateDists();
+  
+}
+
 static PyObject* cMaBoSSResult_get_states(cMaBoSSResultObject* self) {
 
   std::set<NetworkState_Impl> states;
-  PyObject *timepoints = PyList_New(0);  
+  PyObject *timepoints = PyList_New(0);
   
   // Building the results as a python dict
   for (auto& t_results : self->engine->getStateDists()) {
@@ -142,6 +153,16 @@ static PyObject* cMaBoSSResult_get_raw_probtrajs(cMaBoSSResultObject* self) {
   }
 
   return timepoints;
+}
+
+
+static PyObject* cMaBoSSResult_get_probtrajs_fast(cMaBoSSResultObject* self) {
+  
+  return self->engine->getPythonStateDists();
+}
+
+static PyObject* cMaBoSSResult_get_timepoints_fast(cMaBoSSResultObject* self) {
+  return self->engine->getPythonTimepoints();
 }
 
 static PyObject* cMaBoSSResult_get_nodes(cMaBoSSResultObject* self) {
@@ -270,8 +291,12 @@ static PyMethodDef cMaBoSSResult_methods[] = {
     {"get_final_time", (PyCFunction) cMaBoSSResult_get_final_time, METH_NOARGS, "gets the final time of the simulation"},
     {"get_fp_table", (PyCFunction) cMaBoSSResult_get_fp_table, METH_NOARGS, "gets the fixpoints table"},
     {"get_last_states_probtraj", (PyCFunction) cMaBoSSResult_get_last_states_probtraj, METH_NOARGS, "gets the last probtraj of the simulation"},
+    {"get_last_states_probtraj_fast", (PyCFunction) cMaBoSSResult_get_last_states_probtraj_fast, METH_NOARGS, "gets the last probtraj of the simulation"},
     {"get_states", (PyCFunction) cMaBoSSResult_get_states, METH_NOARGS, "gets the states visited by the simulation"},
     {"get_raw_probtrajs", (PyCFunction) cMaBoSSResult_get_raw_probtrajs, METH_NOARGS, "gets the raw states probability trajectories of the simulation"},
+    {"get_numpy_probtraj", (PyCFunction) cMaBoSSResult_get_numpy_probtraj, METH_NOARGS, "gets the raw states probability trajectories of the simulation"},
+    {"get_probtrajs", (PyCFunction) cMaBoSSResult_get_probtrajs_fast, METH_NOARGS, "gets the raw states probability trajectories of the simulation"},
+    {"get_timepoints", (PyCFunction) cMaBoSSResult_get_timepoints_fast, METH_NOARGS, "gets the raw states probability trajectories of the simulation"},
     {"get_last_nodes_probtraj", (PyCFunction) cMaBoSSResult_get_last_nodes_probtraj, METH_NOARGS, "gets the last nodes probtraj of the simulation"},
     {"get_nodes", (PyCFunction) cMaBoSSResult_get_nodes, METH_NOARGS, "gets the nodes visited by the simulation"},
     {"get_raw_nodes_probtrajs", (PyCFunction) cMaBoSSResult_get_raw_nodes_probtrajs, METH_NOARGS, "gets the raw nodes probability trajectories of the simulation"},
@@ -295,3 +320,5 @@ static PyTypeObject cMaBoSSResult = []{
   res.tp_methods = cMaBoSSResult_methods;
   return res;
 }();
+
+#endif
