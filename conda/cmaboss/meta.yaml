@@ -20,9 +20,11 @@ requirements:
     - bison
     - make
     - python {{ python }}
+    - numpy
 
   run: 
     - python {{ python }}
+    - numpy
 
 about:
   home:  https://maboss.curie.fr
