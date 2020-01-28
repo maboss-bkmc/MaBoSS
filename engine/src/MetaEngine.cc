@@ -92,6 +92,26 @@ const STATE_MAP<NetworkState_Impl, double> MetaEngine::getAsymptoticStateDist() 
   return merged_cumulator->getAsymptoticStateDist();
 }
 
+#ifdef PYTHON_API
+  PyObject* MetaEngine::getPythonStateDists() const {
+    return merged_cumulator->getPythonStateDists(network);
+  };
+
+  PyObject* MetaEngine::getPythonNthStateDist(int nn) const {
+    return merged_cumulator->getPythonNthStateDist(nn, network);
+  };
+  PyObject* MetaEngine::getPythonFinalStateDist() const {
+    return merged_cumulator->getPythonFinalStateDist(network);
+  };
+  PyObject* MetaEngine::getPythonTimepoints() const {
+    return merged_cumulator->getPythonTimepoints();
+  };
+  PyObject* MetaEngine::getNumpyStateDists() const {
+    return merged_cumulator->getNumpyStateDists(network);
+  }
+
+#endif
+
 const std::map<double, std::map<Node *, double> > MetaEngine::getNodesDists() const {
 
   std::map<double, std::map<Node *, double> > result;
