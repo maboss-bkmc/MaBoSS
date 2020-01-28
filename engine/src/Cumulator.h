@@ -34,9 +34,18 @@
 
 #include <string>
 #include <map>
+#include <set>
 #include <vector>
 #include <iostream>
 #include <assert.h>
+
+#ifdef PYTHON_API
+#define NO_IMPORT_ARRAY
+#define PY_ARRAY_UNIQUE_SYMBOL MABOSS_ARRAY_API
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#include <Python.h>
+#include <numpy/arrayobject.h>
+#endif
 
 static bool COMPUTE_ERRORS = true;
 
@@ -392,6 +401,17 @@ public:
   void displayStatDistCSV(Network* network, unsigned int refnode_count, std::ostream& os_statdist = std::cout, bool hexfloat = false) const;
   void displayAsymptoticCSV(Network* network, unsigned int refnode_count, std::ostream& os_asymptprob = std::cout, bool hexfloat = false, bool proba = true) const;
 
+
+#ifdef PYTHON_API
+
+  PyObject* getPythonStateDists(Network* network) const;
+  PyObject* getPythonNthStateDist(int nn, Network* network) const;
+  PyObject* getPythonFinalStateDist(Network* network) const;
+  PyObject* getPythonTimepoints() const;
+  PyObject* getNumpyStateDists(Network* network) const;
+  std::set<NetworkState_Impl> getStates() const;
+
+#endif
   const std::map<double, STATE_MAP<NetworkState_Impl, double> > getStateDists() const;
   const STATE_MAP<NetworkState_Impl, double> getNthStateDist(int nn) const;
   const STATE_MAP<NetworkState_Impl, double> getAsymptoticStateDist() const;
