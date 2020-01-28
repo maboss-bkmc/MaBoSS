@@ -6,6 +6,7 @@ set -e -x
 
 # Compile wheels for python 3.*
 for PYBIN in /opt/python/cp3*/bin; do
+    "${PYBIN}/pip" install numpy
     "${PYBIN}/pip" wheel /io/ -w wheelhouse/
 done
 
