@@ -21,10 +21,17 @@ requirements:
     - make
     - python {{ python }}
     - numpy
+    - setuptools
 
-  run: 
-    - python {{ python }}
+  host: 
+    - python
     - numpy
+    - setuptools
+  
+  run: 
+    - python
+    - numpy
+    - setuptools
 
 about:
   home:  https://maboss.curie.fr

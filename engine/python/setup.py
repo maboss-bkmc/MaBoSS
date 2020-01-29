@@ -1,4 +1,4 @@
-from distutils.core import setup, Extension
+from setuptools import setup, Extension
 from sys import executable, argv
 from os.path import join, dirname
 
@@ -36,4 +36,5 @@ setup (name = 'cmaboss',
       getExtensionByMaxnodes(512),
       getExtensionByMaxnodes(1024)
    ],
+   install_requires = ["numpy"]
 )

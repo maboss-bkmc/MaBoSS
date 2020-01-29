@@ -108,7 +108,7 @@ jobs:
 
       before_install:
         - sudo apt-get -qq update
-        - sudo apt-get install -yq python3-pip
+        - sudo apt-get install -yq python3-pip python3-setuptools
         - sudo pip3 install numpy
 
       install:
@@ -129,7 +129,7 @@ jobs:
         - brew install flex bison
         - FULL_PYTHON_VERSION=`pyenv install -l | sed 's/ *//' | grep -e "^3.8\.[0-9]*$" | tail -n 1`
         - CONFIGURE_OPTS="--with-openssl=$(brew --prefix openssl)" pyenv install $FULL_PYTHON_VERSION
-        - /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/pip3 install numpy
+        - /Users/travis/.pyenv/versions/$FULL_PYTHON_VERSION/bin/pip3 install numpy setuptools
       
       install:
         - bash -c "cd engine/src; make"
