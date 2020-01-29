@@ -212,15 +212,30 @@ int RunConfig::parse(Network* network, const char* file)
     }
   }
   RC_set_file(file);
-  int res = RCparse();
-  runconfig_setNetwork(NULL);
-  runconfig_setConfig(NULL);
 
-  if (NULL != file)
-    fclose(RCin);
-  RClex_destroy();
+  try
+  {
+    int res = RCparse();
+    runconfig_setNetwork(NULL);
+    runconfig_setConfig(NULL);
 
-  return res;
+    if (NULL != file)
+      fclose(RCin);
+    RClex_destroy();
+
+    return res;
+  }
+  catch(const BNException& e)
+  {
+    runconfig_setNetwork(NULL);
+    runconfig_setConfig(NULL);
+
+    if (NULL != file)
+      fclose(RCin);
+    RClex_destroy();
+    
+    throw;
+  } 
 }
 
 int RunConfig::parseExpression(Network* network, const char* expr)
@@ -229,13 +244,24 @@ int RunConfig::parseExpression(Network* network, const char* expr)
   runconfig_setConfig(this);
   RC_scan_expression(expr);
 
-  int res = RCparse();
-  runconfig_setNetwork(NULL);
-  runconfig_setConfig(NULL);
-  
-  RClex_destroy();
-  
-  return res;
+  try
+  {
+    int res = RCparse();
+    runconfig_setNetwork(NULL);
+    runconfig_setConfig(NULL);
+    
+    RClex_destroy();
+    
+    return res;
+  }
+  catch(const BNException& e)
+  {
+    runconfig_setNetwork(NULL);
+    runconfig_setConfig(NULL);
+    RClex_destroy();
+    
+    throw;
+  }
 }
 
 void RunConfig::generateTemplate(Network* network, std::ostream& os) const
