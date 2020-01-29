@@ -96,18 +96,28 @@ Network::Network() : last_index(0U)
 int Network::parseExpression(const char* content, std::map<std::string, NodeIndex>* nodes_indexes){
   
   set_current_network(this);
-  
   CTBNDL_scan_expression(content);
-  int r = CTBNDLparse();
-  
-  set_current_network(NULL);
 
-  if (r) {
-    return 1;
+  try 
+  {
+    int r = CTBNDLparse();
+    set_current_network(NULL);
+
+    if (r) {
+      CTBNDLlex_destroy();
+      return 1;
+    }
+    compile(nodes_indexes);
+    CTBNDLlex_destroy();
+    return 0;
   }
-  compile(nodes_indexes);
-  CTBNDLlex_destroy();
-  return 0;
+  catch (const BNException& e) 
+  {
+    set_current_network(NULL);
+    CTBNDLlex_destroy();
+
+    throw;
+  }
 }
 
 
@@ -121,21 +131,39 @@ int Network::parse(const char* file, std::map<std::string, NodeIndex>* nodes_ind
   }
 
   set_current_network(this);
-  int r = CTBNDLparse();
-  set_current_network(NULL);
-  if (r) {
+
+  try{
+    int r = CTBNDLparse();
+
+    set_current_network(NULL);
+
+    if (r) {
+      if (NULL != file)
+        fclose(CTBNDLin);
+      CTBNDLlex_destroy();
+
+      return 1;
+    }
+    compile(nodes_indexes);
+
     if (NULL != file)
       fclose(CTBNDLin);
+    
+    CTBNDLlex_destroy();
 
-    return 1;
+    return 0;
   }
-  compile(nodes_indexes);
+  catch (const BNException& e) 
+  {  
+    if (NULL != file)
+      fclose(CTBNDLin);
+    
+    set_current_network(NULL);
+    CTBNDLlex_destroy();
 
-  if (NULL != file)
-    fclose(CTBNDLin);
-  CTBNDLlex_destroy();
+    throw;
+  }
 
-  return 0;
 }
 
 void SymbolTable::display(std::ostream& os, bool check) const
