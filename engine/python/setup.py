@@ -2,7 +2,7 @@ from distutils.core import setup, Extension
 from sys import executable, argv
 from os.path import join, dirname
 
-maboss_version = '1.0.0-beta-2'
+maboss_version = '1.0.0-beta-3'
 
 maboss_sources = [
    "FinalStateSimulationEngine.cc", "MetaEngine.cc", "MaBEstEngine.cc", "EnsembleEngine.cc", 
@@ -10,7 +10,9 @@ maboss_sources = [
    "Function.cc", "BuiltinFunctions.cc", "RunConfig.cc", "LogicalExprGen.cc", "Utils.cc"
 ]
 
-maboss_module_sources = ['maboss_module.cpp', 'maboss_sim.cpp']
+maboss_module_sources = [
+   'maboss_module.cpp', 
+]
 extra_compile_args = ['-std=c++11', '-DPYTHON_API']
 
 def getExtensionByMaxnodes(maxnodes=64):
@@ -34,5 +36,4 @@ setup (name = 'cmaboss',
       getExtensionByMaxnodes(512),
       getExtensionByMaxnodes(1024)
    ],
-   install_requires = ["numpy"]
 )

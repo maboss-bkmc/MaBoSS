@@ -50,6 +50,12 @@ MODULE_INIT_NAME(void)
     import_array();
     
     PyObject *m;
+    if (PyType_Ready(&cMaBoSSNetwork) < 0){
+        return NULL;
+    }
+    if (PyType_Ready(&cMaBoSSConfig) < 0){
+        return NULL;
+    }
     if (PyType_Ready(&cMaBoSSSim) < 0){
         return NULL;
     }
@@ -77,6 +83,20 @@ MODULE_INIT_NAME(void)
     Py_INCREF(&cMaBoSSSim);
     if (PyModule_AddObject(m, "MaBoSSSim", (PyObject *) &cMaBoSSSim) < 0) {
         Py_DECREF(&cMaBoSSSim);
+        Py_DECREF(m);
+        return NULL;
+    }
+
+    Py_INCREF(&cMaBoSSNetwork);
+    if (PyModule_AddObject(m, "MaBoSSNet", (PyObject *) &cMaBoSSNetwork) < 0) {
+        Py_DECREF(&cMaBoSSNetwork);
+        Py_DECREF(m);
+        return NULL;
+    }
+
+    Py_INCREF(&cMaBoSSConfig);
+    if (PyModule_AddObject(m, "MaBoSSCfg", (PyObject *) &cMaBoSSConfig) < 0) {
+        Py_DECREF(&cMaBoSSConfig);
         Py_DECREF(m);
         return NULL;
     }
