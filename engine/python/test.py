@@ -4,6 +4,12 @@ from unittest import TestCase
 class TestCMaBoSS(TestCase):
 
     def test_load_model(self):
+        net = cmaboss.MaBoSSNet(network="../examples/metastasis.bnd")
+        cfg = cmaboss.MaBoSSCfg(network=net, config="../examples/metastasis.cfg")
+        sim = cmaboss.MaBoSSSim(net=net, cfg=cfg)
+        res = sim.run()
+
+    def test_simulate(self):
         sim = cmaboss.MaBoSSSim(network="../examples/metastasis.bnd", config="../examples/metastasis.cfg")
         res = sim.run()
         res.get_states()

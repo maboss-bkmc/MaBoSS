@@ -8,6 +8,8 @@
 #include "maboss_res.cpp"
 #include "maboss_resfinal.cpp"
 #include "maboss_commons.h"
+#include "maboss_net.cpp"
+#include "maboss_cfg.cpp"
 
 typedef struct {
   PyObject_HEAD
@@ -24,14 +26,16 @@ static PyObject * cMaBoSSSim_new(PyTypeObject* type, PyObject *args, PyObject* k
 {
   try {
     // Loading arguments
+    PyObject* net = NULL;
+    PyObject* cfg = NULL;
     char * network_file = NULL;
     char * config_file = NULL;
     char * network_str = NULL;
     char * config_str = NULL;
-    static const char *kwargs_list[] = {"network", "config", "network_str", "config_str", NULL};
+    static const char *kwargs_list[] = {"network", "config", "network_str", "config_str", "net", "cfg", NULL};
     if (!PyArg_ParseTupleAndKeywords(
-      args, kwargs, "|ssss", const_cast<char **>(kwargs_list), 
-      &network_file, &config_file, &network_str, &config_str
+      args, kwargs, "|ssssOO", const_cast<char **>(kwargs_list), 
+      &network_file, &config_file, &network_str, &config_str, &net, &cfg
     ))
       return NULL;
       
@@ -58,6 +62,9 @@ static PyObject * cMaBoSSSim_new(PyTypeObject* type, PyObject *args, PyObject* k
       IStateGroup::reset(network);
       runconfig->parseExpression(network, config_str);
 
+    } else if (net != NULL && cfg != NULL) {
+      network = ((cMaBoSSNetworkObject*) net)->network;
+      runconfig = ((cMaBoSSConfigObject*) cfg)->config;
     }
     
     if (network != nullptr && runconfig != nullptr) {
