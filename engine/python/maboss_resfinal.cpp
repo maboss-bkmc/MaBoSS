@@ -1,5 +1,5 @@
 #define PY_SSIZE_T_CLEAN
-
+#ifdef PYTHON_API
 #include <Python.h>
 #include <fstream>
 #include <stdlib.h>
@@ -30,35 +30,14 @@ static PyObject * cMaBoSSResultFinal_new(PyTypeObject* type, PyObject *args, PyO
   return (PyObject*) res;
 }
 
-static PyObject* cMaBoSSResultFinal_get_last_states_probtraj(cMaBoSSResultFinalObject* self) {
-  
-  PyObject *dict = PyDict_New();
-  
-  // Building the results as a python dict
-  for (auto& result : self->engine->getFinalStates()) {
-    PyDict_SetItem(
-      dict, 
-      PyUnicode_FromString(NetworkState(result.first).getName(self->network).c_str()), 
-      PyFloat_FromDouble(result.second)
-    );
-  }
-  return (PyObject*) dict;
+static PyObject* cMaBoSSResultFinal_get_last_probtraj(cMaBoSSResultFinalObject* self) {
+  return self->engine->getNumpyLastStatesDists();
 }
 
 static PyObject* cMaBoSSResultFinal_get_last_nodes_probtraj(cMaBoSSResultFinalObject* self) {
-  
-  PyObject *dict = PyDict_New();
-  
-  // Building the results as a python dict
-  for (auto& result : self->engine->getFinalNodes()) {
-    PyDict_SetItem(
-      dict, 
-      PyUnicode_FromString(result.first->getLabel().c_str()), 
-      PyFloat_FromDouble(result.second)
-    );
-  }
-  return (PyObject*) dict;
+  return self->engine->getNumpyLastNodesDists();
 }
+
 static PyObject* cMaBoSSResultFinal_display_final_states(cMaBoSSResultFinalObject* self, PyObject* args) {
 
   char * filename = NULL;
@@ -98,7 +77,7 @@ static PyObject* cMaBoSSResultFinal_display_run(cMaBoSSResultFinalObject* self, 
 
 static PyMethodDef cMaBoSSResultFinal_methods[] = {
     {"get_final_time", (PyCFunction) cMaBoSSResultFinal_get_final_time, METH_NOARGS, "gets the final time of the simulation"},
-    {"get_last_states_probtraj", (PyCFunction) cMaBoSSResultFinal_get_last_states_probtraj, METH_NOARGS, "gets the last probtraj of the simulation"},
+    {"get_last_probtraj", (PyCFunction) cMaBoSSResultFinal_get_last_probtraj, METH_NOARGS, "gets the last probtraj of the simulation"},
     {"display_final_states", (PyCFunction) cMaBoSSResultFinal_display_final_states, METH_VARARGS, "display the final state"},
     {"get_last_nodes_probtraj", (PyCFunction) cMaBoSSResultFinal_get_last_nodes_probtraj, METH_NOARGS, "gets the last nodes probtraj of the simulation"},
     {"display_run", (PyCFunction) cMaBoSSResultFinal_display_run, METH_VARARGS, "prints the run of the simulation to a file"},
@@ -118,3 +97,5 @@ static PyTypeObject cMaBoSSResultFinal = []{
   res.tp_methods = cMaBoSSResultFinal_methods;
   return res;
 }();
+
+#endif
