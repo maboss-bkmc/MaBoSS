@@ -404,13 +404,14 @@ public:
 
 #ifdef PYTHON_API
 
-  PyObject* getPythonStateDists(Network* network) const;
-  PyObject* getPythonNthStateDist(int nn, Network* network) const;
-  PyObject* getPythonFinalStateDist(Network* network) const;
-  PyObject* getPythonTimepoints() const;
-  PyObject* getNumpyStateDists(Network* network) const;
+  PyObject* getNumpyStatesDists(Network* network) const;
+  PyObject* getNumpyLastStatesDists(Network* network) const;
   std::set<NetworkState_Impl> getStates() const;
-
+  std::vector<NetworkState_Impl> getLastStates() const;
+  PyObject* getNumpyNodesDists(Network* network) const;
+  PyObject* getNumpyLastNodesDists(Network* network) const;
+  std::vector<Node*> getNodes(Network* network) const;
+  
 #endif
   const std::map<double, STATE_MAP<NetworkState_Impl, double> > getStateDists() const;
   const STATE_MAP<NetworkState_Impl, double> getNthStateDist(int nn) const;

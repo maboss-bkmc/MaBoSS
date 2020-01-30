@@ -93,21 +93,17 @@ const STATE_MAP<NetworkState_Impl, double> MetaEngine::getAsymptoticStateDist() 
 }
 
 #ifdef PYTHON_API
-  PyObject* MetaEngine::getPythonStateDists() const {
-    return merged_cumulator->getPythonStateDists(network);
-  };
-
-  PyObject* MetaEngine::getPythonNthStateDist(int nn) const {
-    return merged_cumulator->getPythonNthStateDist(nn, network);
-  };
-  PyObject* MetaEngine::getPythonFinalStateDist() const {
-    return merged_cumulator->getPythonFinalStateDist(network);
-  };
-  PyObject* MetaEngine::getPythonTimepoints() const {
-    return merged_cumulator->getPythonTimepoints();
-  };
-  PyObject* MetaEngine::getNumpyStateDists() const {
-    return merged_cumulator->getNumpyStateDists(network);
+  PyObject* MetaEngine::getNumpyStatesDists() const {
+    return merged_cumulator->getNumpyStatesDists(network);
+  }
+  PyObject* MetaEngine::getNumpyLastStatesDists() const {
+    return merged_cumulator->getNumpyLastStatesDists(network);
+  }
+  PyObject* MetaEngine::getNumpyNodesDists() const {
+    return merged_cumulator->getNumpyNodesDists(network);
+  }
+  PyObject* MetaEngine::getNumpyLastNodesDists() const {
+    return merged_cumulator->getNumpyLastNodesDists(network);
   }
 
 #endif

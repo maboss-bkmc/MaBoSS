@@ -99,11 +99,10 @@ public:
 
 
 #ifdef PYTHON_API
-  PyObject* getPythonStateDists() const;
-  PyObject* getPythonNthStateDist(int nn) const;
-  PyObject* getPythonFinalStateDist() const;
-  PyObject* getPythonTimepoints() const;
-  PyObject* getNumpyStateDists() const;
+  PyObject* getNumpyStatesDists() const;
+  PyObject* getNumpyLastStatesDists() const;
+  PyObject* getNumpyNodesDists() const;
+  PyObject* getNumpyLastNodesDists() const;
 
 #endif
   const std::map<double, std::map<Node *, double> > getNodesDists() const;
