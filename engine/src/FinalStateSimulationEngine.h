@@ -85,6 +85,12 @@ public:
   const STATE_MAP<Node*, double> getFinalNodes() const;
   const double getFinalTime() const { return max_time; }
 
+#ifdef PYTHON_API
+  PyObject* getNumpyLastStatesDists() const;
+  std::vector<Node*> getNodes() const;
+  PyObject* getNumpyLastNodesDists() const;
+#endif
+
   void displayFinal(std::ostream& output_final, bool hexfloat=false) const;
 
 };

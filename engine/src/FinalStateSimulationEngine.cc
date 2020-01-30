@@ -325,3 +325,91 @@ const STATE_MAP<Node*, double> FinalStateSimulationEngine::getFinalNodes() const
   return node_dist;
 }
 
+#ifdef PYTHON_API
+
+PyObject* FinalStateSimulationEngine::getNumpyLastStatesDists() const 
+{
+  
+  npy_intp dims[2] = {(npy_intp) 1, (npy_intp) final_states.size()};
+  PyArrayObject* result = (PyArrayObject *) PyArray_ZEROS(2,dims,NPY_DOUBLE, 0); 
+  PyObject* list_states = PyList_New(final_states.size());
+
+  int i=0;
+  for(auto& final_state: final_states) {
+
+    void* ptr = PyArray_GETPTR2(result, 0, i);
+    PyArray_SETITEM(
+      result, 
+      (char*) ptr,
+      PyFloat_FromDouble(final_state.second)
+    );
+
+    PyList_SetItem(
+      list_states, i,
+      PyUnicode_FromString(NetworkState(final_state.first).getName(network).c_str())
+    );
+
+    i++;
+  }
+
+  PyObject* timepoints = PyList_New(1);
+  PyList_SetItem(
+    timepoints, 0, 
+    PyFloat_FromDouble(max_time)
+  );
+
+  return PyTuple_Pack(3, PyArray_Return(result), list_states, timepoints);
+}
+
+std::vector<Node*> FinalStateSimulationEngine::getNodes() const {
+  std::vector<Node*> result_nodes;
+
+  for (auto node: network->getNodes()) {
+    if (!node->isInternal())
+      result_nodes.push_back(node);
+  }
+  return result_nodes;
+}
+
+PyObject* FinalStateSimulationEngine::getNumpyLastNodesDists() const 
+{
+  std::vector<Node*> output_nodes = getNodes();
+
+  npy_intp dims[2] = {(npy_intp) 1, (npy_intp) output_nodes.size()};
+  PyArrayObject* result = (PyArrayObject *) PyArray_ZEROS(2,dims,NPY_DOUBLE, 0); 
+  PyObject* list_nodes = PyList_New(output_nodes.size());
+  
+  int i=0;
+  for (auto node: output_nodes) {
+
+    for(auto& final_state: final_states) {
+    
+      if (NetworkState(final_state.first).getNodeState(node)){
+        void* ptr_val = PyArray_GETPTR2(result, 0, i);
+
+        PyArray_SETITEM(
+          result, 
+          (char*) ptr_val,
+          PyFloat_FromDouble(
+            PyFloat_AsDouble(PyArray_GETITEM(result, (char*) ptr_val))
+            + final_state.second
+          )
+        );
+      }
+    }
+
+    PyList_SetItem(list_nodes, i, PyUnicode_FromString(node->getLabel().c_str()));
+    i++;
+  }
+
+  PyObject* timepoints = PyList_New(1);
+  PyList_SetItem(
+    timepoints, 0, 
+    PyFloat_FromDouble(max_time)
+  );
+
+  return PyTuple_Pack(3, PyArray_Return(result), list_nodes, timepoints);
+}
+
+
+#endif
