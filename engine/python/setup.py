@@ -2,7 +2,7 @@ from setuptools import setup, Extension
 from sys import executable, argv
 from os.path import join, dirname
 
-maboss_version = '1.0.0-beta-4'
+maboss_version = '1.0.0-beta-5'
 
 maboss_sources = [
    "FinalStateSimulationEngine.cc", "MetaEngine.cc", "MaBEstEngine.cc", "EnsembleEngine.cc", 

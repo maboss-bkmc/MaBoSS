@@ -24,20 +24,24 @@ static RunConfig* cMaBoSSConfig_getConfig(cMaBoSSConfigObject* self)
 
 static PyObject * cMaBoSSConfig_new(PyTypeObject* type, PyObject *args, PyObject* kwargs) 
 {
-  char * config_file;
-  PyObject * network;
-  static const char *kwargs_list[] = {"network", "config", NULL};
-  if (!PyArg_ParseTupleAndKeywords(
-    args, kwargs, "Os", const_cast<char **>(kwargs_list), 
-    &network, &config_file
-  ))
+  Py_ssize_t nb_args = PyTuple_Size(args);  
+
+  if (nb_args < 2) {
     return NULL;
+  }
   
+  cMaBoSSNetworkObject * network = (cMaBoSSNetworkObject*) PyTuple_GetItem(args, 0);
+
   cMaBoSSConfigObject* pyconfig;
   pyconfig = (cMaBoSSConfigObject *) type->tp_alloc(type, 0);
   pyconfig->config = new RunConfig();
   
-  pyconfig->config->parse((((cMaBoSSNetworkObject* )network)->network), config_file);
+  for (Py_ssize_t i = 1; i < nb_args; i++) {
+    PyObject* bytes = PyUnicode_AsUTF8String(PyTuple_GetItem(args, i));
+    pyconfig->config->parse(network->network, PyBytes_AsString(bytes));
+    Py_DECREF(bytes);
+  }
+
   return (PyObject*) pyconfig;
 }
 

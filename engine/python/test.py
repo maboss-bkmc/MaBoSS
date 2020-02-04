@@ -6,7 +6,13 @@ class TestCMaBoSS(TestCase):
 
     def test_load_model(self):
         net = cmaboss.MaBoSSNet(network="../examples/metastasis.bnd")
-        cfg = cmaboss.MaBoSSCfg(network=net, config="../examples/metastasis.cfg")
+        cfg = cmaboss.MaBoSSCfg(net, "../examples/metastasis.cfg")
+        sim = cmaboss.MaBoSSSim(net=net, cfg=cfg)
+        res = sim.run()
+
+    def test_load_model_cellcycle(self):
+        net = cmaboss.MaBoSSNet(network="../tests/cellcycle/cellcycle.bnd")
+        cfg = cmaboss.MaBoSSCfg(net, "../tests/cellcycle/cellcycle_runcfg.cfg", "../tests/cellcycle/cellcycle_runcfg-thread_6.cfg")
         sim = cmaboss.MaBoSSSim(net=net, cfg=cfg)
         res = sim.run()
 
