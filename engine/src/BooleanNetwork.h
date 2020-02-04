@@ -489,6 +489,13 @@ public:
   void display(std::ostream& os, bool check = true) const;
   void checkSymbols() const;
 
+  std::vector<std::string> getSymbolsNames() const {
+    std::vector<std::string> result;
+    for (auto& symb : symb_map) {
+      result.push_back(symb.first);
+    }
+    return result;
+  }
   void reset();
 
   void addSymbolExpression(SymbolExpression * exp) {
