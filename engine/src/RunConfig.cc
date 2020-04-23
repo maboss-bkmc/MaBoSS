@@ -290,8 +290,6 @@ void RunConfig::dump_perform(Network* network, std::ostream& os, bool is_templat
   os << "sample_count = " << sample_count << ";\n";
   os << "discrete_time = " << discrete_time << ";\n";
   os << "use_physrandgen = " << use_physrandgen << ";\n";
-  os << "use_glibcrandgen = " << use_glibcrandgen << ";\n";
-  os << "use_mtrandgen = " << use_mtrandgen << ";\n";
   os << "seed_pseudorandom = " << seed_pseudorand << ";\n";
   os << "display_traj = " << display_traj << ";\n";
   os << "statdist_traj_count = " << statdist_traj_count << ";\n";
