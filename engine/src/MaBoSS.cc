@@ -417,6 +417,8 @@ int main(int argc, char* argv[])
           network->parse(ctbndl_files[i], &nodes_indexes);
           networks.push_back(network);
 
+          
+          network->cloneIStateGroup(first_network->getIStateGroup());
           const std::vector<Node*> nodes = networks[i]->getNodes();
           for (unsigned int j=0; j < nodes.size(); j++) {
               if (!first_network_nodes[j]->istateSetRandomly()) {

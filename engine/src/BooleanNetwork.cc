@@ -709,6 +709,14 @@ Network::~Network()
   
 }
 
+void Network::cloneIStateGroup(std::vector<IStateGroup*>* _istate_group_list) 
+{
+  for (auto istate_group: *_istate_group_list) 
+  {
+    new IStateGroup(istate_group, this);
+  }
+}
+
 void SymbolTable::reset()
 {
   symb_map.clear();
