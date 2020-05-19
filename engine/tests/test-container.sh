@@ -7,9 +7,9 @@
 
 return_code=0
 
-if [ ! -x $MABOSS ]
+if [ ! -x $MABOSS_CLIENT ]
 then
-    echo $MABOSS not found
+    echo $MABOSS_CLIENT not found
     exit 1
 fi
 
