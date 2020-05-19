@@ -32,6 +32,7 @@
      updated to add extended initial conditions: October 2014
 */
 
+#define _POSIX_SOURCE 1
 #include "BooleanNetwork.h"
 #include "RunConfig.h"
 
