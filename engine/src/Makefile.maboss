@@ -41,6 +41,7 @@ BISON = bison
 CHECK_FLEX  = $(FLEX) --version > /dev/null
 CHECK_BISON = $(BISON) --version > /dev/null
 
+LIB_SRC := FinalStateSimulationEngine.cc StochasticSimulationEngine.cc MetaEngine.cc MaBEstEngine.cc EnsembleEngine.cc Cumulator.cc ProbaDist.cc BooleanNetwork.cc Function.cc BuiltinFunctions.cc RunConfig.cc LogicalExprGen.cc Utils.cc
 LIB_OBJS := FinalStateSimulationEngine$(INFIX).o StochasticSimulationEngine$(INFIX).o MetaEngine$(INFIX).o MaBEstEngine$(INFIX).o EnsembleEngine$(INFIX).o Cumulator$(INFIX).o ProbaDist$(INFIX).o BooleanNetwork$(INFIX).o BooleanGrammar$(INFIX).o RunConfigGrammar$(INFIX).o Function$(INFIX).o BuiltinFunctions$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o Utils$(INFIX).o
 SERVER_OBJS := Server.o DataStreamer.o RPC.o
 
@@ -52,6 +53,15 @@ MABOSS_OBJS = $(MABOSS_LIB)
 else
 MABOSS_OBJS = $(LIB_OBJS)
 endif
+
+.PHONY: maboss
+maboss: $(MABOSS) $(FUNC_MODULE)
+
+.PHONY: client
+client: $(MABOSS_CLIENT)
+
+.PHONY: server
+server: $(MABOSS_SERVER)
 
 all: $(MABOSS_LIB) $(MABOSS) $(MABOSS_SERVER) $(MABOSS_CLIENT) $(FUNC_MODULE)
 
@@ -113,7 +123,7 @@ force-init:
 	@CXX=$(CXX) sh init-config.sh force
 
 depend:
-	@$(MAKEDEPEND) -DMAXNODES=$(MAXNODES) *.cc > depend_tmp.mk
+	@$(MAKEDEPEND) -DMAXNODES=$(MAXNODES) $(LIB_SRC) > depend_tmp.mk
 	@sed -e "s/\.o:/$(INFIX).o:/g" depend_tmp.mk > depend.mk
 	@rm -f depend_tmp.mk
 

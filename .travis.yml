@@ -70,7 +70,7 @@ jobs:
 
       install:
         - docker-compose up -d maboss-server
-        - bash -c "cd engine/src; make"
+        - bash -c "cd engine/src; make client"
 
       script:
         - bash -c "cd engine/tests; bash ./test-container.sh"
@@ -93,7 +93,7 @@ jobs:
       install:
         - sudo singularity build maboss-server.simg containers/singularity/Singularity
         - singularity run maboss-server.simg & 
-        - bash -c "cd engine/src; make"
+        - bash -c "cd engine/src; make client"
 
       script:
         - bash -c "cd engine/tests; bash ./test-container.sh"
