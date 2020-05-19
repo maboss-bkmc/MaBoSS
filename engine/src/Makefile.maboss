@@ -62,7 +62,7 @@ MABOSS_OBJS = $(LIB_OBJS)
 endif
 
 .PHONY: maboss
-maboss: $(MABOSS) $(FUNC_MODULE)
+maboss: $(MABOSS_LIB) $(FUNC_MODULE) $(MABOSS)
 
 .PHONY: client
 client: $(MABOSS_CLIENT)
