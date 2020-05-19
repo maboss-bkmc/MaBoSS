@@ -69,5 +69,6 @@ public:
 
 static NullBuffer null_buffer;
 
+char* maboss_strdup (const char* s);
 
 #endif

@@ -32,6 +32,7 @@
 */
 
 #include <math.h>
+#include "Utils.h"
 
 //static char *yytokstr();
 static unsigned int input_lineno = 1;
@@ -52,11 +53,11 @@ exppart		[eE](\-|\+)?[0-9]+
 [Tt][Rr][Uu][Ee]        { yylval.l = 1; return INTEGER; }
 [Ff][Aa][Ll][Ss][Ee]    { yylval.l = 0; return INTEGER; }
 "$"[a-zA-Z_][a-zA-Z_0-9]* {
-  yylval.str = strdup(yytext);
+  yylval.str = maboss_strdup(yytext);
   return VARIABLE;
 }
 [a-zA-Z_][a-zA-Z_0-9]* {
-  yylval.str = strdup(yytext);
+  yylval.str = maboss_strdup(yytext);
   return SYMBOL;
 }
 [0-9]+			{ sscanf(yytext, "%lld", &yylval.l); return INTEGER; }
