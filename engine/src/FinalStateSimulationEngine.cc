@@ -35,7 +35,6 @@
 #include <stdlib.h>
 #include <math.h>
 #include <iomanip>
-#include <dlfcn.h>
 #include <iostream>
 
 const std::string FinalStateSimulationEngine::VERSION = "1.0.0";
