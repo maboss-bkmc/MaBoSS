@@ -36,7 +36,7 @@
 #include <iomanip>
 #include <iostream>
 
-const std::string MaBEstEngine::VERSION = "2.3.3";
+const std::string MaBEstEngine::VERSION = "2.3.4";
 size_t RandomGenerator::generated_number_count = 0;
 
 MaBEstEngine::MaBEstEngine(Network* network, RunConfig* runconfig) :
