@@ -136,7 +136,7 @@ class Rand48RandomGenerator: public RandomGenerator
 #define RAND48_HIGH(x)	RAND48_LOW((x) >> RAND48_N)
 #define RAND48_MUL(x, y, z)	{ long l = (long)(x) * (long)(y); \
 		(z)[0] = RAND48_LOW(l); (z)[1] = RAND48_HIGH(l); }
-#define RAND48_CARRY(x, y)	((long)(x) + (long)(y) > RAND48_MASK)
+#define RAND48_CARRY(x, y)	((long)(x) + (long)(y) > (long)(RAND48_MASK))
 #define RAND48_ADDEQU(x, y, z)	(z = RAND48_CARRY(x, (y)), x = RAND48_LOW(x + (y)))
 #define RAND48_X0	0x330E
 #define RAND48_X1	0xABCD
