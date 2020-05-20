@@ -29,6 +29,7 @@
      January-March 2011
 */
 
+#include <ctime>
 #include "RunConfig.h"
 #include "BooleanNetwork.h"
 #include "MaBEstEngine.h"

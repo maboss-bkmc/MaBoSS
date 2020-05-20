@@ -29,6 +29,7 @@
      January-March 2011
 */
 
+#include <ctime>
 #include "MaBEstEngine.h"
 #include "EnsembleEngine.h"
 #include "StochasticSimulationEngine.h"
