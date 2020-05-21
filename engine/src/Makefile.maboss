@@ -169,7 +169,7 @@ install: all
 	 cp $(MABOSS) $(MABOSS_SERVER) $(MABOSS_CLIENT) ../pub
 
 package:
-	@(cd ..; dir=`pwd`; cd src; make -j 4 all; version=`./MaBoSS -version | awk '{print $$3}'`; make clean; echo $$version; mkdir -p /tmp/MaBoSS-$$version/package; cd ..; find README src binaries doc examples \( -name Makefile\* -o -name \*.[ylh] -o -name init-config.sh -o -name \*.cc -o -name MaBoSS-RefCard.pdf -o -name DescriptionOutputFile.pdf -o -name MaBoSS -o -name MaBoSS.exe -o -name \*.cfg -o -name \*.bnd -o -name README \) -print | egrep -v "~|maboss-config\.h|doc/Makefile|doc/README" | cpio -pdmv /tmp/MaBoSS-$$version; cd /tmp; tar  cvfz /tmp/MaBoSS-$$version.tgz --exclude='*.svn*' MaBoSS-$$version; echo | rm -r /tmp/MaBoSS-$$version; echo; echo "Package: /tmp/MaBoSS-$$version.tgz")
+	@(cd ..; dir=`pwd`; cd src; make -j 4 all; version=`./MaBoSS -version | awk '{print $$3}'`; make clean; echo $$version; mkdir -p /tmp/MaBoSS-$$version/package; cd ..; find README src binaries doc examples \( -name Makefile\* -o -name \*.[ylh] -o -name init-config.sh -o -name \*.cc -o -name MaBoSS-RefCard.pdf -o -name DescriptionOutputFile.pdf -o -name MaBoSS -o -name MaBoSS_*n -o -name MaBoSS_*n.exe -o -name MaBoSS*-* -o -name MaBoSS.exe -o -name \*.cfg -o -name \*.bnd -o -name README \) -print | egrep -v "~|maboss-config\.h|doc/Makefile|doc/README" | cpio -pdmv /tmp/MaBoSS-$$version; cd /tmp; tar  cvfz /tmp/MaBoSS-$$version.tgz --exclude='*.svn*' MaBoSS-$$version; echo | rm -r /tmp/MaBoSS-$$version; echo; echo "Package: /tmp/MaBoSS-$$version.tgz")
 
 include depend.mk
 
