@@ -47,18 +47,37 @@ class StochasticSimulationEngine {
   Network* network;
   RunConfig* runconfig;
 
-  double time_tick;
+  // Duration of the simulation
   double max_time;
+  
+  // Using discrete time
   bool discrete_time;
-  int seed; 
+  
+  // Time tick for discrete time
+  double time_tick;
+  
+
   NodeIndex getTargetNode(RandomGenerator* random_generator, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
 
 public:
   static const std::string VERSION;
+  RandomGenerator *random_generator;
+
   
-  StochasticSimulationEngine(Network* network, RunConfig* runconfig): network(network), runconfig(runconfig), time_tick(runconfig->getTimeTick()), max_time(runconfig->getMaxTime()), discrete_time(runconfig->isDiscreteTime()), seed(runconfig->getSeedPseudoRandom()) {}
-  void setSeed(int _seed) { seed = _seed; }
-  NetworkState_Impl run(NetworkState_Impl* initial_state = NULL, std::ostream* output_traj = NULL);
+  StochasticSimulationEngine(Network* network, RunConfig* runconfig, int seed): network(network), runconfig(runconfig), max_time(runconfig->getMaxTime()), discrete_time(runconfig->isDiscreteTime()), time_tick(runconfig->getTimeTick()) {
+    random_generator = runconfig->getRandomGeneratorFactory()->generateRandomGenerator(seed);
+  }
+  ~StochasticSimulationEngine() { delete random_generator; }
+  
+  
+  void setSeed(int _seed) { 
+    random_generator->setSeed(_seed); 
+  }
+  void setMaxTime(double _max_time) { this->max_time = _max_time; }
+  void setDiscreteTime(bool _discrete_time) { this->discrete_time = _discrete_time; }
+  void setTimeTick(double _time_tick) { this->time_tick = _time_tick; }
+  
+  NetworkState run(NetworkState& initial_state, std::ostream* output_traj = NULL);
 };
 
 #endif
