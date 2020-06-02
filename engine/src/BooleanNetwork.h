@@ -75,6 +75,7 @@ const std::string LOGICAL_XOR_SYMBOL = " ^ ";
 class Expression;
 class NotLogicalExpression;
 class SymbolExpression;
+class ConstantExpression;
 class NetworkState;
 class Network;
 class Node;
@@ -294,6 +295,8 @@ class Node {
     }
     attr_expr_map[attr_name] = expr;
   }
+
+  void mutate(double value);
 
   NodeState getIState(const Network* network, RandomGenerator* randgen) const;
 

@@ -321,6 +321,13 @@ double Node::getRateDown(const NetworkState& network_state) const
   return getRateDownExpression()->eval(this, network_state);
 }
 
+void Node::mutate(double value) 
+{
+    logicalInputExpr = new ConstantExpression(value);
+    rateUpExpr = NULL;
+    rateDownExpr = NULL;
+}
+
 NodeState Node::getNodeState(const NetworkState& network_state) const
 {
   return network_state.getNodeState(this);
