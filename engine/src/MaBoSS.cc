@@ -545,8 +545,11 @@ int main(int argc, char* argv[])
 
       output_run = new std::ofstream((std::string(output) + "_run.txt").c_str());
       
-      StochasticSimulationEngine single_simulation(network, runconfig);
-      [[maybe_unused]] NetworkState_Impl final_state = single_simulation.run(NULL, output_run);
+      StochasticSimulationEngine single_simulation(network, runconfig, runconfig->getSeedPseudoRandom());
+      
+      NetworkState initial_state;
+      network->initStates(initial_state, single_simulation.random_generator);
+      [[maybe_unused]] NetworkState final_state = single_simulation.run(initial_state, output_run);
 
       ((std::ofstream*)output_run)->close();
       delete output_run;
