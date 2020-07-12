@@ -87,4 +87,8 @@ public:
 
 static NullBuffer null_buffer;
 
+bool hasEnding (std::string const &fullString, std::string const &ending);
+
+
+
 #endif
