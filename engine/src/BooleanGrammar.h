@@ -74,10 +74,15 @@ public:
 class NodeDecl {
 
 public:
-  NodeDecl(const std::string& identifier, std::vector<NodeDeclItem*>* node_decl_item_list) {
+  NodeDecl(const std::string& identifier, std::vector<NodeDeclItem*>* node_decl_item_list, Network* _network = NULL) {
     
-    Network* network = get_current_network();
-
+    Network* network;
+    if (_network == NULL) {
+      network = get_current_network();
+    } else {
+      network = _network;
+    }
+    
     bool reset = false;
     if (network->isNodeDefined(identifier)) {
       if (Node::isOverride()) {
