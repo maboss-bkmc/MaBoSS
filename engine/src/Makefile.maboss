@@ -40,6 +40,11 @@ else
        MABOSS := MaBoSS$(INFIX)
 endif
 
+ifdef SBML_COMPAT
+SBML_FLAG = -DSBML_COMPAT
+SBML_LIB = -lsbml
+endif
+
 MABOSS_SERVER := MaBoSS$(INFIX)-server
 MABOSS_CLIENT := MaBoSS-client
 
@@ -106,9 +111,9 @@ $(FUNC_MODULE): $(FUNC_MODULE).o $(LIB_OBJS)
 
 $(MABOSS): MaBoSS$(INFIX).o $(MABOSS_OBJS)
 ifdef USE_LIB
-	$(CXX) -o $(MABOSS) MaBoSS$(INFIX).o -l$(MABOSS_LIBNAME) -lpthread -L. $(LDL_FLAG)
+	$(CXX) -o $(MABOSS) MaBoSS$(INFIX).o -l$(MABOSS_LIBNAME) -lpthread -L. $(LDL_FLAG) $(SBML_LIB)
 else
-	$(CXX) -o $(MABOSS) $+ -lpthread $(LDL_FLAG)
+	$(CXX) -o $(MABOSS) $+ -lpthread $(LDL_FLAG) $(SBML_LIB)
 endif
 
 $(MABOSS_SERVER): MaBoSS$(INFIX)-server.o $(MABOSS_OBJS) $(SERVER_OBJS)
@@ -125,7 +130,7 @@ init:
 	@CXX=$(CXX) bash init-config.sh
 
 %$(INFIX).o: %.cc
-	$(CXX) $(CXXFLAGS) $(WINDOWS_FLAG) -c $*.cc -o $*$(INFIX).o
+	$(CXX) $(CXXFLAGS) $(WINDOWS_FLAG) $(SBML_FLAG) -c $*.cc -o $*$(INFIX).o
 
 %$(INFIX)-server.o: %-server.cc
 	$(CXX) $(CXXFLAGS) -c $*-server.cc -o $*$(INFIX)-server.o
