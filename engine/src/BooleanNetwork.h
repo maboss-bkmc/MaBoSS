@@ -588,7 +588,7 @@ public:
   
   #ifdef SBML_COMPAT
   Expression* parseASTNode(const ASTNode* tree);
-  int parseSBML(const char* file);
+  int parseSBML(const char* file, std::map<std::string, NodeIndex>* nodes_indexes = NULL);
   #endif
   
   std::vector<IStateGroup*>* getIStateGroup() {

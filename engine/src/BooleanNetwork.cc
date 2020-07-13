@@ -151,7 +151,7 @@ int Network::parse(const char* file, std::map<std::string, NodeIndex>* nodes_ind
 {
 #ifdef SBML_COMPAT
   if (hasEnding(std::string(file), ".xml") || hasEnding(std::string(file), ".sbml")) {
-    return this->parseSBML(file);
+    return this->parseSBML(file, nodes_indexes);
   }
 #endif
 
@@ -284,7 +284,7 @@ Expression* Network::parseASTNode(const ASTNode* tree) {
   }
 }
 
-int Network::parseSBML(const char* file) {
+int Network::parseSBML(const char* file, std::map<std::string, NodeIndex>* nodes_indexes) {
   SBMLDocument* document;
   SBMLReader reader;
   
@@ -378,7 +378,7 @@ int Network::parseSBML(const char* file) {
       delete truc;
     }
   }
-  compile(NULL);
+  compile(nodes_indexes);
 
   return 0;
 }
