@@ -118,9 +118,9 @@ endif
 
 $(MABOSS_SERVER): MaBoSS$(INFIX)-server.o $(MABOSS_OBJS) $(SERVER_OBJS)
 ifdef USE_LIB
-	$(CXX) -o $(MABOSS_SERVER) MaBoSS$(INFIX)-server.o $(SERVER_OBJS) -l$(MABOSS_LIBNAME) -lpthread -L. $(LDL_FLAG)
+	$(CXX) -o $(MABOSS_SERVER) MaBoSS$(INFIX)-server.o $(SERVER_OBJS) -l$(MABOSS_LIBNAME) -lpthread -L. $(LDL_FLAG) $(SBML_LIB)
 else
-	$(CXX) -o $(MABOSS_SERVER) $+ -lpthread $(LDL_FLAG)
+	$(CXX) -o $(MABOSS_SERVER) $+ -lpthread $(LDL_FLAG) $(SBML_LIB)
 endif
 
 $(MABOSS_CLIENT): MaBoSS-client.o Client.o DataStreamer.o RPC.o Utils$(INFIX).o
@@ -133,7 +133,7 @@ init:
 	$(CXX) $(CXXFLAGS) $(WINDOWS_FLAG) $(SBML_FLAG) -c $*.cc -o $*$(INFIX).o
 
 %$(INFIX)-server.o: %-server.cc
-	$(CXX) $(CXXFLAGS) -c $*-server.cc -o $*$(INFIX)-server.o
+	$(CXX) $(CXXFLAGS) $(SBML_FLAG) -c $*-server.cc -o $*$(INFIX)-server.o
 
 force-init:
 	@CXX=$(CXX) sh init-config.sh force
