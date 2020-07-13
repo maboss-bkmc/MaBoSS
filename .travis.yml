@@ -103,8 +103,8 @@ jobs:
       name: Linux cMaBoSS tests
 
       os: linux
-      dist: xenial
-      python: 3.8
+      dist: bionic
+      python: 3.7
 
       before_install:
         - sudo apt-get -qq update
