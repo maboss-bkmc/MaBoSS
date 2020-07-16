@@ -99,7 +99,7 @@ $(MABOSS_ALIB): $(LIB_OBJS)
 	ar rcs $(MABOSS_ALIB) $+
 
 $(MABOSS_LIB): $(LIB_OBJS)
-	$(CXX) -shared -o $(MABOSS_LIB) $+ -lpthread $(LDL_FLAG)
+	$(CXX) -shared -o $(MABOSS_LIB) $+ -lpthread $(LDL_FLAG) $(LDFLAGS)
 
 $(FUNC_MODULE): $(FUNC_MODULE).o $(LIB_OBJS)
 	$(CXX) -shared -o $(FUNC_MODULE).so $(FUNC_MODULE).o $(LIB_OBJS) -lpthread -L.
@@ -111,16 +111,16 @@ $(FUNC_MODULE): $(FUNC_MODULE).o $(LIB_OBJS)
 
 $(MABOSS): MaBoSS$(INFIX).o $(MABOSS_OBJS)
 ifdef USE_LIB
-	$(CXX) -o $(MABOSS) MaBoSS$(INFIX).o -l$(MABOSS_LIBNAME) -lpthread -L. $(LDL_FLAG) $(SBML_LIB)
+	$(CXX) -o $(MABOSS) MaBoSS$(INFIX).o -l$(MABOSS_LIBNAME) -lpthread -L. $(LDL_FLAG) $(SBML_LIB) $(LDFLAGS)
 else
-	$(CXX) -o $(MABOSS) $+ -lpthread $(LDL_FLAG) $(SBML_LIB)
+	$(CXX) -o $(MABOSS) $+ -lpthread $(LDL_FLAG) $(SBML_LIB) $(LDFLAGS)
 endif
 
 $(MABOSS_SERVER): MaBoSS$(INFIX)-server.o $(MABOSS_OBJS) $(SERVER_OBJS)
 ifdef USE_LIB
-	$(CXX) -o $(MABOSS_SERVER) MaBoSS$(INFIX)-server.o $(SERVER_OBJS) -l$(MABOSS_LIBNAME) -lpthread -L. $(LDL_FLAG) $(SBML_LIB)
+	$(CXX) -o $(MABOSS_SERVER) MaBoSS$(INFIX)-server.o $(SERVER_OBJS) -l$(MABOSS_LIBNAME) -lpthread -L. $(LDL_FLAG) $(SBML_LIB) $(LDFLAGS)
 else
-	$(CXX) -o $(MABOSS_SERVER) $+ -lpthread $(LDL_FLAG) $(SBML_LIB)
+	$(CXX) -o $(MABOSS_SERVER) $+ -lpthread $(LDL_FLAG) $(SBML_LIB) $(LDFLAGS)
 endif
 
 $(MABOSS_CLIENT): MaBoSS-client.o Client.o DataStreamer.o RPC.o Utils$(INFIX).o
