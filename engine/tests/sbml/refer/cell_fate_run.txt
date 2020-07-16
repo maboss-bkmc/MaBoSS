@@ -1,0 +1,145 @@
+
+-------------------------------------------------- Run --------------------------------------------------
+MaBoSS version: 2.3.4 [networks up to 64 nodes]
+
+Run start time: Thu Jul 16 16:46:41 2020
+Run end time: Thu Jul 16 16:46:43 2020
+
+Core user runtime: 1.36 secs using 1 thread
+Core elapsed runtime: 1.364 secs using 1 thread
+
+Epilogue user runtime: 0.01 secs using 1 thread
+Epilogue elapsed runtime: 0.002 secs using 1 thread
+
+StatDist user runtime: 0 secs using 1 thread
+StatDist elapsed runtime: 0 secs using 1 thread
+
+Time Tick: 0.5
+Max Time: 1000
+Sample Count: 10000
+StatDist Trajectory Count: 0
+StatDist Similarity Cache Maximum Size: 20000
+Discrete Time: FALSE
+Random Generator: rand48
+Seed Pseudo Random: 0
+Generated Number Count: 319992
+
+---------------------------------------------------------------------------------------------------------
+
+------------------------------------------------ Network ------------------------------------------------
+node TNF {
+  logic = TNF;
+}
+
+node TNFR {
+  logic = TNF;
+}
+
+node FADD {
+  logic = FADD;
+}
+
+node DISC_TNF {
+  logic = TNFR AND FADD;
+}
+
+node FASL {
+  logic = FASL;
+}
+
+node DISC_FAS {
+  logic = FASL AND FADD;
+}
+
+node CASP8 {
+  logic = NOT DISC_TNF AND NOT DISC_FAS AND CASP3 AND NOT cFLIP OR NOT DISC_TNF AND DISC_FAS AND NOT cFLIP OR DISC_TNF AND NOT cFLIP;
+}
+
+node RIP1 {
+  logic = NOT TNFR AND DISC_FAS AND NOT CASP8 OR TNFR AND NOT CASP8;
+}
+
+node cIAP {
+  logic = NOT NFkB AND NOT SMAC AND cIAP OR NFkB AND NOT SMAC;
+}
+
+node RIP1ub {
+  logic = RIP1 AND cIAP;
+}
+
+node RIP1K {
+  logic = RIP1;
+}
+
+node IKK {
+  logic = RIP1ub;
+}
+
+node CASP3 {
+  logic = NOT XIAP AND apoptosome;
+}
+
+node NFkB {
+  logic = IKK AND NOT CASP3;
+}
+
+node cFLIP {
+  logic = NFkB;
+}
+
+node BCL2 {
+  logic = NFkB;
+}
+
+node BAX {
+  logic = CASP8 AND NOT BCL2;
+}
+
+node MPT {
+  logic = NOT BCL2 AND ROS;
+}
+
+node ROS {
+  logic = NOT RIP1K AND NOT NFkB AND MPT OR RIP1K AND NOT NFkB;
+}
+
+node ATP {
+  logic = NOT MPT;
+}
+
+node MOMP {
+  logic = NOT BAX AND MPT OR BAX;
+}
+
+node SMAC {
+  logic = MOMP;
+}
+
+node Cyt_c {
+  logic = MOMP;
+}
+
+node XIAP {
+  logic = NFkB AND NOT SMAC;
+}
+
+node apoptosome {
+  logic = ATP AND Cyt_c AND NOT XIAP;
+}
+
+node NonACD {
+  logic = NOT ATP;
+}
+
+node Apoptosis {
+  logic = CASP3;
+}
+
+node Survival {
+  logic = NFkB;
+}
+---------------------------------------------------------------------------------------------------------
+
+----------------------------------------------- Variables -----------------------------------------------
+---------------------------------------------------------------------------------------------------------
+
