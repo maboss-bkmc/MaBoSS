@@ -333,9 +333,8 @@ int Network::parseSBML(const char* file, std::map<std::string, NodeIndex>* nodes
     
     Expression* exp;
     
-    if (def_term != NULL && def_term->getMath() != NULL){
-      exp = parseASTNode(def_term->getMath());
-      if (exp == NULL) return 1;
+    if (def_term != NULL){
+      exp = (Expression*) new ConstantExpression((double) def_term->getResultLevel());
       
     } else if (fun_term != NULL && fun_term->getMath() != NULL){
       exp = parseASTNode(fun_term->getMath());
