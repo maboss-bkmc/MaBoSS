@@ -99,7 +99,7 @@ $(MABOSS_ALIB): $(LIB_OBJS)
 	ar rcs $(MABOSS_ALIB) $+
 
 $(MABOSS_LIB): $(LIB_OBJS)
-	$(CXX) -shared -o $(MABOSS_LIB) $+ -lpthread $(LDL_FLAG) $(LDFLAGS)
+	$(CXX) -shared -o $(MABOSS_LIB) $+ -lpthread $(LDL_FLAG) $(LDFLAGS) $(SBML_LIB)
 
 $(FUNC_MODULE): $(FUNC_MODULE).o $(LIB_OBJS)
 	$(CXX) -shared -o $(FUNC_MODULE).so $(FUNC_MODULE).o $(LIB_OBJS) -lpthread -L.
