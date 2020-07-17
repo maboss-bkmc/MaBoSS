@@ -1,7 +1,7 @@
 cd engine/src
 
 export EXTRA_CXXFLAGS=-I${PREFIX}/include
-export EXTRA_LDFLAGS=-L${PREFIX}/lib -lxml2
+export EXTRA_LDFLAGS="-L${PREFIX}/lib -lxml2"
 
 make SBML_COMPAT=1 install
 # make SBML_COMPAT=1 MAXNODES=128 install

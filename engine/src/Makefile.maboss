@@ -111,16 +111,16 @@ $(FUNC_MODULE): $(FUNC_MODULE).o $(LIB_OBJS)
 
 $(MABOSS): MaBoSS$(INFIX).o $(MABOSS_OBJS)
 ifdef USE_LIB
-	$(CXX) -o $(MABOSS) MaBoSS$(INFIX).o -l$(MABOSS_LIBNAME) -lpthread -L. $(LDL_FLAG) $(SBML_LIB) $(LDFLAGS)
+	$(CXX) -o $(MABOSS) MaBoSS$(INFIX).o -l$(MABOSS_LIBNAME) -lpthread -L. $(LDL_FLAG) $(SBML_LIB) $(LDFLAGS) $(EXTRA_LDFLAGS)
 else
-	$(CXX) -o $(MABOSS) $+ -lpthread $(LDL_FLAG) $(SBML_LIB) $(LDFLAGS)
+	$(CXX) -o $(MABOSS) $+ -lpthread $(LDL_FLAG) $(SBML_LIB) $(LDFLAGS) $(EXTRA_LDFLAGS)
 endif
 
 $(MABOSS_SERVER): MaBoSS$(INFIX)-server.o $(MABOSS_OBJS) $(SERVER_OBJS)
 ifdef USE_LIB
-	$(CXX) -o $(MABOSS_SERVER) MaBoSS$(INFIX)-server.o $(SERVER_OBJS) -l$(MABOSS_LIBNAME) -lpthread -L. $(LDL_FLAG) $(SBML_LIB) $(LDFLAGS)
+	$(CXX) -o $(MABOSS_SERVER) MaBoSS$(INFIX)-server.o $(SERVER_OBJS) -l$(MABOSS_LIBNAME) -lpthread -L. $(LDL_FLAG) $(SBML_LIB) $(LDFLAGS) $(EXTRA_LDFLAGS)
 else
-	$(CXX) -o $(MABOSS_SERVER) $+ -lpthread $(LDL_FLAG) $(SBML_LIB) $(LDFLAGS)
+	$(CXX) -o $(MABOSS_SERVER) $+ -lpthread $(LDL_FLAG) $(SBML_LIB) $(LDFLAGS) $(EXTRA_LDFLAGS)
 endif
 
 $(MABOSS_CLIENT): MaBoSS-client.o Client.o DataStreamer.o RPC.o Utils$(INFIX).o
