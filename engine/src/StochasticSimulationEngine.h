@@ -63,7 +63,6 @@
 class StochasticSimulationEngine {
 
   Network* network;
-  RunConfig* runconfig;
 
   // Duration of the simulation
   double max_time;
@@ -82,7 +81,7 @@ public:
   RandomGenerator *random_generator;
 
   
-  StochasticSimulationEngine(Network* network, RunConfig* runconfig, int seed): network(network), runconfig(runconfig), max_time(runconfig->getMaxTime()), discrete_time(runconfig->isDiscreteTime()), time_tick(runconfig->getTimeTick()) {
+  StochasticSimulationEngine(Network* network, RunConfig* runconfig, int seed): network(network), max_time(runconfig->getMaxTime()), discrete_time(runconfig->isDiscreteTime()), time_tick(runconfig->getTimeTick()) {
     random_generator = runconfig->getRandomGeneratorFactory()->generateRandomGenerator(seed);
   }
   ~StochasticSimulationEngine() { delete random_generator; }
