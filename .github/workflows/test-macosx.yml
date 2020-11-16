@@ -1,0 +1,197 @@
+name: Tests MacOSX
+
+on:
+  push:
+  pull_request:
+  release:
+    types: [created]
+    
+jobs:
+
+###################################################################################################
+# MaBoSS                                                                                          #
+###################################################################################################
+  maboss:
+    name: MaBoSS
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run : |
+        brew install flex bison gcc@10
+        pip install numpy
+
+    - name: Build MaBoSS
+      run: |
+        cd engine/src
+        make clean
+        make CXX=g++-10 install
+        make CXX=g++-10 MAXNODES=128 install
+        
+    - name: Test MaBoSS
+      run: |
+        bash -c "cd engine/tests; bash ./test-cellcycle.sh"
+        bash -c "cd engine/tests; bash ./test-ensemble.sh"
+        bash -c "cd engine/tests; bash ./test-ewing.sh"
+        bash -c "cd engine/tests; bash ./test-server.sh"
+        bash -c "cd engine/tests; bash ./test-user_func.sh"
+        bash -c "cd engine/tests; bash ./test-prngs.sh"
+        bash -c "cd engine/tests; bash ./test-rngs.sh"
+        
+  maboss_llvm:
+    name: MaBoSS (clang)
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run : |
+        brew install flex bison
+        pip install numpy
+
+    - name: Build MaBoSS
+      run: |
+        cd engine/src
+        make clean
+        g++ --version
+        make CXX=g++ install
+        make CXX=g++ MAXNODES=128 install
+        
+    - name: Test MaBoSS
+      run: |
+        bash -c "cd engine/tests; bash ./test-cellcycle.sh"
+        bash -c "cd engine/tests; bash ./test-ensemble.sh"
+        bash -c "cd engine/tests; bash ./test-ewing.sh"
+        bash -c "cd engine/tests; bash ./test-server.sh"
+        bash -c "cd engine/tests; bash ./test-user_func.sh"
+        bash -c "cd engine/tests; bash ./test-prngs.sh"
+        bash -c "cd engine/tests; bash ./test-rngs.sh"
+  
+  conda_maboss:
+    name: Build Conda MaBoSS package
+    runs-on: macos-latest
+    needs: maboss
+  
+    steps:
+    - uses: actions/checkout@v2
+    - uses: s-weigand/setup-conda@v1
+
+    - name: Installing conda-build      
+      run: conda install conda-build
+
+    - name: Downgrading XCode to 11.7
+      run: |
+        sudo xcode-select -s /Applications/Xcode_11.7.app/Contents/Developer
+        brew reinstall llvm    
+    
+    - name: Build MaBoSS Anaconda package
+      run: |
+        conda build conda/maboss
+              
+    - name: Upload MaBoSS to Anaconda cloud
+      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'maboss-bkmc/MaBoSS-env-2.0'
+      run: |   
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/local/miniconda/conda-bld/osx-64/*.tar.bz2 --force;
+ 
+###################################################################################################
+# cMaBoSS                                                                                         #
+###################################################################################################                        
+  cmaboss:
+    name: cMaBoSS
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+        
+    - name: Install dependencies
+      run: |
+        brew install flex bison gcc@10 python3
+        pip3 install numpy
+        
+    - name: Build cMaBoSS
+      run: |
+        cd engine/src
+        make
+        cd ../python
+        cp -r ../src .
+        python3 setup.py build_ext --inplace
+        cd ../..
+    
+    - name: Test cMaBoSS
+      run: |
+        cd engine/python
+        python3 -m unittest test
+        python3 -m unittest test_128n
+  
+  conda_cmaboss:
+    name: cMaBoSS Conda package
+    runs-on: macos-latest
+    needs: cmaboss
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: s-weigand/setup-conda@v1
+    
+    - name: Install conda-build
+      run: conda install conda-build anaconda-client
+      
+    - name: Downgrading XCode to 11.7
+      run: |
+        sudo xcode-select -s /Applications/Xcode_11.7.app/Contents/Developer
+        brew reinstall llvm    
+    
+    - name: Build cMaBoSS Anaconda package
+      run: |
+        conda build conda/cmaboss;   
+        
+    - name: Upload cMaBoSS to Anaconda cloud
+      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'maboss-bkmc/MaBoSS-env-2.0'
+      run: |   
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/local/miniconda/conda-bld/osx-64/*.tar.bz2 --force;
+ 
+              
+  cmaboss_pypi:
+    name: cMaBoSS PyPi package
+    runs-on: macos-latest
+    needs: cmaboss
+    strategy:
+      matrix:
+        python:
+          - 3.5.10
+          - 3.6.12
+          - 3.7.9
+          - 3.8.6
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Setup python env
+      uses: gabrielfalcao/pyenv-action@v7
+      with:
+        default: "${{ matrix.python }}"
+        command: |
+          pip install -U pip  # upgrade pip after installing python
+          
+    - name: Install python dependencies
+      run: pip install twine wheel numpy
+
+    - name: Compile MaBoSS
+      run: |
+        cd engine/src; make
+        cd ../python; cp -r ../src .
+        cd ../..
+        
+    - name: Build cMaBoSS
+      run: |
+        cd engine/python
+        pip wheel . -w wheelhouse
+        
+    - name: Upload cMaBoSS to Pypi
+      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'maboss-bkmc/MaBoSS-env-2.0'
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+      run: |
+        python -m twine upload --skip-existing wheelhouse/cmaboss*
+
+        

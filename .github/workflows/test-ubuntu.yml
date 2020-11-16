@@ -1,0 +1,254 @@
+name: Tests Ubuntu
+
+on:
+  push:
+  pull_request:
+  release:
+    types: [created]
+
+jobs:
+  maboss:
+    name: MaBoSS
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get install flex bison
+        pip install numpy
+        $CONDA/bin/conda install conda-build
+
+      
+    - name: Build MaBoSS
+      run: |
+        cd engine/src
+        make clean
+        make install
+        make MAXNODES=128 install
+    
+    - name: Test MaBoSS
+      run: |
+        bash -c "cd engine/tests; bash ./test-cellcycle.sh"
+        bash -c "cd engine/tests; bash ./test-ensemble.sh"
+        bash -c "cd engine/tests; bash ./test-ewing.sh"
+        bash -c "cd engine/tests; bash ./test-server.sh"
+        bash -c "cd engine/tests; bash ./test-user_func.sh"
+        bash -c "cd engine/tests; bash ./test-prngs.sh"
+        bash -c "cd engine/tests; bash ./test-rngs.sh"
+  
+  maboss_conda:
+    name: MaBoSS Anaconda package
+    runs-on: ubuntu-18.04
+    needs: maboss
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: s-weigand/setup-conda@v1
+
+    - name: Install conda-build
+      run: conda install conda-build anaconda-client
+      
+    - name: Build Anaconda package
+      run: |
+        conda build conda/maboss 
+        
+    - name: Upload cMaBoSS Ananconda package
+      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'maboss-bkmc/MaBoSS-env-2.0'
+      run: |
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/share/miniconda/conda-bld/linux-64/*.tar.bz2 --force;
+    
+  test_docker:
+    name: Docker MaBoSS Server
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get install flex bison
+        pip install numpy
+      
+    - name: Start MaBoSS docker server
+      run: |
+        docker-compose up -d maboss-server
+        bash -c "cd engine/src; make client"
+        
+    - name: Test MaBoSS docker server
+      run: |
+        bash -c "cd engine/tests; bash ./test-container.sh"
+  
+    - name: Connect Docker Hub
+      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'maboss-bkmc/MaBoSS-env-2.0'
+      run: |
+        echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+        
+    - name: Upload Docker Hub
+      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'maboss-bkmc/MaBoSS-env-2.0'
+      run: | 
+          docker tag maboss-server:latest vnoel/maboss-server:latest
+          docker push vnoel/maboss-server:latest
+    
+  test_singularity:
+    name: Singularity MaBoSS Server
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Install dependencies
+      run: |
+        wget -O- http://neuro.debian.net/lists/bionic.de-m.libre | sudo tee /etc/apt/sources.list.d/neurodebian.sources.list
+        sudo apt-key adv --recv-keys --keyserver hkp://pool.sks-keyservers.net:80 0xA5D32F012649A5A9
+        sudo apt-get -qq update
+        sudo apt-get install -yq python-virtualenv singularity-container debootstrap
+        
+        
+        sudo apt-get install flex bison
+        pip install numpy
+      
+    - name: Start MaBoSS Singularity server
+      run: |
+        sudo singularity build maboss-server.simg containers/singularity/Singularity
+        singularity run maboss-server.simg &
+        bash -c "cd engine/src; make client"
+        
+    - name: Test MaBoSS
+      run: |
+        bash -c "cd engine/tests; bash ./test-container.sh"
+    
+  cmaboss:
+    name: cMaBoSS
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get install -yq python3-pip python3-setuptools
+        sudo pip3 install numpy
+        $CONDA/bin/conda install conda-build
+        
+    - name: Build cMaBoSS
+      run: |
+        cd engine/src
+        make
+        cd ../python
+        cp -r ../src .
+        python3 setup.py build_ext --inplace
+        cd ../..
+    
+    - name: Test cMaBoSS
+      run: |
+        cd engine/python
+        python3 -m unittest test
+        python3 -m unittest test_128n
+   
+
+  cmaboss_conda:
+    name: cMaBoSS Anaconda package
+    runs-on: ubuntu-18.04
+    needs: cmaboss
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: s-weigand/setup-conda@v1
+ 
+    - name: Install conda-build
+      run: conda install conda-build anaconda-client
+      
+    - name: Build cMaBoSS Anaconda package
+      run: |
+        conda build conda/cmaboss;
+        
+    - name: Upload cMaBoSS Ananconda package
+      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'maboss-bkmc/MaBoSS-env-2.0'
+      run: |
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/share/miniconda/conda-bld/linux-64/*.tar.bz2 --force;
+        
+  cmaboss_manylinux1:
+    name: cMaBoSS manylinux1 wheel
+    runs-on: ubuntu-18.04
+    needs: cmaboss
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Compile MaBoSS
+      run: |
+        cd engine/src; make
+        cd ../python; cp -r ../src .
+        cd ../..
+        pip install twine
+        
+    - name: Build cMaBoSS manylinux1_x86_64
+      run: |
+        cd engine/python
+        docker run --rm -e PLAT=manylinux1_x86_64 -v `pwd`:/io quay.io/pypa/manylinux1_x86_64 /io/build-wheels.sh
+        
+    - name: Upload cMaBoSS Ananconda package
+      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'maboss-bkmc/MaBoSS-env-2.0'
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+      run: |
+        python -m twine upload --skip-existing wheelhouse/cmaboss*
+        
+  cmaboss_manylinux2010:
+    name: cMaBoSS manylinux2010 wheel
+    runs-on: ubuntu-18.04
+    needs: cmaboss
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Compile MaBoSS
+      run: |
+        cd engine/src; make
+        cd ../python; cp -r ../src .
+        cd ../..
+        pip install twine
+        
+    - name: Build cMaBoSS manylinux2010_x86_64
+      run: |
+        cd engine/python
+        docker run --rm -e PLAT=manylinux2010_x86_64 -v `pwd`:/io quay.io/pypa/manylinux2010_x86_64 /io/build-wheels.sh
+        
+    - name: Upload cMaBoSS Ananconda package
+      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'maboss-bkmc/MaBoSS-env-2.0'
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+      run: |
+        python -m twine upload --skip-existing wheelhouse/cmaboss*
+        
+  cmaboss_manylinux2014:
+    name: cMaBoSS manylinux2014 wheel
+    runs-on: ubuntu-18.04
+    needs: cmaboss
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Compile MaBoSS
+      run: |
+        cd engine/src; make
+        cd ../python; cp -r ../src .
+        cd ../..
+        pip install twine
+        
+    - name: Build cMaBoSS manylinux2014_x86_64
+      run: |
+        cd engine/python
+        docker run --rm -e PLAT=manylinux2014_x86_64 -v `pwd`:/io quay.io/pypa/manylinux2014_x86_64 /io/build-wheels.sh
+        
+    - name: Upload cMaBoSS Ananconda package
+      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'maboss-bkmc/MaBoSS-env-2.0'
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+      run: |
+        python -m twine upload --skip-existing wheelhouse/cmaboss*
