@@ -52,7 +52,9 @@ EXTRA_FLAGS = -std=c++11
 endif
 
 GCC = gcc
+ifndef CXX
 CXX = g++
+endif
 CXXOPT = -O2
 CXXFLAGS = $(CXXOPT) -Wall -DMAXNODES=$(MAXNODES) $(BITSET_FLAG) $(EXTRA_FLAGS) $(BOOST_INCL_PATH) -fpic -DNDEBUG
 
