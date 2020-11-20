@@ -48,7 +48,6 @@
      January-March 2011
 */
 
-//#define _POSIX_SOURCE 1
 #include "BooleanGrammar.h"
 
 extern int yylex();

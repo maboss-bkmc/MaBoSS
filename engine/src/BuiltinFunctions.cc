@@ -36,7 +36,7 @@
 #############################################################################
 
    Module:
-     BooleanGrammar.h
+     BuiltinFunctions.cc
 
    Authors:
      Eric Viara <viara@sysra.com>

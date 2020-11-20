@@ -49,8 +49,6 @@
 #include "Utils.h"
 #include "MaBEstEngine.h"
 #include <sys/stat.h>
-#include <string.h>
-#include <stdlib.h>
 
 const std::string NL_PATTERN = "@--NL--@";
 unsigned int ConfigOpt::runconfig_file_cnt = 0;
@@ -153,18 +151,4 @@ const char* fmthexdouble(double d, bool add_quotes)
     sprintf(buf[buf_ind], "%a", d);
   }
   return buf[buf_ind++];
-}
-
-
-char* maboss_strdup (const char* s)
-{
-  size_t slen = strlen(s);
-  char* result = (char*) malloc(slen + 1);
-  if(result == NULL)
-  {
-    return NULL;
-  }
-
-  memcpy(result, s, slen+1);
-  return result;
 }

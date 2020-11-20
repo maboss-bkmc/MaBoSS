@@ -36,7 +36,7 @@
 #############################################################################
 
    Module:
-     EnsembleEngine.h
+     EnsembleEngine.cc
 
    Authors:
      Vincent Noel <contact@vincent-noel.fr>

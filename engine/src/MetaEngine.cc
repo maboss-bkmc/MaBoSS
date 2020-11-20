@@ -36,7 +36,7 @@
 #############################################################################
 
    Module:
-     MaBEstEngine.cc
+     MetaEngine.cc
 
    Authors:
      Eric Viara <viara@sysra.com>
