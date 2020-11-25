@@ -51,9 +51,6 @@ check_file "projtraj"
 python compare_statdist.py prngs/refer/Cell_cycle_rand48_statdist.csv tmp/Cell_cycle_rand48_statdist.csv --exact # || echo '**** error test #1.b (non regression) ****'
 check_file "statdist"
 
-/usr/bin/time -p $LAUNCHER $MABOSS prngs/cellcycle.bnd -c prngs/cellcycle_runcfg.cfg -c prngs/physical.cfg -o tmp/Cell_cycle_phys
-if [ $? != 0 ]; then return_code=1; fi
-
 # echo "Comparing aproximatively the results of the different prngs"
 # python compare_probtrajs.py tmp/Cell_cycle_glibc_probtraj.csv tmp/Cell_cycle_mt_probtraj.csv # || echo '**** error test #3 (multi threads) ****'
 # check_file "probtrajs"
