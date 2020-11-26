@@ -94,19 +94,19 @@ static PyObject* cMaBoSSResult_get_fp_table(cMaBoSSResultObject* self) {
 }
 
 static PyObject* cMaBoSSResult_get_probtraj(cMaBoSSResultObject* self) {
-  return self->engine->getNumpyStatesDists();
+  return self->engine->getMergedCumulator()->getNumpyStatesDists(self->network);
 }
 
 static PyObject* cMaBoSSResult_get_last_probtraj(cMaBoSSResultObject* self) {
-  return self->engine->getNumpyLastStatesDists();
+  return self->engine->getMergedCumulator()->getNumpyLastStatesDists(self->network);
 }
 
 static PyObject* cMaBoSSResult_get_nodes_probtraj(cMaBoSSResultObject* self) {
-  return self->engine->getNumpyNodesDists();
+  return self->engine->getMergedCumulator()->getNumpyNodesDists(self->network);
 }
 
 static PyObject* cMaBoSSResult_get_last_nodes_probtraj(cMaBoSSResultObject* self) {
-  return self->engine->getNumpyLastNodesDists();
+  return self->engine->getMergedCumulator()->getNumpyLastNodesDists(self->network);
 }
 
 static PyObject* cMaBoSSResult_display_fp(cMaBoSSResultObject* self, PyObject *args) 
