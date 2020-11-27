@@ -205,14 +205,14 @@ void MBDynBitset::destroy(uint64_t* data)
 void MBDynBitset::stats()
 {
 #ifdef MB_COUNT
-  std::cout << "new_default_cnt=" << new_default_cnt << '\n';
-  std::cout << "new_cnt=" << new_cnt << '\n';
-  std::cout << "true_copy_cnt=" << true_copy_cnt << '\n';
-  std::cout << "copy_cnt=" << copy_cnt << '\n';
-  std::cout << "assign_cnt=" << assign_cnt << '\n';
-  std::cout << "assign_and_cnt=" << assign_and_cnt << '\n';
-  std::cout << "alloc_cnt=" << alloc_cnt << '\n';
-  std::cout << "delete_cnt=" << del_cnt << '\n';
+  std::cout << "NEW_DEFAULT_CNT=" << new_default_cnt << '\n';
+  std::cout << "NEW_CNT=" << new_cnt << '\n';
+  std::cout << "TRUE_COPY_CNT=" << true_copy_cnt << '\n';
+  std::cout << "COPY_CNT=" << copy_cnt << '\n';
+  std::cout << "ASSIGN_CNT=" << assign_cnt << '\n';
+  std::cout << "ASSIGN_AND_CNT=" << assign_and_cnt << '\n';
+  std::cout << "ALLOC_CNT=" << alloc_cnt << '\n';
+  std::cout << "DELETE_CNT=" << del_cnt << '\n';
 #endif
 }
 
