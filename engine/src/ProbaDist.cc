@@ -194,9 +194,13 @@ void ProbaDistCluster::computeStationaryDistribution()
     const ProbaDist& proba_dist = (*begin).second;
     ProbaDist::Iterator iter(proba_dist);
     while (iter.hasNext()) {
-      NetworkState_Impl state;
       double proba;
+#if 1
+      const NetworkState_Impl& state = iter.next2(proba);
+#else
+      NetworkState_Impl state;
       iter.next(state, proba);
+#endif
       if (stat_dist_map.find(state) == stat_dist_map.end()) {
 	stat_dist_map[state] = Proba(proba, proba*proba);
       } else {
@@ -216,7 +220,8 @@ void ProbaDistCluster::displayStationaryDistribution(Network* network, std::ostr
   unsigned int sz = size();
   const double minsquaredouble = DBL_MIN*DBL_MIN;
   while (stat_dist_iter != stat_dist_end) {
-    NetworkState_Impl state = (*stat_dist_iter).first;
+    //NetworkState_Impl state = (*stat_dist_iter).first;
+    const NetworkState_Impl& state = (*stat_dist_iter).first;
     const Proba& pb = (*stat_dist_iter).second;
     NetworkState network_state(state);
     os << '\t';
@@ -265,9 +270,13 @@ double ProbaDistCluster::similarity(unsigned int nn1, const ProbaDist& proba_dis
   double simil2 = 0.0;
   unsigned int out_of_support = 0;
   while (proba_dist1_iter.hasNext()) {
-    NetworkState_Impl state;
     double proba1, proba2;
+#if 1
+    const NetworkState_Impl& state = proba_dist1_iter.next2(proba1);
+#else
+    NetworkState_Impl state;
     proba_dist1_iter.next(state, proba1);
+#endif
     if (proba_dist2.hasState(state, proba2)) {
       simil1 += proba1;
       simil2 += proba2;

@@ -27,13 +27,15 @@ check_file()
 echo
 echo "Non regression test: Cell Cycle one thread"
 rm -rf tmp; mkdir -p tmp
-$LAUNCHER /usr/bin/time -p $MABOSS cellcycle/cellcycle.bnd -c cellcycle/cellcycle_runcfg.cfg -c cellcycle/cellcycle_runcfg-thread_1.cfg -o tmp/Cell_cycle_thread_1
-if [ $? != 0 ]; then exit 1; fi
-python compare_probtrajs.py cellcycle/refer/Cell_cycle_thread_1_probtraj.csv tmp/Cell_cycle_thread_1_probtraj.csv --exact
-check_file "projtraj"
-
-python compare_statdist.py cellcycle/refer/Cell_cycle_thread_1_statdist.csv tmp/Cell_cycle_thread_1_statdist.csv --exact # || echo '**** error test #1.b (non regression) ****'
-check_file "statdist"
+if [ "$MULTI_THREAD_ONLY" = "" ]; then
+    $LAUNCHER /usr/bin/time -p $MABOSS cellcycle/cellcycle.bnd -c cellcycle/cellcycle_runcfg.cfg -c cellcycle/cellcycle_runcfg-thread_1.cfg -o tmp/Cell_cycle_thread_1 $EXTRA_ARGS
+    if [ $? != 0 ]; then exit 1; fi
+    python compare_probtrajs.py cellcycle/refer/Cell_cycle_thread_1_probtraj.csv tmp/Cell_cycle_thread_1_probtraj.csv --exact
+    check_file "projtraj"
+    
+    python compare_statdist.py cellcycle/refer/Cell_cycle_thread_1_statdist.csv tmp/Cell_cycle_thread_1_statdist.csv --exact # || echo '**** error test #1.b (non regression) ****'
+    check_file "statdist"
+fi
 
 if [ "$ONE_THREAD_ONLY" != "" ]; then exit 0; fi
 

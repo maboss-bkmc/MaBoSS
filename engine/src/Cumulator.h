@@ -50,6 +50,8 @@
 #ifndef _CUMULATOR_H_
 #define _CUMULATOR_H_
 
+#define USE_NEXT_OPT
+
 #include <string>
 #include <map>
 #include <set>
@@ -98,7 +100,7 @@ class Cumulator {
       return mp.size();
     }
 
-    void incr(NetworkState_Impl state, double tm_slice, double TH) {
+    void incr(const NetworkState_Impl& state, double tm_slice, double TH) {
       STATE_MAP<NetworkState_Impl, TickValue>::iterator iter = mp.find(state);
       if (iter == mp.end()) {
 	mp[state] = TickValue(tm_slice, tm_slice * TH);
@@ -108,13 +110,13 @@ class Cumulator {
       }
     }
 
-    void cumulTMSliceSquare(NetworkState_Impl state, double tm_slice) {
+    void cumulTMSliceSquare(const NetworkState_Impl& state, double tm_slice) {
       STATE_MAP<NetworkState_Impl, TickValue>::iterator iter = mp.find(state);
       assert(iter != mp.end());
       (*iter).second.tm_slice_square += tm_slice * tm_slice;
     }
     
-    void add(NetworkState_Impl state, const TickValue& tick_value) {
+    void add(const NetworkState_Impl& state, const TickValue& tick_value) {
       STATE_MAP<NetworkState_Impl, TickValue>::iterator iter = mp.find(state);
       if (iter == mp.end()) {
 	mp[state] = tick_value;
@@ -153,6 +155,13 @@ class Cumulator {
 	++iter;
       }
 	
+#ifdef USE_NEXT_OPT
+      const NetworkState_Impl& next2(TickValue& tick_value) {
+	tick_value = (*iter).second;
+	return (*iter++).first;
+      }
+#endif
+	
       void next(TickValue& tick_value) {
 	tick_value = (*iter).second;
 	++iter;
@@ -168,7 +177,7 @@ class Cumulator {
     STATE_MAP<NetworkState_Impl, double> mp;
 
   public:
-    void incr(NetworkState_Impl fullstate, double tm_slice) {
+    void incr(const NetworkState_Impl& fullstate, double tm_slice) {
       STATE_MAP<NetworkState_Impl, double>::iterator iter = mp.find(fullstate);
       if (iter == mp.end()) {
 	mp[fullstate] = tm_slice;
@@ -177,7 +186,7 @@ class Cumulator {
       }
     }
 
-    void add(NetworkState_Impl fullstate, double tm_slice) {
+    void add(const NetworkState_Impl& fullstate, double tm_slice) {
       STATE_MAP<NetworkState_Impl, double>::iterator iter = mp.find(fullstate);
       if (iter == mp.end()) {
 	mp[fullstate] = tm_slice;
@@ -211,6 +220,13 @@ class Cumulator {
 	++iter;
       }
 	
+#ifdef USE_NEXT_OPT
+      const NetworkState_Impl& next2(double& tm_slice) {
+	tm_slice = (*iter).second;
+	return (*iter++).first;
+      }
+#endif
+
       void next(double& tm_slice) {
 	tm_slice = (*iter).second;
 	++iter;
@@ -283,7 +299,7 @@ class Cumulator {
     return at_tick_index * time_tick;
   }
 
-  bool incr(NetworkState_Impl state, double tm_slice, double TH, NetworkState_Impl fullstate) {
+  bool incr(const NetworkState_Impl& state, double tm_slice, double TH, const NetworkState_Impl& fullstate) {
     if (tm_slice == 0.0) {
       return true;
     }
@@ -323,10 +339,12 @@ public:
 
   Cumulator(RunConfig* runconfig, double time_tick, double max_time, unsigned int sample_count) :
     runconfig(runconfig), time_tick(time_tick), sample_count(sample_count), sample_num(0), last_tm(0.), tick_index(0) {
-#ifdef USE_BITSET
+#ifdef USE_STATIC_BITSET
     output_mask.set();
-#elif defined(USE_BOOST_BITSET)
-    output_mask.resize(MAXNODES);
+#elif defined(USE_BOOST_BITSET) || defined(USE_DYNAMIC_BITSET)
+    // EV: 2020-10-23
+    //output_mask.resize(MAXNODES);
+    output_mask.resize(Network::getMaxNodeSize());
     output_mask.set();
 #else
     output_mask = ~0ULL;
@@ -366,7 +384,8 @@ public:
       CumulMap& mp = get_map();
       double TH = 0.0;
       while (begin != end) {
-	NetworkState_Impl state = (*begin).first;
+	//NetworkState_Impl state = (*begin).first;
+	const NetworkState_Impl& state = (*begin).first;
 	double tm_slice = (*begin).second.tm_slice;
 	TH += (*begin).second.TH;
 	if (COMPUTE_ERRORS) {
@@ -384,8 +403,12 @@ public:
   }
 
   void cumul(const NetworkState& network_state, double tm, double TH) {
-    NetworkState_Impl fullstate = network_state.getState();
-    NetworkState_Impl state = (fullstate & output_mask);
+#ifdef USE_DYNAMIC_BITSET
+    NetworkState_Impl fullstate(network_state.getState(), 1);
+#else
+    NetworkState_Impl fullstate(network_state.getState());
+#endif
+    NetworkState_Impl state(fullstate & output_mask);
     double time_1 = cumultime(tick_index+1);
     if (tm < time_1) {
       incr(state, tm - last_tm, TH, fullstate);
@@ -410,7 +433,7 @@ public:
     last_tm = tm;
   }
 
-  void setOutputMask(NetworkState_Impl output_mask) {
+  void setOutputMask(const NetworkState_Impl& output_mask) {
     this->output_mask = output_mask;
   }
 

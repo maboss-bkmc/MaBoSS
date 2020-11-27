@@ -68,7 +68,7 @@ class ProbaDist {
     return mp.size();
   }
 
-  void incr(NetworkState_Impl state, double tm_slice) {
+  void incr(const NetworkState_Impl& state, double tm_slice) {
     STATE_MAP<NetworkState_Impl, double>::iterator proba_iter = mp.find(state);
     if (proba_iter == mp.end()) {
       mp[state] = tm_slice;
@@ -81,11 +81,11 @@ class ProbaDist {
     mp.clear();
   }
 
-  void set(NetworkState_Impl state, double tm_slice) {
+  void set(const NetworkState_Impl& state, double tm_slice) {
     mp[state] = tm_slice;
   }
 
-  bool hasState(NetworkState_Impl state, double& tm_slice) const {
+  bool hasState(const NetworkState_Impl& state, double& tm_slice) const {
     STATE_MAP<NetworkState_Impl, double>::const_iterator iter = mp.find(state);
     if (iter != mp.end()) {
       tm_slice = (*iter).second;
@@ -122,6 +122,15 @@ class ProbaDist {
     void next(NetworkState_Impl& state) {
       state = (*iter).first;
       ++iter;
+    }
+
+    const NetworkState_Impl& next2(double& tm_slice) {
+      tm_slice = (*iter).second;
+      return (*iter++).first;
+    }
+
+    const NetworkState_Impl& next2() {
+      return (*iter++).first;
     }
 
     void next(double& tm_slice) {

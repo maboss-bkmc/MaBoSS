@@ -68,6 +68,7 @@ static int usage(std::ostream& os = std::cerr)
   os << "  " << prog << " [-c|--config CONF_FILE] [-v|--config-vars VAR1=NUMERIC[,VAR2=...]] [-e|--config-expr CONFIG_EXPR] -d|--dump-config BOOLEAN_NETWORK_FILE\n\n";
   os << "  " << prog << " [-c|--config CONF_FILE] [-v|--config-vars VAR1=NUMERIC[,VAR2=...]] [-e|--config-expr CONFIG_EXPR] -l|--generate-logical-expressions BOOLEAN_NETWORK_FILE\n\n";
   os << "  " << prog << " -t|--generate-config-template BOOLEAN_NETWORK_FILE\n";
+  os << "  " << prog << " [-q|--quiet]\n";
   os << "  " << prog << " [--check]\n";
   os << "  " << prog << " [--override]\n";
   os << "  " << prog << " [--augment]\n";
@@ -95,6 +96,7 @@ static int help()
   std::cout << "  -d --dump-config                        : dumps configuration and exits\n";
   std::cout << "  -t --generate-config-template           : generates template configuration and exits\n";
   std::cout << "  -l --generate-logical-expressions       : generates the logical expressions and exits\n";
+  std::cout << "  -q|--quiet                              : no notices and no warnings will be displayed\n";
   std::cout << "  --check                                 : checks network and configuration files and exits\n";
   std::cout << "  --hexfloat                              : displays double in hexadecimal format\n";
   std::cout << "  --export-asymptotic                     : create a special file for asymptotic probabilities\n";
@@ -143,6 +145,24 @@ int main(int argc, char* argv[])
   bool counts = false;
   MaBEstEngine::init();
 
+  // for debug
+#ifdef USE_BOOST_BITSET
+  std::cerr << "MaBoSS use dynamic_bitset\n";
+#elif defined(USE_DYNAMIC_BITSET)
+  std::cerr << "MaBoSS use MaBoSS dynamic bitset\n";
+#elif defined(USE_STATIC_BITSET)
+  std::cerr << "MaBoSS use standard bitset\n";
+#else
+  std::cerr << "MaBoSS use long long mask\n";
+#endif
+#ifdef HAS_BOOST_UNORDERED_MAP
+  std::cerr << "MaBoSS use boost::unordered_map\n";
+#elif defined(HAS_UNORDERED_MAP)
+  std::cerr << "MaBoSS use std::unordered_map\n";
+#else
+  std::cerr << "MaBoSS use standard std::map\n";
+#endif
+
   for (int nn = 1; nn < argc; ++nn) {
     const char* s = argv[nn];
     if (s[0] == '-') {
@@ -166,9 +186,9 @@ int main(int argc, char* argv[])
       } else if (!strcmp(s, "--ensemble")) {
   ensemble = true;
       } else if (!strcmp(s, "--single")) {
-  single_simulation = true;
+	single_simulation = true;
       } else if (!strcmp(s, "--final")) {
-  final_simulation = true;
+	final_simulation = true;
       } else if (!strcmp(s, "--save-individual")) {
         if (ensemble) {
           ensemble_save_individual_results = true;
@@ -213,6 +233,8 @@ int main(int argc, char* argv[])
 	Node::setAugment(true);
       } else if (!strcmp(s, "--check")) {
 	check = true;
+       } else if (!strcmp(s, "-q") || !strcmp(s, "--quiet")) {
+	 MaBoSS_quiet = true;
       } else if (!strcmp(s, "--hexfloat")) {
 	hexfloat = true;
       } else if (!strcmp(s, "--help") || !strcmp(s, "-h")) {
@@ -290,6 +312,10 @@ int main(int argc, char* argv[])
   std::ostream* output_fp = NULL;
   std::ostream* output_asymptprob = NULL;
   
+#ifdef USE_DYNAMIC_BITSET
+  MBDynBitset::init_pthread();
+#endif
+
   try {
     time_t start_time, end_time;
 
@@ -610,9 +636,11 @@ int main(int argc, char* argv[])
 
       if (runconfig->displayTrajectories()) {
         if (runconfig->getThreadCount() > 1) {
-    std::cerr << '\n' << prog << ": warning: cannot display trajectories in multi-threaded mode\n";
+	  if (!MaBoSS_quiet) {
+	    std::cerr << '\n' << prog << ": warning: cannot display trajectories in multi-threaded mode\n";
+	  }
         } else {
-    output_traj = new std::ofstream((std::string(output) + "_traj.txt").c_str());
+	  output_traj = new std::ofstream((std::string(output) + "_traj.txt").c_str());
         }
       }
 
@@ -672,6 +700,10 @@ int main(int argc, char* argv[])
     return 1;
   }
 
+#ifdef USE_DYNAMIC_BITSET
+  MBDynBitset::end_pthread();
+  MBDynBitset::stats();
+#endif
   return 0;
 }
 

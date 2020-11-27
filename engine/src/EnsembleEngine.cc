@@ -136,7 +136,7 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
     unsigned int t_count = (nn == 0 ? firstcount : count);
     Cumulator* cumulator = new Cumulator(runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), t_count);
     if (has_internal) {
-#ifdef USE_BITSET
+#ifdef USE_STATIC_BITSET
       NetworkState_Impl state2 = ~internal_state.getState();
       cumulator->setOutputMask(state2);
 #else
@@ -242,7 +242,7 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
       
           if (has_internal) {
 
-#ifdef USE_BITSET
+#ifdef USE_STATIC_BITSET
           NetworkState_Impl state2 = ~internal_state.getState();
           t_cumulator->setOutputMask(state2);
 #else
@@ -551,7 +551,8 @@ STATE_MAP<NetworkState_Impl, unsigned int>* MetaEngine::mergeFixpointMaps()
     STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator b = fp_map->begin();
     STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator e = fp_map->end();
     while (b != e) {
-      NetworkState_Impl state = (*b).first;
+      //NetworkState_Impl state = (*b).first;
+      const NetworkState_Impl& state = (*b).first;
       if (fixpoint_map->find(state) == fixpoint_map->end()) {
 	(*fixpoint_map)[state] = (*b).second;
       } else {
@@ -585,7 +586,8 @@ void EnsembleEngine::mergeEnsembleFixpointMaps()
           STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator b = fp_map->begin();
           STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator e = fp_map->end();
           while (b != e) {
-            NetworkState_Impl state = (*b).first;
+            //NetworkState_Impl state = (*b).first;
+            const NetworkState_Impl& state = (*b).first;
             if (fixpoint_map->find(state) == fixpoint_map->end()) {
         (*fixpoint_map)[state] = (*b).second;
             } else {

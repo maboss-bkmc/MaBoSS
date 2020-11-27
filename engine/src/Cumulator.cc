@@ -147,9 +147,13 @@ void Cumulator::epilogue(Network* network, const NetworkState& reference_state)
     MAP<unsigned int, double>& hd_m = HD_v[nn];
 #endif
     while (iter.hasNext()) {
-      NetworkState_Impl state;
       TickValue tick_value;
+#ifdef USE_NEXT_OPT
+      const NetworkState_Impl &state = iter.next2(tick_value);
+#else
+      NetworkState_Impl state;
       iter.next(state, tick_value);
+#endif
       double tm_slice = tick_value.tm_slice;
       double proba = tm_slice / ratio;      
       double TH = tick_value.TH / sample_count;
@@ -178,9 +182,13 @@ void Cumulator::epilogue(Network* network, const NetworkState& reference_state)
     HDCumulMap::Iterator iter = hd_mp.iterator();
     MAP<unsigned int, double>& hd_m = HD_v[nn];
     while (iter.hasNext()) {
-      NetworkState_Impl state;
       double tm_slice;
+#ifdef USE_NEXT_OPT
+      const NetworkState_Impl &state = iter.next2(tm_slice);
+#else
+      NetworkState_Impl state;
       iter.next(state, tm_slice);
+#endif
       double proba = tm_slice / ratio;      
       int hd = reference_state.hamming(network, state);
       if (hd_m.find(hd) == hd_m.end()) {
@@ -279,13 +287,17 @@ void Cumulator::displayProbTrajCSV(Network* network, unsigned int refnode_count,
 
     // Proba, ErrorProba
     while (iter.hasNext()) {
-      NetworkState_Impl state;
       TickValue tick_value;
+#ifdef USE_NEXT_OPT
+      const NetworkState_Impl& state = iter.next2(tick_value);
+#else
+      NetworkState_Impl state;
       iter.next(state, tick_value);
+#endif
       double proba = tick_value.tm_slice / ratio;      
       //double TH = tick_value.TH / sample_count;
       os_probtraj << '\t';
-      NetworkState network_state(state);
+      NetworkState network_state(state, 1);
       network_state.displayOneLine(os_probtraj, network);
       if (hexfloat) {
 	os_probtraj << '\t' << std::setprecision(6) << fmthexdouble(proba);
@@ -312,7 +324,27 @@ void Cumulator::displayProbTrajCSV(Network* network, unsigned int refnode_count,
     os_probtraj << '\n';
   }
 }
+
+/*
+class StatDistDisplayer {
+
+public:
+  virtual void begin() = 0;
+  virtual void beginStatDist() = 0;
+  virtual void endtatDist() = 0;
+  virtual void end() = 0;
+};
+
+class StatDistJsonDisplayer : public StatDistDisplayer {
+};
+
+class StatDistHDF5Displayer : public StatDistDisplayer {
+};
+
+*/
+
 void Cumulator::displayStatDistCSV(Network* network, unsigned int refnode_count, std::ostream& os_statdist, bool hexfloat) const
+//void Cumulator::displayStatDistCSV(Network* network, unsigned int refnode_count, StatDistDisplayer& displayer) const
 {
   // should not be in cumulator, but somehwere in ProbaDist*
 
@@ -417,10 +449,13 @@ void Cumulator::displayAsymptoticCSV(Network *network, unsigned int refnode_coun
 
   while (iter.hasNext())
   {
-    NetworkState_Impl state;
     TickValue tick_value;
+#ifdef USE_NEXT_OPT
+    const NetworkState_Impl& state = iter.next2(tick_value);
+#else
+    NetworkState_Impl state;
     iter.next(state, tick_value);
-
+#endif
     double proba = tick_value.tm_slice / ratio;
     if (proba)
     {
@@ -461,10 +496,13 @@ const std::map<double, STATE_MAP<NetworkState_Impl, double> > Cumulator::getStat
     STATE_MAP<NetworkState_Impl, double> t_result;
 
     while (iter.hasNext()) {
-      NetworkState_Impl state;
       TickValue tick_value;
+      //#ifdef USE_NEXT_OPT
+      //      const NetworkState_Impl& state = iter.next2(tick_value);
+      //#else
+      NetworkState_Impl state;
       iter.next(state, tick_value);
-
+      //#endif
       double proba = tick_value.tm_slice / ratio;      
       t_result[state] = proba;
     }
@@ -486,9 +524,13 @@ std::set<NetworkState_Impl> Cumulator::getStates() const
     CumulMap::Iterator iter = mp.iterator();
 
     while (iter.hasNext()) {
-      NetworkState_Impl state;
       TickValue tick_value;
+      //#ifdef USE_NEXT_OPT
+      //const NetworkState_Impl& state = iter.next2(tick_value);
+      //#else
+      NetworkState_Impl state;
       iter.next(state, tick_value);
+      //#endif
       result_states.insert(state);
     }
   }
@@ -504,9 +546,13 @@ std::vector<NetworkState_Impl> Cumulator::getLastStates() const
     CumulMap::Iterator iter = mp.iterator();
 
     while (iter.hasNext()) {
-      NetworkState_Impl state;
       TickValue tick_value;
+      //#ifdef USE_NEXT_OPT
+      //const NetworkState_Impl& state = iter.next2(tick_value);
+      //#else
+      NetworkState_Impl state;
       iter.next(state, tick_value);
+      //#endif
       result_states.push_back(state);
     }
 
@@ -534,9 +580,13 @@ PyObject* Cumulator::getNumpyStatesDists(Network* network) const
     CumulMap::Iterator iter = mp.iterator();
 
     while (iter.hasNext()) {
-      NetworkState_Impl state;
       TickValue tick_value;
+      //#ifdef USE_NEXT_OPT
+      //const NetworkState_Impl& state = iter.next2(tick_value);
+      //#else
+      NetworkState_Impl state;
       iter.next(state, tick_value);
+      //#endif
       
       void* ptr = PyArray_GETPTR2(result, nn, pos_states[state]);
       PyArray_SETITEM(
@@ -581,9 +631,13 @@ PyObject* Cumulator::getNumpyLastStatesDists(Network* network) const
   CumulMap::Iterator iter = mp.iterator();
 
   while (iter.hasNext()) {
-    NetworkState_Impl state;
     TickValue tick_value;
-    iter.next(state, tick_value);
+    //#ifdef USE_NEXT_OPT
+    const NetworkState_Impl& state = iter.next2(tick_value);
+    //#else
+    //NetworkState_Impl state;
+    //iter.next(state, tick_value);
+    //#endif
     
     void* ptr = PyArray_GETPTR2(result, 0, pos_states[state]);
     PyArray_SETITEM(
@@ -648,7 +702,12 @@ PyObject* Cumulator::getNumpyNodesDists(Network* network) const
     while (iter.hasNext()) {
       NetworkState_Impl state;
       TickValue tick_value;
+#ifdef USE_NEXT_OPT
+      const NetworkState_Impl& state = iter.next2(tick_value);
+#else
+      NetworkState_Impl state;
       iter.next(state, tick_value);
+#endif
       
       for (auto node: output_nodes) {
         
@@ -702,9 +761,13 @@ PyObject* Cumulator::getNumpyLastNodesDists(Network* network) const
   CumulMap::Iterator iter = mp.iterator();
 
   while (iter.hasNext()) {
-    NetworkState_Impl state;
     TickValue tick_value;
+#ifdef USE_NEXT_OPT
+    const NetworkState_Impl& state = iter.next2(tick_value);
+#else
+    NetworkState_Impl state;
     iter.next(state, tick_value);
+#endif
     
     for (auto node: output_nodes) {
       
@@ -755,9 +818,13 @@ const STATE_MAP<NetworkState_Impl, double> Cumulator::getNthStateDist(int nn) co
   STATE_MAP<NetworkState_Impl, double> result;
 
   while (iter.hasNext()) {
-    NetworkState_Impl state;
     TickValue tick_value;
+    //#ifdef USE_NEXT_OPT
+    //const NetworkState_Impl& state = iter.next2(tick_value);
+    //#else
+    NetworkState_Impl state;
     iter.next(state, tick_value);
+    //#endif
 
     double proba = tick_value.tm_slice / ratio;      
     result[state] = proba;
@@ -778,9 +845,13 @@ void Cumulator::add(unsigned int where, const CumulMap& add_cumul_map)
 
   CumulMap::Iterator iter = add_cumul_map.iterator();
   while (iter.hasNext()) {
-    NetworkState_Impl state;
     TickValue tick_value;
+#ifdef USE_NEXT_OPT
+    const NetworkState_Impl& state = iter.next2(tick_value);
+#else
+    NetworkState_Impl state;
     iter.next(state, tick_value);
+#endif
     to_cumul_map.add(state, tick_value);
   }
 }
@@ -792,9 +863,13 @@ void Cumulator::add(unsigned int where, const HDCumulMap& add_hd_cumul_map)
 
   HDCumulMap::Iterator iter = add_hd_cumul_map.iterator();
   while (iter.hasNext()) {
-    NetworkState_Impl state;
     double tm_slice;
+#ifdef USE_NEXT_OPT
+    const NetworkState_Impl& state = iter.next2(tm_slice);
+#else
+    NetworkState_Impl state;
     iter.next(state, tm_slice);
+#endif
     to_hd_cumul_map.add(state, tm_slice);
   }
 }

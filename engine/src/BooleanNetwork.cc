@@ -59,16 +59,19 @@ extern void CTBNDL_scan_expression(const char *);
 extern int CTBNDLparse();
 extern void CTBNDLlex_destroy();
 const bool backward_istate = getenv("MABOSS_BACKWARD_ISTATE") != NULL;
+bool MaBoSS_quiet = false;
 
 bool Node::override = false;
 bool Node::augment = false;
+size_t Network::MAX_NODE_SIZE = 0;
 
 Node::Node(const std::string& label, const std::string& description, NodeIndex index) : label(label), description(description), istate_set(false), is_internal(false), is_reference(false), referenceState(false), logicalInputExpr(NULL), rateUpExpr(NULL), rateDownExpr(NULL), index(index)
 {
-#if !defined(USE_BITSET) && !defined(USE_BOOST_BITSET)
+#if !defined(USE_STATIC_BITSET) && !defined(USE_BOOST_BITSET) && !defined(USE_DYNAMIC_BITSET)
   node_bit = NetworkState::nodeBit(index);
 #endif
 }
+
 
 void Node::reset()
 {
@@ -270,6 +273,7 @@ Node* Network::defineNode(const std::string& label, const std::string& descripti
   if (isNodeDefined(label)) {
     throw BNException("node " + label + " already defined");
   }
+  checkNewNode();
   Node* node = new Node(label, description, last_index++); // node factory
   setNodeAsDefined(label);
   node_map[label] = node;
@@ -431,7 +435,7 @@ bool NetworkState::computeNodeState(const Node* node, NodeState& node_state)
 
 #define HAMMING_METHOD2
 
-unsigned int NetworkState::hamming(Network* network, NetworkState_Impl state2) const
+unsigned int NetworkState::hamming(Network* network, const NetworkState_Impl& state2) const
 {
   unsigned int hd = 0;
 #ifdef HAMMING_METHOD1
@@ -447,7 +451,7 @@ unsigned int NetworkState::hamming(Network* network, NetworkState_Impl state2) c
 #endif
 
 #ifdef HAMMING_METHOD2
-  NetworkState network_state2(state2);
+  NetworkState network_state2(state2, 1);
   const std::vector<Node*>& nodes = network->getNodes();
   std::vector<Node*>::const_iterator begin = nodes.begin();
   std::vector<Node*>::const_iterator end = nodes.end();
@@ -495,7 +499,7 @@ void NetworkState::display(std::ostream& os, Network* network) const
 }
 
 std::string NetworkState::getName(Network* network, const std::string& sep) const {
-   #if defined(USE_BITSET) || defined(USE_BOOST_BITSET)
+#if defined(USE_STATIC_BITSET) || defined(USE_BOOST_BITSET) || defined(USE_DYNAMIC_BITSET)
   if (state.none()) {
     return "<nil>";
   }

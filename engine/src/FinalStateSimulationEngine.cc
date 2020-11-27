@@ -224,8 +224,9 @@ void FinalStateSimulationEngine::runThread(unsigned int start_count_thread, unsi
 
     NetworkState_Impl final_state = network_state.getState();
     if (has_internal) {
-
-      final_state &= ~internal_state.getState();
+      //final_state &= ~internal_state.getState();
+      // EV: 2020-11-24 to avoid use of operator&=()
+      final_state = final_state & ~internal_state.getState();
     }
 
     if (final_state_map->find(final_state) == final_state_map->end()) {
@@ -275,7 +276,8 @@ STATE_MAP<NetworkState_Impl, unsigned int>* FinalStateSimulationEngine::mergeFin
     STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator b = fp_map->begin();
     STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator e = fp_map->end();
     while (b != e) {
-      NetworkState_Impl state = (*b).first;
+      //NetworkState_Impl state = (*b).first;
+      const NetworkState_Impl& state = (*b).first;
       if (final_states_map->find(state) == final_states_map->end()) {
 	(*final_states_map)[state] = (*b).second;
       } else {

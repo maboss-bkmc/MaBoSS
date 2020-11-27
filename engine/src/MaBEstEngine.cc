@@ -96,7 +96,7 @@ MaBEstEngine::MaBEstEngine(Network* network, RunConfig* runconfig) :
   for (unsigned int nn = 0; nn < thread_count; ++nn) {
     Cumulator* cumulator = new Cumulator(runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), (nn == 0 ? firstcount : count));
     if (has_internal) {
-#ifdef USE_BITSET
+#ifdef USE_STATIC_BITSET
       NetworkState_Impl state2 = ~internal_state.getState();
       cumulator->setOutputMask(state2);
 #else
@@ -179,12 +179,18 @@ struct ArgWrapper {
 
 void* MaBEstEngine::threadWrapper(void *arg)
 {
+#ifdef USE_DYNAMIC_BITSET
+  MBDynBitset::init_pthread();
+#endif
   ArgWrapper* warg = (ArgWrapper*)arg;
   try {
     warg->mabest->runThread(warg->cumulator, warg->start_count_thread, warg->sample_count_thread, warg->randgen_factory, warg->seed, warg->fixpoint_map, warg->output_traj);
   } catch(const BNException& e) {
     std::cerr << e;
   }
+#ifdef USE_DYNAMIC_BITSET
+  MBDynBitset::end_pthread();
+#endif
   return NULL;
 }
 
@@ -338,7 +344,8 @@ STATE_MAP<NetworkState_Impl, unsigned int>* MaBEstEngine::mergeFixpointMaps()
     STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator b = fp_map->begin();
     STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator e = fp_map->end();
     while (b != e) {
-      NetworkState_Impl state = (*b).first;
+      //NetworkState_Impl state = (*b).first;
+      const NetworkState_Impl& state = b->first;
       if (fixpoint_map->find(state) == fixpoint_map->end()) {
 	(*fixpoint_map)[state] = (*b).second;
       } else {

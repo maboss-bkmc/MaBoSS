@@ -10,6 +10,16 @@ ifndef MAXNODES
 MAXNODES = 64
 endif
 
+ifeq ($(USE_DYNAMIC_BITSET), 1)
+INFIX := _dn
+BITSET_FLAG := -DUSE_DYNAMIC_BITSET
+endif
+
+ifeq ($(USE_BITSET), 1)
+INFIX := _bitset
+BITSET_FLAG := -DUSE_BITSET
+endif
+
 ifeq ($(shell expr $(MAXNODES) '>' 64), 1)
 INFIX := _$(MAXNODES)n
 else
@@ -38,9 +48,14 @@ endif
 
 CXX = g++
 CXXOPT = -O2
-CXXFLAGS = $(CXXOPT) -Wall -DMAXNODES=$(MAXNODES) $(EXTRA_FLAGS) -fpic -DNDEBUG
+#CXXOPT = -g
+#CXXOPT = -O3
+# TBD 2020-10-23: must be guessed by init-config.sh
+#BOOST_INCL_PATH = -I/opt/local/include
+#BOOST_INCL_PATH = -I/Users/viara/projects/maboss/boost_1_74_0
+CXXFLAGS = $(CXXOPT) -Wall -DMAXNODES=$(MAXNODES) $(BITSET_FLAG) $(EXTRA_FLAGS) $(BOOST_INCL_PATH) -fpic -DNDEBUG
 
-MAKEDEPEND = gcc -M $(EXTRA_FLAGS)
+MAKEDEPEND = gcc -M $(EXTRA_FLAGS) $(BOOST_INCL_PATH)
 
 FLEX = flex
 BISON = bison
@@ -48,8 +63,8 @@ BISON = bison
 CHECK_FLEX  = $(FLEX) --version > /dev/null
 CHECK_BISON = $(BISON) --version > /dev/null
 
-LIB_SRC := FinalStateSimulationEngine.cc StochasticSimulationEngine.cc MetaEngine.cc MaBEstEngine.cc EnsembleEngine.cc Cumulator.cc ProbaDist.cc BooleanNetwork.cc Function.cc BuiltinFunctions.cc RunConfig.cc LogicalExprGen.cc Utils.cc
-LIB_OBJS := FinalStateSimulationEngine$(INFIX).o StochasticSimulationEngine$(INFIX).o MetaEngine$(INFIX).o MaBEstEngine$(INFIX).o EnsembleEngine$(INFIX).o Cumulator$(INFIX).o ProbaDist$(INFIX).o BooleanNetwork$(INFIX).o BooleanGrammar$(INFIX).o RunConfigGrammar$(INFIX).o Function$(INFIX).o BuiltinFunctions$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o Utils$(INFIX).o
+LIB_SRC := FinalStateSimulationEngine.cc StochasticSimulationEngine.cc MetaEngine.cc MaBEstEngine.cc EnsembleEngine.cc Cumulator.cc ProbaDist.cc BooleanNetwork.cc Function.cc BuiltinFunctions.cc RunConfig.cc LogicalExprGen.cc Utils.cc MBDynBitset.cc
+LIB_OBJS := FinalStateSimulationEngine$(INFIX).o StochasticSimulationEngine$(INFIX).o MetaEngine$(INFIX).o MaBEstEngine$(INFIX).o EnsembleEngine$(INFIX).o Cumulator$(INFIX).o ProbaDist$(INFIX).o BooleanNetwork$(INFIX).o BooleanGrammar$(INFIX).o RunConfigGrammar$(INFIX).o Function$(INFIX).o BuiltinFunctions$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o Utils$(INFIX).o MBDynBitset$(INFIX).o
 SERVER_OBJS := Server.o DataStreamer.o RPC.o
 
 # if USE_LIB is set, maboss library will be used for MaBoSS and MaBoSS-server programs => that will oblige the user to set LD_LIBRARY_PATH or DYLD_LIBRARY_PATH environment variable to execute MaBoSS or MaBoSS-server
@@ -118,7 +133,7 @@ OpenMpExampleMutant: OpenMpExampleMutant.o $(MABOSS_OBJS)
 OpenMpExamples: OpenMpExample OpenMpExampleMutant
 
 init:
-	@CXX=$(CXX) sh init-config.sh
+	@CXX=$(CXX) bash init-config.sh
 
 %$(INFIX).o: %.cc
 	$(CXX) $(CXXFLAGS) $(WINDOWS_FLAG) -c $*.cc -o $*$(INFIX).o
@@ -130,7 +145,7 @@ force-init:
 	@CXX=$(CXX) sh init-config.sh force
 
 depend:
-	@$(MAKEDEPEND) -DMAXNODES=$(MAXNODES) $(WINDOWS_FLAG) $(LIB_SRC) > depend_tmp.mk
+	@$(MAKEDEPEND) -DMAXNODES=$(MAXNODES) $(WINDOWS_FLAG) *.cc > depend_tmp.mk
 	@sed -e "s/\.o:/$(INFIX).o:/g" depend_tmp.mk > depend.mk
 	@rm -f depend_tmp.mk
 
@@ -152,17 +167,23 @@ lex.RC.cc: RunConfigGrammar.l
 	@$(CHECK_FLEX)
 	$(FLEX) -t $+ | sed -e 's/yy/RC/g' -e 's/register //g' > lex.RC.cc
 
+.PHONY: mbdyn
+mbdyn: test_MBDynBitset
+
+test_MBDynBitset: test_MBDynBitset.o
+	g++ -o $@ $+ $(EXTRA_FLAGS)
+
 clean: cleanobj
 	rm -f OpenMpExampleMutant OpenMpExample Test TestApi KMC $(MABOSS) $(MABOSS_CLIENT) $(MABOSS_SERVER) lex.yy.c lex.CTBNDL.cc BooleanGrammar.tab.h BooleanGrammar.tab.c BooleanGrammar.cc BooleanGrammar.tab.h lex.CTBNDL.cc lex.RC.cc RunConfigGrammar.cc RunConfigGrammar.tab.h RunConfigGrammar.tab.c BooleanGrammar.output RunConfigGrammar.output maboss-config.h
 
 cleanobj:
 	rm -f *$(INFIX).o *$(INFIX).so *$(INFIX).dylib
 
-tar: all
-	$(MAKE) -f Makefile.maboss tar_perform
+#tar: all
+#	$(MAKE) -f Makefile.maboss tar_perform
 
 tar_perform: clean
-	(cd ../..; tar cvfz MaBoSS.tgz MaBoSS/examples/*/*.bnd MaBoSS/examples/*/*.cfg MaBoSS/src/*.[hly] MaBoSS/src/*.cc MaBoSS/src/Makefile MaBoSS/src/Makefile.maboss MaBoSS/src/init-config.sh)
+	(cd ../..; basename=$$(basename $$(pwd)); cd ..; tar cvfz backup/$${basename}-$$(date +"20%y-%m-%d-%H%M").tgz $${basename}/engine/examples/*/*.bnd $${basename}/engine/examples/*/*.cfg $${basename}/engine/src/*.[hly] $${basename}/engine/src/*.cc $${basename}/engine/src/Makefile $${basename}/engine/src/Makefile.maboss $${basename}/engine/src/init-config.sh $${basename}/engine/tests/*.sh $${basename}/engine/tests/*.bnd $${basename}/engine/tests/*.cfg)
 
 install: all
 	 mkdir -p ../pub
@@ -184,6 +205,9 @@ install_alib: $(MABOSS_ALIB)
 	cp $(MABOSS_ALIB) ../lib
 	mkdir -p ../include/
 	cp *.h ../include/
+
+#test_dynbitset: test_dynbitset.o
+#	g++ -o $@ $+ $(EXTRA_FLAGS)
 
 #### OBSOLETE
 
