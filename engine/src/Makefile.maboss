@@ -46,6 +46,7 @@ ifeq ($(shell grep @HAS_UNORDERED_MAP maboss-config.h > /dev/null 2> /dev/null &
 EXTRA_FLAGS = -std=c++11
 endif
 
+GCC = gcc
 CXX = g++
 CXXOPT = -O2
 #CXXOPT = -g
@@ -55,7 +56,7 @@ CXXOPT = -O2
 #BOOST_INCL_PATH = -I/Users/viara/projects/maboss/boost_1_74_0
 CXXFLAGS = $(CXXOPT) -Wall -DMAXNODES=$(MAXNODES) $(BITSET_FLAG) $(EXTRA_FLAGS) $(BOOST_INCL_PATH) -fpic -DNDEBUG
 
-MAKEDEPEND = gcc -M $(EXTRA_FLAGS) $(BOOST_INCL_PATH)
+MAKEDEPEND = $(GCC) -M $(EXTRA_FLAGS) $(BOOST_INCL_PATH)
 
 FLEX = flex
 BISON = bison
