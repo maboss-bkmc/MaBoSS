@@ -356,6 +356,9 @@ struct EnsembleArgWrapper {
 
 void* EnsembleEngine::threadWrapper(void *arg)
 {
+#ifdef USE_DYNAMIC_BITSET
+  MBDynBitset::init_pthread();
+#endif
   EnsembleArgWrapper* warg = (EnsembleArgWrapper*)arg;
   try {
     warg->mabest->runThread(
@@ -365,6 +368,9 @@ void* EnsembleEngine::threadWrapper(void *arg)
   } catch(const BNException& e) {
     std::cerr << e;
   }
+#ifdef USE_DYNAMIC_BITSET
+  MBDynBitset::end_pthread();
+#endif
   return NULL;
 }
 

@@ -28,7 +28,7 @@ echo
 echo "Non regression test: Cell Cycle one thread"
 rm -rf tmp; mkdir -p tmp
 if [ "$MULTI_THREAD_ONLY" = "" ]; then
-    $LAUNCHER /usr/bin/time -p $MABOSS cellcycle/cellcycle.bnd -c cellcycle/cellcycle_runcfg.cfg -c cellcycle/cellcycle_runcfg-thread_1.cfg -o tmp/Cell_cycle_thread_1 $EXTRA_ARGS
+    /usr/bin/time -p $LAUNCHER $MABOSS cellcycle/cellcycle.bnd -c cellcycle/cellcycle_runcfg.cfg -c cellcycle/cellcycle_runcfg-thread_1.cfg -o tmp/Cell_cycle_thread_1 $EXTRA_ARGS
     if [ $? != 0 ]; then exit 1; fi
     python compare_probtrajs.py cellcycle/refer/Cell_cycle_thread_1_probtraj.csv tmp/Cell_cycle_thread_1_probtraj.csv --exact
     check_file "projtraj"
@@ -41,7 +41,7 @@ if [ "$ONE_THREAD_ONLY" != "" ]; then exit 0; fi
 
 echo
 echo "Non regression test: Cell Cycle 6 threads"
-$LAUNCHER /usr/bin/time -p $MABOSS cellcycle/cellcycle.bnd -c cellcycle/cellcycle_runcfg.cfg -c cellcycle/cellcycle_runcfg-thread_6.cfg -o tmp/Cell_cycle_thread_6
+/usr/bin/time -p $LAUNCHER $MABOSS cellcycle/cellcycle.bnd -c cellcycle/cellcycle_runcfg.cfg -c cellcycle/cellcycle_runcfg-thread_6.cfg -o tmp/Cell_cycle_thread_6 $EXTRA_ARGS
 
 python compare_probtrajs.py cellcycle/refer/Cell_cycle_thread_6_probtraj.csv tmp/Cell_cycle_thread_6_probtraj.csv --exact
 check_file "projtraj"

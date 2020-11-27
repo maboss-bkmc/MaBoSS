@@ -26,7 +26,7 @@ check_file()
 echo
 echo "Ensemble test"
 rm -rf tmp; mkdir -p tmp
-$LAUNCHER /usr/bin/time -p $MABOSS --ensemble --save-individual -c ensemble/ensemble.cfg -o tmp/res ensemble/invasion/Invasion_0.bnet ensemble/invasion/Invasion_200.bnet ensemble/invasion/Invasion_400.bnet ensemble/invasion/Invasion_600.bnet ensemble/invasion/Invasion_800.bnet  ensemble/invasion/Invasion_1000.bnet
+/usr/bin/time -p $LAUNCHER $MABOSS --ensemble --save-individual -c ensemble/ensemble.cfg -o tmp/res ensemble/invasion/Invasion_0.bnet ensemble/invasion/Invasion_200.bnet ensemble/invasion/Invasion_400.bnet ensemble/invasion/Invasion_600.bnet ensemble/invasion/Invasion_800.bnet  ensemble/invasion/Invasion_1000.bnet
 
 if [ $? != 0 ]; then exit 1; fi
 

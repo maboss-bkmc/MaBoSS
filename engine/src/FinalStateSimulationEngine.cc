@@ -139,12 +139,18 @@ struct FinalStateArgWrapper {
 
 void* FinalStateSimulationEngine::threadWrapper(void *arg)
 {
+#ifdef USE_DYNAMIC_BITSET
+  MBDynBitset::init_pthread();
+#endif
   FinalStateArgWrapper* warg = (FinalStateArgWrapper*)arg;
   try {
     warg->mabest->runThread(warg->start_count_thread, warg->sample_count_thread, warg->randgen_factory, warg->seed, warg->final_state_map, warg->output_traj);
   } catch(const BNException& e) {
     std::cerr << e;
   }
+#ifdef USE_DYNAMIC_BITSET
+  MBDynBitset::end_pthread();
+#endif
   return NULL;
 }
 
