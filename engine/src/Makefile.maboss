@@ -10,6 +10,11 @@ ifndef MAXNODES
 MAXNODES = 64
 endif
 
+ifeq ($(USE_DYNAMIC_BITSET_STD_ALLOC), 1)
+INFIX := _dn_std
+BITSET_FLAG := -DUSE_DYNAMIC_BITSET -DUSE_DYNAMIC_BITSET_STD_ALLOC
+endif
+
 ifeq ($(USE_DYNAMIC_BITSET), 1)
 INFIX := _dn
 BITSET_FLAG := -DUSE_DYNAMIC_BITSET
@@ -146,7 +151,7 @@ force-init:
 	@CXX=$(CXX) sh init-config.sh force
 
 depend:
-	@$(MAKEDEPEND) -DMAXNODES=$(MAXNODES) $(WINDOWS_FLAG) *.cc > depend_tmp.mk
+	$(MAKEDEPEND) -DMAXNODES=$(MAXNODES) $(WINDOWS_FLAG) *.cc > depend_tmp.mk
 	@sed -e "s/\.o:/$(INFIX).o:/g" depend_tmp.mk > depend.mk
 	@rm -f depend_tmp.mk
 

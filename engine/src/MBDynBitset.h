@@ -38,7 +38,9 @@ class MBDynBitset {
 #endif
 
   static uint8_t* alloc(size_t num_bytes);
-  static void destroy(uint64_t* data);
+  static void destroy(uint64_t* data, size_t num_bytes);
+  static void decr_refcount(uint64_t* data, size_t num_bytes);
+  static void incr_refcount(uint64_t* data, size_t num_bytes);
 
 public:
   MBDynBitset() : data(0), num_bits(0), num_bytes(0), num_64(0) {
@@ -65,6 +67,7 @@ public:
     num_bytes = bitset.num_bytes;
     num_64 = bitset.num_64;
     data = bitset.data;
+    incr_refcount(data, num_bytes);
   }
   //public:
 
@@ -82,7 +85,7 @@ public:
       assign_cnt++;
     }
 #endif
-    destroy(data);
+    destroy(data, num_bytes);
     num_bits = bitset.num_bits;
     num_bytes = bitset.num_bytes;
     num_64 = bitset.num_64;
@@ -325,11 +328,11 @@ public:
   }
 
   ~MBDynBitset() {
-    destroy(data);
+    destroy(data, num_bytes);
   }
 };
 
-
+#ifdef HAS_UNORDERED_MAP
 namespace std {
   template <> struct HASH_STRUCT<MBDynBitset > : public std::unary_function<MBDynBitset, size_t>
   {
@@ -353,3 +356,4 @@ namespace std {
     }
   };
 }
+#endif

@@ -22,20 +22,54 @@ size_t MBDynBitset::alloc_cnt = 0;
 size_t MBDynBitset::del_cnt = 0;
 #endif
 
-#ifdef STD_MB_ALLOC
+#ifdef USE_DYNAMIC_BITSET_STD_ALLOC
+typedef unsigned short refcnt_t;
+const size_t refcnt_size = sizeof(refcnt_t);
+
 uint8_t* MBDynBitset::alloc(size_t num_bytes)
 {
+#ifdef MB_COUNT
   alloc_cnt++;
-  return new uint8_t[num_bytes];
+#endif
+  uint8_t* data = new uint8_t[num_bytes+refcnt_size];
+  refcnt_t* p_refcnt = (refcnt_t*)&data[num_bytes];
+  *p_refcnt = 1;
+  return data;
 }
 
-void MBDynBitset::destroy(uint64_t* data)
+void MBDynBitset::incr_refcount(uint64_t* data, size_t num_bytes)
+{
+  refcnt_t* p_refcnt = (refcnt_t*)&data[num_bytes];
+  (*p_refcnt)++;
+}
+
+void MBDynBitset::decr_refcount(uint64_t* data, size_t num_bytes)
+{
+  refcnt_t* p_refcnt = (refcnt_t*)&data[num_bytes];
+  (*p_refcnt)--;
+}
+
+void MBDynBitset::destroy(uint64_t* data, size_t num_bytes)
 {
   if (data) {
+#ifdef MB_COUNT
     del_cnt++;
-    delete[] data;
+#endif
+    refcnt_t* p_refcnt = (refcnt_t*)&data[num_bytes];
+    if (--(*p_refcnt) == 0) {
+      delete[] data;
+    }
   }
 }
+
+void MBDynBitset::init_pthread()
+{
+}
+
+void MBDynBitset::end_pthread()
+{
+}
+
 #else
 
 class Mutex {
@@ -188,7 +222,7 @@ uint8_t* MBDynBitset::alloc(size_t num_bytes)
   return MBDynBitsetAllocator::allocators[thread_index]->alloc(num_bytes);
 }
 
-void MBDynBitset::destroy(uint64_t* data)
+void MBDynBitset::destroy(uint64_t* data, size_t num_bytes)
 {
 #ifdef MB_COUNT
   if (data) {
@@ -200,6 +234,15 @@ void MBDynBitset::destroy(uint64_t* data)
     p_mb->free(data);
   }
 }
+
+void MBDynBitset::incr_refcount(uint64_t* data, size_t num_bytes)
+{
+}
+
+void MBDynBitset::decr_refcount(uint64_t* data, size_t num_bytes)
+{
+}
+
 #endif
 
 void MBDynBitset::stats()

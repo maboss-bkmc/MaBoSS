@@ -147,7 +147,9 @@ int main(int argc, char* argv[])
 
   // for debug
 #ifdef USE_BOOST_BITSET
-  std::cerr << "MaBoSS use dynamic_bitset\n";
+  std::cerr << "MaBoSS use boost dynamic_bitset\n";
+#elif USE_DYNAMIC_BITSET_STD_ALLOC
+  std::cerr << "MaBoSS use dynamic_bitset [std allocator]\n";
 #elif defined(USE_DYNAMIC_BITSET)
   std::cerr << "MaBoSS use MaBoSS dynamic bitset\n";
 #elif defined(USE_STATIC_BITSET)

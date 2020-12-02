@@ -699,6 +699,8 @@ public:
   // EV: 2020-10-23
   //NetworkState() : state(MAXNODES) { }
   NetworkState() : state(Network::getMaxNodeSize()) { }
+  // EV: 2020-12-01 would be better to create a 0-size state and then call resize dynamically
+  //NetworkState() : state(0) { }
 #else
   NetworkState() : state(0ULL) { }
 #endif
