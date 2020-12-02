@@ -80,6 +80,9 @@ public:
   }
 
   MBDynBitset& operator=(const MBDynBitset& bitset) {
+    if (this == &bitset) {
+      return *this;
+    }
 #ifdef MB_COUNT
     if (data != 0) {
       assign_cnt++;

@@ -737,7 +737,11 @@ public:
   // returns true if and only if there is a logical input expression that allows to compute state from input nodes
   bool computeNodeState(const Node* node, NodeState& node_state);
 
+#ifdef USE_DYNAMIC_BITSET
+  NetworkState_Impl getState(int copy) const {return NetworkState_Impl(state, copy);}
+#endif
   NetworkState_Impl getState() const {return state;}
+
 
   void display(std::ostream& os, Network* network) const;
 

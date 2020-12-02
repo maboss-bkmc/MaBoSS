@@ -99,7 +99,7 @@ public:
   void run(std::ostream* output_traj);
   ~FinalStateSimulationEngine();
 
-  const STATE_MAP<NetworkState_Impl, double> getFinalStates() const {return final_states;}
+  //const STATE_MAP<NetworkState_Impl, double>& getFinalStates() const {return final_states;}
   const STATE_MAP<Node*, double> getFinalNodes() const;
   const double getFinalTime() const { return max_time; }
 

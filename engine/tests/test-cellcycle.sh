@@ -38,7 +38,7 @@ if [ "$MULTI_THREAD_ONLY" = "" ]; then
 	python compare_statdist.py cellcycle/refer/Cell_cycle_thread_1_statdist.csv tmp/Cell_cycle_thread_1_statdist.csv --exact # || echo '**** error test #1.b (non regression) ****'
 	check_file "statdist"
     else
-	diff cellcycle/refer/Cell_cycle_thread_1_finalprob.csv tmp/.
+	diff_sort cellcycle/refer/Cell_cycle_thread_1_finalprob.csv tmp/Cell_cycle_thread_1_finalprob.csv
 	if [ $? != 0 ]; then
 	    echo "File final projtraj ** error: differences found **"
 	else
