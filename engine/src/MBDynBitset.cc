@@ -23,7 +23,7 @@ size_t MBDynBitset::del_cnt = 0;
 #endif
 
 #ifdef USE_DYNAMIC_BITSET_STD_ALLOC
-typedef unsigned short refcnt_t;
+typedef uint8_t refcnt_t;
 const size_t refcnt_size = sizeof(refcnt_t);
 
 uint8_t* MBDynBitset::alloc(size_t num_bytes)
@@ -34,28 +34,41 @@ uint8_t* MBDynBitset::alloc(size_t num_bytes)
   uint8_t* data = new uint8_t[num_bytes+refcnt_size];
   refcnt_t* p_refcnt = (refcnt_t*)&data[num_bytes];
   *p_refcnt = 1;
+  //std::cerr << "alloc " << (void*)data << " " << *p_refcnt << '\n';
   return data;
 }
 
-void MBDynBitset::incr_refcount(uint64_t* data, size_t num_bytes)
+void MBDynBitset::incr_refcount(uint64_t* ldata, size_t num_bytes)
 {
+  //static refcnt_t max_refcnt = 0;
+  uint8_t* data = (uint8_t*)ldata;
   refcnt_t* p_refcnt = (refcnt_t*)&data[num_bytes];
   (*p_refcnt)++;
+  /*
+  if (*p_refcnt > max_refcnt) {
+    max_refcnt = *p_refcnt;
+    std::cerr << "max_refcnt = " << (int)max_refcnt << '\n';
+  }
+  */
+  //std::cerr << "incr_ref " << (void*)data << " " << *p_refcnt << '\n';
 }
 
-void MBDynBitset::decr_refcount(uint64_t* data, size_t num_bytes)
+void MBDynBitset::decr_refcount(uint64_t* ldata, size_t num_bytes)
 {
+  uint8_t* data = (uint8_t*)ldata;
   refcnt_t* p_refcnt = (refcnt_t*)&data[num_bytes];
   (*p_refcnt)--;
 }
 
-void MBDynBitset::destroy(uint64_t* data, size_t num_bytes)
+void MBDynBitset::destroy(uint64_t* ldata, size_t num_bytes)
 {
-  if (data) {
+  if (ldata) {
 #ifdef MB_COUNT
     del_cnt++;
 #endif
+    uint8_t* data = (uint8_t*)ldata;
     refcnt_t* p_refcnt = (refcnt_t*)&data[num_bytes];
+    //std::cerr << "destroy " << (void*)data << " " << *p_refcnt << '\n';
     if (--(*p_refcnt) == 0) {
       delete[] data;
     }
