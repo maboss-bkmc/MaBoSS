@@ -112,8 +112,8 @@ NodeIndex FinalStateSimulationEngine::getTargetNode(RandomGenerator* random_gene
   MAP<NodeIndex, double>::const_iterator end = nodeTransitionRates.end();
   NodeIndex node_idx = INVALID_NODE_INDEX;
   while (begin != end && random_rate > 0.) {
-    node_idx = (*begin).first;
-    double rate = (*begin).second;
+    node_idx = begin->first;
+    double rate = begin->second;
     random_rate -= rate;
     ++begin;
   }
@@ -282,8 +282,8 @@ STATE_MAP<NetworkState_Impl, unsigned int>* FinalStateSimulationEngine::mergeFin
     STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator b = fp_map->begin();
     STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator e = fp_map->end();
     while (b != e) {
-      //NetworkState_Impl state = (*b).first;
-      const NetworkState_Impl& state = (*b).first;
+      //NetworkState_Impl state = b->first;
+      const NetworkState_Impl& state = b->first;
       if (final_states_map->find(state) == final_states_map->end()) {
 	(*final_states_map)[state] = (*b).second;
       } else {
@@ -304,7 +304,11 @@ void FinalStateSimulationEngine::epilogue()
   STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator e = merged_final_states_map->end();
 
   while (b != e) {
-    final_states[NetworkState((*b).first).getState()] = ((double) (*b).second)/sample_count;
+#ifdef USE_DYNAMIC_BITSET
+    final_states[NetworkState(b->first).getState(), 1] = ((double) (*b).second)/sample_count;
+#else
+    final_states[NetworkState(b->first).getState()] = ((double) (*b).second)/sample_count;
+#endif
     ++b;
   }
   delete merged_final_states_map;

@@ -15,3 +15,16 @@ elif [[ ! -z "$USE_BITSET" ]]; then
     echo "using $MABOSS_BITSET"
     MABOSS=${MABOSS_BITSET}
 fi
+
+diff_sort() {
+    file1="$1"
+    file2="$2"
+    tmpfile1=/tmp/$(basename ${file1})_1.$$
+    tmpfile2=/tmp/$(basename ${file2})_2.$$
+    sort $file1 > $tmpfile1
+    sort $file2 > $tmpfile2
+    diff $tmpfile1 $tmpfile2
+    status=$?
+    rm -r $tmpfile1 $tmpfile2
+    return $status
+}
