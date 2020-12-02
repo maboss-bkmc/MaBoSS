@@ -63,14 +63,14 @@ void MBDynBitset::decr_refcount(uint64_t* ldata, size_t num_bytes)
 void MBDynBitset::destroy(uint64_t* ldata, size_t num_bytes)
 {
   if (ldata) {
-#ifdef MB_COUNT
-    del_cnt++;
-#endif
     uint8_t* data = (uint8_t*)ldata;
     refcnt_t* p_refcnt = (refcnt_t*)&data[num_bytes];
     //std::cerr << "destroy " << (void*)data << " " << *p_refcnt << '\n';
     if (--(*p_refcnt) == 0) {
       delete[] data;
+#ifdef MB_COUNT
+      del_cnt++;
+#endif
     }
   }
 }
@@ -261,14 +261,14 @@ void MBDynBitset::decr_refcount(uint64_t* data, size_t num_bytes)
 void MBDynBitset::stats()
 {
 #ifdef MB_COUNT
-  std::cout << "NEW_DEFAULT_CNT=" << new_default_cnt << '\n';
-  std::cout << "NEW_CNT=" << new_cnt << '\n';
-  std::cout << "TRUE_COPY_CNT=" << true_copy_cnt << '\n';
-  std::cout << "COPY_CNT=" << copy_cnt << '\n';
-  std::cout << "ASSIGN_CNT=" << assign_cnt << '\n';
-  std::cout << "ASSIGN_AND_CNT=" << assign_and_cnt << '\n';
-  std::cout << "ALLOC_CNT=" << alloc_cnt << '\n';
-  std::cout << "DELETE_CNT=" << del_cnt << '\n';
+  std::cout << "\nnew_default_count: " << new_default_cnt << '\n';
+  std::cout << "new_count: " << new_cnt << '\n';
+  std::cout << "true_copy_count: " << true_copy_cnt << '\n';
+  std::cout << "copy_count: " << copy_cnt << '\n';
+  std::cout << "assign_count: " << assign_cnt << '\n';
+  std::cout << "assign_and_count: " << assign_and_cnt << '\n';
+  std::cout << "\nalloc_count: " << alloc_cnt << '\n';
+  std::cout << "delete_count: " << del_cnt << "\n\n";
 #endif
 }
 
