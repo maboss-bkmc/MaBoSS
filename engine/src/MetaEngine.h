@@ -57,6 +57,7 @@
 #include "Cumulator.h"
 #include "RandomGenerator.h"
 #include "RunConfig.h"
+#include "FixedPointDisplayer.h"
 
 struct EnsembleArgWrapper;
 
@@ -138,9 +139,14 @@ public:
   void displayStatDist(std::ostream& output_statdist, bool hexfloat = false) const;
   void displayProbTraj(std::ostream& output_probtraj, bool hexfloat = false) const;
   void displayFixpoints(std::ostream& output_fp, bool hexfloat = false) const;
+  void displayFixpoints(FixedPointDisplayer* displayer) const;
   void displayAsymptotic(std::ostream& output_asymptprob, bool hexfloat = false, bool proba = true) const;
 
+  void displayProbTraj(ProbTrajDisplayer* displayer) const;
+  void displayStatDist(StatDistDisplayer* output_statdist) const;
 
+  void display(ProbTrajDisplayer* probtraj_displayer, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat = false) const;
+  void display(ProbTrajDisplayer* probtraj_displayer, StatDistDisplayer* statdist_displayer, FixedPointDisplayer* fp_displayer) const;
 };
 
 #endif

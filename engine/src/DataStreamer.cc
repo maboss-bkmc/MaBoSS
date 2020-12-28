@@ -59,6 +59,7 @@ const std::string DataStreamer::FLAGS = "Flags:";
 const unsigned long long DataStreamer::HEXFLOAT_FLAG = 0x1ULL;
 const unsigned long long DataStreamer::OVERRIDE_FLAG = 0x2ULL;
 const unsigned long long DataStreamer::AUGMENT_FLAG = 0x4ULL;
+const unsigned long long DataStreamer::FINAL_SIMULATION_FLAG = 0x10000000ULL;
 const std::string DataStreamer::COMMAND = "Command:";
 const std::string DataStreamer::RUN_COMMAND = "run";
 const std::string DataStreamer::CHECK_COMMAND = "check";
@@ -74,6 +75,7 @@ const std::string DataStreamer::STATIONARY_DISTRIBUTION = "Stationary-Distributi
 const std::string DataStreamer::TRAJECTORY_PROBABILITY = "Trajectory-Probability:";
 const std::string DataStreamer::TRAJECTORIES = "Trajectories:";
 const std::string DataStreamer::FIXED_POINTS = "Fixed-Points:";
+const std::string DataStreamer::FINAL_PROB = "Final-States:";
 const std::string DataStreamer::RUN_LOG = "Run-Log:";
 
 static size_t add_header(std::ostringstream& o_header, const std::string& directive, size_t o_offset, size_t offset)
@@ -169,6 +171,13 @@ void DataStreamer::buildStreamData(std::string &data, const ServerData& server_d
     o_data << fp;
     offset += fp.length();
     o_offset = add_header(o_header, FIXED_POINTS, o_offset, offset);
+  }
+
+  const std::string& finalprob = server_data.getFinalProb();
+  if (finalprob.length() > 0) {
+    o_data << finalprob;
+    offset += finalprob.length();
+    o_offset = add_header(o_header, FINAL_PROB, o_offset, offset);
   }
 
   const std::string& run_log = server_data.getRunLog();
@@ -329,6 +338,8 @@ int DataStreamer::parseStreamData(ServerData& server_data, const std::string& in
 	server_data.setTraj(data_value);
       } else if (directive == FIXED_POINTS) {
 	server_data.setFP(data_value);
+      } else if (directive == FINAL_PROB) {
+	server_data.setFinalProb(data_value);
       } else if (directive == RUN_LOG) {
 	server_data.setRunLog(data_value);
       } else {

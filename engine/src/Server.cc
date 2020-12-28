@@ -58,6 +58,7 @@
 #include "RPC.h"
 #include "Utils.h"
 #include "MaBEstEngine.h"
+#include "FinalStateSimulationEngine.h"
 #include "Function.h"
 
 Server* Server::server;
@@ -106,19 +107,7 @@ int Server::manageRequests()
   return 1;
 }
 
-static std::ofstream* create_temp_file(const std::string& file, std::vector<std::string>& files_to_delete_v)
-{
-  std::ofstream* os = new std::ofstream(file.c_str());
-  files_to_delete_v.push_back(file);
-  return os;
-}
-
-static void delete_temp_files(const std::vector<std::string>& files_to_delete_v)
-{
-  for (std::vector<std::string>::const_iterator iter = files_to_delete_v.begin(); iter != files_to_delete_v.end(); ++iter) {
-    unlink(iter->c_str());
-  }
-}
+#define ostringstream2str(OSTR) (((std::ostringstream*)(OSTR))->str())
 
 void Server::run(const ClientData& client_data, ServerData& server_data)
 {
@@ -133,14 +122,7 @@ void Server::run(const ClientData& client_data, ServerData& server_data)
   struct timeval tv;
   gettimeofday(&tv, 0);
   ostr << "/tmp/MaBoSS-server_" << tv.tv_sec << "_" << tv.tv_usec << "_" << getpid();
-  std::string output = ostr.str();
-  std::string traj_file = std::string(output) + "_traj.txt";
-  std::string runlog_file = std::string(output) + "_run.txt";
-  std::string probtraj_file = std::string(output) + "_probtraj.csv";
-  std::string statdist_file = std::string(output) + "_statdist.csv";
-  std::string fp_file = std::string(output) + "_fp.csv";
-
-  std::vector<std::string> files_to_delete_v;
+  std::string tmp_output = ostr.str();
 
   try {
     time_t start_time, end_time;
@@ -160,11 +142,11 @@ void Server::run(const ClientData& client_data, ServerData& server_data)
     }
 
     Network* network = new Network();
-    std::string network_file = output + "_network.bnd";
+    // EV: 2020-12-11: currently mandatory to create a temporary file as parsing can only be done from a FILE*
+    std::string network_file = tmp_output + "_network.bnd";
     filePutContents(network_file, client_data.getNetwork());
-    files_to_delete_v.push_back(network_file);
 
-    network->parse(network_file.c_str());
+    network->parse(network_file.c_str(), NULL, true);
 
     RunConfig* runconfig = new RunConfig();
     const std::string& config_vars = client_data.getConfigVars();
@@ -172,7 +154,6 @@ void Server::run(const ClientData& client_data, ServerData& server_data)
       std::vector<std::string> runconfig_var_v;
       runconfig_var_v.push_back(config_vars);
       if (setConfigVariables(network, prog, runconfig_var_v)) {
-        delete_temp_files(files_to_delete_v);
         //return 1;
         // TBD: error
         return;
@@ -194,7 +175,6 @@ void Server::run(const ClientData& client_data, ServerData& server_data)
     network->getSymbolTable()->checkSymbols();
 
     if (client_data.getCommand() == DataStreamer::CHECK_COMMAND) {
-      delete_temp_files(files_to_delete_v);
       server_data.setStatus(0);
       return;
     }
@@ -205,73 +185,65 @@ void Server::run(const ClientData& client_data, ServerData& server_data)
 	  std::cerr << '\n' << prog << ": warning: cannot display trajectories in multi-threaded mode\n";
 	}
       } else {
-	output_traj = create_temp_file(traj_file, files_to_delete_v);
+	output_traj = new std::ostringstream();
       }
     }
 
-    output_run = create_temp_file(runlog_file, files_to_delete_v);
-    output_probtraj = create_temp_file(probtraj_file, files_to_delete_v);
-    output_statdist = create_temp_file(statdist_file, files_to_delete_v);
-    output_fp = create_temp_file(fp_file, files_to_delete_v);
-
     bool hexfloat = (client_data.getFlags() & DataStreamer::HEXFLOAT_FLAG) != 0;
-    MaBEstEngine mabest(network, runconfig);
-    mabest.run(output_traj);
-    mabest.display(*output_probtraj, *output_statdist, *output_fp, hexfloat);
-    time(&end_time);
+    bool final_simulation = (client_data.getFlags() & DataStreamer::FINAL_SIMULATION_FLAG) != 0;
 
-    runconfig->display(network, start_time, end_time, mabest, *output_run);
+    if (final_simulation) {
+      std::ostream* output_final = new std::ostringstream();
+      FinalStateSimulationEngine engine(network, runconfig);
+      engine.run(NULL);
+      engine.displayFinal(*output_final, hexfloat);
+      server_data.setStatus(0);
+      server_data.setFinalProb(ostringstream2str(output_final));
+      delete output_final;
+    } else {
+      // EV: 2020-11-11: instead of using temp files, use std::ostringstream to make Gautier happy
+      output_run = new std::ostringstream();
+      output_probtraj = new std::ostringstream();
+      output_statdist = new std::ostringstream();
+      output_fp = new std::ostringstream();
 
-    ((std::ofstream*)output_run)->close();
-    delete output_run;
-    if (NULL != output_traj) {
-      ((std::ofstream*)output_traj)->close();
-      delete output_traj;
-    }
-    ((std::ofstream*)output_probtraj)->close();
-    delete output_probtraj;
-    ((std::ofstream*)output_statdist)->close();
-    delete output_statdist;
-    ((std::ofstream*)output_fp)->close();
-    delete output_fp;
-    server_data.setStatus(0);
-    std::string contents;
-    fileGetContents(statdist_file, contents);
-    server_data.setStatDist(contents);
-    fileGetContents(probtraj_file, contents);
-    server_data.setProbTraj(contents);
-    fileGetContents(runlog_file, contents);
-    server_data.setRunLog(contents);
-    fileGetContents(fp_file, contents);
-    server_data.setFP(contents);
-    if (NULL != output_traj) {
-      fileGetContents(traj_file, contents);
-      server_data.setTraj(contents);
-    }
+      MaBEstEngine mabest(network, runconfig);
+      mabest.run(output_traj);
+      mabest.display(*output_probtraj, *output_statdist, *output_fp, hexfloat);
+      time(&end_time);
 
-    if (!quiet) {
-      std::cerr << "\n" << server_data.getRunLog();
-    }
-    timebuf = ctime(&end_time);
-    timebuf[strlen(timebuf)-1] = 0;
-    if (!quiet) {
-      std::cerr << hst << " " << prog << " simulation finished at " << timebuf << " " << hst << "\n";;
+      runconfig->display(network, start_time, end_time, mabest, *output_run);
+
+      server_data.setStatus(0);
+      server_data.setStatDist(ostringstream2str(output_statdist));
+      server_data.setProbTraj(ostringstream2str(output_probtraj));
+      server_data.setRunLog(ostringstream2str(output_run));
+      server_data.setFP(ostringstream2str(output_fp));
+      if (NULL != output_traj) {
+	server_data.setTraj(ostringstream2str(output_traj));
+      }
+
+      if (!quiet) {
+	std::cerr << "\n" << server_data.getRunLog();
+      }
+      timebuf = ctime(&end_time);
+      timebuf[strlen(timebuf)-1] = 0;
+      if (!quiet) {
+	std::cerr << hst << " " << prog << " simulation finished at " << timebuf << " " << hst << "\n";;
+      }
     }
     delete runconfig;
     delete network;
-
   } catch(const BNException& e) {
     if (!quiet) {
       std::cerr << "\n" << hst << " " << prog << " simulation error [[\n" << e << "]] " << hst << "\n";
     }
-    delete_temp_files(files_to_delete_v);
     server_data.setStatus(1);
     server_data.setErrorMessage(e.getMessage());
 
     return;
   }
   Function::destroyFuncMap();
-  delete_temp_files(files_to_delete_v);
 }
 
 void Server::manageRequest(int fd, const char* request)

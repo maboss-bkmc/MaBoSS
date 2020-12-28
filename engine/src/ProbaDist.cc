@@ -53,6 +53,7 @@ class Network;
 #include "BooleanNetwork.h"
 #include "RunConfig.h"
 #include "Utils.h"
+#include "StatDistDisplayer.h"
 #include <iomanip>
 #include <math.h>
 #include <float.h>
@@ -315,4 +316,83 @@ void ProbaDist::display(std::ostream& os, Network* network, bool hexfloat) const
     }
   }
   os << '\n';
+}
+
+//////// StatDistDisplayer
+
+void ProbaDist::display(StatDistDisplayer* displayer) const
+{
+  ProbaDist::Iterator proba_dist_iter = iterator();
+  while (proba_dist_iter.hasNext()) {
+    NetworkState_Impl state;
+    double proba;
+    proba_dist_iter.next(state, proba);
+    displayer->addStateProba(state, proba);
+  }
+}
+
+void ProbaDistCluster::display(StatDistDisplayer* displayer) const
+{
+  MAP<unsigned int, ProbaDist>::const_iterator begin = proba_dist_map.begin();
+  MAP<unsigned int, ProbaDist>::const_iterator end = proba_dist_map.end();
+
+  while (begin != end) {
+    unsigned int nn = (*begin).first;
+    const ProbaDist& proba_dist = (*begin).second;
+    displayer->beginStateProba(nn+1);
+    proba_dist.display(displayer);
+    displayer->endStateProba();
+    ++begin;
+  }
+}
+
+void ProbaDistClusterFactory::display(StatDistDisplayer* displayer) const
+{
+  unsigned int size = proba_dist_cluster_v.size();
+  displayer->beginFactoryCluster();
+  for (unsigned int nn = 0; nn < size; ++nn) {
+    ProbaDistCluster* cluster = proba_dist_cluster_v[nn];
+
+    displayer->beginCluster(nn+1, cluster->size());
+    cluster->display(displayer);
+    displayer->endCluster();
+  }
+  displayer->endFactoryCluster();
+}
+
+void ProbaDistCluster::displayStationaryDistribution(StatDistDisplayer* displayer) const
+{
+  STATE_MAP<NetworkState_Impl, Proba>::const_iterator stat_dist_iter = stat_dist_map.begin();
+  STATE_MAP<NetworkState_Impl, Proba>::const_iterator stat_dist_end = stat_dist_map.end();
+
+  unsigned int sz = size();
+  const double minsquaredouble = DBL_MIN*DBL_MIN;
+  while (stat_dist_iter != stat_dist_end) {
+    const NetworkState_Impl& state = stat_dist_iter->first;
+    const Proba& pb = stat_dist_iter->second;
+    double proba = pb.proba/sz;
+    double probaSquare = pb.probaSquare/sz;
+    double vr = (probaSquare-proba*proba)/(sz-1); // EV 2014-10-07: in case of sz == 1, vr is nan
+    double variance;
+    if (vr < minsquaredouble || sz <= 1) { // EV 2014-10-07: sz <= 1 to avoid nan values
+      variance = 0.0;
+    } else {
+      variance = sqrt(vr);
+    }
+    displayer->addProbaVariance(state, proba, variance);
+    ++stat_dist_iter;
+  }
+}
+
+void ProbaDistClusterFactory::displayStationaryDistribution(StatDistDisplayer* displayer) const
+{
+  unsigned int size = proba_dist_cluster_v.size();
+  displayer->beginClusterFactoryStationaryDistribution();
+  for (unsigned int nn = 0; nn < size; ++nn) {
+    ProbaDistCluster* cluster = proba_dist_cluster_v[nn];
+    displayer->beginClusterStationaryDistribution(nn+1);
+    cluster->displayStationaryDistribution(displayer);
+    displayer->endClusterStationaryDistribution();
+  }
+  displayer->endClusterFactoryStationaryDistribution();
 }

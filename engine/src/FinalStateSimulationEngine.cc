@@ -348,6 +348,24 @@ void FinalStateSimulationEngine::displayFinal(std::ostream& output_final, bool h
   }
 }
 
+void FinalStateSimulationEngine::displayFinal(FinalStateDisplayer* displayer) const
+{
+  displayer->begin();
+  for (auto final_state: final_states) {
+    displayer->displayFinalState(final_state.first, final_state.second);
+    /*
+    if (hexfloat)
+      output_final << std::setprecision(6) << fmthexdouble(final_state.second);
+    else
+      output_final << std::setprecision(6) << final_state.second << "\t";
+    
+    NetworkState(final_state.first).displayOneLine(output_final, network);
+    output_final << "\n";
+    */
+  }
+  displayer->end();
+}
+
 const STATE_MAP<Node*, double> FinalStateSimulationEngine::getFinalNodes() const {
 
   STATE_MAP<Node *, double> node_dist;

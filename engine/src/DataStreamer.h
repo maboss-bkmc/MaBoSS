@@ -62,6 +62,7 @@ public:
   static const unsigned long long HEXFLOAT_FLAG;
   static const unsigned long long OVERRIDE_FLAG;
   static const unsigned long long AUGMENT_FLAG;
+  static const unsigned long long FINAL_SIMULATION_FLAG;
   static const std::string COMMAND;
   static const std::string RUN_COMMAND;
   static const std::string CHECK_COMMAND;
@@ -77,6 +78,7 @@ public:
   static const std::string TRAJECTORY_PROBABILITY;
   static const std::string TRAJECTORIES;
   static const std::string FIXED_POINTS;
+  static const std::string FINAL_PROB;
   static const std::string RUN_LOG;
   static std::string error(int status, const std::string& errmsg);
 

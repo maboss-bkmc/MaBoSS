@@ -60,6 +60,7 @@
 #include "Cumulator.h"
 #include "RandomGenerator.h"
 #include "RunConfig.h"
+#include "FinalStateDisplayer.h"
 
 struct FinalStateArgWrapper;
 
@@ -110,7 +111,7 @@ public:
 #endif
 
   void displayFinal(std::ostream& output_final, bool hexfloat=false) const;
-
+  void displayFinal(FinalStateDisplayer* displayer) const;
 };
 
 #endif

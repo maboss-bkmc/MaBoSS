@@ -11,12 +11,12 @@ MAXNODES = 64
 endif
 
 ifeq ($(USE_DYNAMIC_BITSET_STD_ALLOC), 1)
-INFIX := _dn_std
+INFIX := _dn
 BITSET_FLAG := -DUSE_DYNAMIC_BITSET -DUSE_DYNAMIC_BITSET_STD_ALLOC
 endif
 
 ifeq ($(USE_DYNAMIC_BITSET), 1)
-INFIX := _dn
+INFIX := _dn_exp
 BITSET_FLAG := -DUSE_DYNAMIC_BITSET
 endif
 
@@ -69,8 +69,8 @@ BISON = bison
 CHECK_FLEX  = $(FLEX) --version > /dev/null
 CHECK_BISON = $(BISON) --version > /dev/null
 
-LIB_SRC := FinalStateSimulationEngine.cc StochasticSimulationEngine.cc MetaEngine.cc MaBEstEngine.cc EnsembleEngine.cc Cumulator.cc ProbaDist.cc BooleanNetwork.cc Function.cc BuiltinFunctions.cc RunConfig.cc LogicalExprGen.cc Utils.cc MBDynBitset.cc
-LIB_OBJS := FinalStateSimulationEngine$(INFIX).o StochasticSimulationEngine$(INFIX).o MetaEngine$(INFIX).o MaBEstEngine$(INFIX).o EnsembleEngine$(INFIX).o Cumulator$(INFIX).o ProbaDist$(INFIX).o BooleanNetwork$(INFIX).o BooleanGrammar$(INFIX).o RunConfigGrammar$(INFIX).o Function$(INFIX).o BuiltinFunctions$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o Utils$(INFIX).o MBDynBitset$(INFIX).o
+LIB_SRC := FinalStateSimulationEngine.cc StochasticSimulationEngine.cc MetaEngine.cc MaBEstEngine.cc EnsembleEngine.cc Cumulator.cc ProbaDist.cc BooleanNetwork.cc Function.cc BuiltinFunctions.cc RunConfig.cc LogicalExprGen.cc Utils.cc MBDynBitset.cc ProbTrajDisplayer.cc StatDistDisplayer.cc FixedPointDisplayer.cc FinalStateDisplayer.cc
+LIB_OBJS := FinalStateSimulationEngine$(INFIX).o StochasticSimulationEngine$(INFIX).o MetaEngine$(INFIX).o MaBEstEngine$(INFIX).o EnsembleEngine$(INFIX).o Cumulator$(INFIX).o ProbaDist$(INFIX).o BooleanNetwork$(INFIX).o BooleanGrammar$(INFIX).o RunConfigGrammar$(INFIX).o Function$(INFIX).o BuiltinFunctions$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o Utils$(INFIX).o MBDynBitset$(INFIX).o ProbTrajDisplayer$(INFIX).o StatDistDisplayer$(INFIX).o FixedPointDisplayer$(INFIX).o FinalStateDisplayer$(INFIX).o
 SERVER_OBJS := Server.o DataStreamer.o RPC.o
 
 # if USE_LIB is set, maboss library will be used for MaBoSS and MaBoSS-server programs => that will oblige the user to set LD_LIBRARY_PATH or DYLD_LIBRARY_PATH environment variable to execute MaBoSS or MaBoSS-server

@@ -577,7 +577,7 @@ public:
   Network(const Network& network);
   Network& operator=(const Network& network);
 
-  int parse(const char* file = NULL, std::map<std::string, NodeIndex>* nodes_indexes = NULL);
+  int parse(const char* file = NULL, std::map<std::string, NodeIndex>* nodes_indexes = NULL, bool is_temp_file = false);
   int parseExpression(const char* content = NULL, std::map<std::string, NodeIndex>* nodes_indexes = NULL);
 
   std::vector<IStateGroup*>* getIStateGroup() {
@@ -613,7 +613,8 @@ public:
 
   static size_t getMaxNodeSize() {
     //MAX_NODE_SIZE = 508; // for testing
-    static bool msg_displayed = false;
+    //static bool msg_displayed = false;
+    static bool msg_displayed = true;
     if (!msg_displayed) {
       if (!MaBoSS_quiet) {
 	std::cerr << "\nMaBoSS notice:\n";

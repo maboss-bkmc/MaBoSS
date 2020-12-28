@@ -10,3 +10,4 @@ engine/src/MaBoSS-client
 engine/src/MaBoSS-server
 __pycache__
 *.pyc
+*~

@@ -50,6 +50,8 @@
 #include "BooleanNetwork.h"
 #include "Cumulator.h"
 #include "RunConfig.h"
+#include "ProbTrajDisplayer.h"
+#include "StatDistDisplayer.h"
 #include "Utils.h"
 #include <sstream>
 #include <iomanip>
@@ -200,41 +202,21 @@ void Cumulator::epilogue(Network* network, const NetworkState& reference_state)
   }
 #endif
 }
-void Cumulator::displayProbTrajCSV(Network* network, unsigned int refnode_count, std::ostream& os_probtraj, bool hexfloat) const
+
+void Cumulator::displayProbTraj(Network* network, unsigned int refnode_count, ProbTrajDisplayer* displayer) const
 {
- std::vector<Node*>::const_iterator begin_network;
+  std::vector<Node*>::const_iterator begin_network;
 
-  os_probtraj << "Time\tTH" << (COMPUTE_ERRORS ? "\tErrorTH" : "") << "\tH";
+  displayer->begin(COMPUTE_ERRORS, maxcols, refnode_count);
 
-  for (unsigned int jj = 0; jj <= refnode_count; ++jj) {
-    os_probtraj << "\tHD=" << jj;
-  }
-
-  for (unsigned int nn = 0; nn < maxcols; ++nn) {
-    os_probtraj << "\tState\tProba" << (COMPUTE_ERRORS ? "\tErrorProba" : "");
-  }
-
-  os_probtraj << '\n';
-
-  //os_probtraj << std::fixed;
-  //os_probtraj << std::setprecision(6);
   double time_tick2 = time_tick * time_tick;
   double ratio = time_tick*sample_count;
   for (int nn = 0; nn < max_tick_index; ++nn) {
-    os_probtraj << std::setprecision(4) << std::fixed << (nn*time_tick);
-#ifdef HAS_STD_HEXFLOAT
-    if (hexfloat) {
-      os_probtraj << std::hexfloat;
-    }
-#endif
+    displayer->beginTimeTick(nn*time_tick);
     // TH
     const CumulMap& mp = get_map(nn);
     CumulMap::Iterator iter = mp.iterator();
-    if (hexfloat) {
-      os_probtraj << '\t' << fmthexdouble(TH_v[nn]);
-    } else {
-      os_probtraj << '\t' << TH_v[nn];
-    }
+    displayer->setTH(TH_v[nn]);
 
     // ErrorTH
     //assert((size_t)nn < TH_square_v.size());
@@ -250,38 +232,21 @@ void Cumulator::displayProbTrajCSV(Network* network, unsigned int refnode_count,
       } else {
 	err_TH = 0.;
       }
-      if (hexfloat) {
-	os_probtraj << '\t' << fmthexdouble(err_TH);
-      } else {
-	os_probtraj << '\t' << err_TH;
-      }
+      displayer->setErrorTH(err_TH);
     }
 
     // H
-    if (hexfloat) {
-      os_probtraj << '\t' << fmthexdouble(H_v[nn]);
-    } else {
-      os_probtraj << '\t' << H_v[nn];
-    }
+    displayer->setH(H_v[nn]);
 
     std::string zero_hexfloat = fmthexdouble(0.0);
     // HD
     const MAP<unsigned int, double>& hd_m = HD_v[nn];
     for (unsigned int hd = 0; hd <= refnode_count; ++hd) { 
-      os_probtraj << '\t';
       MAP<unsigned int, double>::const_iterator hd_m_iter = hd_m.find(hd);
       if (hd_m_iter != hd_m.end()) {
-	if (hexfloat) {
-	  os_probtraj << fmthexdouble((*hd_m_iter).second);
-	} else {
-	  os_probtraj << (*hd_m_iter).second;
-	}
+	displayer->setHD(hd, hd_m_iter->second);
       } else {
-	if (hexfloat) {
-	  os_probtraj << zero_hexfloat;
-	} else {
-	  os_probtraj << "0.0";
-	}
+	displayer->setHD(hd, 0.);
       }
     }
 
@@ -295,15 +260,6 @@ void Cumulator::displayProbTrajCSV(Network* network, unsigned int refnode_count,
       iter.next(state, tick_value);
 #endif
       double proba = tick_value.tm_slice / ratio;      
-      //double TH = tick_value.TH / sample_count;
-      os_probtraj << '\t';
-      NetworkState network_state(state, 1);
-      network_state.displayOneLine(os_probtraj, network);
-      if (hexfloat) {
-	os_probtraj << '\t' << std::setprecision(6) << fmthexdouble(proba);
-      } else {
-	os_probtraj << '\t' << std::setprecision(6) << proba;
-      }
       if (COMPUTE_ERRORS) {
 	double tm_slice_square = tick_value.tm_slice_square;
 	double variance_proba = (tm_slice_square / ((sample_count-1) * time_tick2)) - (proba*proba*sample_count/(sample_count-1));
@@ -314,37 +270,17 @@ void Cumulator::displayProbTrajCSV(Network* network, unsigned int refnode_count,
 	} else {
 	  err_proba = 0.;
 	}
-	if (hexfloat) {
-	  os_probtraj << '\t' << fmthexdouble(err_proba);
-	} else {
-	  os_probtraj << '\t' << err_proba;
-	}
+	displayer->addProba(state, proba, err_proba);
+      } else {
+	displayer->addProba(state, proba, 0.);
       }
     }
-    os_probtraj << '\n';
+    displayer->endTimeTick();
   }
+  displayer->end();
 }
 
-/*
-class StatDistDisplayer {
-
-public:
-  virtual void begin() = 0;
-  virtual void beginStatDist() = 0;
-  virtual void endtatDist() = 0;
-  virtual void end() = 0;
-};
-
-class StatDistJsonDisplayer : public StatDistDisplayer {
-};
-
-class StatDistHDF5Displayer : public StatDistDisplayer {
-};
-
-*/
-
-void Cumulator::displayStatDistCSV(Network* network, unsigned int refnode_count, std::ostream& os_statdist, bool hexfloat) const
-//void Cumulator::displayStatDistCSV(Network* network, unsigned int refnode_count, StatDistDisplayer& displayer) const
+void Cumulator::displayStatDist(Network* network, unsigned int refnode_count, StatDistDisplayer* displayer) const
 {
   // should not be in cumulator, but somehwere in ProbaDist*
 
@@ -353,12 +289,6 @@ void Cumulator::displayStatDistCSV(Network* network, unsigned int refnode_count,
   if (statdist_traj_count == 0) {
     return;
   }
-
-#ifdef HAS_STD_HEXFLOAT
-  if (hexfloat) {
-    os_statdist << std::hexfloat;
-  }
-#endif
 
   unsigned int max_size = 0;
   unsigned int cnt = 0;
@@ -374,50 +304,30 @@ void Cumulator::displayStatDistCSV(Network* network, unsigned int refnode_count,
     }
   }
 
-  //unsigned int proba_dist_traj_count = cnt;
-
-  os_statdist << "Trajectory";
-  for (unsigned int nn = 0; nn < max_size; ++nn) {
-    os_statdist << "\tState\tProba";
-  }
-
-  os_statdist << '\n';
+  displayer->begin(max_size, statdist_traj_count);
   cnt = 0;
+  displayer->beginStatDistDisplay();
   for (unsigned int nn = 0; nn < proba_dist_size; ++nn) {
     const ProbaDist& proba_dist = proba_dist_v[nn];
-    os_statdist << "#" << (cnt+1);
+    displayer->beginStateProba(cnt+1);
     cnt++;
 
-    proba_dist.display(os_statdist, network, hexfloat);
+    proba_dist.display(displayer);
+    displayer->endStateProba();
     if (cnt >= statdist_traj_count) {
       break;
     }
   }
-
-#if 0
-  // compute similarity between all proba_dist (< statdist_traj_count), just for testing
-  for (unsigned int nn1 = 0; nn1 < statdist_traj_count; ++nn1) {
-    const ProbaDist& proba_dist1 = proba_dist_v[nn1];
-    for (unsigned int nn2 = nn1+1; nn2 < statdist_traj_count; ++nn2) {
-      const ProbaDist& proba_dist2 = proba_dist_v[nn2];
-      similarity(network, proba_dist1, proba_dist2);
-    }
-  }
-#endif
+  displayer->endStatDistDisplay();
 
   // should not be called from here, but from MaBestEngine
   ProbaDistClusterFactory* clusterFactory = new ProbaDistClusterFactory(proba_dist_v, statdist_traj_count);
   clusterFactory->makeClusters(runconfig);
-  clusterFactory->display(network, os_statdist, hexfloat);
+  clusterFactory->display(displayer);
   clusterFactory->computeStationaryDistribution();
-  clusterFactory->displayStationaryDistribution(network, os_statdist, hexfloat);
+  clusterFactory->displayStationaryDistribution(displayer);
+  displayer->end();
   delete clusterFactory;
-}
-
-void Cumulator::displayCSV(Network* network, unsigned int refnode_count, std::ostream& os_probtraj, std::ostream& os_statdist, bool hexfloat) const
-{
-  displayProbTrajCSV(network, refnode_count, os_probtraj, hexfloat);
-  displayStatDistCSV(network, refnode_count, os_statdist, hexfloat);
 }
 
 void Cumulator::displayAsymptoticCSV(Network *network, unsigned int refnode_count, std::ostream &os_asymptprob, bool hexfloat, bool proba) const
@@ -931,3 +841,209 @@ Cumulator* Cumulator::mergeCumulators(RunConfig* runconfig, std::vector<Cumulato
   }
   return ret_cumul;
 }
+
+//
+// OBSOLETE CODE
+//
+
+void Cumulator::displayCSV(Network* network, unsigned int refnode_count, std::ostream& os_probtraj, std::ostream& os_statdist, bool hexfloat) const
+{
+  displayProbTrajCSV_OBSOLETE(network, refnode_count, os_probtraj, hexfloat);
+  displayStatDistCSV_OBSOLETE(network, refnode_count, os_statdist, hexfloat);
+}
+
+void Cumulator::displayProbTrajCSV_OBSOLETE(Network* network, unsigned int refnode_count, std::ostream& os_probtraj, bool hexfloat) const
+{
+  std::vector<Node*>::const_iterator begin_network;
+
+  os_probtraj << "Time\tTH" << (COMPUTE_ERRORS ? "\tErrorTH" : "") << "\tH";
+
+  for (unsigned int jj = 0; jj <= refnode_count; ++jj) {
+    os_probtraj << "\tHD=" << jj;
+  }
+
+  for (unsigned int nn = 0; nn < maxcols; ++nn) {
+    os_probtraj << "\tState\tProba" << (COMPUTE_ERRORS ? "\tErrorProba" : "");
+  }
+
+  os_probtraj << '\n';
+
+  //os_probtraj << std::fixed;
+  //os_probtraj << std::setprecision(6);
+  double time_tick2 = time_tick * time_tick;
+  double ratio = time_tick*sample_count;
+  for (int nn = 0; nn < max_tick_index; ++nn) {
+    os_probtraj << std::setprecision(4) << std::fixed << (nn*time_tick);
+#ifdef HAS_STD_HEXFLOAT
+    if (hexfloat) {
+      os_probtraj << std::hexfloat;
+    }
+#endif
+    // TH
+    const CumulMap& mp = get_map(nn);
+    CumulMap::Iterator iter = mp.iterator();
+    if (hexfloat) {
+      os_probtraj << '\t' << fmthexdouble(TH_v[nn]);
+    } else {
+      os_probtraj << '\t' << TH_v[nn];
+    }
+
+    // ErrorTH
+    //assert((size_t)nn < TH_square_v.size());
+    if (COMPUTE_ERRORS) {
+      double TH_square = TH_square_v[nn];
+      double TH = TH_v[nn]; // == TH
+      double variance_TH = (TH_square / ((sample_count-1) * time_tick2)) - (TH*TH*sample_count/(sample_count-1));
+      double err_TH;
+      double variance_TH_sample_count = variance_TH/sample_count;
+      //assert(variance_TH > 0.0);
+      if (variance_TH_sample_count >= 0.0) {
+	err_TH = sqrt(variance_TH_sample_count);
+      } else {
+	err_TH = 0.;
+      }
+      if (hexfloat) {
+	os_probtraj << '\t' << fmthexdouble(err_TH);
+      } else {
+	os_probtraj << '\t' << err_TH;
+      }
+    }
+
+    // H
+    if (hexfloat) {
+      os_probtraj << '\t' << fmthexdouble(H_v[nn]);
+    } else {
+      os_probtraj << '\t' << H_v[nn];
+    }
+
+    std::string zero_hexfloat = fmthexdouble(0.0);
+    // HD
+    const MAP<unsigned int, double>& hd_m = HD_v[nn];
+    for (unsigned int hd = 0; hd <= refnode_count; ++hd) { 
+      os_probtraj << '\t';
+      MAP<unsigned int, double>::const_iterator hd_m_iter = hd_m.find(hd);
+      if (hd_m_iter != hd_m.end()) {
+	if (hexfloat) {
+	  os_probtraj << fmthexdouble(hd_m_iter->second);
+	} else {
+	  os_probtraj << hd_m_iter->second;
+	}
+      } else {
+	if (hexfloat) {
+	  os_probtraj << zero_hexfloat;
+	} else {
+	  os_probtraj << "0.0";
+	}
+      }
+    }
+
+    // Proba, ErrorProba
+    while (iter.hasNext()) {
+      TickValue tick_value;
+#ifdef USE_NEXT_OPT
+      const NetworkState_Impl& state = iter.next2(tick_value);
+#else
+      NetworkState_Impl state;
+      iter.next(state, tick_value);
+#endif
+      double proba = tick_value.tm_slice / ratio;      
+      //double TH = tick_value.TH / sample_count;
+      os_probtraj << '\t';
+      NetworkState network_state(state, 1);
+      network_state.displayOneLine(os_probtraj, network);
+      if (hexfloat) {
+	os_probtraj << '\t' << std::setprecision(6) << fmthexdouble(proba);
+      } else {
+	os_probtraj << '\t' << std::setprecision(6) << proba;
+      }
+      if (COMPUTE_ERRORS) {
+	double tm_slice_square = tick_value.tm_slice_square;
+	double variance_proba = (tm_slice_square / ((sample_count-1) * time_tick2)) - (proba*proba*sample_count/(sample_count-1));
+	double err_proba;
+	double variance_proba_sample_count = variance_proba/sample_count;
+	if (variance_proba_sample_count >= DBL_MIN) {
+	  err_proba = sqrt(variance_proba_sample_count);
+	} else {
+	  err_proba = 0.;
+	}
+	if (hexfloat) {
+	  os_probtraj << '\t' << fmthexdouble(err_proba);
+	} else {
+	  os_probtraj << '\t' << err_proba;
+	}
+      }
+    }
+    os_probtraj << '\n';
+  }
+}
+
+void Cumulator::displayStatDistCSV_OBSOLETE(Network* network, unsigned int refnode_count, std::ostream& os_statdist, bool hexfloat) const
+{
+  // should not be in cumulator, but somehwere in ProbaDist*
+
+  // Probability distribution
+  unsigned int statdist_traj_count = runconfig->getStatDistTrajCount();
+  if (statdist_traj_count == 0) {
+    return;
+  }
+
+#ifdef HAS_STD_HEXFLOAT
+  if (hexfloat) {
+    os_statdist << std::hexfloat;
+  }
+#endif
+
+  unsigned int max_size = 0;
+  unsigned int cnt = 0;
+  unsigned int proba_dist_size = proba_dist_v.size();
+  for (unsigned int nn = 0; nn < proba_dist_size; ++nn) {
+    const ProbaDist& proba_dist = proba_dist_v[nn];
+    if (proba_dist.size() > max_size) {
+      max_size = proba_dist.size();
+    }
+    cnt++;
+    if (cnt > statdist_traj_count) {
+      break;
+    }
+  }
+
+  //unsigned int proba_dist_traj_count = cnt;
+
+  os_statdist << "Trajectory";
+  for (unsigned int nn = 0; nn < max_size; ++nn) {
+    os_statdist << "\tState\tProba";
+  }
+
+  os_statdist << '\n';
+  cnt = 0;
+  for (unsigned int nn = 0; nn < proba_dist_size; ++nn) {
+    const ProbaDist& proba_dist = proba_dist_v[nn];
+    os_statdist << "#" << (cnt+1);
+    cnt++;
+
+    proba_dist.display(os_statdist, network, hexfloat);
+    if (cnt >= statdist_traj_count) {
+      break;
+    }
+  }
+
+#if 0
+  // compute similarity between all proba_dist (< statdist_traj_count), just for testing
+  for (unsigned int nn1 = 0; nn1 < statdist_traj_count; ++nn1) {
+    const ProbaDist& proba_dist1 = proba_dist_v[nn1];
+    for (unsigned int nn2 = nn1+1; nn2 < statdist_traj_count; ++nn2) {
+      const ProbaDist& proba_dist2 = proba_dist_v[nn2];
+      similarity(network, proba_dist1, proba_dist2);
+    }
+  }
+#endif
+
+  // should not be called from here, but from MaBestEngine
+  ProbaDistClusterFactory* clusterFactory = new ProbaDistClusterFactory(proba_dist_v, statdist_traj_count);
+  clusterFactory->makeClusters(runconfig);
+  clusterFactory->display(network, os_statdist, hexfloat);
+  clusterFactory->computeStationaryDistribution();
+  clusterFactory->displayStationaryDistribution(network, os_statdist, hexfloat);
+  delete clusterFactory;
+}
+

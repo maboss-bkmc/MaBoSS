@@ -61,6 +61,7 @@ static int usage(std::ostream& os = std::cerr)
   os << "  " << prog << " [--version]\n\n";
   os << "  " << prog << " [--verbose]\n\n";
   os << "  " << prog << " --port PORT [--host HOST] [-c|--config CONF_FILE] [-v|--config-vars VAR1=NUMERIC[,VAR2=...]] [-e|--config-expr CONFIG_EXPR] -o|--output OUTPUT BOOLEAN_NETWORK_FILE\n";
+  os << "  " << prog << " [--final]\n";
   os << "  " << prog << " [--check]\n";
   os << "  " << prog << " [--override]\n";
   os << "  " << prog << " [--augment]\n";
@@ -83,6 +84,7 @@ static int help()
   std::cout << "  --override                              : if set, a new node definition will override a previous one\n";
   std::cout << "  --augment                               : if set, a new node definition will complete (add non existing attributes) / override (replace existing attributes) a previous one\n";
   std::cout << "  -o --output OUTPUT                      : prefix to be used for output files; when present run MaBoSS simulation process\n";
+  std::cout << "  --final                                 : only export final probabilities\n";
   std::cout << "  --check                                 : checks network and configuration files and exits\n";
   std::cout << "  --hexfloat                              : displays double in hexadecimal format\n";
   std::cout << "  --verbose                               : verbose mode\n";
@@ -104,6 +106,7 @@ int main(int argc, char* argv[])
   std::string port;
   std::string host;
   bool verbose = false;
+  bool final = false;
   bool check = false;
   bool override = false;
   bool augment = false;
@@ -161,6 +164,8 @@ int main(int argc, char* argv[])
 	  std::cerr << '\n' << prog << ": --override and --augment are exclusive options\n"; return usage();
 	}
 	augment = true;
+      } else if (!strcmp(opt, "--final")) {
+	final = true;
       } else if (!strcmp(opt, "--check")) {
 	check = true;
       } else if (!strcmp(opt, "--hexfloat")) {
@@ -226,6 +231,9 @@ int main(int argc, char* argv[])
   if (augment) {
     flags |= DataStreamer::AUGMENT_FLAG;
   }
+  if (final) {
+    flags |= DataStreamer::FINAL_SIMULATION_FLAG;
+  }
   client_data.setFlags(flags);
 
   Client* client = new Client(host, port, verbose);
@@ -246,6 +254,9 @@ int main(int argc, char* argv[])
   }
   if (server_data.getFP().length() > 0) {
     filePutContents(std::string(output) + "_fp.csv", server_data.getFP());
+  }
+  if (final) {
+    filePutContents(std::string(output) + "_finalprob.csv", server_data.getFinalProb());
   }
 
   if (server_data.getStatus() != 0) {

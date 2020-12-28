@@ -61,6 +61,7 @@ class ServerData {
   std::string probtraj;
   std::string traj;
   std::string fp;
+  std::string finalprob;
   std::string run_log;
 
 public:
@@ -86,6 +87,10 @@ public:
 
   void setFP(const std::string& fp) {
     this->fp = fp;
+  }
+
+  void setFinalProb(const std::string& finalprob) {
+    this->finalprob = finalprob;
   }
 
   void setRunLog(const std::string& run_log) {
@@ -118,6 +123,10 @@ public:
 
   const std::string& getFP() const {
     return fp;
+  }
+
+  const std::string& getFinalProb() const {
+    return finalprob;
   }
 
   const std::string& getRunLog() const {

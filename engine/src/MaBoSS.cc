@@ -1,50 +1,50 @@
 /*
-#############################################################################
-#                                                                           #
-# BSD 3-Clause License (see https://opensource.org/licenses/BSD-3-Clause)   #
-#                                                                           #
-# Copyright (c) 2011-2020 Institut Curie, 26 rue d'Ulm, Paris, France       #
-# All rights reserved.                                                      #
-#                                                                           #
-# Redistribution and use in source and binary forms, with or without        #
-# modification, are permitted provided that the following conditions are    #
-# met:                                                                      #
-#                                                                           #
-# 1. Redistributions of source code must retain the above copyright notice, #
-# this list of conditions and the following disclaimer.                     #
-#                                                                           #
-# 2. Redistributions in binary form must reproduce the above copyright      #
-# notice, this list of conditions and the following disclaimer in the       #
-# documentation and/or other materials provided with the distribution.      #
-#                                                                           #
-# 3. Neither the name of the copyright holder nor the names of its          #
-# contributors may be used to endorse or promote products derived from this #
-# software without specific prior written permission.                       #
-#                                                                           #
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS       #
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED #
-# TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A           #
-# PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER #
-# OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,  #
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,       #
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR        #
-# PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF    #
-# LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING      #
-# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS        #
-# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.              #
-#                                                                           #
-#############################################################################
+  #############################################################################
+  #                                                                           #
+  # BSD 3-Clause License (see https://opensource.org/licenses/BSD-3-Clause)   #
+  #                                                                           #
+  # Copyright (c) 2011-2020 Institut Curie, 26 rue d'Ulm, Paris, France       #
+  # All rights reserved.                                                      #
+  #                                                                           #
+  # Redistribution and use in source and binary forms, with or without        #
+  # modification, are permitted provided that the following conditions are    #
+  # met:                                                                      #
+  #                                                                           #
+  # 1. Redistributions of source code must retain the above copyright notice, #
+  # this list of conditions and the following disclaimer.                     #
+  #                                                                           #
+  # 2. Redistributions in binary form must reproduce the above copyright      #
+  # notice, this list of conditions and the following disclaimer in the       #
+  # documentation and/or other materials provided with the distribution.      #
+  #                                                                           #
+  # 3. Neither the name of the copyright holder nor the names of its          #
+  # contributors may be used to endorse or promote products derived from this #
+  # software without specific prior written permission.                       #
+  #                                                                           #
+  # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS       #
+  # "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED #
+  # TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A           #
+  # PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER #
+  # OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,  #
+  # EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,       #
+  # PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR        #
+  # PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF    #
+  # LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING      #
+  # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS        #
+  # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.              #
+  #                                                                           #
+  #############################################################################
 
-   Module:
-     MaBoSS.cc
+  Module:
+  MaBoSS.cc
 
-   Authors:
-     Eric Viara <viara@sysra.com>
-     Gautier Stoll <gautier.stoll@curie.fr>
-     Vincent Noël <vincent.noel@curie.fr>
+  Authors:
+  Eric Viara <viara@sysra.com>
+  Gautier Stoll <gautier.stoll@curie.fr>
+  Vincent Noël <vincent.noel@curie.fr>
  
-   Date:
-     January-March 2011
+  Date:
+  January-March 2011
 */
 
 #include <ctime>
@@ -56,6 +56,8 @@
 #include <fstream>
 #include <stdlib.h>
 #include "Utils.h"
+#include "ProbTrajDisplayer.h"
+#include "StatDistDisplayer.h"
 
 const char* prog = "MaBoSS";
 
@@ -69,6 +71,7 @@ static int usage(std::ostream& os = std::cerr)
   os << "  " << prog << " [-c|--config CONF_FILE] [-v|--config-vars VAR1=NUMERIC[,VAR2=...]] [-e|--config-expr CONFIG_EXPR] -l|--generate-logical-expressions BOOLEAN_NETWORK_FILE\n\n";
   os << "  " << prog << " -t|--generate-config-template BOOLEAN_NETWORK_FILE\n";
   os << "  " << prog << " [-q|--quiet]\n";
+  os << "  " << prog << " [--format csv|json]\n";
   os << "  " << prog << " [--check]\n";
   os << "  " << prog << " [--override]\n";
   os << "  " << prog << " [--augment]\n";
@@ -103,12 +106,12 @@ static int help()
   std::cout << "  --counts                                : exports counts instead of probabilities (only works with asymptotic states)\n";
   std::cout << "  -h --help                               : displays this message\n";
   std::cout << "\nEnsembles:\n";
-  std::cout << "  -- ensemble                             : simulate ensembles\n";
-  std::cout << "  -- random-sampling                      : randomly select which model to simulate\n";
-  std::cout << "  -- save-individual                      : export results of individual models\n";
-  std::cout << "  -- ensemble-istates                     : Each model will have it's own cfg file. Must provide configs via -c, in the same order as the models\n";
+  std::cout << "  --ensemble                             : simulate ensembles\n";
+  std::cout << "  --random-sampling                      : randomly select which model to simulate\n";
+  std::cout << "  --save-individual                      : export results of individual models\n";
+  std::cout << "  --ensemble-istates                     : Each model will have it's own cfg file. Must provide configs via -c, in the same order as the models\n";
   std::cout << "\nFinal:\n";
-  std::cout << "  -- final                                : Only export final probabilities\n";
+  std::cout << "  --final                                : Only export final probabilities\n";
   std::cout << "\nNotices:\n";
   std::cout << "\n1. --config and --config-expr options can be used multiple times;\n";
   std::cout << "   multiple --config and/or --config-expr options are managed in the order given at the command line;\n";
@@ -120,6 +123,22 @@ static int help()
   Function::displayFunctionDescriptions(std::cout);
 
   return 0;
+}
+
+enum OutputFormat {
+  CSV_FORMAT = 1,
+  JSON_FORMAT
+};
+
+static std::string format_extension(OutputFormat format) {
+  switch(format) {
+  case CSV_FORMAT:
+    return ".csv";
+  case JSON_FORMAT:
+    return ".json";
+  default:
+    return NULL;
+  }
 }
 
 int main(int argc, char* argv[])
@@ -143,27 +162,30 @@ int main(int argc, char* argv[])
   dont_shrink_logical_expressions = false; // global flag
   bool export_asymptotic = false;
   bool counts = false;
+  OutputFormat format = CSV_FORMAT;
   MaBEstEngine::init();
 
   // for debug
+  if (getenv("MABOSS_VERBOSE") != NULL) {
 #ifdef USE_BOOST_BITSET
-  std::cerr << "MaBoSS use boost dynamic_bitset\n";
+    std::cerr << "MaBoSS use boost dynamic_bitset\n";
 #elif USE_DYNAMIC_BITSET_STD_ALLOC
-  std::cerr << "MaBoSS use dynamic_bitset [std allocator]\n";
+    std::cerr << "MaBoSS use dynamic_bitset [std allocator]\n";
 #elif defined(USE_DYNAMIC_BITSET)
-  std::cerr << "MaBoSS use MaBoSS dynamic bitset\n";
+    std::cerr << "MaBoSS use MaBoSS dynamic bitset [experimental allocator]\n";
 #elif defined(USE_STATIC_BITSET)
-  std::cerr << "MaBoSS use standard bitset\n";
+    std::cerr << "MaBoSS use standard bitset\n";
 #else
-  std::cerr << "MaBoSS use long long mask\n";
+    std::cerr << "MaBoSS use long long mask\n";
 #endif
 #ifdef HAS_BOOST_UNORDERED_MAP
-  std::cerr << "MaBoSS use boost::unordered_map\n";
+    std::cerr << "MaBoSS use boost::unordered_map\n";
 #elif defined(HAS_UNORDERED_MAP)
-  std::cerr << "MaBoSS use std::unordered_map\n";
+    std::cerr << "MaBoSS use std::unordered_map\n";
 #else
-  std::cerr << "MaBoSS use standard std::map\n";
+    std::cerr << "MaBoSS use standard std::map\n";
 #endif
+  }
 
   for (int nn = 1; nn < argc; ++nn) {
     const char* s = argv[nn];
@@ -186,7 +208,7 @@ int main(int argc, char* argv[])
       } else if (!strcmp(s, "--dont-shrink-logical-expressions")) {
 	dont_shrink_logical_expressions = true;
       } else if (!strcmp(s, "--ensemble")) {
-  ensemble = true;
+	ensemble = true;
       } else if (!strcmp(s, "--single")) {
 	single_simulation = true;
       } else if (!strcmp(s, "--final")) {
@@ -197,6 +219,16 @@ int main(int argc, char* argv[])
         } else {
           std::cerr << "\n" << prog << ": --save-individual only usable if --ensemble is used" << std::endl;
         }
+      } else if (!strcmp(s, "--format")) {
+	const char* fmt = argv[++nn];
+	if (!strcasecmp(fmt, "CSV")) {
+	  format = CSV_FORMAT;
+	} else if (!strcasecmp(fmt, "JSON")) {
+	  format = JSON_FORMAT;
+	} else {
+          std::cerr << "\n" << prog << ": unknown format " << fmt << std::endl;
+	  return usage();
+	}	  
       } else if (!strcmp(s, "--random-sampling")) {
         if (ensemble) {
           ensemble_random_sampling = true;
@@ -209,8 +241,7 @@ int main(int argc, char* argv[])
         } else {
           std::cerr << "\n" << prog << ": --ensemble-istates only usable if --ensemble is used" << std::endl;
         }
-      }
-       else if (!strcmp(s, "--export-asymptotic")) {
+      } else if (!strcmp(s, "--export-asymptotic")) {
         export_asymptotic = true;
       } else if (!strcmp(s, "--counts")) {
         counts = true;
@@ -235,8 +266,8 @@ int main(int argc, char* argv[])
 	Node::setAugment(true);
       } else if (!strcmp(s, "--check")) {
 	check = true;
-       } else if (!strcmp(s, "-q") || !strcmp(s, "--quiet")) {
-	 MaBoSS_quiet = true;
+      } else if (!strcmp(s, "-q") || !strcmp(s, "--quiet")) {
+	MaBoSS_quiet = true;
       } else if (!strcmp(s, "--hexfloat")) {
 	hexfloat = true;
       } else if (!strcmp(s, "--help") || !strcmp(s, "-h")) {
@@ -255,11 +286,11 @@ int main(int argc, char* argv[])
   }
 
   if (!ensemble && NULL == ctbndl_file)
-  {
-    std::cerr << '\n'
-              << prog << ": boolean network file is missing\n";
-    return usage();
-  }
+    {
+      std::cerr << '\n'
+		<< prog << ": boolean network file is missing\n";
+      return usage();
+    }
 
   if (ensemble && ctbndl_files.size() == 0) {
     std::cerr << '\n'
@@ -322,7 +353,6 @@ int main(int argc, char* argv[])
     time_t start_time, end_time;
 
     if (ensemble) {
-
       if (ensemble_istates) {
         std::vector<Network *> networks;
         RunConfig* runconfig = new RunConfig();      
@@ -334,12 +364,12 @@ int main(int argc, char* argv[])
         // std::vector<ConfigOpt>::const_iterator begin = runconfig_file_or_expr_v.begin();
         // std::vector<ConfigOpt>::const_iterator end = runconfig_file_or_expr_v.end();
         // while (begin != end) {
-          const ConfigOpt& cfg = runconfig_file_or_expr_v[0];
-          if (cfg.isExpr()) {
-            runconfig->parseExpression(networks[0], (cfg.getExpr() + ";").c_str());
-          } else {
-            runconfig->parse(networks[0], cfg.getFile().c_str());
-          }
+	const ConfigOpt& cfg = runconfig_file_or_expr_v[0];
+	if (cfg.isExpr()) {
+	  runconfig->parseExpression(networks[0], (cfg.getExpr() + ";").c_str());
+	} else {
+	  runconfig->parse(networks[0], cfg.getFile().c_str());
+	}
         //   ++begin;
         // }
 
@@ -371,15 +401,15 @@ int main(int argc, char* argv[])
 
           const std::vector<Node*> nodes = networks[i]->getNodes();
           for (unsigned int j=0; j < nodes.size(); j++) {
-              // if (!first_network_nodes[j]->istateSetRandomly()) {
-              //     nodes[j]->setIState(first_network_nodes[j]->getIState(first_network, randgen));
-              // }
+	    // if (!first_network_nodes[j]->istateSetRandomly()) {
+	    //     nodes[j]->setIState(first_network_nodes[j]->getIState(first_network, randgen));
+	    // }
 
-              nodes[j]->isInternal(first_network_nodes[j]->isInternal());
+	    nodes[j]->isInternal(first_network_nodes[j]->isInternal());
 
-              // if (!first_network_nodes[j]->isReference()) {
-              //   nodes[j]->setReferenceState(first_network_nodes[j]->getReferenceState());
-              // }
+	    // if (!first_network_nodes[j]->isReference()) {
+	    //   nodes[j]->setReferenceState(first_network_nodes[j]->getReferenceState());
+	    // }
           }
 
           IStateGroup::checkAndComplete(networks[i]);
@@ -387,7 +417,7 @@ int main(int argc, char* argv[])
         }
 
         // output_run = new std::ofstream((std::string(output) + "_run.txt").c_str());
-        output_probtraj = new std::ofstream((std::string(output) + "_probtraj.csv").c_str());
+        output_probtraj = new std::ofstream((std::string(output) + "_probtraj" + format_extension(format)).c_str());
         output_statdist = new std::ofstream((std::string(output) + "_statdist.csv").c_str());
         output_fp = new std::ofstream((std::string(output) + "_fp.csv").c_str());
         
@@ -399,17 +429,16 @@ int main(int argc, char* argv[])
         if (ensemble_save_individual_results) {
           for (unsigned int i=0; i < networks.size(); i++) {
             
-            std::ostream* i_output_probtraj = new std::ofstream(
-              (std::string(output) + "_model_" + std::to_string(i) + "_probtraj.csv").c_str()
-            );
+            std::ostream* i_output_probtraj =
+	      new std::ofstream((std::string(output) + "_model_" + std::to_string(i) + "_probtraj" + format_extension(format)).c_str());
             
             std::ostream* i_output_fp = new std::ofstream(
-              (std::string(output) + "_model_" + std::to_string(i) + "_fp.csv").c_str()
-            );
+							  (std::string(output) + "_model_" + std::to_string(i) + "_fp.csv").c_str()
+							  );
             
             std::ostream* i_output_statdist = new std::ofstream(
-              (std::string(output) + "_model_" + std::to_string(i) + "_statdist.csv").c_str()
-            );
+								(std::string(output) + "_model_" + std::to_string(i) + "_statdist.csv").c_str()
+								);
 
             engine.displayIndividual(i, *i_output_probtraj, *i_output_statdist, *i_output_fp, hexfloat);
 
@@ -468,15 +497,15 @@ int main(int argc, char* argv[])
           network->cloneIStateGroup(first_network->getIStateGroup());
           const std::vector<Node*> nodes = networks[i]->getNodes();
           for (unsigned int j=0; j < nodes.size(); j++) {
-              if (!first_network_nodes[j]->istateSetRandomly()) {
-                  nodes[j]->setIState(first_network_nodes[j]->getIState(first_network, randgen));
-              }
+	    if (!first_network_nodes[j]->istateSetRandomly()) {
+	      nodes[j]->setIState(first_network_nodes[j]->getIState(first_network, randgen));
+	    }
 
-              nodes[j]->isInternal(first_network_nodes[j]->isInternal());
+	    nodes[j]->isInternal(first_network_nodes[j]->isInternal());
 
-              // if (!first_network_nodes[j]->isReference()) {
-              //   nodes[j]->setReferenceState(first_network_nodes[j]->getReferenceState());
-              // }
+	    // if (!first_network_nodes[j]->isReference()) {
+	    //   nodes[j]->setReferenceState(first_network_nodes[j]->getReferenceState());
+	    // }
           }
 
           IStateGroup::checkAndComplete(networks[i]);
@@ -484,7 +513,7 @@ int main(int argc, char* argv[])
         }
 
         // output_run = new std::ofstream((std::string(output) + "_run.txt").c_str());
-        output_probtraj = new std::ofstream((std::string(output) + "_probtraj.csv").c_str());
+        output_probtraj = new std::ofstream((std::string(output) + "_probtraj" + format_extension(format)).c_str());
         output_statdist = new std::ofstream((std::string(output) + "_statdist.csv").c_str());
         output_fp = new std::ofstream((std::string(output) + "_fp.csv").c_str());
         
@@ -496,17 +525,16 @@ int main(int argc, char* argv[])
         if (ensemble_save_individual_results) {
           for (unsigned int i=0; i < networks.size(); i++) {
             
-            std::ostream* i_output_probtraj = new std::ofstream(
-              (std::string(output) + "_model_" + std::to_string(i) + "_probtraj.csv").c_str()
-            );
+            std::ostream* i_output_probtraj =
+	      new std::ofstream((std::string(output) + "_model_" + std::to_string(i) + "_probtraj" +format_extension(format)).c_str());
             
             std::ostream* i_output_fp = new std::ofstream(
-              (std::string(output) + "_model_" + std::to_string(i) + "_fp.csv").c_str()
-            );
+							  (std::string(output) + "_model_" + std::to_string(i) + "_fp.csv").c_str()
+							  );
             
             std::ostream* i_output_statdist = new std::ofstream(
-              (std::string(output) + "_model_" + std::to_string(i) + "_statdist.csv").c_str()
-            );
+								(std::string(output) + "_model_" + std::to_string(i) + "_statdist.csv").c_str()
+								);
 
             engine.displayIndividual(i, *i_output_probtraj, *i_output_statdist, *i_output_fp, hexfloat);
 
@@ -611,9 +639,9 @@ int main(int argc, char* argv[])
       while (begin != end) {
         const ConfigOpt& cfg = *begin;
         if (cfg.isExpr()) {
-    runconfig->parseExpression(network, (cfg.getExpr() + ";").c_str());
+	  runconfig->parseExpression(network, (cfg.getExpr() + ";").c_str());
         } else {
-    runconfig->parse(network, cfg.getFile().c_str());
+	  runconfig->parse(network, cfg.getFile().c_str());
         }
         ++begin;
       }
@@ -647,20 +675,31 @@ int main(int argc, char* argv[])
       }
 
       if (final_simulation) {
-          std::ostream* output_final = new std::ofstream((std::string(output) + "_finalprob.csv").c_str());
-          FinalStateSimulationEngine engine(network, runconfig);
-          engine.run(NULL);
-          engine.displayFinal(*output_final, hexfloat);
-          ((std::ofstream*)output_final)->close();
-          delete output_final;
-        
-
+	std::ostream* output_final = new std::ofstream((std::string(output) + "_finalprob" + format_extension(format)).c_str());
+	FinalStateSimulationEngine engine(network, runconfig);
+	engine.run(NULL);
+	if (false) {
+	  engine.displayFinal(*output_final, hexfloat);
+	} else {
+	  FinalStateDisplayer* final_displayer;
+	  if (format == CSV_FORMAT) {
+	    final_displayer = new CSVFinalStateDisplayer(network, *output_final, hexfloat);
+	  } else if (format == JSON_FORMAT) {
+	    final_displayer = new JsonFinalStateDisplayer(network, *output_final, hexfloat);
+	  } else {
+	    final_displayer = NULL;
+	  }
+	  engine.displayFinal(final_displayer);
+	}
+	((std::ofstream*)output_final)->close();
+	delete output_final;
       } else {
-
         output_run = new std::ofstream((std::string(output) + "_run.txt").c_str());
-        output_probtraj = new std::ofstream((std::string(output) + "_probtraj.csv").c_str());
-        output_statdist = new std::ofstream((std::string(output) + "_statdist.csv").c_str());
-        output_fp = new std::ofstream((std::string(output) + "_fp.csv").c_str());
+        output_probtraj = new std::ofstream((std::string(output) + "_probtraj" + format_extension(format)).c_str());
+        output_statdist = new std::ofstream((std::string(output) + "_statdist" + format_extension(format)).c_str());
+	std::ostream* output_statdist_cluster = new std::ofstream((std::string(output) + "_statdist_cluster" + format_extension(format)).c_str());
+	std::ostream* output_statdist_distrib = new std::ofstream((std::string(output) + "_statdist_distrib" + format_extension(format)).c_str());
+        output_fp = new std::ofstream((std::string(output) + "_fp" + format_extension(format)).c_str());
 
         if (export_asymptotic) {
           output_asymptprob = new std::ofstream((std::string(output) + "_finalprob.csv").c_str());
@@ -669,8 +708,31 @@ int main(int argc, char* argv[])
         time(&start_time);
         MaBEstEngine mabest(network, runconfig);
         mabest.run(output_traj);
-        mabest.display(*output_probtraj, *output_statdist, *output_fp, hexfloat);
-        time(&end_time);
+	ProbTrajDisplayer* probtraj_displayer;
+	StatDistDisplayer* statdist_displayer;
+	FixedPointDisplayer* fp_displayer;
+	if (format == CSV_FORMAT) {
+	  probtraj_displayer = new CSVProbTrajDisplayer(network, *output_probtraj, hexfloat);
+	  statdist_displayer = new CSVStatDistDisplayer(network, *output_statdist, hexfloat);
+	  fp_displayer = new CSVFixedPointDisplayer(network, *output_fp, hexfloat);
+	} else if (format == JSON_FORMAT) {
+	  probtraj_displayer =  new JSONProbTrajDisplayer(network, *output_probtraj, hexfloat);
+	  statdist_displayer = new JSONStatDistDisplayer(network, *output_statdist, *output_statdist_cluster, *output_statdist_distrib, hexfloat);
+	  // Use CSV displayer for fixed points as the Json one is not fully implemented
+	  fp_displayer = new CSVFixedPointDisplayer(network, *output_fp, hexfloat);
+	} else {
+	  probtraj_displayer = NULL;
+	  statdist_displayer = NULL;
+	  fp_displayer = NULL;
+	}
+
+	if (false) {
+	  std::cerr << "***** using old displayers *****\n";
+	  mabest.display(probtraj_displayer, *output_statdist, *output_fp, hexfloat);
+ 	} else {
+	  mabest.display(probtraj_displayer, statdist_displayer, fp_displayer);
+	}
+	time(&end_time);
 
         runconfig->display(network, start_time, end_time, mabest, *output_run);
 
@@ -689,6 +751,10 @@ int main(int argc, char* argv[])
         delete output_probtraj;
         ((std::ofstream*)output_statdist)->close();
         delete output_statdist;
+        ((std::ofstream*)output_statdist_cluster)->close();
+        delete output_statdist_cluster;
+        ((std::ofstream*)output_statdist_distrib)->close();
+        delete output_statdist_distrib;
         ((std::ofstream*)output_fp)->close();
         delete output_fp;
       }
@@ -708,4 +774,3 @@ int main(int argc, char* argv[])
 #endif
   return 0;
 }
-

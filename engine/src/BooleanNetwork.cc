@@ -142,12 +142,15 @@ int Network::parseExpression(const char* content, std::map<std::string, NodeInde
 }
 
 
-int Network::parse(const char* file, std::map<std::string, NodeIndex>* nodes_indexes)
+int Network::parse(const char* file, std::map<std::string, NodeIndex>* nodes_indexes, bool is_temp_file)
 {
   if (NULL != file) {
     CTBNDLin = fopen(file, "r");
     if (CTBNDLin == NULL) {
       throw BNException("network parsing: cannot open file:" + std::string(file) + " for reading");
+    }
+    if (is_temp_file) {
+      unlink(file);
     }
   }
 
