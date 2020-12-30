@@ -70,7 +70,7 @@ void JSONStatDistDisplayer::beginStateProbaDisplay() {
   if (current_line > 0) {
     os << ",";
   }
-  os << "{\"num\":" << num << ",\"state_proba\":[";
+  os << "{\"num\":" << num << ",\"state_probas\":[";
   current_state_proba = 0;
 }
 
@@ -137,7 +137,7 @@ void JSONStatDistDisplayer::beginClusterStationaryDistribution(size_t num) {
   if (num > 1) {
     os_statdist_distrib << ",";
   }
-  os_statdist_distrib << "{\"num\":" << num << ",\"proba_variance\":[";
+  os_statdist_distrib << "{\"num\":" << num << ",\"proba_variances\":[";
   current_state_proba = 0;
 }
 

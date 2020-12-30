@@ -76,7 +76,7 @@ void JsonFinalStateDisplayer::displayFinalState(const NetworkState_Impl& state, 
   if (state_cnt > 0) {
     os << ",";
   }
-  os << "{\"value\":";
+  os << "{\"proba\":";
   if (hexfloat) {
     os << std::setprecision(6) << fmthexdouble(value, true);
   } else {
