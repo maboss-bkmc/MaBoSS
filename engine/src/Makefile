@@ -8,7 +8,7 @@
 
 MAKEFILE = Makefile.maboss
 
-maboss: all
+maboss:
 %:
 	@rm -f depend.mk
 	@touch depend.mk

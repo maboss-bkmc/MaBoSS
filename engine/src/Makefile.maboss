@@ -54,11 +54,6 @@ endif
 GCC = gcc
 CXX = g++
 CXXOPT = -O2
-#CXXOPT = -g
-#CXXOPT = -O3
-# TBD 2020-10-23: must be guessed by init-config.sh
-#BOOST_INCL_PATH = -I/opt/local/include
-#BOOST_INCL_PATH = -I/Users/viara/projects/maboss/boost_1_74_0
 CXXFLAGS = $(CXXOPT) -Wall -DMAXNODES=$(MAXNODES) $(BITSET_FLAG) $(EXTRA_FLAGS) $(BOOST_INCL_PATH) -fpic -DNDEBUG
 
 MAKEDEPEND = $(GCC) -M $(EXTRA_FLAGS) $(BOOST_INCL_PATH)

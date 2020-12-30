@@ -12,13 +12,8 @@ CONFIG_H=${CONFIG_NAME}.h
 
 if [ $# = 0 -a -r $CONFIG_H ]; then exit 0; fi
 
-#BOOST_INCL_PATH=-I/opt/local/include
-
 DONT_USE_BOOST=1
-if [[ -z "${DONT_USE_BOOST}" ]]; then
-    BOOST_INCL_PATH=-I/Users/viara/projects/maboss/boost_1_74_0
-fi
-CXXFLAGS="${BOOST_INCL_PATH} -std=c++11"
+CXXFLAGS="-std=c++11"
 
 tmpfile=/tmp/${CONFIG_NAME}$$.c
 
