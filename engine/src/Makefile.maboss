@@ -134,7 +134,7 @@ force-init:
 	@CXX=$(CXX) sh init-config.sh force
 
 depend:
-	$(MAKEDEPEND) -DMAXNODES=$(MAXNODES) $(WINDOWS_FLAG) *.cc > depend_tmp.mk
+	$(MAKEDEPEND) -DMAXNODES=$(MAXNODES) $(WINDOWS_FLAG) $(LIB_SRC) > depend_tmp.mk
 	@sed -e "s/\.o:/$(INFIX).o:/g" depend_tmp.mk > depend.mk
 	@rm -f depend_tmp.mk
 
