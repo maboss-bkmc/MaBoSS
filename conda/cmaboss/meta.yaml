@@ -20,17 +20,17 @@ requirements:
     - bison
     - make
     - python {{ python }}
-    - numpy
+    - numpy {{ numpy }}
     - setuptools
 
   host: 
-    - python
-    - numpy
+    - python {{ python }}
+    - numpy {{ numpy }}
     - setuptools
   
   run: 
-    - python
-    - numpy
+    - python {{ python }}
+    - numpy {{ numpy }}
     - setuptools
 
 about:
