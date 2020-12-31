@@ -610,7 +610,6 @@ PyObject* Cumulator::getNumpyNodesDists(Network* network) const
     CumulMap::Iterator iter = mp.iterator();
 
     while (iter.hasNext()) {
-      NetworkState_Impl state;
       TickValue tick_value;
 #ifdef USE_NEXT_OPT
       const NetworkState_Impl& state = iter.next2(tick_value);
