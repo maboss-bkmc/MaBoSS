@@ -21,7 +21,7 @@ def getExtensionByMaxnodes(maxnodes=64):
       "cmaboss" if maxnodes <= 64 else "cmaboss_%dn" % maxnodes, 
       sources=maboss_module_sources + ["src/%s" % source for source in maboss_sources], 
       include_dirs=[numpy.get_include()],
-      extra_compile_args=(extra_compile_args + ([] if maxnodes <= 64 else ['-DMAXNODES=%d' % maxnodes])),
+      extra_compile_args=(extra_compile_args + (['-DMAXNODES=%d' % max(maxnodes, 64)])),
       language="c++"
    )
 
