@@ -90,7 +90,7 @@ jobs:
         conda build conda/maboss
               
     - name: Upload MaBoSS to Anaconda cloud
-      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'maboss-bkmc/MaBoSS-env-2.0'
+      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'sysbio-curie/MaBoSS-env-2.0'
       run: |   
         anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/local/miniconda/conda-bld/osx-64/*.tar.bz2 --force;
  
@@ -146,7 +146,7 @@ jobs:
         conda build conda/cmaboss;   
         
     - name: Upload cMaBoSS to Anaconda cloud
-      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'maboss-bkmc/MaBoSS-env-2.0'
+      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'sysbio-curie/MaBoSS-env-2.0'
       run: |   
         anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/local/miniconda/conda-bld/osx-64/*.tar.bz2 --force;
  
@@ -187,7 +187,7 @@ jobs:
         pip wheel . -w wheelhouse
         
     - name: Upload cMaBoSS to Pypi
-      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'maboss-bkmc/MaBoSS-env-2.0'
+      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'sysbio-curie/MaBoSS-env-2.0'
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}

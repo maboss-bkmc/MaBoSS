@@ -55,7 +55,7 @@ jobs:
         conda build conda/maboss 
         
     - name: Upload cMaBoSS Ananconda package
-      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'maboss-bkmc/MaBoSS-env-2.0'
+      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'sysbio-curie/MaBoSS-env-2.0'
       run: |
         anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/share/miniconda/conda-bld/linux-64/*.tar.bz2 --force;
     
@@ -81,12 +81,12 @@ jobs:
         bash -c "cd engine/tests; bash ./test-container.sh"
   
     - name: Connect Docker Hub
-      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'maboss-bkmc/MaBoSS-env-2.0'
+      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'sysbio-curie/MaBoSS-env-2.0'
       run: |
         echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
         
     - name: Upload Docker Hub
-      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'maboss-bkmc/MaBoSS-env-2.0'
+      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'sysbio-curie/MaBoSS-env-2.0'
       run: | 
           docker tag maboss-server:latest vnoel/maboss-server:latest
           docker push vnoel/maboss-server:latest
@@ -165,7 +165,7 @@ jobs:
         conda build conda/cmaboss;
         
     - name: Upload cMaBoSS Ananconda package
-      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'maboss-bkmc/MaBoSS-env-2.0'
+      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'sysbio-curie/MaBoSS-env-2.0'
       run: |
         anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/share/miniconda/conda-bld/linux-64/*.tar.bz2 --force;
         
@@ -190,7 +190,7 @@ jobs:
         docker run --rm -e PLAT=manylinux1_x86_64 -v `pwd`:/io quay.io/pypa/manylinux1_x86_64 /io/build-wheels.sh
         
     - name: Upload cMaBoSS Ananconda package
-      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'maboss-bkmc/MaBoSS-env-2.0'
+      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'sysbio-curie/MaBoSS-env-2.0'
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
@@ -218,7 +218,7 @@ jobs:
         docker run --rm -e PLAT=manylinux2010_x86_64 -v `pwd`:/io quay.io/pypa/manylinux2010_x86_64 /io/build-wheels.sh
         
     - name: Upload cMaBoSS Ananconda package
-      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'maboss-bkmc/MaBoSS-env-2.0'
+      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'sysbio-curie/MaBoSS-env-2.0'
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
@@ -246,7 +246,7 @@ jobs:
         docker run --rm -e PLAT=manylinux2014_x86_64 -v `pwd`:/io quay.io/pypa/manylinux2014_x86_64 /io/build-wheels.sh
         
     - name: Upload cMaBoSS Ananconda package
-      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'maboss-bkmc/MaBoSS-env-2.0'
+      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'sysbio-curie/MaBoSS-env-2.0'
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
