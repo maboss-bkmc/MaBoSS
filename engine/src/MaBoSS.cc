@@ -93,6 +93,7 @@ static int help()
   //  std::cout << "                                        the VAR value in the configuration file (if present) will be overriden\n";
   std::cout << "  -e --config-expr CONFIG_EXPR            : evaluates the configuration expression; may have multiple expressions\n";
   std::cout << "                                            separated by semi-colons\n";
+  std::cout << "  --format csv|json                       : if set, format output in the given option: csv (tab delimited) or json; csv being the default\n";
   std::cout << "  --override                              : if set, a new node definition will replace a previous one\n";
   std::cout << "  --augment                               : if set, a new node definition will complete (add non existing attributes) / override (replace existing attributes) a previous one\n";
   std::cout << "  -o --output OUTPUT                      : prefix to be used for output files; when present run MaBoSS simulation process\n";
