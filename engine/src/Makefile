@@ -9,14 +9,15 @@
 MAKEFILE = Makefile.maboss
 
 maboss:
+popmaboss:
 %:
 	@rm -f depend.mk
 	@touch depend.mk
 	$(MAKE) -f $(MAKEFILE) init
 	$(MAKE) -f $(MAKEFILE) depend
 	$(MAKE) -f $(MAKEFILE) $@
-	$(MAKE) -f $(MAKEFILE) USE_DYNAMIC_BITSET_STD_ALLOC=1 depend
-	$(MAKE) -f $(MAKEFILE) USE_DYNAMIC_BITSET_STD_ALLOC=1 $@
+	# $(MAKE) -f $(MAKEFILE) USE_DYNAMIC_BITSET_STD_ALLOC=1 depend
+	# $(MAKE) -f $(MAKEFILE) USE_DYNAMIC_BITSET_STD_ALLOC=1 $@
 
 .PHONY: dn_exp
 
@@ -24,8 +25,8 @@ dn_exp:
 	@rm -f depend.mk
 	@touch depend.mk
 	$(MAKE) -f $(MAKEFILE) init
-	$(MAKE) -f $(MAKEFILE) USE_DYNAMIC_BITSET=1 depend
-	$(MAKE) -f $(MAKEFILE) USE_DYNAMIC_BITSET=1 maboss
+	# $(MAKE) -f $(MAKEFILE) USE_DYNAMIC_BITSET=1 depend
+	# $(MAKE) -f $(MAKEFILE) USE_DYNAMIC_BITSET=1 maboss
 
 tar_perform:
 	$(MAKE) -f $(MAKEFILE) $@

@@ -36,79 +36,29 @@
 #############################################################################
 
    Module:
-     RunConfig.h
+     PopProbaDist.cc
 
    Authors:
-     Eric Viara <viara@sysra.com>
-     Gautier Stoll <gautier.stoll@curie.fr>
      Vincent Noël <vincent.noel@curie.fr>
  
    Date:
-     January-March 2011
+     March 2021
 */
 
-#ifndef _RUNCONFIG_H_
-#define _RUNCONFIG_H_
+class Network;
 
-#include "RandomGenerator.h"
+#include "PopProbaDist.h"
 #include "BooleanNetwork.h"
-class MaBEstEngine;
-class PopMaBEstEngine;
-class FinalStateSimulationEngine;
+#include "RunConfig.h"
+#include "Utils.h"
+#include "StatDistDisplayer.h"
+#include <iomanip>
+#include <math.h>
+#include <float.h>
 
-class RunConfig {
-
-  mutable RandomGeneratorFactory* randgen_factory;
-  double time_tick;
-  double max_time;
-  unsigned int sample_count;
-  bool discrete_time;
-  bool use_physrandgen;
-  bool use_glibcrandgen;
-  bool use_mtrandgen;
-  int seed_pseudorand;
-  bool display_traj;
-  unsigned int thread_count;
-  unsigned int statdist_traj_count;
-  double statdist_cluster_threshold;
-  unsigned int statdist_similarity_cache_max_size;
-  void dump_perform(Network* network, std::ostream& os, bool is_template) const;
-
- public:
-  RunConfig();
-  ~RunConfig();
-  
-  int parse(Network* network, const char* file = NULL);
-  int parseExpression(Network* network, const char* expr);
-  void setParameter(const std::string& param, double value);
-
-  RandomGeneratorFactory* getRandomGeneratorFactory() const;
-  double getTimeTick() const {return time_tick;}
-  double getMaxTime() const {return max_time;}
-  unsigned int getSampleCount() const {return sample_count;}
-  bool isDiscreteTime() const {return discrete_time;}
-  int getSeedPseudoRandom() const {return seed_pseudorand;}
-  void setSeedPseudoRandom(int seed) { seed_pseudorand = seed;}
-  void display(Network* network, time_t start_time, time_t end_time, MaBEstEngine& mabest, std::ostream& os) const;
-  void display(Network* network, time_t start_time, time_t end_time, PopMaBEstEngine& mabest, std::ostream& os) const;
-  void display(Network* network, time_t start_time, time_t end_time, FinalStateSimulationEngine& engine, std::ostream& os) const;
-  bool displayTrajectories() const {return display_traj;}
-  unsigned int getThreadCount() const {return thread_count;}
-  unsigned int getStatDistTrajCount() const {return statdist_traj_count <= sample_count ? statdist_traj_count : sample_count;}
-  double getStatdistClusterThreshold() const {return statdist_cluster_threshold;}
-  unsigned int getStatDistSimilarityCacheMaxSize() const {return statdist_similarity_cache_max_size;}
-
-  void generateTemplate(Network* network, std::ostream& os) const;
-  void dump(Network* network, std::ostream& os) const;
-};
-
-extern FILE* RCin;
-extern int RCparse();
-extern void RC_scan_expression(const char *);
-
-extern void runconfig_setNetwork(Network* network);
-extern void runconfig_setConfig(RunConfig* config);
-extern void RC_set_file(const char* file);
-extern void RC_set_expr(const char* expr);
-
-#endif
+/*
+static double abs(double d)
+{
+  return d > 0. ? d : -d;
+}
+*/

@@ -1,3 +1,4 @@
+
 /*
 #############################################################################
 #                                                                           #
@@ -36,79 +37,124 @@
 #############################################################################
 
    Module:
-     RunConfig.h
+     PopProbTrajDisplayer.h
 
    Authors:
-     Eric Viara <viara@sysra.com>
-     Gautier Stoll <gautier.stoll@curie.fr>
      Vincent Noël <vincent.noel@curie.fr>
  
    Date:
-     January-March 2011
+     March 2021
 */
 
-#ifndef _RUNCONFIG_H_
-#define _RUNCONFIG_H_
+#ifndef _POPPROBTRAJ_DISPLAYER_H_
+#define _POPPROBTRAJ_DISPLAYER_H_
 
-#include "RandomGenerator.h"
-#include "BooleanNetwork.h"
-class MaBEstEngine;
-class PopMaBEstEngine;
-class FinalStateSimulationEngine;
+#include <iostream>
 
-class RunConfig {
+class PopProbTrajDisplayer {
 
-  mutable RandomGeneratorFactory* randgen_factory;
+protected:
+  Network* network;
+  bool hexfloat;
+  bool compute_errors;
+  size_t maxcols;
+  size_t refnode_count;
+
+  size_t current_line;
+  // current line
   double time_tick;
-  double max_time;
-  unsigned int sample_count;
-  bool discrete_time;
-  bool use_physrandgen;
-  bool use_glibcrandgen;
-  bool use_mtrandgen;
-  int seed_pseudorand;
-  bool display_traj;
-  unsigned int thread_count;
-  unsigned int statdist_traj_count;
-  double statdist_cluster_threshold;
-  unsigned int statdist_similarity_cache_max_size;
-  void dump_perform(Network* network, std::ostream& os, bool is_template) const;
+  double TH, err_TH, H;
+  double* HD_v;
+  struct Proba {
+    PopNetworkState_Impl state;
+    double proba;
+    double err_proba;
 
- public:
-  RunConfig();
-  ~RunConfig();
-  
-  int parse(Network* network, const char* file = NULL);
-  int parseExpression(Network* network, const char* expr);
-  void setParameter(const std::string& param, double value);
+    Proba(const PopNetworkState_Impl& state, double proba, double err_proba) : state(state), proba(proba), err_proba(err_proba) { }
+  };
 
-  RandomGeneratorFactory* getRandomGeneratorFactory() const;
-  double getTimeTick() const {return time_tick;}
-  double getMaxTime() const {return max_time;}
-  unsigned int getSampleCount() const {return sample_count;}
-  bool isDiscreteTime() const {return discrete_time;}
-  int getSeedPseudoRandom() const {return seed_pseudorand;}
-  void setSeedPseudoRandom(int seed) { seed_pseudorand = seed;}
-  void display(Network* network, time_t start_time, time_t end_time, MaBEstEngine& mabest, std::ostream& os) const;
-  void display(Network* network, time_t start_time, time_t end_time, PopMaBEstEngine& mabest, std::ostream& os) const;
-  void display(Network* network, time_t start_time, time_t end_time, FinalStateSimulationEngine& engine, std::ostream& os) const;
-  bool displayTrajectories() const {return display_traj;}
-  unsigned int getThreadCount() const {return thread_count;}
-  unsigned int getStatDistTrajCount() const {return statdist_traj_count <= sample_count ? statdist_traj_count : sample_count;}
-  double getStatdistClusterThreshold() const {return statdist_cluster_threshold;}
-  unsigned int getStatDistSimilarityCacheMaxSize() const {return statdist_similarity_cache_max_size;}
+  std::vector<Proba> proba_v;
 
-  void generateTemplate(Network* network, std::ostream& os) const;
-  void dump(Network* network, std::ostream& os) const;
+  PopProbTrajDisplayer(Network* network, bool hexfloat = false) : network(network), hexfloat(hexfloat), current_line(0), HD_v(NULL) { }
+
+public:
+  void begin(bool compute_errors, size_t maxcols, size_t refnode_count) {
+    this->compute_errors = compute_errors;
+    this->refnode_count = refnode_count;
+    this->maxcols = maxcols;
+    this->HD_v = new double[refnode_count+1];
+    beginDisplay();
+  }
+
+  void beginTimeTick(double time_tick) {
+    this->time_tick = time_tick;
+    proba_v.clear();
+    beginTimeTickDisplay();
+  }
+
+  void setTH(double TH) {
+    this->TH = TH;
+  }
+
+  void setErrorTH(double err_TH) {
+    this->err_TH = err_TH;
+  }
+
+  void setH(double H) {
+    this->H = H;
+  }
+
+  void setHD(unsigned int ind, double HD) {
+    this->HD_v[ind] = HD;
+  }
+
+  void addProba(const PopNetworkState_Impl& state, double proba, double err_proba) {
+    proba_v.push_back(Proba(state, proba, err_proba));
+  }
+
+  void endTimeTick() {
+    endTimeTickDisplay();
+    current_line++;
+  }
+
+  void end() {
+    endDisplay();
+  }
+
+  virtual void beginDisplay() = 0;
+  virtual void beginTimeTickDisplay() = 0;
+
+  virtual void endTimeTickDisplay() = 0;
+  virtual void endDisplay() = 0;
+
+  virtual ~PopProbTrajDisplayer() { delete[] HD_v; }
 };
 
-extern FILE* RCin;
-extern int RCparse();
-extern void RC_scan_expression(const char *);
+class CSVPopProbTrajDisplayer : public PopProbTrajDisplayer {
 
-extern void runconfig_setNetwork(Network* network);
-extern void runconfig_setConfig(RunConfig* config);
-extern void RC_set_file(const char* file);
-extern void RC_set_expr(const char* expr);
+  std::ostream& os_probtraj;
+
+public:
+  CSVPopProbTrajDisplayer(Network* network, std::ostream& os_probtraj, bool hexfloat = false) : PopProbTrajDisplayer(network, hexfloat), os_probtraj(os_probtraj) { }
+
+  virtual void beginDisplay();
+  virtual void beginTimeTickDisplay();
+  virtual void endTimeTickDisplay();
+  virtual void endDisplay();
+};
+
+class JSONPopProbTrajDisplayer : public PopProbTrajDisplayer {
+
+  std::ostream& os_probtraj;
+
+public:
+  JSONPopProbTrajDisplayer(Network* network, std::ostream& os_probtraj, bool hexfloat = false) : PopProbTrajDisplayer(network, hexfloat), os_probtraj(os_probtraj) { }
+
+  virtual void beginDisplay();
+  virtual void beginTimeTickDisplay();
+  virtual void endTimeTickDisplay();
+  virtual void endDisplay();
+};
+
 
 #endif
