@@ -569,6 +569,11 @@ void NetworkState::displayOneLine(std::ostream& os, Network* network, const std:
   os << getName(network, sep);
 }
 
+void PopNetworkState::displayOneLine(std::ostream& os, Network* network, const std::string& sep) const
+{
+  // os << getName(network, sep);
+}
+
 std::ostream& operator<<(std::ostream& os, const BNException& e)
 {
   os << "BooleanNetwork exception: " << e.getMessage() << '\n';

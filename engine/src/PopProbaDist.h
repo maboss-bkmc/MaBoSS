@@ -36,79 +36,118 @@
 #############################################################################
 
    Module:
-     RunConfig.h
+    PopProbaDist.h
 
    Authors:
-     Eric Viara <viara@sysra.com>
-     Gautier Stoll <gautier.stoll@curie.fr>
      Vincent Noël <vincent.noel@curie.fr>
  
    Date:
-     January-March 2011
+     March 2021
 */
 
-#ifndef _RUNCONFIG_H_
-#define _RUNCONFIG_H_
+#ifndef _POPPROBADIST_H_
+#define _POPPROBADIST_H_
 
-#include "RandomGenerator.h"
+#include <assert.h>
+#include <string>
+#include <map>
+#include <vector>
+#include <iostream>
+
 #include "BooleanNetwork.h"
-class MaBEstEngine;
-class PopMaBEstEngine;
-class FinalStateSimulationEngine;
+// class StatDistDisplayer;
 
-class RunConfig {
+#define CLUSTER_OPTIM
 
-  mutable RandomGeneratorFactory* randgen_factory;
-  double time_tick;
-  double max_time;
-  unsigned int sample_count;
-  bool discrete_time;
-  bool use_physrandgen;
-  bool use_glibcrandgen;
-  bool use_mtrandgen;
-  int seed_pseudorand;
-  bool display_traj;
-  unsigned int thread_count;
-  unsigned int statdist_traj_count;
-  double statdist_cluster_threshold;
-  unsigned int statdist_similarity_cache_max_size;
-  void dump_perform(Network* network, std::ostream& os, bool is_template) const;
+class PopProbaDist {
+ 
+  STATE_MAP<PopNetworkState_Impl, double, PopNetworkState_ImplHash, PopNetworkState_ImplEquality> mp;
 
  public:
-  RunConfig();
-  ~RunConfig();
-  
-  int parse(Network* network, const char* file = NULL);
-  int parseExpression(Network* network, const char* expr);
-  void setParameter(const std::string& param, double value);
+ 
+ PopProbaDist() {
+   mp = STATE_MAP<PopNetworkState_Impl, double, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>();
+ }
 
-  RandomGeneratorFactory* getRandomGeneratorFactory() const;
-  double getTimeTick() const {return time_tick;}
-  double getMaxTime() const {return max_time;}
-  unsigned int getSampleCount() const {return sample_count;}
-  bool isDiscreteTime() const {return discrete_time;}
-  int getSeedPseudoRandom() const {return seed_pseudorand;}
-  void setSeedPseudoRandom(int seed) { seed_pseudorand = seed;}
-  void display(Network* network, time_t start_time, time_t end_time, MaBEstEngine& mabest, std::ostream& os) const;
-  void display(Network* network, time_t start_time, time_t end_time, PopMaBEstEngine& mabest, std::ostream& os) const;
-  void display(Network* network, time_t start_time, time_t end_time, FinalStateSimulationEngine& engine, std::ostream& os) const;
-  bool displayTrajectories() const {return display_traj;}
-  unsigned int getThreadCount() const {return thread_count;}
-  unsigned int getStatDistTrajCount() const {return statdist_traj_count <= sample_count ? statdist_traj_count : sample_count;}
-  double getStatdistClusterThreshold() const {return statdist_cluster_threshold;}
-  unsigned int getStatDistSimilarityCacheMaxSize() const {return statdist_similarity_cache_max_size;}
+  size_t size() const {
+    return mp.size();
+  }
 
-  void generateTemplate(Network* network, std::ostream& os) const;
-  void dump(Network* network, std::ostream& os) const;
+  void incr(const PopNetworkState_Impl& state, double tm_slice) {
+    STATE_MAP<PopNetworkState_Impl, double, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::iterator proba_iter = mp.find(state);
+    if (proba_iter == mp.end()) {
+      mp[state] = tm_slice;
+    } else {
+      (*proba_iter).second += tm_slice;
+    }
+  }
+
+  void clear() {
+    mp.clear();
+  }
+
+  void set(const PopNetworkState_Impl& state, double tm_slice) {
+    mp[state] = tm_slice;
+  }
+
+  bool hasState(const PopNetworkState_Impl& state, double& tm_slice) const {
+    STATE_MAP<PopNetworkState_Impl, double, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::const_iterator iter = mp.find(state);
+    if (iter != mp.end()) {
+      tm_slice = (*iter).second;
+      return true;
+    }
+    return false;
+  }
+
+  class Iterator {
+    
+    const PopProbaDist& proba_dist_map;
+    STATE_MAP<PopNetworkState_Impl, double, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::const_iterator iter, end;
+
+  public:
+  Iterator(const PopProbaDist& proba_dist_map) : proba_dist_map(proba_dist_map) {
+      iter = proba_dist_map.mp.begin();
+      end = proba_dist_map.mp.end();
+    }
+	
+    void rewind() {
+      iter = proba_dist_map.mp.begin();
+    }
+
+    bool hasNext() const {
+      return iter != end;
+    }
+
+    void next(PopNetworkState_Impl& state, double& tm_slice) {
+      state = (*iter).first;
+      tm_slice = (*iter).second;
+      ++iter;
+    }
+
+    void next(PopNetworkState_Impl& state) {
+      state = (*iter).first;
+      ++iter;
+    }
+
+    const PopNetworkState_Impl& next2(double& tm_slice) {
+      tm_slice = (*iter).second;
+      return (*iter++).first;
+    }
+
+    const PopNetworkState_Impl& next2() {
+      return (*iter++).first;
+    }
+
+    void next(double& tm_slice) {
+      tm_slice = (*iter).second;
+      ++iter;
+    }
+  };	
+
+  void display(std::ostream& os, Network* network, bool hexfloat) const;
+
+  Iterator iterator() {return Iterator(*this);}
+  Iterator iterator() const {return Iterator(*this);}
 };
-
-extern FILE* RCin;
-extern int RCparse();
-extern void RC_scan_expression(const char *);
-
-extern void runconfig_setNetwork(Network* network);
-extern void runconfig_setConfig(RunConfig* config);
-extern void RC_set_file(const char* file);
-extern void RC_set_expr(const char* expr);
 
 #endif

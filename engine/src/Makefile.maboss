@@ -36,11 +36,13 @@ UNAME_S := $(shell uname -s)
 ifeq ($(OS),Windows_NT)
        WINDOWS_FLAG := -DWINDOWS
        MABOSS := MaBoSS$(INFIX).exe
+       POPMABOSS := PopMaBoSS$(INFIX).exe
 	   STATIC_LIBS := -lz -lbz2 -llzma -liconv -lws2_32
 else
 	LDL_FLAG := -ldl
 	MABOSS := MaBoSS$(INFIX)
-	
+    POPMABOSS := PopMaBoSS$(INFIX)
+
 	ifeq ($(UNAME_S),Darwin)
 	   STATIC_LIBS := -lz -lbz2
 	else
@@ -62,8 +64,11 @@ MABOSS_SERVER := MaBoSS$(INFIX)-server
 MABOSS_CLIENT := MaBoSS-client
 
 MABOSS_LIBNAME = MaBoSS$(INFIX)
+POPMABOSS_LIBNAME = PopMaBoSS$(INFIX)
+
 MABOSS_LIB = lib$(MABOSS_LIBNAME).so
 MABOSS_ALIB = lib$(MABOSS_LIBNAME)-static.a
+POPMABOSS_LIB = lib$(POPMABOSS_LIBNAME).so
 
 ifeq ($(shell grep @HAS_UNORDERED_MAP maboss-config.h > /dev/null 2> /dev/null && echo OK), OK)
 EXTRA_FLAGS = -std=c++11 -Wpedantic
@@ -98,6 +103,8 @@ BISON = bison
 CHECK_FLEX  = $(FLEX) --version > /dev/null
 CHECK_BISON = $(BISON) --version > /dev/null
 
+POP_LIB_SRC := PopMaBEstEngine.cc PopCumulator.cc PopProbaDist.cc BooleanNetwork.cc Function.cc BuiltinFunctions.cc RunConfig.cc LogicalExprGen.cc Utils.cc MBDynBitset.cc PopProbTrajDisplayer.cc FixedPointDisplayer.cc
+POP_LIB_OBJS := PopMaBEstEngine$(INFIX).o PopCumulator$(INFIX).o PopProbaDist$(INFIX).o BooleanNetwork$(INFIX).o BooleanGrammar$(INFIX).o RunConfigGrammar$(INFIX).o Function$(INFIX).o BuiltinFunctions$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o Utils$(INFIX).o MBDynBitset$(INFIX).o PopProbTrajDisplayer$(INFIX).o FixedPointDisplayer$(INFIX).o
 LIB_SRC := FinalStateSimulationEngine.cc StochasticSimulationEngine.cc MetaEngine.cc MaBEstEngine.cc EnsembleEngine.cc Cumulator.cc ProbaDist.cc BooleanNetwork.cc Function.cc BuiltinFunctions.cc RunConfig.cc LogicalExprGen.cc Utils.cc MBDynBitset.cc ProbTrajDisplayer.cc StatDistDisplayer.cc FixedPointDisplayer.cc FinalStateDisplayer.cc
 LIB_OBJS := FinalStateSimulationEngine$(INFIX).o StochasticSimulationEngine$(INFIX).o MetaEngine$(INFIX).o MaBEstEngine$(INFIX).o EnsembleEngine$(INFIX).o Cumulator$(INFIX).o ProbaDist$(INFIX).o BooleanNetwork$(INFIX).o BooleanGrammar$(INFIX).o RunConfigGrammar$(INFIX).o Function$(INFIX).o BuiltinFunctions$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o Utils$(INFIX).o MBDynBitset$(INFIX).o ProbTrajDisplayer$(INFIX).o StatDistDisplayer$(INFIX).o FixedPointDisplayer$(INFIX).o FinalStateDisplayer$(INFIX).o
 SERVER_OBJS := Server$(INFIX).o DataStreamer$(INFIX).o RPC$(INFIX).o
@@ -107,12 +114,17 @@ SERVER_OBJS := Server$(INFIX).o DataStreamer$(INFIX).o RPC$(INFIX).o
 
 ifdef USE_LIB
 MABOSS_OBJS = $(MABOSS_LIB)
+POPMABOSS_OBJS = $(POPMABOSS_LIB)
 else
 MABOSS_OBJS = $(LIB_OBJS)
+POPMABOSS_OBJS = $(POP_LIB_OBJS)
 endif
 
 .PHONY: maboss
 maboss: $(MABOSS_LIB) $(FUNC_MODULE) $(MABOSS)
+
+.PHONY: popmaboss
+popmaboss: $(POPMABOSS_LIB) $(FUNC_MODULE) $(POPMABOSS)
 
 .PHONY: client
 client: $(MABOSS_CLIENT)
@@ -131,6 +143,10 @@ $(MABOSS_ALIB): $(LIB_OBJS)
 $(MABOSS_LIB): $(LIB_OBJS)
 	$(CXX) -shared -o $(MABOSS_LIB) $+ -lpthread $(LDL_FLAG) $(LDFLAGS) $(SBML_LIB)
 
+$(POPMABOSS_LIB): $(POP_LIB_OBJS)
+	$(CXX) -shared -o $(POPMABOSS_LIB) $+ -lpthread $(LDL_FLAG)
+
+
 $(FUNC_MODULE): $(FUNC_MODULE).o $(LIB_OBJS)
 	$(CXX) -shared -o $(FUNC_MODULE).so $(FUNC_MODULE).o $(LIB_OBJS) -lpthread -L.
 
@@ -144,6 +160,13 @@ ifdef USE_LIB
 	$(CXX) -o $(MABOSS) MaBoSS$(INFIX).o -l$(MABOSS_LIBNAME) -lpthread -L. $(LDL_FLAG) $(SBML_LIB) $(LDFLAGS) $(EXTRA_LDFLAGS)
 else
 	$(CXX) -o $(MABOSS) $+ -lpthread $(LDL_FLAG) $(SBML_LIB) $(LDFLAGS) $(EXTRA_LDFLAGS)
+endif
+
+$(POPMABOSS): PopMaBoSS$(INFIX).o $(POPMABOSS_OBJS)
+ifdef USE_LIB
+	$(CXX) -o $(POPMABOSS) PopMaBoSS$(INFIX).o -l$(POPMABOSS_LIBNAME) -lpthread -L. $(LDL_FLAG)
+else
+	$(CXX) -o $(POPMABOSS) $+ -lpthread $(LDL_FLAG)
 endif
 
 $(MABOSS_SERVER): MaBoSS$(INFIX)-server.o $(MABOSS_OBJS) $(SERVER_OBJS)

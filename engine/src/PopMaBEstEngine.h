@@ -36,79 +36,99 @@
 #############################################################################
 
    Module:
-     RunConfig.h
+     PopMaBEstEngine.h
 
    Authors:
-     Eric Viara <viara@sysra.com>
-     Gautier Stoll <gautier.stoll@curie.fr>
      Vincent Noël <vincent.noel@curie.fr>
- 
+
    Date:
-     January-March 2011
+     March 2021
 */
 
-#ifndef _RUNCONFIG_H_
-#define _RUNCONFIG_H_
+#ifndef _POPMABESTENGINE_H_
+#define _POPMABESTENGINE_H_
 
-#include "RandomGenerator.h"
+#include <string>
+#include <map>
+#include <vector>
+#include <assert.h>
+
+// #include "MetaEngine.h"
 #include "BooleanNetwork.h"
-class MaBEstEngine;
-class PopMaBEstEngine;
-class FinalStateSimulationEngine;
+#include "PopCumulator.h"
+#include "RandomGenerator.h"
+#include "RunConfig.h"
+#include "FixedPointDisplayer.h"
+#include "PopProbTrajDisplayer.h"
 
-class RunConfig {
+struct ArgWrapper;
 
-  mutable RandomGeneratorFactory* randgen_factory;
+class PopMaBEstEngine {
+
+
+
+  Network* network;
+  RunConfig* runconfig;
+
   double time_tick;
   double max_time;
   unsigned int sample_count;
   bool discrete_time;
-  bool use_physrandgen;
-  bool use_glibcrandgen;
-  bool use_mtrandgen;
-  int seed_pseudorand;
-  bool display_traj;
   unsigned int thread_count;
-  unsigned int statdist_traj_count;
-  double statdist_cluster_threshold;
-  unsigned int statdist_similarity_cache_max_size;
-  void dump_perform(Network* network, std::ostream& os, bool is_template) const;
-
- public:
-  RunConfig();
-  ~RunConfig();
   
-  int parse(Network* network, const char* file = NULL);
-  int parseExpression(Network* network, const char* expr);
-  void setParameter(const std::string& param, double value);
+  PopNetworkState reference_state;
+  unsigned int refnode_count;
 
-  RandomGeneratorFactory* getRandomGeneratorFactory() const;
-  double getTimeTick() const {return time_tick;}
-  double getMaxTime() const {return max_time;}
-  unsigned int getSampleCount() const {return sample_count;}
-  bool isDiscreteTime() const {return discrete_time;}
-  int getSeedPseudoRandom() const {return seed_pseudorand;}
-  void setSeedPseudoRandom(int seed) { seed_pseudorand = seed;}
-  void display(Network* network, time_t start_time, time_t end_time, MaBEstEngine& mabest, std::ostream& os) const;
-  void display(Network* network, time_t start_time, time_t end_time, PopMaBEstEngine& mabest, std::ostream& os) const;
-  void display(Network* network, time_t start_time, time_t end_time, FinalStateSimulationEngine& engine, std::ostream& os) const;
-  bool displayTrajectories() const {return display_traj;}
-  unsigned int getThreadCount() const {return thread_count;}
-  unsigned int getStatDistTrajCount() const {return statdist_traj_count <= sample_count ? statdist_traj_count : sample_count;}
-  double getStatdistClusterThreshold() const {return statdist_cluster_threshold;}
-  unsigned int getStatDistSimilarityCacheMaxSize() const {return statdist_similarity_cache_max_size;}
+  mutable long long elapsed_core_runtime, user_core_runtime, elapsed_statdist_runtime, user_statdist_runtime, elapsed_epilogue_runtime, user_epilogue_runtime;
+  STATE_MAP<NetworkState_Impl, unsigned int> fixpoints;
+  std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*> fixpoint_map_v;
+  
+  PopCumulator* merged_cumulator;
+  std::vector<PopCumulator*> cumulator_v;
 
-  void generateTemplate(Network* network, std::ostream& os) const;
-  void dump(Network* network, std::ostream& os) const;
+  STATE_MAP<NetworkState_Impl, unsigned int>* mergeFixpointMaps();
+
+public:
+
+
+public:
+  static const std::string VERSION;
+  
+  PopMaBEstEngine(Network* network, RunConfig* runconfig);
+
+  void run(std::ostream* output_traj);
+
+  ~PopMaBEstEngine();
+  
+  static void init();
+  static void loadUserFuncs(const char* module);
+
+  long long getElapsedCoreRunTime() const {return elapsed_core_runtime;}
+  long long getUserCoreRunTime() const {return user_core_runtime;}
+
+  long long getElapsedEpilogueRunTime() const {return elapsed_epilogue_runtime;}
+  long long getUserEpilogueRunTime() const {return user_epilogue_runtime;}
+
+  long long getElapsedStatDistRunTime() const {return elapsed_statdist_runtime;}
+  long long getUserStatDistRunTime() const {return user_statdist_runtime;}
+
+  bool converges() const {return fixpoints.size() > 0;}
+  const STATE_MAP<NetworkState_Impl, unsigned int>& getFixpoints() const {return fixpoints;}
+
+  PopCumulator* getMergedCumulator() {
+    return merged_cumulator; 
+  }
+
+  void displayFixpoints(FixedPointDisplayer* displayer) const;
+  void displayPopProbTraj(PopProbTrajDisplayer* displayer) const;
+  void display(PopProbTrajDisplayer* pop_probtraj_displayer, FixedPointDisplayer* fp_displayer) const;
+  
+  std::vector<ArgWrapper*> arg_wrapper_v;
+  NodeIndex getTargetNode(RandomGenerator* random_generator, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
+  double computeTH(const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
+  void epilogue();
+  static void* threadWrapper(void *arg);
+  void runThread(PopCumulator* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj);
 };
-
-extern FILE* RCin;
-extern int RCparse();
-extern void RC_scan_expression(const char *);
-
-extern void runconfig_setNetwork(Network* network);
-extern void runconfig_setConfig(RunConfig* config);
-extern void RC_set_file(const char* file);
-extern void RC_set_expr(const char* expr);
 
 #endif

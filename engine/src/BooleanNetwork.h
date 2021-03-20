@@ -50,6 +50,10 @@
 #ifndef _BOOLEANNETWORK_H_
 #define _BOOLEANNETWORK_H_
 
+// #include <iostream>
+// #include <functional>
+
+
 #include "maboss-config.h"
 
 #ifdef USE_DYNAMIC_BITSET
@@ -260,6 +264,68 @@ typedef MBDynBitset NetworkState_Impl;
 #else
 typedef unsigned long long NetworkState_Impl;
 #endif
+
+
+
+class PopNetworkState_Impl : public STATE_MAP<NetworkState_Impl, unsigned int> {
+  public:
+
+  long my_id;
+
+  
+  PopNetworkState_Impl() : STATE_MAP<NetworkState_Impl, unsigned int>() {
+            my_id = lrand48();
+
+  }
+  
+  PopNetworkState_Impl(NetworkState_Impl state, unsigned int value) : STATE_MAP<NetworkState_Impl, unsigned int>() {
+    
+      insert ( std::pair<NetworkState_Impl,unsigned int>(state,value) );
+  }
+  
+  PopNetworkState_Impl(const PopNetworkState_Impl& state) : STATE_MAP<NetworkState_Impl, unsigned int>((STATE_MAP<NetworkState_Impl, unsigned int>)state){ }
+  
+  PopNetworkState_Impl& operator&(const NetworkState_Impl& mask) { 
+    PopNetworkState_Impl* state= new PopNetworkState_Impl(*this);
+    return *state; }
+    
+  PopNetworkState_Impl& operator=(const PopNetworkState_Impl& state) {
+    *this = state;
+    return *this;
+  }
+  
+  bool operator<(const PopNetworkState_Impl& state) {
+    return true;
+  }
+  
+  
+  
+  
+
+    size_t id() const {
+        std::hash<long> long_hash;
+        return long_hash(my_id);
+    }
+};
+
+struct PopNetworkState_ImplHash {
+public:
+    size_t operator() (const PopNetworkState_Impl &c) const {
+        return c.id();
+    }
+};
+
+struct PopNetworkState_ImplEquality {
+public:
+    bool operator() (const PopNetworkState_Impl &a, const PopNetworkState_Impl &b) const {
+        return a.id() == b.id();
+    }
+};
+  
+
+
+// typedef STATE_MAP<NetworkState_Impl, double> PopNetworkState_Impl;
+
 
 static const std::string ATTR_RATE_UP = "rate_up";
 static const std::string ATTR_RATE_DOWN = "rate_down";
@@ -947,6 +1013,119 @@ public:
 #endif
 
 };
+// global state of the population boolean network
+class PopNetworkState {
+  PopNetworkState_Impl state;
+
+#if !defined(USE_STATIC_BITSET) && !defined(USE_BOOST_BITSET) && !defined(USE_DYNAMIC_BITSET)
+  static NetworkState_Impl nodeBit(const Node* node) {
+    return node->getNodeBit();
+  }
+
+public:
+  static NetworkState_Impl nodeBit(NodeIndex node_index) {
+    return (1ULL << node_index);
+  }
+#endif
+
+public:
+  PopNetworkState(const PopNetworkState_Impl& state) : state(state) { }
+#ifdef USE_DYNAMIC_BITSET
+  PopNetworkState(const PopNetworkState_Impl& state, int copy) : state(state, 1) { }
+#else
+  PopNetworkState(const PopNetworkState_Impl& state, int copy) : state(state) { }
+#endif
+
+#ifdef USE_STATIC_BITSET
+  PopNetworkState() { }
+#elif defined(USE_BOOST_BITSET) || defined(USE_DYNAMIC_BITSET)
+  // EV: 2020-10-23
+  //NetworkState() : state(MAXNODES) { }
+  PopNetworkState() : state(Network::getMaxNodeSize()) { }
+  // EV: 2020-12-01 would be better to create a 0-size state and then call resize dynamically
+  //NetworkState() : state(0) { }
+#else
+  PopNetworkState() : state(1, 0ULL) { }
+#endif
+
+PopNetworkState(const PopNetworkState &p ) { 
+		
+*this = p;
+}
+
+
+PopNetworkState& operator=(const PopNetworkState &p ) { 
+		
+	state = PopNetworkState_Impl(p.getState());
+	return *this;
+}
+
+
+bool operator<(const PopNetworkState &p ) { 
+		
+	return true;
+}
+
+//   NodeState getNodeState(const Node* node) const {
+// #if defined(USE_STATIC_BITSET) || defined(USE_BOOST_BITSET) || defined(USE_DYNAMIC_BITSET)
+//     return state.test(node->getIndex());
+// #else
+//     return state & nodeBit(node);
+// #endif
+//   }
+
+//   void setNodeState(const Node* node, NodeState node_state) {
+// #if defined(USE_STATIC_BITSET) || defined(USE_BOOST_BITSET) || defined(USE_DYNAMIC_BITSET)
+//     state.set(node->getIndex(), node_state);
+// #else
+//     if (node_state) {
+//       state |= nodeBit(node);
+//     } else {
+//       state &= ~nodeBit(node);
+//     }
+// #endif
+//   }
+
+//   void flipState(const Node* node) {
+// #if defined(USE_STATIC_BITSET) || defined(USE_BOOST_BITSET) || defined(USE_DYNAMIC_BITSET)
+//     //state.set(node->getIndex(), !state.test(node->getIndex()));
+//     state.flip(node->getIndex());
+// #else
+//     state ^= nodeBit(node);
+// #endif
+//   }
+
+//   // returns true if and only if there is a logical input expression that allows to compute state from input nodes
+//   bool computeNodeState(const Node* node, NodeState& node_state);
+
+#ifdef USE_DYNAMIC_BITSET
+  PopNetworkState_Impl getState(int copy) const {return PopNetworkState_Impl(state, copy);}
+#endif
+  PopNetworkState_Impl getState() const {return state;}
+
+
+  void display(std::ostream& os, Network* network) const;
+
+  // std::string getName(Network * network, const std::string& sep=" -- ") const;
+ 
+  void displayOneLine(std::ostream& os, Network* network, const std::string& sep = " -- ") const;
+
+// #ifndef USE_UNORDERED_MAP
+//   bool operator<(const NetworkState& network_state) const {
+//     return state < network_state.state;
+//   }
+// #endif
+  unsigned int hamming(Network* network, const PopNetworkState_Impl& state) const;
+
+//   static NodeState getState(Node* node, const NetworkState_Impl &state) {
+// #if defined(USE_STATIC_BITSET) || defined(USE_BOOST_BITSET) || defined(USE_DYNAMIC_BITSET)
+//     return state.test(node->getIndex());
+// #else
+//     return state & nodeBit(node);
+// #endif
+//  }
+};
+
 // abstract base class used for expression evaluation
 class Expression {
 
