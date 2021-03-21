@@ -65,6 +65,18 @@ bool Node::override = false;
 bool Node::augment = false;
 size_t Network::MAX_NODE_SIZE = 0;
 
+
+void PopNetworkState_Impl::display(Network* network, std::ostream &strm) const {
+    
+  strm << "[";
+  for (auto pop : *this) {
+    NetworkState t_state(pop.first);
+    strm << "{" << t_state.getName(network) << ":" << pop.second << "},";
+  }
+  strm << "]";
+  
+}
+
 Node::Node(const std::string& label, const std::string& description, NodeIndex index) : label(label), description(description), istate_set(false), is_internal(false), is_reference(false), referenceState(false), logicalInputExpr(NULL), rateUpExpr(NULL), rateDownExpr(NULL), index(index)
 {
 #if !defined(USE_STATIC_BITSET) && !defined(USE_BOOST_BITSET) && !defined(USE_DYNAMIC_BITSET)
@@ -307,6 +319,11 @@ void Network::initStates(NetworkState& initial_state, RandomGenerator * randgen)
   }
 }
 
+void Network::initPopStates(PopNetworkState& initial_pop_state, RandomGenerator* randgen, unsigned int pop) {
+  IStateGroup::initPopStates(this, initial_pop_state, randgen, pop);
+}
+
+
 void Network::display(std::ostream& os) const
 {
   std::vector<Node*>::const_iterator begin = nodes.begin();
@@ -541,7 +558,8 @@ void NetworkState::displayOneLine(std::ostream& os, Network* network, const std:
 
 void PopNetworkState::displayOneLine(std::ostream& os, Network* network, const std::string& sep) const
 {
-  // os << getName(network, sep);
+  
+  state.display(network, os);
 }
 
 std::ostream& operator<<(std::ostream& os, const BNException& e)
@@ -643,6 +661,21 @@ void IStateGroup::initStates(Network* network, NetworkState& initial_state, Rand
     ++istate_group_iter;
   }
 }
+
+void IStateGroup::initPopStates(Network* network, PopNetworkState& initial_state, RandomGenerator* randgen, unsigned int pop)
+{
+  // std::cout << "Declaring network state" << std::endl;
+  NetworkState state;
+  // std::cout << "Initializing network state" << std::endl;
+  initStates(network, state, randgen);
+  // std::cout << "Initialixing pop network state impl" << std::endl;
+  PopNetworkState_Impl t_pop_state = PopNetworkState_Impl(state.getState(), pop);
+  // t_pop_state.display(network, std::cout);
+  // std::cout << "Initialixing pop network state" << std::endl;
+  initial_state = PopNetworkState(t_pop_state);
+  // std::cout << "Done" << std::endl;
+}
+
 
 void IStateGroup::display(Network* network, std::ostream& os)
 {

@@ -73,7 +73,7 @@ class RunConfig {
   double statdist_cluster_threshold;
   unsigned int statdist_similarity_cache_max_size;
   void dump_perform(Network* network, std::ostream& os, bool is_template) const;
-
+  unsigned int init_pop;
  public:
   RunConfig();
   ~RunConfig();
@@ -83,6 +83,7 @@ class RunConfig {
   void setParameter(const std::string& param, double value);
 
   RandomGeneratorFactory* getRandomGeneratorFactory() const;
+  unsigned int getInitPop() const {return init_pop;}
   double getTimeTick() const {return time_tick;}
   double getMaxTime() const {return max_time;}
   unsigned int getSampleCount() const {return sample_count;}
