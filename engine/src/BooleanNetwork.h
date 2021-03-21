@@ -135,6 +135,7 @@ class NotLogicalExpression;
 class SymbolExpression;
 class ConstantExpression;
 class NetworkState;
+class PopNetworkState;
 class Network;
 class Node;
 class RandomGenerator;
@@ -272,42 +273,75 @@ class PopNetworkState_Impl : public STATE_MAP<NetworkState_Impl, unsigned int> {
 
   long my_id;
 
-  
+  // Default constructor : Empty map, random id  
   PopNetworkState_Impl() : STATE_MAP<NetworkState_Impl, unsigned int>() {
-            my_id = lrand48();
-
+    my_id = lrand48();
   }
   
-  PopNetworkState_Impl(NetworkState_Impl state, unsigned int value) : STATE_MAP<NetworkState_Impl, unsigned int>() {
-    
-      insert ( std::pair<NetworkState_Impl,unsigned int>(state,value) );
+  // Values constructor : create, and add one pop state
+  PopNetworkState_Impl(NetworkState_Impl state, unsigned int value) : PopNetworkState_Impl() {
+    insert ( std::pair<NetworkState_Impl,unsigned int>(state,value) );
   }
   
-  PopNetworkState_Impl(const PopNetworkState_Impl& state) : STATE_MAP<NetworkState_Impl, unsigned int>((STATE_MAP<NetworkState_Impl, unsigned int>)state){ }
+  // // Copy constructor : real copy
+  // PopNetworkState_Impl(PopNetworkState_Impl& state) : STATE_MAP<NetworkState_Impl, unsigned int>(state) { 
+  //   my_id = lrand48();
+  // }
   
-  PopNetworkState_Impl& operator&(const NetworkState_Impl& mask) { 
-    PopNetworkState_Impl* state= new PopNetworkState_Impl(*this);
-    return *state; }
-    
-  PopNetworkState_Impl& operator=(const PopNetworkState_Impl& state) {
+  // Copy constructor : not real copy
+  PopNetworkState_Impl(PopNetworkState_Impl& state) { 
+    std::cout << "PopNetworkState_Impl copy constructor" << std::endl;
     *this = state;
-    return *this;
   }
   
-  bool operator<(const PopNetworkState_Impl& state) {
-    return true;
+  // Copy const constructor : Real copy
+  PopNetworkState_Impl(const PopNetworkState_Impl& state) : STATE_MAP<NetworkState_Impl, unsigned int>(state) { 
+    // *this = state;
+    my_id = lrand48();
   }
   
-  
-  
-  
-
-    size_t id() const {
-        std::hash<long> long_hash;
-        return long_hash(my_id);
+  PopNetworkState_Impl operator&(NetworkState_Impl& mask) { 
+    
+    PopNetworkState_Impl state = PopNetworkState_Impl();
+    for (auto pop_state : *this) {
+      if (state.find(pop_state.first) != state.end()) {
+        state[pop_state.first] += pop_state.second;
+      } else {
+        state.insert(pop_state);  
+      }
+      
     }
-};
+    
+    // for (auto& pop_state : state) {
+    //   pop_state.first &= mask;
+    //   // t_state &= mask;
+    // }
+    return state; 
+  }
+    
+  // PopNetworkState_Impl& operator=(PopNetworkState_Impl& state) {
+  //   *this = state;
+  //   return *this;
+  // }
+  
+  // PopNetworkState_Impl& operator=(const PopNetworkState_Impl& state) {
+  //   *this = PopNetworkState_Impl(state);
+  //   return *this;
+  // }
+  
+  // bool operator<(const PopNetworkState_Impl& state) {
+  //   return true;
+  // }
+  
+  void display(Network* network, std::ostream &strm) const;
 
+  //  friend std::ostream& operator<<(std::ostream&, PopNetworkState_Impl);
+
+  size_t id() const {
+      std::hash<long> long_hash;
+      return long_hash(my_id);
+  }
+};
 struct PopNetworkState_ImplHash {
 public:
     size_t operator() (const PopNetworkState_Impl &c) const {
@@ -748,6 +782,7 @@ public:
   }
   
   void initStates(NetworkState& initial_state, RandomGenerator* randgen);
+  void initPopStates(PopNetworkState& initial_pop_state, RandomGenerator* randgen, unsigned int pop);
 
   void displayHeader(std::ostream& os) const;
 
@@ -1029,7 +1064,7 @@ public:
 #endif
 
 public:
-  PopNetworkState(const PopNetworkState_Impl& state) : state(state) { }
+  PopNetworkState(const PopNetworkState_Impl& state) : state(state){ }
 #ifdef USE_DYNAMIC_BITSET
   PopNetworkState(const PopNetworkState_Impl& state, int copy) : state(state, 1) { }
 #else
@@ -1103,7 +1138,22 @@ bool operator<(const PopNetworkState &p ) {
 #endif
   PopNetworkState_Impl getState() const {return state;}
 
+  void incr(NetworkState_Impl net_state) {
+    state[net_state]++;
+  }
 
+  void decr(NetworkState_Impl net_state) {
+    state[net_state]--;
+  }
+  
+  void init(NetworkState_Impl net_state) {
+    state[net_state] = 1;
+  }
+
+  bool exist(NetworkState_Impl net_state) {
+    
+    return state.find(net_state) != state.end();
+  }
   void display(std::ostream& os, Network* network) const;
 
   // std::string getName(Network * network, const std::string& sep=" -- ") const;
@@ -1988,6 +2038,7 @@ public:
 
   static void checkAndComplete(Network* network);
   static void initStates(Network* network, NetworkState& initial_state, RandomGenerator * randgen);
+  static void initPopStates(Network* network, PopNetworkState& initial_state, RandomGenerator* randgen, unsigned int pop);
   static void display(Network* network, std::ostream& os);
   static void reset(Network* network);
   

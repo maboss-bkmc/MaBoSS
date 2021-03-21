@@ -91,24 +91,91 @@ class PopCumulator {
       return mp.size();
     }
 
+    STATE_MAP<PopNetworkState_Impl, TickValue, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::iterator realFind(const PopNetworkState_Impl& state) {
+       
+      STATE_MAP<PopNetworkState_Impl, TickValue, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::iterator begin = mp.begin();
+      // STATE_MAP<PopNetworkState_Impl, TickValue, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::iterator end = mp.end();
+      // std::cout << "Really searching for it" << std::endl;
+      while(begin != mp.end()) {
+        // std::cout << "item : ";
+        bool identical = true;
+        for (auto s: begin->first) {
+            if (state.find(s.first) != state.end()){
+              const std::pair<const NetworkState_Impl, unsigned int> t_state = *(state.find(s.first));
+              if(t_state.second != s.second) {
+                identical = false;
+                // std::cout << "Not same pop" << std::endl;
+                break;
+              }
+            } else {
+              identical = false; 
+              // std::cout << "Not the same states" << std::endl;
+              break;
+            }
+        }
+        if (identical) {
+          // std::cout <<"Same : returning" << std::endl;
+          return begin;
+        }
+        
+        begin++;
+      }
+      return begin;
+    }
+
     void incr(const PopNetworkState_Impl& state, double tm_slice, double TH) {
-      STATE_MAP<PopNetworkState_Impl, TickValue, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::iterator iter = mp.find(state);
+      // std::cout << "Looking for pop state " << state.my_id << std::endl;
+      STATE_MAP<PopNetworkState_Impl, TickValue, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::iterator iter = realFind(state);
+    //  std::cout << "Returned results" << std::endl;
       if (iter == mp.end()) {
 	mp[state] = TickValue(tm_slice, tm_slice * TH);
       } else {
 	(*iter).second.tm_slice += tm_slice;
 	(*iter).second.TH += tm_slice * TH;
       }
+      // STATE_MAP<PopNetworkState_Impl, TickValue, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::iterator begin = mp.begin();
+      // STATE_MAP<PopNetworkState_Impl, TickValue, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::iterator end = mp.end();
+
+    // std::cout << "After incr : " << std::endl;
+      // while(begin != end) {
+        
+      //   std::cout << (*begin).first.my_id << ", " 
+      //             << (*begin).second.tm_slice << " : "
+      //             << (*begin).second.tm_slice_square
+      //             << std::endl;
+      //   begin++;
+      // }
+      
     }
 
     void cumulTMSliceSquare(const PopNetworkState_Impl& state, double tm_slice) {
-      STATE_MAP<PopNetworkState_Impl, TickValue, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::iterator iter = mp.find(state);
+      // std::cout << "Entering cumulTMSliceSquare" << std::endl;
+      //  STATE_MAP<PopNetworkState_Impl, TickValue, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::iterator begin = mp.begin();
+      // STATE_MAP<PopNetworkState_Impl, TickValue, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::iterator end = mp.end();
+    
+    
+      // while(begin != end) {
+        
+      //   std::cout << (*begin).first.my_id << ", " 
+      //             << (*begin).second.tm_slice << " : "
+      //             << (*begin).second.tm_slice_square
+      //             << std::endl;
+      //   begin++;
+      // }
+    // std::cout << "Looking for " << state.my_id << std::endl;
+      STATE_MAP<PopNetworkState_Impl, TickValue, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::iterator iter = realFind(state);
+      // std::cout << "Made iterator" << std::endl;
       assert(iter != mp.end());
+      // std::cout << "Computing tm slice square" << std::endl;
+      // std::cout << (*iter).first.my_id << std::endl;
+      // std::cout << (*iter).second.tm_slice << std::endl;
+      // std::cout << (*iter).second.tm_slice_square << std::endl;
       (*iter).second.tm_slice_square += tm_slice * tm_slice;
+      // std::cout << "Done" << std::endl;
     }
     
     void add(const PopNetworkState_Impl& state, const TickValue& tick_value) {
-      STATE_MAP<PopNetworkState_Impl, TickValue, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::iterator iter = mp.find(state);
+      STATE_MAP<PopNetworkState_Impl, TickValue, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::iterator iter = realFind(state);
       if (iter == mp.end()) {
 	mp[state] = tick_value;
       } else {
@@ -371,20 +438,27 @@ public:
 
   void next() {
     if (tick_index < max_size) {
-      STATE_MAP<PopNetworkState_Impl, LastTickValue, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::iterator begin = last_tick_map.begin();
-      STATE_MAP<PopNetworkState_Impl, LastTickValue, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::iterator end = last_tick_map.end();
+      STATE_MAP<PopNetworkState_Impl, LastTickValue, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::const_iterator begin = last_tick_map.begin();
+      STATE_MAP<PopNetworkState_Impl, LastTickValue, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::const_iterator end = last_tick_map.end();
       PopCumulMap& mp = get_map();
       double TH = 0.0;
       while (begin != end) {
-	//NetworkState_Impl state = (*begin).first;
-	const PopNetworkState_Impl& state = (*begin).first;
+	// PopNetworkState_Impl state = (*begin).first;
+  // std::cout << "Getting the state" << std::endl;
+	PopNetworkState_Impl state = (*begin).first;
+  // std::cout << state.my_id << std::endl;
+  // std::cout << "Getting the tm slice" << std::endl;
 	double tm_slice = (*begin).second.tm_slice;
+  // std::cout << "tm slice = " << tm_slice << std::endl;
+  // std::cout << "Adding th" << std::endl;
 	TH += (*begin).second.TH;
+  // std::cout << "Computing TMSliceSquare" << std::endl;
 	if (POP_COMPUTE_ERRORS) {
-	  mp.cumulTMSliceSquare(state, tm_slice);
-	}
+    mp.cumulTMSliceSquare(state, tm_slice);
+  }
 	++begin;
       }
+      // std::cout << "Loop over" << std::endl;
       if (POP_COMPUTE_ERRORS) {
 	TH_square_v[tick_index] += TH * TH;
       }
@@ -401,18 +475,26 @@ public:
     PopNetworkState_Impl fullstate(network_state.getState());
 #endif
     PopNetworkState_Impl state(fullstate & output_mask);
+    
+    // std::cout << "Created new (masked) state to cumul : " << state.my_id << std::endl;
     double time_1 = cumultime(tick_index+1);
     if (tm < time_1) {
       incr(state, tm - last_tm, TH, fullstate);
       last_tm = tm;
+      
       return;
     }
 
+    // std::cout << "First increase" << std::endl;
     if (!incr(state, time_1 - last_tm, TH, fullstate)) {
       last_tm = tm;
       return;
     }
+    
+    // std::cout << "Second increase" << std::endl;
     next();
+    
+    // std::cout << "next" << std::endl;
 
     for (; cumultime(tick_index+1) < tm; next()) {
       if (!incr(state, time_tick, TH, fullstate)) {
@@ -420,8 +502,11 @@ public:
 	return;
       }
     }
+    
+    // std::cout << "Previous last increase" << std::endl;
       
     incr(state, tm - cumultime(), TH, fullstate);
+    // std::cout << "last increase" << std::endl;
     last_tm = tm;
   }
 

@@ -58,13 +58,6 @@
 
 extern void RClex_destroy();
 
-class MaBEstEngine;
-class EnsembleEngine;
-class FinalStateSimulationEngine;
-const std::string MaBEstEngine::VERSION;
-const std::string EnsembleEngine::VERSION;
-const std::string FinalStateSimulationEngine::VERSION;
-
 RunConfig::RunConfig()
 {
   time_tick = 0.5;
@@ -82,6 +75,7 @@ RunConfig::RunConfig()
   statdist_traj_count = 0;
   statdist_cluster_threshold = 1.0;
   statdist_similarity_cache_max_size = 20000;
+  init_pop = 1;
 }
 
 RunConfig::~RunConfig()
@@ -98,6 +92,8 @@ void RunConfig::setParameter(const std::string& param, double value)
     max_time = value;
   } else if (!strcasecmp(str, "sample_count")) {
     sample_count = (int)value;
+  } else if (!strcasecmp(str, "init_pop")) {
+    init_pop = (unsigned int)value;
   } else if (!strcasecmp(str, "discrete_time")) {
     discrete_time = (bool)value;
   } else if (!strcasecmp(str, "use_physrandgen")) {

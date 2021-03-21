@@ -58,8 +58,10 @@
 #include "Utils.h"
 #include "ProbTrajDisplayer.h"
 #include "StatDistDisplayer.h"
+#include "RandomGenerator.h"
 
 const char* prog = "MaBoSS";
+size_t RandomGenerator::generated_number_count = 0;
 
 static int usage(std::ostream& os = std::cerr)
 {

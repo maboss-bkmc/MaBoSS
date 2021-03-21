@@ -81,33 +81,31 @@ void PopCumulator::trajectoryEpilogue()
 {
   assert(sample_num < sample_count);
 
-  // Commenting for now
-  // PopProbaDist::Iterator curtraj_proba_dist_iter = curtraj_proba_dist.iterator();
+  PopProbaDist::Iterator curtraj_proba_dist_iter = curtraj_proba_dist.iterator();
 
   double proba_max_time = 0.;
-  // Commenting for now
-  // while (curtraj_proba_dist_iter.hasNext()) {
-  //   double tm_slice;
-  //   curtraj_proba_dist_iter.next(tm_slice);
-  //   proba_max_time += tm_slice;
-  // }
+  while (curtraj_proba_dist_iter.hasNext()) {
+    double tm_slice;
+    curtraj_proba_dist_iter.next(tm_slice);
+    proba_max_time += tm_slice;
+  }
 
-  // //std::cout << "Trajepilogue #" << (sample_num+1) << " " << proba_max_time << '\n';
-  // double proba = 0;
-  // curtraj_proba_dist_iter.rewind();
+  //std::cout << "Trajepilogue #" << (sample_num+1) << " " << proba_max_time << '\n';
+  double proba = 0;
+  curtraj_proba_dist_iter.rewind();
 
-  // ProbaDist& proba_dist = proba_dist_v[sample_num++];
-  // while (curtraj_proba_dist_iter.hasNext()) {
-  //   PopNetworkState_Impl state;
-  //   double tm_slice;
-  //   curtraj_proba_dist_iter.next(state, tm_slice);
-  //   //assert(proba_dist.find(state) == proba_dist.end());
-  //   double new_tm_slice = tm_slice / proba_max_time;
-  //   proba_dist.set(state, new_tm_slice);
-  //   proba += new_tm_slice;
-  // }
+  PopProbaDist& proba_dist = proba_dist_v[sample_num++];
+  while (curtraj_proba_dist_iter.hasNext()) {
+    PopNetworkState_Impl state;
+    double tm_slice;
+    curtraj_proba_dist_iter.next(state, tm_slice);
+    //assert(proba_dist.find(state) == proba_dist.end());
+    double new_tm_slice = tm_slice / proba_max_time;
+    proba_dist.set(state, new_tm_slice);
+    proba += new_tm_slice;
+  }
 
-  // assert(proba >= 0.9999 && proba <= 1.0001);
+  assert(proba >= 0.9999 && proba <= 1.0001);
 }
 
 void PopCumulator::computeMaxTickIndex()
@@ -316,6 +314,7 @@ void PopCumulator::add(unsigned int where, const HDPopCumulMap& add_hd_cumul_map
 
 PopCumulator* PopCumulator::mergePopCumulators(RunConfig* runconfig, std::vector<PopCumulator*>& cumulator_v)
 {
+  std::cout << "Merging cumulators" << std::endl;
   size_t size = cumulator_v.size();
   if (1 == size) {
     PopCumulator* cumulator = cumulator_v[0];
@@ -363,11 +362,11 @@ PopCumulator* PopCumulator::mergePopCumulators(RunConfig* runconfig, std::vector
     }
     
     // Commenting for now
-    // unsigned int proba_dist_size = cumulator->proba_dist_v.size();
-    // for (unsigned int ii = 0; ii < proba_dist_size; ++ii) {
-    //   assert(ret_cumul->proba_dist_v.size() > rr);
-    //   ret_cumul->proba_dist_v[rr++] = cumulator->proba_dist_v[ii];
-    // }
+    unsigned int proba_dist_size = cumulator->proba_dist_v.size();
+    for (unsigned int ii = 0; ii < proba_dist_size; ++ii) {
+      assert(ret_cumul->proba_dist_v.size() > rr);
+      ret_cumul->proba_dist_v[rr++] = cumulator->proba_dist_v[ii];
+    }
     ++begin;
   }
   return ret_cumul;

@@ -52,8 +52,10 @@
 #include <stdlib.h>
 #include "Utils.h"
 #include "PopProbTrajDisplayer.h"
+#include "RandomGenerator.h"
 
 const char* prog = "PopMaBoSS";
+size_t RandomGenerator::generated_number_count = 0;
 
 static int usage(std::ostream& os = std::cerr)
 {
@@ -163,6 +165,7 @@ int main(int argc, char* argv[])
 
   for (int nn = 1; nn < argc; ++nn) {
     const char* s = argv[nn];
+    std::cout << "Arg : " << s << std::endl;
     if (s[0] == '-') {
       if (!strcmp(s, "-version") || !strcmp(s, "--version") || !strcmp(s, "-V")) { // keep -version for backward compatibility
 	std::cout << prog << " version " + PopMaBEstEngine::VERSION << " [networks up to " << MAXNODES << " nodes]\n";
@@ -222,6 +225,8 @@ int main(int argc, char* argv[])
 	std::cerr << '\n' << prog << ": unknown option " << s << std::endl;
 	return usage();
       }
+    } else if (ctbndl_file == NULL) {
+      ctbndl_file = argv[nn];
     } else {
       std::cerr << '\n' << prog << ": boolean network file is already set to " << ctbndl_file << " [" << s << "]" << std::endl;
     }
@@ -339,7 +344,8 @@ int main(int argc, char* argv[])
 
     output_run = new std::ofstream((std::string(output) + "_run.txt").c_str());
     output_fp = new std::ofstream((std::string(output) + "_fp" + format_extension(format)).c_str());
-
+    output_pop_probtraj = new std::ofstream((std::string(output) + "_pop_probtraj" + format_extension(format)).c_str());
+    
     time(&start_time);
     PopMaBEstEngine mabest(network, runconfig);
     mabest.run(output_traj);
