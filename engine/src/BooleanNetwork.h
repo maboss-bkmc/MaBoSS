@@ -288,54 +288,65 @@ class PopNetworkState_Impl : public STATE_MAP<NetworkState_Impl, unsigned int> {
   //   my_id = lrand48();
   // }
   
-  // Copy constructor : not real copy
-  PopNetworkState_Impl(PopNetworkState_Impl& state) { 
-    std::cout << "PopNetworkState_Impl copy constructor" << std::endl;
+  // // Copy constructor : not real copy
+  // PopNetworkState_Impl(PopNetworkState_Impl& state) { 
+  //   *this = state;
+  // }
+  
+  // Copy const constructor : Real copy
+  PopNetworkState_Impl(const PopNetworkState_Impl& state) { 
     *this = state;
   }
   
-  // Copy const constructor : Real copy
-  PopNetworkState_Impl(const PopNetworkState_Impl& state) : STATE_MAP<NetworkState_Impl, unsigned int>(state) { 
-    // *this = state;
+  // PopNetworkState_Impl& operator=(PopNetworkState_Impl& state) {
+  //   STATE_MAP<NetworkState_Impl, unsigned int>::operator=(state);
+  //   return *this;
+  // }
+  
+  PopNetworkState_Impl& operator=(const PopNetworkState_Impl& state) {
+    STATE_MAP<NetworkState_Impl, unsigned int>::operator=(state);
     my_id = lrand48();
+    return *this;
   }
   
+  
+  // & operator for applying the mask
   PopNetworkState_Impl operator&(NetworkState_Impl& mask) { 
     
     PopNetworkState_Impl state = PopNetworkState_Impl();
-    for (auto pop_state : *this) {
-      if (state.find(pop_state.first) != state.end()) {
-        state[pop_state.first] += pop_state.second;
+    for (auto network_state : *this) {
+      if (state.find(network_state.first) != state.end()) {
+        state[network_state.first] += network_state.second;
       } else {
-        state.insert(pop_state);  
-      }
-      
+        state.insert(network_state);  
+      } 
     }
     
-    // for (auto& pop_state : state) {
-    //   pop_state.first &= mask;
-    //   // t_state &= mask;
-    // }
     return state; 
   }
-    
-  // PopNetworkState_Impl& operator=(PopNetworkState_Impl& state) {
-  //   *this = state;
-  //   return *this;
-  // }
   
-  // PopNetworkState_Impl& operator=(const PopNetworkState_Impl& state) {
-  //   *this = PopNetworkState_Impl(state);
-  //   return *this;
-  // }
-  
-  // bool operator<(const PopNetworkState_Impl& state) {
-  //   return true;
-  // }
+  // Equality between population network states
+  bool equal(const PopNetworkState_Impl& pop_state) const {
+    bool identical = true;
+    for (auto network_state: pop_state) {
+        if (find(network_state.first) != end()){
+          // const std::pair<const NetworkState_Impl, unsigned int> t_state = *(find(network_state.first));
+          if((*(find(network_state.first))).second != network_state.second) {
+            identical = false;
+            // std::cout << "Not same pop" << std::endl;
+            break;
+          }
+        } else {
+          identical = false; 
+          // std::cout << "Not the same states" << std::endl;
+          break;
+        }
+    }
+    return identical;
+
+  }
   
   void display(Network* network, std::ostream &strm) const;
-
-  //  friend std::ostream& operator<<(std::ostream&, PopNetworkState_Impl);
 
   size_t id() const {
       std::hash<long> long_hash;
@@ -352,7 +363,7 @@ public:
 struct PopNetworkState_ImplEquality {
 public:
     bool operator() (const PopNetworkState_Impl &a, const PopNetworkState_Impl &b) const {
-        return a.id() == b.id();
+        return a.equal(b);
     }
 };
   
@@ -820,6 +831,41 @@ public:
   ~Network();
 };
 
+class PopNetwork : public Network {
+  public:
+  
+  Expression* divisionRate;
+  Expression* deathRate;
+  
+  PopNetwork();
+
+  PopNetwork(const PopNetwork& network);
+  PopNetwork& operator=(const PopNetwork& network);
+
+  int parse(const char* file = NULL, std::map<std::string, NodeIndex>* nodes_indexes = NULL, bool is_temp_file = false);
+  
+  void setDivisionRate(Expression* expr) {
+    if (expr == NULL){
+      std::cout << "NULL" << std::endl;
+    }
+    divisionRate = expr;
+  }
+  
+  const Expression* getDivisionRate() const { return divisionRate; }
+  double getDivisionRate(const NetworkState& state) const;
+  
+  void setDeathRate(Expression* expr) {
+    if (expr == NULL) {
+      std::cout << "NULL" << std::endl;
+    }
+    deathRate = expr;
+  }
+
+  const Expression* getDeathRate() const { return deathRate; }
+  double getDeathRate(const NetworkState& state) const;
+
+};
+
 // global state of the boolean network
 class NetworkState {
   NetworkState_Impl state;
@@ -1096,10 +1142,10 @@ PopNetworkState& operator=(const PopNetworkState &p ) {
 }
 
 
-bool operator<(const PopNetworkState &p ) { 
+// bool operator<(const PopNetworkState &p ) { 
 		
-	return true;
-}
+// 	return true;
+// }
 
 //   NodeState getNodeState(const Node* node) const {
 // #if defined(USE_STATIC_BITSET) || defined(USE_BOOST_BITSET) || defined(USE_DYNAMIC_BITSET)
@@ -1139,41 +1185,26 @@ bool operator<(const PopNetworkState &p ) {
   PopNetworkState_Impl getState() const {return state;}
 
   void incr(NetworkState_Impl net_state) {
-    state[net_state]++;
+    if (exists(net_state))
+      state[net_state]++;
+    else
+      state[net_state] = 1;
   }
 
   void decr(NetworkState_Impl net_state) {
     state[net_state]--;
   }
   
-  void init(NetworkState_Impl net_state) {
-    state[net_state] = 1;
-  }
-
-  bool exist(NetworkState_Impl net_state) {
-    
+  bool exists(NetworkState_Impl net_state) {
     return state.find(net_state) != state.end();
   }
+  
   void display(std::ostream& os, Network* network) const;
 
-  // std::string getName(Network * network, const std::string& sep=" -- ") const;
- 
   void displayOneLine(std::ostream& os, Network* network, const std::string& sep = " -- ") const;
 
-// #ifndef USE_UNORDERED_MAP
-//   bool operator<(const NetworkState& network_state) const {
-//     return state < network_state.state;
-//   }
-// #endif
-  unsigned int hamming(Network* network, const PopNetworkState_Impl& state) const;
+ unsigned int hamming(Network* network, const PopNetworkState_Impl& state) const;
 
-//   static NodeState getState(Node* node, const NetworkState_Impl &state) {
-// #if defined(USE_STATIC_BITSET) || defined(USE_BOOST_BITSET) || defined(USE_DYNAMIC_BITSET)
-//     return state.test(node->getIndex());
-// #else
-//     return state & nodeBit(node);
-// #endif
-//  }
 };
 
 // abstract base class used for expression evaluation

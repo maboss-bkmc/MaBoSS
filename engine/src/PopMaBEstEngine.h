@@ -68,7 +68,7 @@ class PopMaBEstEngine {
 
 
 
-  Network* network;
+  PopNetwork* pop_network;
   RunConfig* runconfig;
 
   double time_tick;
@@ -95,7 +95,7 @@ public:
 public:
   static const std::string VERSION;
   
-  PopMaBEstEngine(Network* network, RunConfig* runconfig);
+  PopMaBEstEngine(PopNetwork* pop_network, RunConfig* runconfig);
 
   void run(std::ostream* output_traj);
 

@@ -131,6 +131,8 @@ Network::Network() : last_index(0U)
   symbol_table = new SymbolTable();
 }
 
+PopNetwork::PopNetwork() : Network() { deathRate = NULL; divisionRate = NULL;}
+
 int Network::parseExpression(const char* content, std::map<std::string, NodeIndex>* nodes_indexes){
   
   set_current_network(this);
@@ -230,6 +232,32 @@ int Network::parseSBML(const char* file, std::map<std::string, NodeIndex>* nodes
 }
 
 #endif
+
+
+
+int PopNetwork::parse(const char* file, std::map<std::string, NodeIndex>* nodes_indexes, bool is_temp_file)
+{
+  set_pop_network(this);
+  int res = Network::parse(file, nodes_indexes, is_temp_file);
+  
+  set_pop_network(NULL);
+  return res;
+}
+
+double PopNetwork::getDivisionRate(const NetworkState& state) const {
+  if (divisionRate != NULL)
+    return divisionRate->eval(NULL, state);
+  else
+    return 0.;
+} 
+
+
+double PopNetwork::getDeathRate(const NetworkState& state) const {
+  if (deathRate != NULL)
+    return deathRate->eval(NULL, state);
+  else
+    return 0.;
+} 
 
 
 void SymbolTable::display(std::ostream& os, bool check) const
@@ -694,16 +722,10 @@ void IStateGroup::initStates(Network* network, NetworkState& initial_state, Rand
 
 void IStateGroup::initPopStates(Network* network, PopNetworkState& initial_state, RandomGenerator* randgen, unsigned int pop)
 {
-  // std::cout << "Declaring network state" << std::endl;
   NetworkState state;
-  // std::cout << "Initializing network state" << std::endl;
   initStates(network, state, randgen);
-  // std::cout << "Initialixing pop network state impl" << std::endl;
   PopNetworkState_Impl t_pop_state = PopNetworkState_Impl(state.getState(), pop);
-  // t_pop_state.display(network, std::cout);
-  // std::cout << "Initialixing pop network state" << std::endl;
   initial_state = PopNetworkState(t_pop_state);
-  // std::cout << "Done" << std::endl;
 }
 
 
@@ -815,6 +837,17 @@ void Network::cloneIStateGroup(std::vector<IStateGroup*>* _istate_group_list)
   {
     new IStateGroup(istate_group, this);
   }
+}
+
+PopNetwork::PopNetwork(const PopNetwork& pop_network) {
+  *this = pop_network;
+}
+
+PopNetwork& PopNetwork::operator=(const PopNetwork& pop_network) {
+  Network::operator=(pop_network);
+  deathRate = pop_network.getDeathRate()->clone();
+  divisionRate = pop_network.getDivisionRate()->clone();
+  return *this;
 }
 
 void SymbolTable::reset()

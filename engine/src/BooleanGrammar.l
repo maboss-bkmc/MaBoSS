@@ -83,6 +83,18 @@ exppart		[eE](\-|\+)?[0-9]+
   if (!strcasecmp(yytext, "NODE")) {
      return NODE;
   }
+  if (!strcasecmp(yytext, "DIVISION")) {
+     return DIVISION;
+  }
+  if (!strcasecmp(yytext, "DEATH")) {
+     return DEATH;
+  }
+  if (!strcasecmp(yytext, "RATE")) {
+     return RATE;
+  }
+  if (!strcasecmp(yytext, ".DAUGHTER")) {
+     return DAUGHTER;
+  }
   yylval.str = strdup(yytext);
   return IDENTIFIER;
 }
