@@ -53,6 +53,7 @@
 extern int yylex();
 static void yyerror(const char *s);
 static Network* current_network;
+static PopNetwork* current_pop_network;
 %}
 
 %union {
@@ -70,7 +71,13 @@ static Network* current_network;
 %type<node_decl> node_decl
 %type<node_decl_item_list> node_decl_item_list
 %type<node_decl_item> node_decl_item
-
+%type<expr> division_decl
+%type<expr> division_item_list
+%type<expr> division_item
+%type<expr> division_decl_rate
+%type<expr> division_decl_daughter
+%type<expr> death_decl
+%type<expr> death_decl_rate
 %type<expr> primary_expression 
 %type<expr> postfix_expression 
 %type<expr> unary_expression 
@@ -90,14 +97,22 @@ static Network* current_network;
 %token<d> DOUBLE
 %token<l> INTEGER
 
-%token LOGAND LOGOR LOGXOR LOGNOT EQUAL NOT_EQUAL NODE GTEQ LTEQ
+%token LOGAND LOGOR LOGXOR LOGNOT EQUAL NOT_EQUAL NODE GTEQ LTEQ DIVISION DEATH RATE DAUGHTER
 
 %%
 
-translation_unit: node_decl
+translation_unit: decl
 {
 }
-| translation_unit node_decl
+| translation_unit decl
+{
+}
+;
+
+decl: node_decl
+{
+}
+| division_decl
 {
 }
 ;
@@ -164,6 +179,51 @@ node_decl_item: IDENTIFIER '=' expression ';'
 }
 ;
 
+division_decl: DIVISION '{' division_item_list '}'
+{
+}
+;
+
+division_item_list: division_item
+{
+}
+division_item_list: division_item_list division_item
+{
+}
+;
+
+division_item: division_decl_rate
+{
+}
+| division_decl_daughter
+{
+}
+;
+
+division_decl_rate: RATE '=' expression ';'
+{
+  // std::cout << "Rate of division : " << $3 << std::endl;
+  current_pop_network->setDivisionRate($3);
+}
+;
+
+division_decl_daughter: IDENTIFIER DAUGHTER INTEGER '=' expression ';'
+{  
+} 
+;
+
+death_decl: DEATH '{' death_decl_rate '}'
+{
+}
+;
+
+death_decl_rate: RATE '=' expression ';'
+{
+  // std::cout << "Rate of death : " << $3 << std::endl;
+  current_pop_network->setDeathRate($3);
+}
+;
+
 primary_expression: IDENTIFIER
 {
   Node* node = current_network->getOrMakeNode($1);
@@ -183,6 +243,7 @@ primary_expression: IDENTIFIER
 | INTEGER
 {
   $$ = new ConstantExpression($1);
+  
 }
 | DOUBLE
 {
@@ -374,4 +435,14 @@ void set_current_network(Network* network)
 Network* get_current_network()
 {
   return current_network;
+}
+
+void set_pop_network(PopNetwork* pop_network)
+{
+  current_pop_network = pop_network;
+}
+
+PopNetwork* get_pop_network()
+{
+  return current_pop_network;
 }

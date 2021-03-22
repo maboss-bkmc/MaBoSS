@@ -63,6 +63,7 @@
 
 Server* Server::server;
 static const char* RPC_portname;
+size_t RandomGenerator::generated_number_count = 0;
 
 static void unlink_tempfiles_handler(int sig)
 {

@@ -94,27 +94,9 @@ class PopCumulator {
     STATE_MAP<PopNetworkState_Impl, TickValue, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::iterator realFind(const PopNetworkState_Impl& state) {
        
       STATE_MAP<PopNetworkState_Impl, TickValue, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::iterator begin = mp.begin();
-      // STATE_MAP<PopNetworkState_Impl, TickValue, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::iterator end = mp.end();
-      // std::cout << "Really searching for it" << std::endl;
+      
       while(begin != mp.end()) {
-        // std::cout << "item : ";
-        bool identical = true;
-        for (auto s: begin->first) {
-            if (state.find(s.first) != state.end()){
-              const std::pair<const NetworkState_Impl, unsigned int> t_state = *(state.find(s.first));
-              if(t_state.second != s.second) {
-                identical = false;
-                // std::cout << "Not same pop" << std::endl;
-                break;
-              }
-            } else {
-              identical = false; 
-              // std::cout << "Not the same states" << std::endl;
-              break;
-            }
-        }
-        if (identical) {
-          // std::cout <<"Same : returning" << std::endl;
+        if (state.equal(begin->first)) {
           return begin;
         }
         

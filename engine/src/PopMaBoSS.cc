@@ -286,19 +286,22 @@ int main(int argc, char* argv[])
     time_t start_time, end_time;
 
     
-    Network* network = new Network();
+    // Network* network = new Network();
 
-    network->parse(ctbndl_file);
+    // network->parse(ctbndl_file);
+
+    PopNetwork* pop_network = new PopNetwork();
+    pop_network->parse(ctbndl_file);
 
     RunConfig* runconfig = new RunConfig();
 
     if (generate_config_template) {
-      IStateGroup::checkAndComplete(network);
-      runconfig->generateTemplate(network, std::cout);
+      IStateGroup::checkAndComplete(pop_network);
+      runconfig->generateTemplate(pop_network, std::cout);
       return 0;
     }
 
-    if (setConfigVariables(network, prog, runconfig_var_v)) {
+    if (setConfigVariables(pop_network, prog, runconfig_var_v)) {
       return 1;
     }      
 
@@ -307,28 +310,28 @@ int main(int argc, char* argv[])
     while (begin != end) {
       const ConfigOpt& cfg = *begin;
       if (cfg.isExpr()) {
-        runconfig->parseExpression(network, (cfg.getExpr() + ";").c_str());
+        runconfig->parseExpression(pop_network, (cfg.getExpr() + ";").c_str());
       } else {
-        runconfig->parse(network, cfg.getFile().c_str());
+        runconfig->parse(pop_network, cfg.getFile().c_str());
       }
       ++begin;
     }
 
-    IStateGroup::checkAndComplete(network);
+    IStateGroup::checkAndComplete(pop_network);
 
-    network->getSymbolTable()->checkSymbols();
+    pop_network->getSymbolTable()->checkSymbols();
 
     if (check) {
       return 0;
     }
 
     if (generate_logical_expressions) {
-      network->generateLogicalExpressions(std::cout);
+      pop_network->generateLogicalExpressions(std::cout);
       return 0;
     }
 
     if (dump_config) {
-      runconfig->dump(network, std::cout);
+      runconfig->dump(pop_network, std::cout);
       return 0;
     }
 
@@ -347,19 +350,19 @@ int main(int argc, char* argv[])
     output_pop_probtraj = new std::ofstream((std::string(output) + "_pop_probtraj" + format_extension(format)).c_str());
     
     time(&start_time);
-    PopMaBEstEngine mabest(network, runconfig);
+    PopMaBEstEngine mabest(pop_network, runconfig);
     mabest.run(output_traj);
     
     PopProbTrajDisplayer* pop_probtraj_displayer;
     FixedPointDisplayer* fp_displayer;
     
     if (format == CSV_FORMAT) {
-      pop_probtraj_displayer = new CSVPopProbTrajDisplayer(network, *output_pop_probtraj, hexfloat);
-      fp_displayer = new CSVFixedPointDisplayer(network, *output_fp, hexfloat);
+      pop_probtraj_displayer = new CSVPopProbTrajDisplayer(pop_network, *output_pop_probtraj, hexfloat);
+      fp_displayer = new CSVFixedPointDisplayer(pop_network, *output_fp, hexfloat);
     } else if (format == JSON_FORMAT) {
-      pop_probtraj_displayer = new JSONPopProbTrajDisplayer(network, *output_pop_probtraj, hexfloat);
+      pop_probtraj_displayer = new JSONPopProbTrajDisplayer(pop_network, *output_pop_probtraj, hexfloat);
       // Use CSV displayer for fixed points as the Json one is not fully implemented
-      fp_displayer = new CSVFixedPointDisplayer(network, *output_fp, hexfloat);
+      fp_displayer = new CSVFixedPointDisplayer(pop_network, *output_fp, hexfloat);
     } else {
       pop_probtraj_displayer = NULL;
       fp_displayer = NULL;
@@ -369,7 +372,7 @@ int main(int argc, char* argv[])
     
     time(&end_time);
 
-    runconfig->display(network, start_time, end_time, mabest, *output_run);
+    runconfig->display(pop_network, start_time, end_time, mabest, *output_run);
 
     ((std::ofstream*)output_run)->close();
     delete output_run;
@@ -385,7 +388,8 @@ int main(int argc, char* argv[])
     delete output_fp;
   
     delete runconfig;
-    delete network;
+    // delete network;
+    delete pop_network;
 
     Function::destroyFuncMap();  
     

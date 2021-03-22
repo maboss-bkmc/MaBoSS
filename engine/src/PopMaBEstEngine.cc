@@ -63,7 +63,7 @@ static const char *MABOSS_USER_FUNC_INIT = "maboss_user_func_init";
 const std::string PopMaBEstEngine::VERSION = "0.0.1";
 // extern size_t RandomGenerator::generated_number_count;
 
-PopMaBEstEngine::PopMaBEstEngine(Network *network, RunConfig *runconfig) : network(network), runconfig(runconfig),
+PopMaBEstEngine::PopMaBEstEngine(PopNetwork *pop_network, RunConfig *runconfig) : pop_network(pop_network), runconfig(runconfig),
                                                                            time_tick(runconfig->getTimeTick()),
                                                                            max_time(runconfig->getMaxTime()),
                                                                            sample_count(runconfig->getSampleCount()),
@@ -81,7 +81,7 @@ PopMaBEstEngine::PopMaBEstEngine(Network *network, RunConfig *runconfig) : netwo
     std::cerr << "Warning: non reentrant random, may not work properly in multi-threaded mode\n";
   }
 
-  const std::vector<Node *> &nodes = network->getNodes();
+  const std::vector<Node *> &nodes = pop_network->getNodes();
   std::vector<Node *>::const_iterator begin = nodes.begin();
   std::vector<Node *>::const_iterator end = nodes.end();
 
@@ -125,16 +125,14 @@ PopMaBEstEngine::PopMaBEstEngine(Network *network, RunConfig *runconfig) : netwo
 
 PopNetworkState_Impl PopMaBEstEngine::getTargetNode(RandomGenerator *random_generator, const STATE_MAP<PopNetworkState_Impl, double, PopNetworkState_ImplHash, PopNetworkState_ImplEquality> popNodeTransitionRates, double total_rate) const
 {
-  std::cout << ">> Choosing next state" << std::endl;
   double U_rand2 = random_generator->generate();
   double random_rate = U_rand2 * total_rate;
   STATE_MAP<PopNetworkState_Impl, double, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::const_iterator begin = popNodeTransitionRates.begin();
   STATE_MAP<PopNetworkState_Impl, double, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::const_iterator end = popNodeTransitionRates.end();
-  // NodeIndex node_idx = INVALID_NODE_INDEX;
+
   PopNetworkState_Impl result = PopNetworkState_Impl();
   while (begin != end && random_rate > 0.)
   {
-    std::cout << ">>> " << begin->first.my_id << std::endl;
     double rate = begin->second;
     random_rate -= rate;
     result = begin->first;
@@ -143,14 +141,6 @@ PopNetworkState_Impl PopMaBEstEngine::getTargetNode(RandomGenerator *random_gene
   }
 
   return result;
-  //   node_idx = (*begin).first;
-  //   double rate = (*begin).second;
-  //   random_rate -= rate;
-  // }
-
-  // assert(node_idx != INVALID_NODE_INDEX);
-  // assert(network->getNode(node_idx)->getIndex() == node_idx);
-  // return node_idx;
 }
 
 double PopMaBEstEngine::computeTH(const MAP<NodeIndex, double> &nodeTransitionRates, double total_rate) const
@@ -169,7 +159,7 @@ double PopMaBEstEngine::computeTH(const MAP<NodeIndex, double> &nodeTransitionRa
   {
     NodeIndex index = (*begin).first;
     double rate = (*begin).second;
-    if (network->getNode(index)->isInternal())
+    if (pop_network->getNode(index)->isInternal())
     {
       rate_internal += rate;
     }
@@ -184,7 +174,7 @@ double PopMaBEstEngine::computeTH(const MAP<NodeIndex, double> &nodeTransitionRa
   {
     NodeIndex index = (*begin).first;
     double rate = (*begin).second;
-    if (!network->getNode(index)->isInternal())
+    if (!pop_network->getNode(index)->isInternal())
     {
       double proba = rate / total_rate_non_internal;
       TH -= log2(proba) * proba;
@@ -231,7 +221,7 @@ void *PopMaBEstEngine::threadWrapper(void *arg)
 
 void PopMaBEstEngine::runThread(PopCumulator *cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory *randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int> *fixpoint_map, std::ostream *output_traj)
 {
-  const std::vector<Node *> &nodes = network->getNodes();
+  const std::vector<Node *> &nodes = pop_network->getNodes();
   // std::vector<Node*>::const_iterator begin = nodes.begin();
   // std::vector<Node*>::const_iterator end = nodes.end();
   unsigned int stable_cnt = 0;
@@ -246,7 +236,7 @@ void PopMaBEstEngine::runThread(PopCumulator *cumulator, unsigned int start_coun
     std::cout << "> New simulation" << std::endl;
     // network->initStates(network_state, random_generator);
     // std::cout << "Initializing pop state" << std::endl;
-    network->initPopStates(pop_network_state, random_generator, runconfig->getInitPop());
+    pop_network->initPopStates(pop_network_state, random_generator, runconfig->getInitPop());
     // std::cout << "Done" << std::endl;
     double tm = 0.;
     unsigned int step = 0;
@@ -261,7 +251,7 @@ void PopMaBEstEngine::runThread(PopCumulator *cumulator, unsigned int start_coun
       double total_rate = 0.;
 
       std::cout << ">> Present state : ";
-      pop_network_state.getState().display(network, std::cout);
+      pop_network_state.getState().display(pop_network, std::cout);
       std::cout << std::endl;
 
       STATE_MAP<PopNetworkState_Impl, double, PopNetworkState_ImplHash, PopNetworkState_ImplEquality> popNodeTransitionRates;
@@ -325,35 +315,42 @@ void PopMaBEstEngine::runThread(PopCumulator *cumulator, unsigned int start_coun
               new_network_state.flipState(node);
               // std::cout << "S' state : " << new_network_state.getName(network) << std::endl;
 
-              if (!new_pop_network_state.exist(new_network_state.getState()))
-              {
-                new_pop_network_state.init(new_network_state.getState());
-              }
-              else
-              {
-                // std::cout << "IT ALREADY EXISTS !@!!!" << std::endl;
-                new_pop_network_state.incr(new_network_state.getState());
-              }
-              // std::cout << "After incr or create";
-              // new_pop_network_state.getState().display(network, std::cout);
-              // std::cout << std::endl;
+              new_pop_network_state.incr(new_network_state.getState());
               
-              // std::cout << "New pop state : ";
-              // new_pop_network_state.getState().display(network, std::cout);
-              // std::cout << std::endl;
               // ψ'(S'') ≡ ψ(S'' ), ∀S'' != (S, S')
               // Done by initial copy
 
               // Compute the transition rate ρψ→ψ' using
               // ρψ→ψ' ≡ ψ(S)ρS→S'
               nodeTransitionRate *= pop_network_state.getState()[t_network_state.getState()];
+              // nodeTransitionRate *= pop.second;
 
               total_rate += nodeTransitionRate;
               // Put (ψ' , ρψ→ψ' ) in Ω
               popNodeTransitionRates.insert(std::pair<PopNetworkState_Impl, double>(new_pop_network_state.getState(), nodeTransitionRate));
             }
           }
+          
+          double rate_division = pop_network->getDivisionRate(pop.first);
+          if (rate_division > 0){
+            rate_division *= pop.second;
+            total_rate += rate_division;
 
+            PopNetworkState new_pop_network_state = PopNetworkState(pop_network_state);
+            new_pop_network_state.incr(t_network_state.getState());
+            popNodeTransitionRates.insert(std::pair<PopNetworkState_Impl, double>(new_pop_network_state.getState(), rate_division));
+          }
+          
+          double rate_death = pop_network->getDeathRate(pop.first);
+          if (rate_death > 0){
+            rate_death *= pop.second;
+            total_rate += rate_death;
+            
+            PopNetworkState new_pop_network_state = PopNetworkState(pop_network_state);
+            new_pop_network_state.decr(t_network_state.getState());
+            popNodeTransitionRates.insert(std::pair<PopNetworkState_Impl, double>(new_pop_network_state.getState(), rate_death));
+          }
+          
           if (total_pop_rate == 0)
           {
             if (fixpoint_map->find(t_network_state.getState()) == fixpoint_map->end())
@@ -373,7 +370,7 @@ void PopMaBEstEngine::runThread(PopCumulator *cumulator, unsigned int start_coun
       {
         std::cout << " >>> Transition : ";
         // PopNetworkState_Impl t_state = transition.first;
-        transition.first.display(network, std::cout);
+        transition.first.display(pop_network, std::cout);
         std::cout << ", proba=" << transition.second << std::endl;
       }
       double TH;
@@ -499,7 +496,7 @@ STATE_MAP<NetworkState_Impl, unsigned int> *PopMaBEstEngine::mergeFixpointMaps()
 void PopMaBEstEngine::epilogue()
 {
   merged_cumulator = PopCumulator::mergePopCumulators(runconfig, cumulator_v);
-  merged_cumulator->epilogue(network, reference_state);
+  merged_cumulator->epilogue(pop_network, reference_state);
 
   for (auto t_cumulator : cumulator_v)
     delete t_cumulator;
@@ -608,7 +605,7 @@ void PopMaBEstEngine::displayFixpoints(FixedPointDisplayer *displayer) const
 
 void PopMaBEstEngine::displayPopProbTraj(PopProbTrajDisplayer *displayer) const
 {
-  merged_cumulator->displayPopProbTraj(network, refnode_count, displayer);
+  merged_cumulator->displayPopProbTraj(pop_network, refnode_count, displayer);
 }
 
 void PopMaBEstEngine::display(PopProbTrajDisplayer *pop_probtraj_displayer, FixedPointDisplayer *fp_displayer) const
