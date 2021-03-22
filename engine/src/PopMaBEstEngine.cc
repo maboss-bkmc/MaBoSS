@@ -272,7 +272,7 @@ void PopMaBEstEngine::runThread(PopCumulator *cumulator, unsigned int start_coun
             NodeIndex node_idx = node->getIndex();
             if (node->getNodeState(t_network_state))
             {
-              double r_down = node->getRateDown(t_network_state);
+              double r_down = node->getRateDown(t_network_state, pop_network_state);
               if (r_down != 0.0)
               {
                 total_pop_rate += r_down;
@@ -281,7 +281,7 @@ void PopMaBEstEngine::runThread(PopCumulator *cumulator, unsigned int start_coun
             }
             else
             {
-              double r_up = node->getRateUp(t_network_state);
+              double r_up = node->getRateUp(t_network_state, pop_network_state);
               if (r_up != 0.0)
               {
                 total_pop_rate += r_up;
@@ -331,17 +331,20 @@ void PopMaBEstEngine::runThread(PopCumulator *cumulator, unsigned int start_coun
             }
           }
           
-          double rate_division = pop_network->getDivisionRate(pop.first);
-          if (rate_division > 0){
-            rate_division *= pop.second;
-            total_rate += rate_division;
-
-            PopNetworkState new_pop_network_state = PopNetworkState(pop_network_state);
-            new_pop_network_state.incr(t_network_state.getState());
-            popNodeTransitionRates.insert(std::pair<PopNetworkState_Impl, double>(new_pop_network_state.getState(), rate_division));
-          }
           
-          double rate_death = pop_network->getDeathRate(pop.first);
+          // Here only looking at the first defined division... for now
+          std::vector<double> rate_divisions = pop_network->getDivisionRates(pop.first, pop_network_state);
+          for (auto rate_division: rate_divisions) {
+            if (rate_division > 0){
+              rate_division *= pop.second;
+              total_rate += rate_division;
+
+              PopNetworkState new_pop_network_state = PopNetworkState(pop_network_state);
+              new_pop_network_state.incr(t_network_state.getState());
+              popNodeTransitionRates.insert(std::pair<PopNetworkState_Impl, double>(new_pop_network_state.getState(), rate_division));
+            }
+          }
+          double rate_death = pop_network->getDeathRate(pop.first, pop_network_state);
           if (rate_death > 0){
             rate_death *= pop.second;
             total_rate += rate_death;
@@ -371,7 +374,7 @@ void PopMaBEstEngine::runThread(PopCumulator *cumulator, unsigned int start_coun
         std::cout << " >>> Transition : ";
         // PopNetworkState_Impl t_state = transition.first;
         transition.first.display(pop_network, std::cout);
-        std::cout << ", proba=" << transition.second << std::endl;
+        std::cout << ", proba=" << (int)(100*transition.second/total_rate) << std::endl;
       }
       double TH;
       if (total_rate == 0)

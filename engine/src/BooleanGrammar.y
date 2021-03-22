@@ -96,7 +96,7 @@ static PopNetwork* current_pop_network;
 %token<d> DOUBLE
 %token<l> INTEGER
 
-%token LOGAND LOGOR LOGXOR LOGNOT EQUAL NOT_EQUAL NODE GTEQ LTEQ DIVISION DEATH RATE DAUGHTER
+%token LOGAND LOGOR LOGXOR LOGNOT EQUAL NOT_EQUAL NODE GTEQ LTEQ DIVISION DEATH RATE DAUGHTER CELL_NUMBER
 
 %%
 
@@ -112,6 +112,9 @@ decl: node_decl
 {
 }
 | division_decl
+{
+}
+| death_decl
 {
 }
 ;
@@ -215,7 +218,7 @@ division_item: division_decl_rate
 division_decl_rate: RATE '=' expression ';'
 {
   // std::cout << "Rate of division : " << $3 << std::endl;
-  current_pop_network->setDivisionRate($3);
+  current_pop_network->addDivisionRate($3);
 }
 ;
 
@@ -264,6 +267,10 @@ primary_expression: IDENTIFIER
 | '(' expression ')'
 {
   $$ = new ParenthesisExpression($2);
+}
+| '#' CELL_NUMBER '(' expression ')'
+{
+  $$ = new PopExpression($4);
 }
 ;
 

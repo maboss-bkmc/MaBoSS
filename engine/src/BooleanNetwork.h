@@ -559,6 +559,8 @@ class Node {
 
   double getRateUp(const NetworkState& network_state) const;
   double getRateDown(const NetworkState& network_state) const;
+  double getRateUp(const NetworkState& network_state, const PopNetworkState& pop) const;
+  double getRateDown(const NetworkState& network_state, const PopNetworkState& pop) const;
   NodeState getNodeState(const NetworkState& network_state) const;
   void setNodeState(NetworkState& network_state, NodeState state);
 
@@ -834,7 +836,7 @@ public:
 class PopNetwork : public Network {
   public:
   
-  Expression* divisionRate;
+  std::vector<Expression*> divisionRates;
   Expression* deathRate;
   
   PopNetwork();
@@ -844,15 +846,15 @@ class PopNetwork : public Network {
 
   int parse(const char* file = NULL, std::map<std::string, NodeIndex>* nodes_indexes = NULL, bool is_temp_file = false);
   
-  void setDivisionRate(Expression* expr) {
+  void addDivisionRate(Expression* expr) {
     if (expr == NULL){
       std::cout << "NULL" << std::endl;
     }
-    divisionRate = expr;
+    divisionRates.push_back(expr);
   }
   
-  const Expression* getDivisionRate() const { return divisionRate; }
-  double getDivisionRate(const NetworkState& state) const;
+  const std::vector<Expression*> getDivisionRates() const { return divisionRates; }
+  std::vector<double> getDivisionRates(const NetworkState& state, const PopNetworkState& pop) const;
   
   void setDeathRate(Expression* expr) {
     if (expr == NULL) {
@@ -862,7 +864,7 @@ class PopNetwork : public Network {
   }
 
   const Expression* getDeathRate() const { return deathRate; }
-  double getDeathRate(const NetworkState& state) const;
+  double getDeathRate(const NetworkState& state, const PopNetworkState& pop) const;
 
 };
 
@@ -1141,44 +1143,6 @@ PopNetworkState& operator=(const PopNetworkState &p ) {
 	return *this;
 }
 
-
-// bool operator<(const PopNetworkState &p ) { 
-		
-// 	return true;
-// }
-
-//   NodeState getNodeState(const Node* node) const {
-// #if defined(USE_STATIC_BITSET) || defined(USE_BOOST_BITSET) || defined(USE_DYNAMIC_BITSET)
-//     return state.test(node->getIndex());
-// #else
-//     return state & nodeBit(node);
-// #endif
-//   }
-
-//   void setNodeState(const Node* node, NodeState node_state) {
-// #if defined(USE_STATIC_BITSET) || defined(USE_BOOST_BITSET) || defined(USE_DYNAMIC_BITSET)
-//     state.set(node->getIndex(), node_state);
-// #else
-//     if (node_state) {
-//       state |= nodeBit(node);
-//     } else {
-//       state &= ~nodeBit(node);
-//     }
-// #endif
-//   }
-
-//   void flipState(const Node* node) {
-// #if defined(USE_STATIC_BITSET) || defined(USE_BOOST_BITSET) || defined(USE_DYNAMIC_BITSET)
-//     //state.set(node->getIndex(), !state.test(node->getIndex()));
-//     state.flip(node->getIndex());
-// #else
-//     state ^= nodeBit(node);
-// #endif
-//   }
-
-//   // returns true if and only if there is a logical input expression that allows to compute state from input nodes
-//   bool computeNodeState(const Node* node, NodeState& node_state);
-
 #ifdef USE_DYNAMIC_BITSET
   PopNetworkState_Impl getState(int copy) const {return PopNetworkState_Impl(state, copy);}
 #endif
@@ -1199,6 +1163,8 @@ PopNetworkState& operator=(const PopNetworkState &p ) {
     return state.find(net_state) != state.end();
   }
   
+  unsigned int count(Expression * expr) const;
+  
   void display(std::ostream& os, Network* network) const;
 
   void displayOneLine(std::ostream& os, Network* network, const std::string& sep = " -- ") const;
@@ -1212,6 +1178,8 @@ class Expression {
 
 public:
   virtual double eval(const Node* this_node, const NetworkState& network_state) const = 0;
+  virtual double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop_state) const = 0;
+  
   virtual bool hasCycle(Node* node) const = 0;
 
   std::string toString() const {
@@ -1256,6 +1224,10 @@ public:
     return (double)node->getNodeState(network_state);
   }
 
+  double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop_state) const {
+    return (double)node->getNodeState(network_state);
+  }
+
   bool hasCycle(Node* node) const {
     return this->node == node;
   }
@@ -1270,6 +1242,40 @@ public:
 
   ~NodeExpression() {
     //delete node;
+  }
+};
+
+class PopExpression : public Expression {
+  Expression* expr;
+
+public:
+  PopExpression(Expression* expr) : expr(expr) { }
+
+  Expression* clone() const {return new PopExpression(expr);}
+
+  double eval(const Node* this_node, const NetworkState& network_state) const {
+    return 0.;
+  }
+
+  double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop_state) const {
+    return (double) pop_state.count(expr);
+  }
+  
+  bool hasCycle(Node* node) const {
+    return false;
+  }
+
+  void display(std::ostream& os) const {
+    os << "#cell(";
+    expr->display(os);
+    os << ")";
+  }
+
+  bool isLogicalExpression() const {return true;}
+
+  void generateLogicalExpression(LogicalExprGenContext& genctx) const;
+
+  ~PopExpression() {
   }
 };
 
@@ -1308,6 +1314,10 @@ public:
   double eval(const Node* this_node, const NetworkState& network_state) const {
     return left->eval(this_node, network_state) * right->eval(this_node, network_state);
   }
+  
+  double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop) const {
+    return left->eval(this_node, network_state, pop) * right->eval(this_node, network_state, pop);
+  }
 
   void display(std::ostream& os) const {
     os <<  "(";
@@ -1329,6 +1339,10 @@ public:
 
   double eval(const Node* this_node, const NetworkState& network_state) const {
     return left->eval(this_node, network_state) / right->eval(this_node, network_state);
+  }
+  
+  double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop) const {
+    return left->eval(this_node, network_state, pop) / right->eval(this_node, network_state, pop);
   }
 
   void display(std::ostream& os) const {
@@ -1354,6 +1368,10 @@ public:
     return left->eval(this_node, network_state) + right->eval(this_node, network_state);
   }
 
+  double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop) const {
+    return left->eval(this_node, network_state, pop) + right->eval(this_node, network_state, pop);
+  }
+
   void display(std::ostream& os) const {
     os <<  "(";
     left->display(os);
@@ -1375,7 +1393,11 @@ public:
   double eval(const Node* this_node, const NetworkState& network_state) const {
     return left->eval(this_node, network_state) - right->eval(this_node, network_state);
   }
-
+  
+  double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop) const {
+    return left->eval(this_node, network_state, pop) - right->eval(this_node, network_state, pop);
+  }
+  
   void display(std::ostream& os) const {
     os <<  "(";
     left->display(os);
@@ -1398,6 +1420,10 @@ public:
     return left->eval(this_node, network_state) == right->eval(this_node, network_state);
   }
 
+  double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop) const {
+    return left->eval(this_node, network_state, pop) == right->eval(this_node, network_state, pop);
+  }
+  
   void display(std::ostream& os) const {
     os <<  "(";
     left->display(os);
@@ -1420,6 +1446,10 @@ public:
 
   double eval(const Node* this_node, const NetworkState& network_state) const {
     return left->eval(this_node, network_state) != right->eval(this_node, network_state);
+  }
+
+  double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop) const {
+    return left->eval(this_node, network_state, pop) != right->eval(this_node, network_state, pop);
   }
 
   void display(std::ostream& os) const {
@@ -1446,6 +1476,10 @@ public:
     return left->eval(this_node, network_state) < right->eval(this_node, network_state);
   }
 
+  double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop) const {
+    return left->eval(this_node, network_state, pop) < right->eval(this_node, network_state, pop);
+  }
+
   void display(std::ostream& os) const {
     os <<  "(";
     left->display(os);
@@ -1468,6 +1502,10 @@ public:
 
   double eval(const Node* this_node, const NetworkState& network_state) const {
     return left->eval(this_node, network_state) <= right->eval(this_node, network_state);
+  }
+
+  double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop) const {
+    return left->eval(this_node, network_state, pop) <= right->eval(this_node, network_state, pop);
   }
 
   void display(std::ostream& os) const {
@@ -1494,6 +1532,10 @@ public:
     return left->eval(this_node, network_state) > right->eval(this_node, network_state);
   }
 
+  double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop) const {
+    return left->eval(this_node, network_state, pop) > right->eval(this_node, network_state, pop);
+  }
+
   void display(std::ostream& os) const {
     os <<  "(";
     left->display(os);
@@ -1516,6 +1558,10 @@ public:
 
   double eval(const Node* this_node, const NetworkState& network_state) const {
     return left->eval(this_node, network_state) >= right->eval(this_node, network_state);
+  }
+
+  double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop) const {
+    return left->eval(this_node, network_state, pop) >= right->eval(this_node, network_state, pop);
   }
 
   void display(std::ostream& os) const {
@@ -1550,6 +1596,13 @@ public:
       return true_expr->eval(this_node, network_state);
     }
     return false_expr->eval(this_node, network_state);
+  }
+
+  double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop) const {
+    if (0. != cond_expr->eval(this_node, network_state, pop)) {
+      return true_expr->eval(this_node, network_state, pop);
+    }
+    return false_expr->eval(this_node, network_state, pop);
   }
 
   bool hasCycle(Node* node) const {
@@ -1595,6 +1648,10 @@ public:
   double eval(const Node* this_node, const NetworkState& network_state) const {
     return value;
   }
+  
+  double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop) const {
+    return value;
+  }
 
   bool hasCycle(Node* node) const {
     return false;
@@ -1627,6 +1684,14 @@ public:
   Expression* clone() const {return new SymbolExpression(symbol_table, symbol);}
 
   double eval(const Node* this_node, const NetworkState& network_state) const {
+    if (!value_set) {
+      value = symbol_table->getSymbolValue(symbol);
+      value_set = true;
+    }
+    return value;
+  }
+  
+  double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop) const {
     if (!value_set) {
       value = symbol_table->getSymbolValue(symbol);
       value_set = true;
@@ -1678,6 +1743,20 @@ public:
     }
     throw BNException("invalid use of alias attribute @" + identifier + " in unknown node");
   }
+  
+  double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop) const {
+    if (NULL == alias_expr) {
+      alias_expr = getAliasExpression(this_node);
+    }
+    if (NULL != alias_expr) {
+      return alias_expr->eval(this_node, network_state, pop);
+    }
+    
+    if (NULL != this_node) {
+      throw BNException("invalid use of alias attribute @" + identifier + " in node " + this_node->getLabel());
+    }
+    throw BNException("invalid use of alias attribute @" + identifier + " in unknown node");
+  }
 
   bool hasCycle(Node* node) const {
     return false;
@@ -1704,6 +1783,10 @@ public:
     return (double)((bool)left->eval(this_node, network_state) || (bool)right->eval(this_node, network_state));
   }
 
+  double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop) const {
+    return (double)((bool)left->eval(this_node, network_state, pop) || (bool)right->eval(this_node, network_state, pop));
+  }
+  
   void display(std::ostream& os) const {
     os <<  "(";
     left->display(os);
@@ -1727,6 +1810,10 @@ public:
 
   double eval(const Node* this_node, const NetworkState& network_state) const {
     return (double)((bool)left->eval(this_node, network_state) && (bool)right->eval(this_node, network_state));
+  }
+
+  double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop) const {
+    return (double)((bool)left->eval(this_node, network_state, pop) && (bool)right->eval(this_node, network_state, pop));
   }
 
   bool generationWillAddParenthesis() const {return true;}
@@ -1757,6 +1844,10 @@ public:
     return (double)((bool)left->eval(this_node, network_state) ^ (bool)right->eval(this_node, network_state));
   }
 
+  double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop) const {
+    return (double)((bool)left->eval(this_node, network_state, pop) ^ (bool)right->eval(this_node, network_state, pop));
+  }
+
   void display(std::ostream& os) const {
     os <<  "(";
     left->display(os);
@@ -1781,6 +1872,10 @@ public:
 
   double eval(const Node* this_node, const NetworkState& network_state) const {
     return (double)(!((bool)expr->eval(this_node, network_state)));
+  }
+
+  double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop) const {
+    return (double)(!((bool)expr->eval(this_node, network_state, pop)));
   }
 
   bool hasCycle(Node* node) const {
@@ -1819,6 +1914,10 @@ public:
 
   double eval(const Node* this_node, const NetworkState& network_state) const {
     return expr->eval(this_node, network_state);
+  }
+
+  double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop) const {
+    return expr->eval(this_node, network_state, pop);
   }
 
   const NotLogicalExpression* asNotLogicalExpression() const {return expr->asNotLogicalExpression();}
@@ -1930,6 +2029,12 @@ public:
     return function->eval(this_node, network_state, arg_list);
   }
 
+  double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop) const {
+    if (is_const) {
+      return value;
+    }
+    return function->eval(this_node, network_state, pop, arg_list);
+  }
   void display(std::ostream& os) const {
     os <<  funname << '(';
     arg_list->display(os);
