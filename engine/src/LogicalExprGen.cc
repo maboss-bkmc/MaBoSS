@@ -136,6 +136,11 @@ void Node::generateLogicalExpression(LogicalExprGenContext& genctx) const
   delete shrinked_expr;
 }
 
+void PopExpression::generateLogicalExpression(LogicalExprGenContext& genctx) const {
+  
+}
+
+
 bool Expression::evalIfConstant(double& value) const
 {
   if (dont_shrink_logical_expressions) {

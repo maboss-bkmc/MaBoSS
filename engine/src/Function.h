@@ -58,6 +58,7 @@ class ArgumentList;
 class Expression;
 class Node;
 class NetworkState;
+class PopNetworkState;
 class Function;
 
 class Function {
@@ -83,6 +84,7 @@ public:
   void check(ArgumentList* arg_list);
 
   virtual double eval(const Node* this_node, const NetworkState& network_state, ArgumentList* arg_list) = 0;
+  virtual double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop, ArgumentList* arg_list) = 0;
 
   static void displayFunctionDescriptions(std::ostream& os);
   static std::map<std::string, Function*>* getFuncMap() {return func_map;}

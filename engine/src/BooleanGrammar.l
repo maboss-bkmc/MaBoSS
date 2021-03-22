@@ -93,6 +93,9 @@ exppart		[eE](\-|\+)?[0-9]+
   if (!strcasecmp(yytext, ".DAUGHTER")) {
      return DAUGHTER;
   }
+  if (!strcasecmp(yytext, "CELL")) {
+     return CELL_NUMBER;
+  }
   yylval.str = strdup(yytext);
   return IDENTIFIER;
 }

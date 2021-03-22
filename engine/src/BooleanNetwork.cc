@@ -126,7 +126,7 @@ Network::Network() : last_index(0U)
   symbol_table = new SymbolTable();
 }
 
-PopNetwork::PopNetwork() : Network() { deathRate = NULL; divisionRate = NULL;}
+PopNetwork::PopNetwork() : Network() { deathRate = NULL; divisionRates.clear();}
 
 int Network::parseExpression(const char* content, std::map<std::string, NodeIndex>* nodes_indexes){
   
@@ -214,17 +214,19 @@ int PopNetwork::parse(const char* file, std::map<std::string, NodeIndex>* nodes_
   return res;
 }
 
-double PopNetwork::getDivisionRate(const NetworkState& state) const {
-  if (divisionRate != NULL)
-    return divisionRate->eval(NULL, state);
-  else
-    return 0.;
+std::vector<double> PopNetwork::getDivisionRates(const NetworkState& state, const PopNetworkState& pop) const {
+  std::vector<double> rates;
+  for (auto division_rate: divisionRates) {
+    rates.push_back(division_rate->eval(NULL, state, pop));
+  }
+  
+  return rates;
 } 
 
 
-double PopNetwork::getDeathRate(const NetworkState& state) const {
+double PopNetwork::getDeathRate(const NetworkState& state, const PopNetworkState& pop) const {
   if (deathRate != NULL)
-    return deathRate->eval(NULL, state);
+    return deathRate->eval(NULL, state, pop);
   else
     return 0.;
 } 
@@ -379,6 +381,19 @@ double Node::getRateUp(const NetworkState& network_state) const
   return getRateUpExpression()->eval(this, network_state);
 }
 
+double Node::getRateUp(const NetworkState& network_state, const PopNetworkState& pop) const
+{
+  if (getRateUpExpression() == NULL) {
+    if (NULL != getLogicalInputExpression()) {
+      double d = getLogicalInputExpression()->eval(this, network_state, pop);
+      return (0.0 != d) ? 1.0 : 0.0;
+    }
+    return 0.0;
+  }
+  return getRateUpExpression()->eval(this, network_state, pop);
+}
+
+
 double Node::getRateDown(const NetworkState& network_state) const
 {
   if (getRateDownExpression() == NULL) {
@@ -390,6 +405,19 @@ double Node::getRateDown(const NetworkState& network_state) const
   }
   return getRateDownExpression()->eval(this, network_state);
 }
+
+double Node::getRateDown(const NetworkState& network_state, const PopNetworkState& pop) const
+{
+  if (getRateDownExpression() == NULL) {
+    if (NULL != getLogicalInputExpression()) {
+      double d = getLogicalInputExpression()->eval(this, network_state, pop);
+      return (0.0 != d) ? 0.0 : 1.0;
+    }
+    return 0.0;
+  }
+  return getRateDownExpression()->eval(this, network_state, pop);
+}
+
 
 void Node::mutate(double value) 
 {
@@ -589,6 +617,21 @@ void PopNetworkState::displayOneLine(std::ostream& os, Network* network, const s
   
   state.display(network, os);
 }
+
+unsigned int PopNetworkState::count(Expression * expr) const
+{
+  unsigned int res = 0;
+  if (expr != NULL) {
+    for (auto network_state_proba : state) {
+      NetworkState network_state = NetworkState(network_state_proba.first);
+      if ((bool)expr->eval(NULL, network_state)) {
+        res += network_state_proba.second;
+      }
+    }
+  }
+  return res;
+}
+
 
 std::ostream& operator<<(std::ostream& os, const BNException& e)
 {
@@ -816,7 +859,9 @@ PopNetwork::PopNetwork(const PopNetwork& pop_network) {
 PopNetwork& PopNetwork::operator=(const PopNetwork& pop_network) {
   Network::operator=(pop_network);
   deathRate = pop_network.getDeathRate()->clone();
-  divisionRate = pop_network.getDivisionRate()->clone();
+  for (auto division_rate: pop_network.getDivisionRates()) {
+    divisionRates.push_back(division_rate);
+  }
   return *this;
 }
 
