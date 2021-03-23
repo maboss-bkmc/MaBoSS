@@ -119,11 +119,6 @@ $(POPMABOSS_LIB): $(CORE_LIB_OBJS) $(POP_LIB_OBJS)
 $(FUNC_MODULE): $(FUNC_MODULE).o $(CORE_LIB_OBJS) $(LIB_OBJS)
 	$(CXX) -shared -o $(FUNC_MODULE).so $(FUNC_MODULE).o $(CORE_LIB_OBJS) $(LIB_OBJS) -lpthread -L.
 
-# $(FUNC_MODULE): $(FUNC_MODULE).o $(MABOSS_LIB)
-# 	g++ -shared -o $(FUNC_MODULE).so $(FUNC_MODULE).o -l$(MABOSS_LIBNAME) -lpthread -L.
-# #	g++ -shared -o $(FUNC_MODULE).so $(FUNC_MODULE).o -lpthread -L.
-# #	g++ -shared -o user_func.so user_func.o -weak-lmaboss -lpthread -L.
-
 $(MABOSS): MaBoSS$(INFIX).o $(MABOSS_OBJS)
 ifdef USE_LIB
 	$(CXX) -o $(MABOSS) MaBoSS$(INFIX).o -l$(MABOSS_LIBNAME) -lpthread -L. $(LDL_FLAG)
@@ -190,13 +185,13 @@ test_MBDynBitset: test_MBDynBitset.o
 	g++ -o $@ $+ $(EXTRA_FLAGS)
 
 clean: cleanobj
-	rm -f OpenMpExampleMutant OpenMpExample Test TestApi KMC $(MABOSS) $(MABOSS_CLIENT) $(MABOSS_SERVER) lex.yy.c lex.CTBNDL.cc BooleanGrammar.tab.h BooleanGrammar.tab.c BooleanGrammar.cc BooleanGrammar.tab.h lex.CTBNDL.cc lex.RC.cc RunConfigGrammar.cc RunConfigGrammar.tab.h RunConfigGrammar.tab.c BooleanGrammar.output RunConfigGrammar.output maboss-config.h
+	rm -f OpenMpExampleMutant OpenMpExample Test TestApi KMC $(MABOSS) $(POPMABOSS) $(MABOSS_CLIENT) $(MABOSS_SERVER) lex.yy.c lex.CTBNDL.cc BooleanGrammar.tab.h BooleanGrammar.tab.c BooleanGrammar.cc BooleanGrammar.tab.h lex.CTBNDL.cc lex.RC.cc RunConfigGrammar.cc RunConfigGrammar.tab.h RunConfigGrammar.tab.c BooleanGrammar.output RunConfigGrammar.output maboss-config.h
 
 cleanobj:
 	rm -f *$(INFIX).o *$(INFIX).so *$(INFIX).dylib
 
-#tar: all
-#	$(MAKE) -f Makefile.maboss tar_perform
+tar: all
+	$(MAKE) -f Makefile.maboss tar_perform
 
 tar_perform: clean
 	(cd ../..; basename=$$(basename $$(pwd)); cd ..; tar cvfz backup/$${basename}-$$(date +"20%y-%m-%d-%H%M").tgz $${basename}/engine/examples/*/*.bnd $${basename}/engine/examples/*/*.cfg $${basename}/engine/src/*.[hly] $${basename}/engine/src/*.cc $${basename}/engine/src/Makefile $${basename}/engine/src/Makefile.maboss $${basename}/engine/src/init-config.sh $${basename}/engine/tests/*.sh $${basename}/engine/tests/*.bnd $${basename}/engine/tests/*.cfg)
@@ -224,13 +219,3 @@ install_alib: $(MABOSS_ALIB)
 
 #test_dynbitset: test_dynbitset.o
 #	g++ -o $@ $+ $(EXTRA_FLAGS)
-
-#### OBSOLETE
-
-#	g++ -dynamiclib -undefined suppress -flat_namespace -o $(MABOSS_LIB) $+ -lpthread
-
-#$(MABOSS_SERVER): MaBoSS$(INFIX)-server.o MaBEstEngine$(INFIX).o Cumulator$(INFIX).o ProbaDist$(INFIX).o BooleanNetwork$(INFIX).o BooleanGrammar$(INFIX).o RunConfigGrammar$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o Server.o DataStreamer.o RPC.o Utils$(INFIX).o
-#	g++ -o $(MABOSS_SERVER) $+ -lpthread
-#$(MABOSS): MaBoSS$(INFIX).o MaBEstEngine$(INFIX).o Cumulator$(INFIX).o ProbaDist$(INFIX).o BooleanNetwork$(INFIX).o BooleanGrammar$(INFIX).o RunConfigGrammar$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o Utils$(INFIX).o
-#	g++ -o $(MABOSS) $+ -lpthread
-
