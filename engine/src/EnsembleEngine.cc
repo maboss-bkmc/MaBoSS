@@ -61,7 +61,7 @@
 const std::string EnsembleEngine::VERSION = "1.2.0";
 
 EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runconfig, bool save_individual_result, bool _random_sampling) :
-  MetaEngine(networks[0], runconfig), networks(networks), save_individual_result(save_individual_result), random_sampling(_random_sampling) {
+  ProbTrajEngine(networks[0], runconfig), networks(networks), save_individual_result(save_individual_result), random_sampling(_random_sampling) {
 
   if (thread_count > 1 && !runconfig->getRandomGeneratorFactory()->isThreadSafe()) {
     std::cerr << "Warning: non reentrant random, may not work properly in multi-threaded mode\n";
@@ -542,34 +542,6 @@ void EnsembleEngine::run(std::ostream* output_traj)
   user_epilogue_runtime = probe.user_msecs();
   delete [] tid;
 }  
-
-STATE_MAP<NetworkState_Impl, unsigned int>* MetaEngine::mergeFixpointMaps()
-{
-  if (1 == fixpoint_map_v.size()) {
-    return new STATE_MAP<NetworkState_Impl, unsigned int>(*fixpoint_map_v[0]);
-  }
-
-  STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map = new STATE_MAP<NetworkState_Impl, unsigned int>();
-  std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*>::iterator begin = fixpoint_map_v.begin();
-  std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*>::iterator end = fixpoint_map_v.end();
-  while (begin != end) {
-    STATE_MAP<NetworkState_Impl, unsigned int>* fp_map = *begin;
-    STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator b = fp_map->begin();
-    STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator e = fp_map->end();
-    while (b != e) {
-      //NetworkState_Impl state = (*b).first;
-      const NetworkState_Impl& state = (*b).first;
-      if (fixpoint_map->find(state) == fixpoint_map->end()) {
-	(*fixpoint_map)[state] = (*b).second;
-      } else {
-	(*fixpoint_map)[state] += (*b).second;
-      }
-      ++b;
-    }
-    ++begin;
-  }
-  return fixpoint_map;
-}
 
 void EnsembleEngine::mergeEnsembleFixpointMaps()
 {

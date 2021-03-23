@@ -57,7 +57,7 @@
 const std::string MaBEstEngine::VERSION = "2.3.4";
 
 MaBEstEngine::MaBEstEngine(Network* network, RunConfig* runconfig) :
-  MetaEngine(network, runconfig)
+  ProbTrajEngine(network, runconfig)
   {
 
   if (thread_count > sample_count) {
@@ -351,35 +351,6 @@ void MaBEstEngine::displayRunStats(std::ostream& os, time_t start_time, time_t e
   os << "StatDist elapsed runtime: " << (getElapsedStatDistRunTime()/1000.) << " secs using 1 thread\n\n";
   
   runconfig->display(network, start_time, end_time, os);
-}
-
-
-STATE_MAP<NetworkState_Impl, unsigned int>* MaBEstEngine::mergeFixpointMaps()
-{
-  if (1 == fixpoint_map_v.size()) {
-    return new STATE_MAP<NetworkState_Impl, unsigned int>(*fixpoint_map_v[0]);
-  }
-
-  STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map = new STATE_MAP<NetworkState_Impl, unsigned int>();
-  std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*>::iterator begin = fixpoint_map_v.begin();
-  std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*>::iterator end = fixpoint_map_v.end();
-  while (begin != end) {
-    STATE_MAP<NetworkState_Impl, unsigned int>* fp_map = *begin;
-    STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator b = fp_map->begin();
-    STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator e = fp_map->end();
-    while (b != e) {
-      //NetworkState_Impl state = (*b).first;
-      const NetworkState_Impl& state = b->first;
-      if (fixpoint_map->find(state) == fixpoint_map->end()) {
-	(*fixpoint_map)[state] = (*b).second;
-      } else {
-	(*fixpoint_map)[state] += (*b).second;
-      }
-      ++b;
-    }
-    ++begin;
-  }
-  return fixpoint_map;
 }
 
 void MaBEstEngine::epilogue()

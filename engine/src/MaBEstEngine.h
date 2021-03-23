@@ -55,7 +55,7 @@
 #include <vector>
 #include <assert.h>
 
-#include "MetaEngine.h"
+#include "ProbTrajEngine.h"
 #include "BooleanNetwork.h"
 #include "Cumulator.h"
 #include "RandomGenerator.h"
@@ -63,7 +63,7 @@
 
 struct ArgWrapper;
 
-class MaBEstEngine : public MetaEngine {
+class MaBEstEngine : public ProbTrajEngine {
 
   std::vector<ArgWrapper*> arg_wrapper_v;
   NodeIndex getTargetNode(RandomGenerator* random_generator, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
@@ -71,7 +71,7 @@ class MaBEstEngine : public MetaEngine {
   void epilogue();
   static void* threadWrapper(void *arg);
   void runThread(Cumulator* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj);
-  STATE_MAP<NetworkState_Impl, unsigned int>* mergeFixpointMaps();
+  // STATE_MAP<NetworkState_Impl, unsigned int>* mergeFixpointMaps();
 
 public:
   static const std::string VERSION;
@@ -80,6 +80,7 @@ public:
 
   void run(std::ostream* output_traj);
   void displayRunStats(std::ostream& os, time_t start_time, time_t end_time) const;
+  
   ~MaBEstEngine();
 };
 

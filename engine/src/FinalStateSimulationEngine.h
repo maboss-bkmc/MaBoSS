@@ -64,21 +64,21 @@
 
 struct FinalStateArgWrapper;
 
-class FinalStateSimulationEngine {
+class FinalStateSimulationEngine : public MetaEngine {
   
-  Network* network;
-  RunConfig* runconfig;
+  // Network* network;
+  // RunConfig* runconfig;
 
-  double time_tick;
-  double max_time;
-  unsigned int sample_count;
-  bool discrete_time;
-  unsigned int thread_count;
+  // double time_tick;
+  // double max_time;
+  // unsigned int sample_count;
+  // bool discrete_time;
+  // unsigned int thread_count;
   bool has_internal = false;
   NetworkState internal_state;
 
-  NetworkState reference_state;
-  unsigned int refnode_count;
+  // NetworkState reference_state;
+  // unsigned int refnode_count;
 
   std::vector<unsigned int> sample_count_per_thread;
 

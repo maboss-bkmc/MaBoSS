@@ -53,7 +53,7 @@
 #include <vector>
 #include <assert.h>
 
-#include "MetaEngine.h"
+#include "ProbTrajEngine.h"
 #include "BooleanNetwork.h"
 #include "Cumulator.h"
 #include "RandomGenerator.h"
@@ -61,7 +61,7 @@
 
 struct EnsembleArgWrapper;
 
-class EnsembleEngine : public MetaEngine {
+class EnsembleEngine : public ProbTrajEngine {
 
   std::vector<Network*> networks;
   std::vector<Cumulator*> cumulators_per_model; // The final Cumulators for each model

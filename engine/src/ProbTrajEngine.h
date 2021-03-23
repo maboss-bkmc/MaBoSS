@@ -45,8 +45,8 @@
      March 2019
 */
 
-#ifndef _METAENGINE_H_
-#define _METAENGINE_H_
+#ifndef _PROBTRAJENGINE_H_
+#define _PROBTRAJENGINE_H_
 
 #include <string>
 #include <map>
@@ -54,6 +54,7 @@
 #include <assert.h>
 
 #include "BooleanNetwork.h"
+#include "FixedPointEngine.h"
 #include "Cumulator.h"
 #include "RandomGenerator.h"
 #include "RunConfig.h"
@@ -61,57 +62,46 @@
 
 struct EnsembleArgWrapper;
 
-class MetaEngine {
+class ProbTrajEngine : public FixedPointEngine {
 
 protected:
-
-  Network* network;
-  RunConfig* runconfig;
-
-  double time_tick;
-  double max_time;
-  unsigned int sample_count;
-  bool discrete_time;
-  unsigned int thread_count;
   
-  NetworkState reference_state;
-  unsigned int refnode_count;
-
-  mutable long long elapsed_core_runtime, user_core_runtime, elapsed_statdist_runtime, user_statdist_runtime, elapsed_epilogue_runtime, user_epilogue_runtime;
-  
-  // STATE_MAP<NetworkState_Impl, unsigned int> fixpoints;
-  // std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*> fixpoint_map_v;
-  // STATE_MAP<NetworkState_Impl, unsigned int>* mergeFixpointMaps();
+  Cumulator* merged_cumulator;
+  std::vector<Cumulator*> cumulator_v;
 
 public:
 
-  MetaEngine(Network* network, RunConfig* runconfig) : 
-    network(network), runconfig(runconfig),
-    time_tick(runconfig->getTimeTick()), 
-    max_time(runconfig->getMaxTime()), 
-    sample_count(runconfig->getSampleCount()), 
-    discrete_time(runconfig->isDiscreteTime()), 
-    thread_count(runconfig->getThreadCount()) {}
+  ProbTrajEngine(Network* network, RunConfig* runconfig) : FixedPointEngine(network, runconfig) {}
+  
+  const std::map<double, STATE_MAP<NetworkState_Impl, double> > getStateDists() const;
+  const STATE_MAP<NetworkState_Impl, double> getNthStateDist(int nn) const;
+  const STATE_MAP<NetworkState_Impl, double> getAsymptoticStateDist() const;
 
-  static void init();
-  static void loadUserFuncs(const char* module);
+  Cumulator* getMergedCumulator() {
+    return merged_cumulator; 
+  }
 
-  long long getElapsedCoreRunTime() const {return elapsed_core_runtime;}
-  long long getUserCoreRunTime() const {return user_core_runtime;}
+  const std::map<double, std::map<Node *, double> > getNodesDists() const;
+  const std::map<Node*, double> getNthNodesDist(int nn) const;
+  const std::map<Node*, double> getAsymptoticNodesDist() const;
 
-  long long getElapsedEpilogueRunTime() const {return elapsed_epilogue_runtime;}
-  long long getUserEpilogueRunTime() const {return user_epilogue_runtime;}
+  const std::map<double, double> getNodeDists(Node * node) const;
+  double getNthNodeDist(Node * node, int nn) const;
+  double getAsymptoticNodeDist(Node * node) const;
+  
+  int getMaxTickIndex() const {return merged_cumulator->getMaxTickIndex();} 
+  const double getFinalTime() const;
 
-  long long getElapsedStatDistRunTime() const {return elapsed_statdist_runtime;}
-  long long getUserStatDistRunTime() const {return user_statdist_runtime;}
+  void display(std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat = false) const;
+  void displayStatDist(std::ostream& output_statdist, bool hexfloat = false) const;
+  void displayProbTraj(std::ostream& output_probtraj, bool hexfloat = false) const;
+  void displayAsymptotic(std::ostream& output_asymptprob, bool hexfloat = false, bool proba = true) const;
 
-  // bool converges() const {return fixpoints.size() > 0;}
-  // const STATE_MAP<NetworkState_Impl, unsigned int>& getFixpoints() const {return fixpoints;}
-  // const std::map<unsigned int, std::pair<NetworkState, double> > getFixPointsDists() const;
+  void displayProbTraj(ProbTrajDisplayer* displayer) const;
+  void displayStatDist(StatDistDisplayer* output_statdist) const;
 
-  // void displayFixpoints(std::ostream& output_fp, bool hexfloat = false) const;
-  // void displayFixpoints(FixedPointDisplayer* displayer) const;
-
+  void display(ProbTrajDisplayer* probtraj_displayer, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat = false) const;
+  void display(ProbTrajDisplayer* probtraj_displayer, StatDistDisplayer* statdist_displayer, FixedPointDisplayer* fp_displayer) const;
 };
 
 #endif

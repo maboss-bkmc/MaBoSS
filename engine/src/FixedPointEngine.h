@@ -36,81 +36,50 @@
 #############################################################################
 
    Module:
-     MetaEngine.h
+     FixedPointEngine.h
 
    Authors:
      Vincent Noel <contact@vincent-noel.fr>
  
    Date:
-     March 2019
+     March 2021
 */
 
-#ifndef _METAENGINE_H_
-#define _METAENGINE_H_
+#ifndef _FIXEDPOINTENGINE_H_
+#define _FIXEDPOINTENGINE_H_
 
 #include <string>
 #include <map>
 #include <vector>
 #include <assert.h>
 
+#include "MetaEngine.h"
 #include "BooleanNetwork.h"
-#include "Cumulator.h"
-#include "RandomGenerator.h"
+// #include "Cumulator.h"
+// #include "RandomGenerator.h"
 #include "RunConfig.h"
 #include "FixedPointDisplayer.h"
 
 struct EnsembleArgWrapper;
 
-class MetaEngine {
+class FixedPointEngine : public MetaEngine {
 
 protected:
 
-  Network* network;
-  RunConfig* runconfig;
-
-  double time_tick;
-  double max_time;
-  unsigned int sample_count;
-  bool discrete_time;
-  unsigned int thread_count;
-  
-  NetworkState reference_state;
-  unsigned int refnode_count;
-
-  mutable long long elapsed_core_runtime, user_core_runtime, elapsed_statdist_runtime, user_statdist_runtime, elapsed_epilogue_runtime, user_epilogue_runtime;
-  
-  // STATE_MAP<NetworkState_Impl, unsigned int> fixpoints;
-  // std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*> fixpoint_map_v;
-  // STATE_MAP<NetworkState_Impl, unsigned int>* mergeFixpointMaps();
+  STATE_MAP<NetworkState_Impl, unsigned int> fixpoints;
+  std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*> fixpoint_map_v;
+  STATE_MAP<NetworkState_Impl, unsigned int>* mergeFixpointMaps();
 
 public:
 
-  MetaEngine(Network* network, RunConfig* runconfig) : 
-    network(network), runconfig(runconfig),
-    time_tick(runconfig->getTimeTick()), 
-    max_time(runconfig->getMaxTime()), 
-    sample_count(runconfig->getSampleCount()), 
-    discrete_time(runconfig->isDiscreteTime()), 
-    thread_count(runconfig->getThreadCount()) {}
+  FixedPointEngine(Network * network, RunConfig* runconfig) : MetaEngine(network, runconfig) {}
 
-  static void init();
-  static void loadUserFuncs(const char* module);
+  bool converges() const {return fixpoints.size() > 0;}
+  const STATE_MAP<NetworkState_Impl, unsigned int>& getFixpoints() const {return fixpoints;}
+  const std::map<unsigned int, std::pair<NetworkState, double> > getFixPointsDists() const;
 
-  long long getElapsedCoreRunTime() const {return elapsed_core_runtime;}
-  long long getUserCoreRunTime() const {return user_core_runtime;}
-
-  long long getElapsedEpilogueRunTime() const {return elapsed_epilogue_runtime;}
-  long long getUserEpilogueRunTime() const {return user_epilogue_runtime;}
-
-  long long getElapsedStatDistRunTime() const {return elapsed_statdist_runtime;}
-  long long getUserStatDistRunTime() const {return user_statdist_runtime;}
-
-  // bool converges() const {return fixpoints.size() > 0;}
-  // const STATE_MAP<NetworkState_Impl, unsigned int>& getFixpoints() const {return fixpoints;}
-  // const std::map<unsigned int, std::pair<NetworkState, double> > getFixPointsDists() const;
-
-  // void displayFixpoints(std::ostream& output_fp, bool hexfloat = false) const;
-  // void displayFixpoints(FixedPointDisplayer* displayer) const;
+  void displayFixpoints(std::ostream& output_fp, bool hexfloat = false) const;
+  void displayFixpoints(FixedPointDisplayer* displayer) const;
 
 };
 
