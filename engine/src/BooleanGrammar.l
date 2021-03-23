@@ -90,8 +90,11 @@ exppart		[eE](\-|\+)?[0-9]+
   if (!strcasecmp(yytext, "RATE")) {
      return RATE;
   }
-  if (!strcasecmp(yytext, "DAUGHTER")) {
-     return DAUGHTER;
+  if (!strcasecmp(yytext, "DAUGHTER1")) {
+     return DAUGHTER1;
+  }
+  if (!strcasecmp(yytext, "DAUGHTER2")) {
+     return DAUGHTER2;
   }
   if (!strcasecmp(yytext, "CELL")) {
      return CELL_NUMBER;
