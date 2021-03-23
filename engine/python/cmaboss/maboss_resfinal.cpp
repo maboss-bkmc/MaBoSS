@@ -144,7 +144,7 @@ static PyObject* cMaBoSSResultFinal_display_run(cMaBoSSResultFinalObject* self, 
     return NULL;
     
   std::ostream* output_run = new std::ofstream(filename);
-  self->runconfig->display(self->network, self->start_time, self->end_time,*(self->engine), *output_run);
+  self->engine->displayRunStats(*output_run, self->start_time, self->end_time);
   ((std::ofstream*) output_run)->close();
   delete output_run;
 
