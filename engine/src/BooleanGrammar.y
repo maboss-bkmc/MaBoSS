@@ -221,11 +221,11 @@ division_list_daughter: division_decl_daughter
 
 division_decl_daughter: IDENTIFIER '.' DAUGHTER1 '=' expression ';'
 {  
-  $$ = new DivisionDaughterDecl(current_network->getOrMakeNode($1), DivisionRule::DAUGHTER1, $5);
+  $$ = new DivisionDaughterDecl(current_network->getOrMakeNode($1), DivisionRule::DAUGHTER_1, $5);
 }
 | IDENTIFIER '.' DAUGHTER2 '=' expression ';'
 {
-  $$ = new DivisionDaughterDecl(current_network->getOrMakeNode($1), DivisionRule::DAUGHTER2, $5);  
+  $$ = new DivisionDaughterDecl(current_network->getOrMakeNode($1), DivisionRule::DAUGHTER_2, $5);  
 }
 ;
 

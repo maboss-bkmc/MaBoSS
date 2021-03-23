@@ -343,10 +343,10 @@ void PopMaBEstEngine::runThread(PopCumulator *cumulator, unsigned int start_coun
               PopNetworkState new_pop_network_state = PopNetworkState(pop_network_state);
               new_pop_network_state.decr(t_network_state.getState());
               
-              NetworkState state_daughter1 = division_rule.applyRules(DivisionRule::DAUGHTER1, pop.first, pop_network_state);
+              NetworkState state_daughter1 = division_rule.applyRules(DivisionRule::DAUGHTER_1, pop.first, pop_network_state);
               new_pop_network_state.incr(state_daughter1.getState());
               
-              NetworkState state_daughter2 = division_rule.applyRules(DivisionRule::DAUGHTER2, pop.first, pop_network_state);
+              NetworkState state_daughter2 = division_rule.applyRules(DivisionRule::DAUGHTER_2, pop.first, pop_network_state);
               new_pop_network_state.incr(state_daughter2.getState());
               
               popNodeTransitionRates.insert(std::pair<PopNetworkState_Impl, double>(new_pop_network_state.getState(), division_rate));
