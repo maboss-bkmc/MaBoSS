@@ -624,3 +624,28 @@ void PopMaBEstEngine::display(PopProbTrajDisplayer *pop_probtraj_displayer, Fixe
   displayPopProbTraj(pop_probtraj_displayer);
   displayFixpoints(fp_displayer);
 }
+
+
+void PopMaBEstEngine::displayRunStats(std::ostream& os, time_t start_time, time_t end_time) const {
+  const char sepfmt[] = "-----------------------------------------------%s-----------------------------------------------\n";
+  char bufstr[1024];
+
+  os << '\n';
+  sprintf(bufstr, sepfmt, "--- Run ---");
+  os << bufstr;
+
+  os << "MaBoSS version: " << VERSION << " [networks up to " << MAXNODES << " nodes]\n";
+  os << "\nRun start time: " << ctime(&start_time);
+  os << "Run end time: " << ctime(&end_time);
+
+  os << "\nCore user runtime: " << (getUserCoreRunTime()/1000.) << " secs using " << thread_count << " thread" << (thread_count > 1 ? "s" : "") << "\n";
+  os << "Core elapsed runtime: " << (getElapsedCoreRunTime()/1000.) << " secs using " << thread_count << " thread" << (thread_count > 1 ? "s" : "") << "\n\n";
+
+  os << "Epilogue user runtime: " << (getUserEpilogueRunTime()/1000.) << " secs using 1 thread\n";
+  os << "Epilogue elapsed runtime: " << (getElapsedEpilogueRunTime()/1000.) << " secs using 1 thread\n\n";
+
+  os << "StatDist user runtime: " << (getUserStatDistRunTime()/1000.) << " secs using 1 thread\n";
+  os << "StatDist elapsed runtime: " << (getElapsedStatDistRunTime()/1000.) << " secs using 1 thread\n\n";
+  
+  runconfig->display(pop_network, start_time, end_time, os);
+}

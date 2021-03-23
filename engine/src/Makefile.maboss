@@ -72,10 +72,12 @@ BISON = bison
 CHECK_FLEX  = $(FLEX) --version > /dev/null
 CHECK_BISON = $(BISON) --version > /dev/null
 
-#POP_LIB_SRC := PopMaBEstEngine.cc PopCumulator.cc PopProbaDist.cc BooleanNetwork.cc Function.cc BuiltinFunctions.cc RunConfig.cc LogicalExprGen.cc Utils.cc MBDynBitset.cc PopProbTrajDisplayer.cc FixedPointDisplayer.cc
-#POP_LIB_OBJS := PopMaBEstEngine$(INFIX).o PopCumulator$(INFIX).o PopProbaDist$(INFIX).o BooleanNetwork$(INFIX).o BooleanGrammar$(INFIX).o RunConfigGrammar$(INFIX).o Function$(INFIX).o BuiltinFunctions$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o Utils$(INFIX).o MBDynBitset$(INFIX).o PopProbTrajDisplayer$(INFIX).o FixedPointDisplayer$(INFIX).o 
-LIB_SRC := PopMaBEstEngine.cc PopCumulator.cc PopProbaDist.cc FinalStateSimulationEngine.cc StochasticSimulationEngine.cc MetaEngine.cc MaBEstEngine.cc EnsembleEngine.cc Cumulator.cc ProbaDist.cc BooleanNetwork.cc Function.cc BuiltinFunctions.cc RunConfig.cc LogicalExprGen.cc Utils.cc MBDynBitset.cc ProbTrajDisplayer.cc StatDistDisplayer.cc FixedPointDisplayer.cc FinalStateDisplayer.cc PopProbTrajDisplayer.cc RandomGenerator.cc
-LIB_OBJS := PopMaBEstEngine$(INFIX).o PopCumulator$(INFIX).o PopProbaDist$(INFIX).o FinalStateSimulationEngine$(INFIX).o StochasticSimulationEngine$(INFIX).o MetaEngine$(INFIX).o MaBEstEngine$(INFIX).o EnsembleEngine$(INFIX).o Cumulator$(INFIX).o ProbaDist$(INFIX).o BooleanNetwork$(INFIX).o BooleanGrammar$(INFIX).o RunConfigGrammar$(INFIX).o Function$(INFIX).o BuiltinFunctions$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o Utils$(INFIX).o MBDynBitset$(INFIX).o ProbTrajDisplayer$(INFIX).o StatDistDisplayer$(INFIX).o FixedPointDisplayer$(INFIX).o FinalStateDisplayer$(INFIX).o PopProbTrajDisplayer$(INFIX).o RandomGenerator$(INFIX).o 
+CORE_LIB_SRC := BooleanNetwork.cc BooleanGrammar.cc RunConfigGrammar.cc Function.cc BuiltinFunctions.cc RunConfig.cc LogicalExprGen.cc Utils.cc MBDynBitset.cc RandomGenerator.cc
+CORE_LIB_OBJS := BooleanNetwork$(INFIX).o BooleanGrammar$(INFIX).o RunConfigGrammar$(INFIX).o Function$(INFIX).o BuiltinFunctions$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o Utils$(INFIX).o MBDynBitset$(INFIX).o RandomGenerator$(INFIX).o 
+POP_LIB_SRC := PopMaBEstEngine.cc PopCumulator.cc PopProbaDist.cc PopProbTrajDisplayer.cc FixedPointDisplayer.cc
+POP_LIB_OBJS := PopMaBEstEngine$(INFIX).o PopCumulator$(INFIX).o PopProbaDist$(INFIX).o PopProbTrajDisplayer$(INFIX).o FixedPointDisplayer$(INFIX).o
+LIB_SRC := FinalStateSimulationEngine.cc StochasticSimulationEngine.cc MetaEngine.cc MaBEstEngine.cc EnsembleEngine.cc Cumulator.cc ProbaDist.cc ProbTrajDisplayer.cc StatDistDisplayer.cc FixedPointDisplayer.cc FinalStateDisplayer.cc
+LIB_OBJS := FinalStateSimulationEngine$(INFIX).o StochasticSimulationEngine$(INFIX).o MetaEngine$(INFIX).o MaBEstEngine$(INFIX).o EnsembleEngine$(INFIX).o Cumulator$(INFIX).o ProbaDist$(INFIX).o ProbTrajDisplayer$(INFIX).o StatDistDisplayer$(INFIX).o FixedPointDisplayer$(INFIX).o FinalStateDisplayer$(INFIX).o
 SERVER_OBJS := Server.o DataStreamer.o RPC.o
 
 # if USE_LIB is set, maboss library will be used for MaBoSS and MaBoSS-server programs => that will oblige the user to set LD_LIBRARY_PATH or DYLD_LIBRARY_PATH environment variable to execute MaBoSS or MaBoSS-server
@@ -85,8 +87,8 @@ ifdef USE_LIB
 MABOSS_OBJS = $(MABOSS_LIB)
 POPMABOSS_OBJS = $(POPMABOSS_LIB)
 else
-MABOSS_OBJS = $(LIB_OBJS)
-POPMABOSS_OBJS = $(LIB_OBJS)
+MABOSS_OBJS = $(CORE_LIB_OBJS) $(LIB_OBJS)
+POPMABOSS_OBJS = $(CORE_LIB_OBJS) $(POP_LIB_OBJS)
 endif
 
 .PHONY: maboss
@@ -103,18 +105,18 @@ server: $(MABOSS_SERVER)
 
 all: $(MABOSS_LIB) $(MABOSS) $(POPMABOSS) $(MABOSS_SERVER) $(MABOSS_CLIENT) $(FUNC_MODULE)
 
-$(MABOSS_ALIB): $(LIB_OBJS)
+$(MABOSS_ALIB): $(CORE_LIB_OBJS) $(LIB_OBJS)
 	ar rcs $(MABOSS_ALIB) $+
 
-$(MABOSS_LIB): $(LIB_OBJS)
+$(MABOSS_LIB): $(CORE_LIB_OBJS) $(LIB_OBJS)
 	$(CXX) -shared -o $(MABOSS_LIB) $+ -lpthread $(LDL_FLAG)
 
-$(POPMABOSS_LIB): $(LIB_OBJS)
+$(POPMABOSS_LIB): $(CORE_LIB_OBJS) $(POP_LIB_OBJS)
 	$(CXX) -shared -o $(POPMABOSS_LIB) $+ -lpthread $(LDL_FLAG)
 
 
-$(FUNC_MODULE): $(FUNC_MODULE).o $(LIB_OBJS)
-	$(CXX) -shared -o $(FUNC_MODULE).so $(FUNC_MODULE).o $(LIB_OBJS) -lpthread -L.
+$(FUNC_MODULE): $(FUNC_MODULE).o $(CORE_LIB_OBJS) $(LIB_OBJS)
+	$(CXX) -shared -o $(FUNC_MODULE).so $(FUNC_MODULE).o $(CORE_LIB_OBJS) $(LIB_OBJS) -lpthread -L.
 
 # $(FUNC_MODULE): $(FUNC_MODULE).o $(MABOSS_LIB)
 # 	g++ -shared -o $(FUNC_MODULE).so $(FUNC_MODULE).o -l$(MABOSS_LIBNAME) -lpthread -L.
@@ -157,8 +159,8 @@ init:
 force-init:
 	@CXX=$(CXX) sh init-config.sh force
 
-depend:
-	$(MAKEDEPEND) -DMAXNODES=$(MAXNODES) $(WINDOWS_FLAG) $(LIB_SRC) > depend_tmp.mk
+depend: $(CORE_LIB_SRC)
+	$(MAKEDEPEND) -DMAXNODES=$(MAXNODES) $(WINDOWS_FLAG) $(CORE_LIB_SRC) $(POP_LIB_SRC) $(LIB_SRC) > depend_tmp.mk
 	@sed -e "s/\.o:/$(INFIX).o:/g" depend_tmp.mk > depend.mk
 	@rm -f depend_tmp.mk
 

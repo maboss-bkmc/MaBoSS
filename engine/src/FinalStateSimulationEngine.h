@@ -112,6 +112,9 @@ public:
 
   void displayFinal(std::ostream& output_final, bool hexfloat=false) const;
   void displayFinal(FinalStateDisplayer* displayer) const;
+  
+  void displayRunStats(std::ostream& os, time_t start_time, time_t end_time) const;
+
 };
 
 #endif

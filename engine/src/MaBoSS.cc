@@ -577,7 +577,7 @@ int main(int argc, char* argv[])
 
       if (generate_config_template) {
         IStateGroup::checkAndComplete(network);
-        runconfig->generateTemplate(network, std::cout);
+        runconfig->generateTemplate(network, std::cout, StochasticSimulationEngine::VERSION);
         return 0;
       }
 
@@ -628,7 +628,7 @@ int main(int argc, char* argv[])
 
       if (generate_config_template) {
         IStateGroup::checkAndComplete(network);
-        runconfig->generateTemplate(network, std::cout);
+        runconfig->generateTemplate(network, std::cout, MaBEstEngine::VERSION);
         return 0;
       }
 
@@ -662,7 +662,7 @@ int main(int argc, char* argv[])
       }
 
       if (dump_config) {
-        runconfig->dump(network, std::cout);
+        runconfig->dump(network, std::cout, MaBEstEngine::VERSION);
         return 0;
       }
 
@@ -736,8 +736,8 @@ int main(int argc, char* argv[])
 	}
 	time(&end_time);
 
-        runconfig->display(network, start_time, end_time, mabest, *output_run);
-
+        mabest.displayRunStats(*output_run, start_time, end_time);
+        
         if (export_asymptotic) {
           mabest.displayAsymptotic(*output_asymptprob, hexfloat, !counts);
           ((std::ofstream*)output_asymptprob)->close();

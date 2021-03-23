@@ -474,3 +474,20 @@ PyObject* FinalStateSimulationEngine::getNumpyLastNodesDists() const
 
 
 #endif
+
+
+
+void FinalStateSimulationEngine::displayRunStats(std::ostream& os, time_t start_time, time_t end_time) const {
+  const char sepfmt[] = "-----------------------------------------------%s-----------------------------------------------\n";
+  char bufstr[1024];
+
+  os << '\n';
+  sprintf(bufstr, sepfmt, "--- Run ---");
+  os << bufstr;
+
+  os << "MaBoSS version: " << VERSION << " [networks up to " << MAXNODES << " nodes]\n";
+  os << "\nRun start time: " << ctime(&start_time);
+  os << "Run end time: " << ctime(&end_time);
+
+  runconfig->display(network, start_time, end_time, os);
+}
