@@ -29,6 +29,20 @@ public:
     return log(val) / log(base);
   }
 
+  double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop, ArgumentList* arg_list) {
+    const std::vector<Expression*>& expr_v = arg_list->getExpressionList();
+    std::vector<Expression*>::const_iterator iter = expr_v.begin();
+    double val = (*iter)->eval(this_node, network_state, pop);
+    if (expr_v.size() == 1) {
+      std::cout << "test function(" << val << ")\n";
+      return log(val+10);
+    }
+
+    iter++;
+    double base = (*iter)->eval(this_node, network_state, pop);
+    return log(val) / log(base);
+  }
+
   std::string getDescription() const {
     return "double test(double VALUE[, double BASE=e])\n  computes the value of the natural testarithm of VALUE; uses BASE if set";
   }
