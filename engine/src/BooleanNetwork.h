@@ -240,13 +240,16 @@ typedef unsigned long long NetworkState_Impl;
 
 
 class PopNetworkState_Impl : public STATE_MAP<NetworkState_Impl, unsigned int> {
+  
+
   public:
+  static long generated_number_count;
 
   long my_id;
 
   // Default constructor : Empty map, random id  
   PopNetworkState_Impl() : STATE_MAP<NetworkState_Impl, unsigned int>() {
-    my_id = lrand48();
+    my_id = PopNetworkState_Impl::generated_number_count++;
   }
   
   // Values constructor : create, and add one pop state
@@ -256,7 +259,7 @@ class PopNetworkState_Impl : public STATE_MAP<NetworkState_Impl, unsigned int> {
   
   // // Copy constructor : real copy
   // PopNetworkState_Impl(PopNetworkState_Impl& state) : STATE_MAP<NetworkState_Impl, unsigned int>(state) { 
-  //   my_id = lrand48();
+  //   my_id = PopNetworkState_Impl::generated_number_count++;
   // }
   
   // // Copy constructor : not real copy
@@ -276,7 +279,7 @@ class PopNetworkState_Impl : public STATE_MAP<NetworkState_Impl, unsigned int> {
   
   PopNetworkState_Impl& operator=(const PopNetworkState_Impl& state) {
     STATE_MAP<NetworkState_Impl, unsigned int>::operator=(state);
-    my_id = lrand48();
+    my_id = PopNetworkState_Impl::generated_number_count++;
     return *this;
   }
   
