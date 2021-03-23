@@ -214,7 +214,7 @@ static PyObject* cMaBoSSSim_bnd_str(cMaBoSSSimObject* self, PyObject *args, PyOb
 
 static PyObject* cMaBoSSSim_cfg_str(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs) {
   std::ostringstream cfg;
-  self->runconfig->dump(self->network, cfg);
+  self->runconfig->dump(self->network, cfg, MaBEstEngine::VERSION);
   return PyUnicode_FromString(cfg.str().c_str());
 }
 

@@ -151,12 +151,7 @@ double max(std::vector<long long int> const& v) {
 }
 #endif
 void RunConfig::display(Network* network, time_t start_time, time_t end_time, std::ostream& os) const
-{
-  
-#ifdef MPI_COMPAT
-if (mabest.getWorldRank() == 0) {
-#endif
-    
+{  
   const char sepfmt[] = "-----------------------------------------------%s-----------------------------------------------\n";
   char bufstr[1024];
 
@@ -186,10 +181,6 @@ if (mabest.getWorldRank() == 0) {
   network->getSymbolTable()->display(os);
   sprintf(bufstr, sepfmt, "-----------");
   os << bufstr << '\n';
-    
-#ifdef MPI_COMPAT
-}
-#endif
 }
 
 int RunConfig::parse(Network* network, const char* file)

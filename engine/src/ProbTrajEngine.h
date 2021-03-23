@@ -36,115 +36,81 @@
 #############################################################################
 
    Module:
-     MetaEngine.cc
+     MetaEngine.h
 
    Authors:
-     Eric Viara <viara@sysra.com>
-     Gautier Stoll <gautier.stoll@curie.fr>
-     Vincent Noël <vincent.noel@curie.fr>
+     Vincent Noel <contact@vincent-noel.fr>
  
    Date:
-     January-March 2011
+     March 2019
 */
 
-#include "MetaEngine.h"
-#include "Probe.h"
-#include "Utils.h"
-#ifndef WINDOWS
-  #include <dlfcn.h>
-#else
-  #include <windows.h>
+#ifndef _PROBTRAJENGINE_H_
+#define _PROBTRAJENGINE_H_
+
+#include <string>
+#include <map>
+#include <vector>
+#include <assert.h>
+
+#ifdef MPI_COMPAT
+#include <mpi.h>
 #endif
 
-static const char* MABOSS_USER_FUNC_INIT = "maboss_user_func_init";
+#include "BooleanNetwork.h"
+#include "FixedPointEngine.h"
+#include "Cumulator.h"
+#include "RandomGenerator.h"
+#include "RunConfig.h"
+#include "FixedPointDisplayer.h"
 
-void MetaEngine::init()
-{
-  extern void builtin_functions_init();
-  builtin_functions_init();
-}
+struct EnsembleArgWrapper;
 
-void MetaEngine::loadUserFuncs(const char* module)
-{
-  init();
+class ProbTrajEngine : public FixedPointEngine {
 
-#ifndef WINDOWS
-  void* dl = dlopen(module, RTLD_LAZY);
-#else
-  void* dl = LoadLibrary(module);
-#endif
+protected:
 
-  if (NULL == dl) {
-#ifndef WINDOWS    
-    std::cerr << dlerror() << std::endl;
-#else
-    std::cerr << GetLastError() << std::endl;
-#endif
-    exit(1);
-  }
+ Cumulator* merged_cumulator;
+  std::vector<Cumulator*> cumulator_v;
 
-#ifndef WINDOWS
-  void* sym = dlsym(dl, MABOSS_USER_FUNC_INIT);
-#else
-  typedef void (__cdecl *MYPROC)(std::map<std::string, Function*>*);
-  MYPROC sym = (MYPROC) GetProcAddress((HINSTANCE) dl, MABOSS_USER_FUNC_INIT);
-#endif
+  static void* threadMergeWrapper(void *arg);
 
-  if (sym == NULL) {
-    std::cerr << "symbol " << MABOSS_USER_FUNC_INIT << "() not found in user func module: " << module << "\n";
-    exit(1);
-  }
-  typedef void (*init_t)(std::map<std::string, Function*>*);
-  init_t init_fun = (init_t)sym;
-  init_fun(Function::getFuncMap());
-}
-
-NodeIndex MetaEngine::getTargetNode(Network* _network, RandomGenerator* random_generator, const std::vector<double>& nodeTransitionRates, double total_rate) const
-{
-  double U_rand2 = random_generator->generate();
-  double random_rate = U_rand2 * total_rate;
-  NodeIndex node_idx = INVALID_NODE_INDEX;
+  static std::pair<Cumulator*, STATE_MAP<NetworkState_Impl, unsigned int>*> mergeResults(std::vector<Cumulator*>& cumulator_v, std::vector<STATE_MAP<NetworkState_Impl, unsigned int> *>& fixpoint_map_v);  
   
-  for (unsigned int i=0; i < nodeTransitionRates.size() && random_rate >= 0.; i++) {
-    node_idx = i;
-    double rate = nodeTransitionRates[i];
-    random_rate -= rate;
+#ifdef MPI_COMPAT
+  static std::pair<Cumulator*, STATE_MAP<NetworkState_Impl, unsigned int>*> mergeMPIResults(RunConfig* runconfig, Cumulator* ret_cumul, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints, int world_size, int world_rank, bool pack=true);
+  
+#endif
+
+public:
+
+  ProbTrajEngine(Network* network, RunConfig* runconfig) : FixedPointEngine(network, runconfig) {}
+  
+  const std::map<double, STATE_MAP<NetworkState_Impl, double> > getStateDists() const;
+  const STATE_MAP<NetworkState_Impl, double> getNthStateDist(int nn) const;
+  const STATE_MAP<NetworkState_Impl, double> getAsymptoticStateDist() const;
+
+  Cumulator* getMergedCumulator() {
+    return merged_cumulator; 
   }
 
-  assert(node_idx != INVALID_NODE_INDEX);
-  assert(_network->getNode(node_idx)->getIndex() == node_idx);
-  return node_idx;
-}
+  const std::map<double, std::map<Node *, double> > getNodesDists() const;
+  const std::map<Node*, double> getNthNodesDist(int nn) const;
+  const std::map<Node*, double> getAsymptoticNodesDist() const;
 
-double MetaEngine::computeTH(Network* _network, const std::vector<double>& nodeTransitionRates, double total_rate) const
-{
-  if (nodeTransitionRates.size() == 1) {
-    return 0.;
-  }
+  const std::map<double, double> getNodeDists(Node * node) const;
+  double getNthNodeDist(Node * node, int nn) const;
+  double getAsymptoticNodeDist(Node * node) const;
+  
+  int getMaxTickIndex() const {return merged_cumulator->getMaxTickIndex();} 
+  const double getFinalTime() const;
 
+  void displayStatDist(StatDistDisplayer* output_statdist) const;
+  void displayProbTraj(ProbTrajDisplayer* displayer) const;
+  void displayAsymptotic(std::ostream& output_asymptprob, bool hexfloat = false, bool proba = true) const;
 
-  double TH = 0.;
-  double rate_internal = 0.;
+  void display(ProbTrajDisplayer* probtraj_displayer, StatDistDisplayer* statdist_displayer, FixedPointDisplayer* fp_displayer) const;
 
-  for (unsigned int i = 0; i < nodeTransitionRates.size(); i++) {
-    NodeIndex index = i;
-    double rate = nodeTransitionRates[i];
-    if (rate != 0.0 && _network->getNode(index)->isInternal()) {
-      rate_internal += rate;
-    }
-  }
+};
 
-  double total_rate_non_internal = total_rate - rate_internal;
-
-  for (unsigned int i = 0; i < nodeTransitionRates.size(); i++){
-
-    NodeIndex index = i;
-    double rate = nodeTransitionRates[i];
-    if (rate != 0.0 && !_network->getNode(index)->isInternal()) {
-      double proba = rate / total_rate_non_internal;
-      TH -= log2(proba) * proba;
-    }
-  }
-
-  return TH;
-}
+#endif

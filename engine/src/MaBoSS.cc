@@ -145,7 +145,7 @@ static std::string format_extension(OutputFormat format) {
   }
 }
 
-static void display(MetaEngine* engine, Network* network, const char* prefix, OutputFormat format, bool hexfloat, int individual) 
+static void display(ProbTrajEngine* engine, Network* network, const char* prefix, OutputFormat format, bool hexfloat, int individual) 
 {
   
   std::ostream* output_probtraj = new std::ofstream((std::string(prefix) + "_probtraj" + format_extension(format)).c_str());

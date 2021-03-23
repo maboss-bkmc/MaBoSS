@@ -36,115 +36,64 @@
 #############################################################################
 
    Module:
-     MetaEngine.cc
+     FixedPointEngine.h
 
    Authors:
-     Eric Viara <viara@sysra.com>
-     Gautier Stoll <gautier.stoll@curie.fr>
-     Vincent Noël <vincent.noel@curie.fr>
+     Vincent Noel <contact@vincent-noel.fr>
  
    Date:
-     January-March 2011
+     March 2021
 */
 
+#ifndef _FIXEDPOINTENGINE_H_
+#define _FIXEDPOINTENGINE_H_
+
+#include <string>
+#include <map>
+#include <vector>
+#include <assert.h>
+
+#ifdef MPI_COMPAT
+#include <mpi.h>
+#endif
+
 #include "MetaEngine.h"
-#include "Probe.h"
-#include "Utils.h"
-#ifndef WINDOWS
-  #include <dlfcn.h>
-#else
-  #include <windows.h>
-#endif
+#include "BooleanNetwork.h"
+#include "RunConfig.h"
+#include "FixedPointDisplayer.h"
 
-static const char* MABOSS_USER_FUNC_INIT = "maboss_user_func_init";
+struct EnsembleArgWrapper;
 
-void MetaEngine::init()
-{
-  extern void builtin_functions_init();
-  builtin_functions_init();
-}
+class FixedPointEngine : public MetaEngine {
 
-void MetaEngine::loadUserFuncs(const char* module)
-{
-  init();
+protected:
 
-#ifndef WINDOWS
-  void* dl = dlopen(module, RTLD_LAZY);
-#else
-  void* dl = LoadLibrary(module);
-#endif
+  STATE_MAP<NetworkState_Impl, unsigned int> fixpoints;
+  std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*> fixpoint_map_v;
+  STATE_MAP<NetworkState_Impl, unsigned int>* mergeFixpointMaps();
+  static void mergePairOfFixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_1, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_2);
 
-  if (NULL == dl) {
-#ifndef WINDOWS    
-    std::cerr << dlerror() << std::endl;
-#else
-    std::cerr << GetLastError() << std::endl;
-#endif
-    exit(1);
-  }
+#ifdef MPI_COMPAT
+  static void mergePairOfMPIFixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints, int world_rank, int dest, int origin, bool pack=true);
 
-#ifndef WINDOWS
-  void* sym = dlsym(dl, MABOSS_USER_FUNC_INIT);
-#else
-  typedef void (__cdecl *MYPROC)(std::map<std::string, Function*>*);
-  MYPROC sym = (MYPROC) GetProcAddress((HINSTANCE) dl, MABOSS_USER_FUNC_INIT);
-#endif
-
-  if (sym == NULL) {
-    std::cerr << "symbol " << MABOSS_USER_FUNC_INIT << "() not found in user func module: " << module << "\n";
-    exit(1);
-  }
-  typedef void (*init_t)(std::map<std::string, Function*>*);
-  init_t init_fun = (init_t)sym;
-  init_fun(Function::getFuncMap());
-}
-
-NodeIndex MetaEngine::getTargetNode(Network* _network, RandomGenerator* random_generator, const std::vector<double>& nodeTransitionRates, double total_rate) const
-{
-  double U_rand2 = random_generator->generate();
-  double random_rate = U_rand2 * total_rate;
-  NodeIndex node_idx = INVALID_NODE_INDEX;
+  static void MPI_Unpack_Fixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, char* buff, unsigned int buff_size);
+  static char* MPI_Pack_Fixpoints(const STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, int dest, unsigned int * buff_size);
+  static void MPI_Send_Fixpoints(const STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, int dest);
+  static void MPI_Recv_Fixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, int origin);
   
-  for (unsigned int i=0; i < nodeTransitionRates.size() && random_rate >= 0.; i++) {
-    node_idx = i;
-    double rate = nodeTransitionRates[i];
-    random_rate -= rate;
-  }
+#endif
 
-  assert(node_idx != INVALID_NODE_INDEX);
-  assert(_network->getNode(node_idx)->getIndex() == node_idx);
-  return node_idx;
-}
+public:
 
-double MetaEngine::computeTH(Network* _network, const std::vector<double>& nodeTransitionRates, double total_rate) const
-{
-  if (nodeTransitionRates.size() == 1) {
-    return 0.;
-  }
+  FixedPointEngine(Network * network, RunConfig* runconfig) : MetaEngine(network, runconfig) {}
 
+  bool converges() const {return fixpoints.size() > 0;}
+  const STATE_MAP<NetworkState_Impl, unsigned int>& getFixpoints() const {return fixpoints;}
+  const std::map<unsigned int, std::pair<NetworkState, double> > getFixPointsDists() const;
 
-  double TH = 0.;
-  double rate_internal = 0.;
+  // void displayFixpoints(std::ostream& output_fp, bool hexfloat = false) const;
+  void displayFixpoints(FixedPointDisplayer* displayer) const;
 
-  for (unsigned int i = 0; i < nodeTransitionRates.size(); i++) {
-    NodeIndex index = i;
-    double rate = nodeTransitionRates[i];
-    if (rate != 0.0 && _network->getNode(index)->isInternal()) {
-      rate_internal += rate;
-    }
-  }
+};
 
-  double total_rate_non_internal = total_rate - rate_internal;
-
-  for (unsigned int i = 0; i < nodeTransitionRates.size(); i++){
-
-    NodeIndex index = i;
-    double rate = nodeTransitionRates[i];
-    if (rate != 0.0 && !_network->getNode(index)->isInternal()) {
-      double proba = rate / total_rate_non_internal;
-      TH -= log2(proba) * proba;
-    }
-  }
-
-  return TH;
-}
+#endif

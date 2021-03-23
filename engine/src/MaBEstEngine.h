@@ -55,7 +55,7 @@
 #include <vector>
 #include <assert.h>
 
-#include "MetaEngine.h"
+#include "ProbTrajEngine.h"
 #include "BooleanNetwork.h"
 #include "Cumulator.h"
 #include "RandomGenerator.h"
@@ -63,7 +63,7 @@
 
 struct ArgWrapper;
 
-class MaBEstEngine : public MetaEngine {
+class MaBEstEngine : public ProbTrajEngine {
 
   std::vector<ArgWrapper*> arg_wrapper_v;
   static void* threadWrapper(void *arg);
@@ -78,6 +78,7 @@ public:
 
   void run(std::ostream* output_traj);
   void displayRunStats(std::ostream& os, time_t start_time, time_t end_time) const;
+  
   ~MaBEstEngine();
 };
 

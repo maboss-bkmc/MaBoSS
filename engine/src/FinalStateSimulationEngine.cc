@@ -58,13 +58,7 @@
 const std::string FinalStateSimulationEngine::VERSION = "1.0.0";
 
 FinalStateSimulationEngine::FinalStateSimulationEngine(Network* network, RunConfig* runconfig) :
-  network(network), runconfig(runconfig),
-  time_tick(runconfig->getTimeTick()), 
-  max_time(runconfig->getMaxTime()), 
-  sample_count(runconfig->getSampleCount()), 
-  discrete_time(runconfig->isDiscreteTime()), 
-  thread_count(runconfig->getThreadCount())
-  {
+  MetaEngine(network, runconfig) {
 
   if (thread_count > sample_count) {
     thread_count = sample_count;
@@ -490,5 +484,14 @@ void FinalStateSimulationEngine::displayRunStats(std::ostream& os, time_t start_
   os << "\nRun start time: " << ctime(&start_time);
   os << "Run end time: " << ctime(&end_time);
 
+  os << "\nCore user runtime: " << (getUserCoreRunTime()/1000.) << " secs using " << thread_count << " thread" << (thread_count > 1 ? "s" : "") << "\n";
+  os << "Core elapsed runtime: " << (getElapsedCoreRunTime()/1000.) << " secs using " << thread_count << " thread" << (thread_count > 1 ? "s" : "") << "\n\n";
+
+  os << "Epilogue user runtime: " << (getUserEpilogueRunTime()/1000.) << " secs using 1 thread\n";
+  os << "Epilogue elapsed runtime: " << (getElapsedEpilogueRunTime()/1000.) << " secs using 1 thread\n\n";
+
+  os << "StatDist user runtime: " << (getUserStatDistRunTime()/1000.) << " secs using 1 thread\n";
+  os << "StatDist elapsed runtime: " << (getElapsedStatDistRunTime()/1000.) << " secs using 1 thread\n\n";
+  
   runconfig->display(network, start_time, end_time, os);
 }

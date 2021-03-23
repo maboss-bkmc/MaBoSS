@@ -61,7 +61,7 @@
 const std::string EnsembleEngine::VERSION = "1.2.0";
 
 EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runconfig, bool save_individual_result, bool _random_sampling) :
-  MetaEngine(networks[0], runconfig), networks(networks), save_individual_result(save_individual_result), random_sampling(_random_sampling) {
+  ProbTrajEngine(networks[0], runconfig), networks(networks), save_individual_result(save_individual_result), random_sampling(_random_sampling) {
 
   if (thread_count > 1 && !runconfig->getRandomGeneratorFactory()->isThreadSafe()) {
     std::cerr << "Warning: non reentrant random, may not work properly in multi-threaded mode\n";
@@ -555,9 +555,6 @@ void EnsembleEngine::mergeMPIIndividual(bool pack)
       std::pair<Cumulator*, STATE_MAP<NetworkState_Impl, unsigned int>*> results = mergeMPIResults(runconfig, cumulators_per_model[model], fixpoints_per_model[model], world_size, world_rank);
       cumulators_per_model[model] = results.first;
       fixpoints_per_model[model] = results.second;
-      
-      if (world_rank == 0)
-        cumulators_per_model[model]->epilogue(networks[model], reference_state);
     }
   }
 }

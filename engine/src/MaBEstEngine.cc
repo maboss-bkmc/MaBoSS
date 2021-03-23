@@ -57,7 +57,7 @@
 const std::string MaBEstEngine::VERSION = "2.5.2";
 
 MaBEstEngine::MaBEstEngine(Network* network, RunConfig* runconfig) :
-  MetaEngine(network, runconfig)
+  ProbTrajEngine(network, runconfig)
   {
 
   if (thread_count > sample_count) {
@@ -311,6 +311,11 @@ void MaBEstEngine::run(std::ostream* output_traj)
 }  
 
 void MaBEstEngine::displayRunStats(std::ostream& os, time_t start_time, time_t end_time) const {
+
+#ifdef MPI_COMPAT
+if (getWorldRank() == 0) {
+#endif
+  
   const char sepfmt[] = "-----------------------------------------------%s-----------------------------------------------\n";
   char bufstr[1024];
 
@@ -332,6 +337,11 @@ void MaBEstEngine::displayRunStats(std::ostream& os, time_t start_time, time_t e
   os << "StatDist elapsed runtime: " << (getElapsedStatDistRunTime()/1000.) << " secs using 1 thread\n\n";
   
   runconfig->display(network, start_time, end_time, os);
+
+#ifdef MPI_COMPAT
+}
+#endif 
+
 }
 
 void MaBEstEngine::epilogue()

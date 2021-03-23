@@ -84,32 +84,9 @@ protected:
   unsigned int refnode_count;
   NetworkState refnode_mask;
   mutable long long elapsed_core_runtime, user_core_runtime, elapsed_statdist_runtime, user_statdist_runtime, elapsed_epilogue_runtime, user_epilogue_runtime;
-  STATE_MAP<NetworkState_Impl, unsigned int> fixpoints;
-  std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*> fixpoint_map_v;
   
-  Cumulator* merged_cumulator;
-  std::vector<Cumulator*> cumulator_v;
-
-  STATE_MAP<NetworkState_Impl, unsigned int>* mergeFixpointMaps();
-  static void mergePairOfFixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_1, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_2);
-  
-  static void* threadMergeWrapper(void *arg);
-  // void mergeResults();
-  static std::pair<Cumulator*, STATE_MAP<NetworkState_Impl, unsigned int>*> mergeResults(std::vector<Cumulator*>& cumulator_v, std::vector<STATE_MAP<NetworkState_Impl, unsigned int> *>& fixpoint_map_v);
-
-  NodeIndex getTargetNode(Network* _network, RandomGenerator* random_generator, const std::vector<double>& nodeTransitionRates, double total_rate) const;
-  double computeTH(Network* _network, const std::vector<double>& nodeTransitionRates, double total_rate) const;
-  
-  
+ 
 #ifdef MPI_COMPAT
-  static std::pair<Cumulator*, STATE_MAP<NetworkState_Impl, unsigned int>*> mergeMPIResults(RunConfig* runconfig, Cumulator* ret_cumul, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints, int world_size, int world_rank, bool pack=true);
-  static void mergePairOfMPIFixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints, int world_rank, int dest, int origin, bool pack=true);
-
-  static void MPI_Unpack_Fixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, char* buff, unsigned int buff_size);
-  static char* MPI_Pack_Fixpoints(const STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, int dest, unsigned int * buff_size);
-  static void MPI_Send_Fixpoints(const STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, int dest);
-  static void MPI_Recv_Fixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, int origin);
-
   // Number of processes
   int world_size;
   
@@ -188,6 +165,9 @@ public:
   static void init();
   static void loadUserFuncs(const char* module);
 
+  NodeIndex getTargetNode(Network* _network, RandomGenerator* random_generator, const std::vector<double>& nodeTransitionRates, double total_rate) const;
+  double computeTH(Network* _network, const std::vector<double>& nodeTransitionRates, double total_rate) const;
+
   long long getElapsedCoreRunTime() const {return elapsed_core_runtime;}
   long long getUserCoreRunTime() const {return user_core_runtime;}
 
@@ -205,37 +185,7 @@ public:
   std::vector<long long> getUserEpilogueRuntimes() const { return user_epilogue_runtimes; }
   std::vector<long long> getElapsedEpilogueRuntimes() const { return elapsed_epilogue_runtimes; }
   #endif
-
-
-  bool converges() const {return fixpoints.size() > 0;}
-  const STATE_MAP<NetworkState_Impl, unsigned int>& getFixpoints() const {return fixpoints;}
-
-  const std::map<double, STATE_MAP<NetworkState_Impl, double> > getStateDists() const;
-  const STATE_MAP<NetworkState_Impl, double> getNthStateDist(int nn) const;
-  const STATE_MAP<NetworkState_Impl, double> getAsymptoticStateDist() const;
-
-  Cumulator* getMergedCumulator() {
-    return merged_cumulator; 
-  }
-
-  const std::map<double, std::map<Node *, double> > getNodesDists() const;
-  const std::map<Node*, double> getNthNodesDist(int nn) const;
-  const std::map<Node*, double> getAsymptoticNodesDist() const;
-
-  const std::map<double, double> getNodeDists(Node * node) const;
-  double getNthNodeDist(Node * node, int nn) const;
-  double getAsymptoticNodeDist(Node * node) const;
   
-  const std::map<unsigned int, std::pair<NetworkState, double> > getFixPointsDists() const;
-  int getMaxTickIndex() const {return merged_cumulator->getMaxTickIndex();} 
-  const double getFinalTime() const;
-
-  void displayFixpoints(FixedPointDisplayer* displayer) const;
-  void displayProbTraj(ProbTrajDisplayer* displayer) const;
-  void displayStatDist(StatDistDisplayer* output_statdist) const;
-  void displayAsymptotic(std::ostream& output_asymptprob, bool hexfloat = false, bool proba = true) const;
-
-  void display(ProbTrajDisplayer* probtraj_displayer, StatDistDisplayer* statdist_displayer, FixedPointDisplayer* fp_displayer) const;
 };
 
 #endif
