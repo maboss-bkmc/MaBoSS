@@ -116,4 +116,37 @@ public:
   }
 };
 
+class DivisionDaughterDecl {
+public:
+  Node* node;
+  int daughter;
+  Expression * expr;
+  
+  DivisionDaughterDecl() {
+    node = NULL;
+    daughter = 0;
+    expr = NULL;
+  }
+  DivisionDaughterDecl(Node* node, int daughter, Expression* expr) : node(node), daughter(daughter), expr(expr) {}
+};
+
+class DivisionDecl {
+  public:
+  
+  DivisionDecl(std::vector<DivisionDaughterDecl*>* daughters, Expression* rate) {
+    std::cout << "Creating the division declaration" << std::endl;
+    DivisionRule new_rule = DivisionRule();
+    if (rate == NULL) {
+      std::cout << "Rate is NULL" << std::endl;
+    }
+    new_rule.setRate(rate);
+    if (daughters != NULL){
+      for (auto daughter: *daughters) {
+        
+        new_rule.addDaughterNode(daughter->daughter, daughter->node, daughter->expr);
+      }
+    }
+    get_pop_network()->addDivisionRule(new_rule);
+  }
+};
 #endif

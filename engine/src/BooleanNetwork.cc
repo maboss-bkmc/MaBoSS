@@ -131,7 +131,7 @@ Network::Network() : last_index(0U)
   symbol_table = new SymbolTable();
 }
 
-PopNetwork::PopNetwork() : Network() { deathRate = NULL; divisionRates.clear();}
+PopNetwork::PopNetwork() : Network() { deathRate = NULL; divisionRules.clear();}
 
 int Network::parseExpression(const char* content, std::map<std::string, NodeIndex>* nodes_indexes){
   
@@ -244,15 +244,32 @@ int PopNetwork::parse(const char* file, std::map<std::string, NodeIndex>* nodes_
   return res;
 }
 
-std::vector<double> PopNetwork::getDivisionRates(const NetworkState& state, const PopNetworkState& pop) const {
-  std::vector<double> rates;
-  for (auto division_rate: divisionRates) {
-    rates.push_back(division_rate->eval(NULL, state, pop));
+// std::vector<double> PopNetwork::getDivisionRates(const NetworkState& state, const PopNetworkState& pop) const {
+//   std::vector<double> rates;
+//   for (auto division_rate: divisionRates) {
+//     rates.push_back(division_rate->eval(NULL, state, pop));
+//   }
+  
+//   return rates;
+// } 
+
+void DivisionRule::setRate(Expression* rate) {  
+  this->rate = rate->clone();
+}
+
+double DivisionRule::getRate(const NetworkState& state, const PopNetworkState& pop) {
+  return rate->eval(NULL, state, pop);
+}
+
+NetworkState DivisionRule::applyRules(int daughter, const NetworkState& state, const PopNetworkState& pop) {
+  NetworkState res(state);
+  
+  for (auto daughter_rule : daughters[daughter]) {
+    res.setNodeState(daughter_rule.first, (bool)daughter_rule.second->eval(NULL, state, pop));
   }
   
-  return rates;
-} 
-
+  return res;
+}
 
 double PopNetwork::getDeathRate(const NetworkState& state, const PopNetworkState& pop) const {
   if (deathRate != NULL)
@@ -651,14 +668,16 @@ void PopNetworkState::displayOneLine(std::ostream& os, Network* network, const s
 unsigned int PopNetworkState::count(Expression * expr) const
 {
   unsigned int res = 0;
-  if (expr != NULL) {
+  // std::cout << "Expression to count pop" << std::endl;
+  // std::cout << expr->toString() << std::endl;
+  // if (expr != NULL) {
     for (auto network_state_proba : state) {
       NetworkState network_state = NetworkState(network_state_proba.first);
-      if ((bool)expr->eval(NULL, network_state)) {
+      if (expr == NULL || (bool)expr->eval(NULL, network_state)) {
         res += network_state_proba.second;
       }
     }
-  }
+  // }
   return res;
 }
 
@@ -889,8 +908,8 @@ PopNetwork::PopNetwork(const PopNetwork& pop_network) {
 PopNetwork& PopNetwork::operator=(const PopNetwork& pop_network) {
   Network::operator=(pop_network);
   deathRate = pop_network.getDeathRate()->clone();
-  for (auto division_rate: pop_network.getDivisionRates()) {
-    divisionRates.push_back(division_rate);
+  for (auto division_rule: pop_network.getDivisionRules()) {
+    divisionRules.push_back(division_rule);
   }
   return *this;
 }

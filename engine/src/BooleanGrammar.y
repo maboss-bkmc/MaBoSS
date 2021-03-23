@@ -61,6 +61,9 @@ static PopNetwork* current_pop_network;
   NodeDecl* node_decl;
   std::vector<NodeDeclItem*>* node_decl_item_list;
   NodeDeclItem* node_decl_item;
+  DivisionDecl* division_decl;
+  std::vector<DivisionDaughterDecl*>* division_list_daughter;
+  DivisionDaughterDecl* division_decl_daughter;
   Expression* expr;
   ArgumentList* arg_list;
   char* str;
@@ -71,13 +74,13 @@ static PopNetwork* current_pop_network;
 %type<node_decl> node_decl
 %type<node_decl_item_list> node_decl_item_list
 %type<node_decl_item> node_decl_item
-%type<expr> division_decl
-%type<expr> division_item_list
-%type<expr> division_item
+%type<division_decl> division_decl
 %type<expr> division_decl_rate
-%type<expr> division_decl_daughter
+%type<division_list_daughter> division_list_daughter
+%type<division_decl_daughter> division_decl_daughter
 %type<expr> death_decl
 %type<expr> death_decl_rate
+%type<expr> cell_number
 %type<expr> primary_expression 
 %type<expr> postfix_expression 
 %type<expr> unary_expression 
@@ -194,36 +197,35 @@ node_decl_item: IDENTIFIER '=' expression ';'
 }
 ;
 
-division_decl: DIVISION '{' division_item_list '}'
+division_decl: DIVISION '{' division_decl_rate division_list_daughter '}'
 {
-}
-;
-
-division_item_list: division_item
-{
-}
-division_item_list: division_item_list division_item
-{
-}
-;
-
-division_item: division_decl_rate
-{
-}
-| division_decl_daughter
-{
+  $$ = new DivisionDecl($4, $3);
 }
 ;
 
 division_decl_rate: RATE '=' expression ';'
 {
-  // std::cout << "Rate of division : " << $3 << std::endl;
-  current_pop_network->addDivisionRate($3);
+  $$ = $3;
 }
 ;
 
-division_decl_daughter: IDENTIFIER DAUGHTER INTEGER '=' expression ';'
+division_list_daughter: 
+{ $$ = NULL; }
+| division_decl_daughter
+{
+  $$ = new std::vector<DivisionDaughterDecl*>();
+  $$->push_back($1);
+}
+| division_list_daughter division_decl_daughter
+{ 
+  $1->push_back($2);
+  $$ = $1; 
+}
+;
+
+division_decl_daughter: IDENTIFIER '.' DAUGHTER '[' INTEGER ']' '=' expression ';'
 {  
+  $$ = new DivisionDaughterDecl(current_network->getOrMakeNode($1), $5, $8);
 } 
 ;
 
@@ -234,7 +236,6 @@ death_decl: DEATH '{' death_decl_rate '}'
 
 death_decl_rate: RATE '=' expression ';'
 {
-  // std::cout << "Rate of death : " << $3 << std::endl;
   current_pop_network->setDeathRate($3);
 }
 ;
@@ -268,11 +269,20 @@ primary_expression: IDENTIFIER
 {
   $$ = new ParenthesisExpression($2);
 }
-| '#' CELL_NUMBER '(' expression ')'
+| '#' CELL_NUMBER '(' cell_number ')'
 {
   $$ = new PopExpression($4);
 }
 ;
+
+cell_number:
+{
+  $$ = NULL;
+}
+| expression
+{
+  $$ = $1;
+}
 
 postfix_expression: primary_expression
 {

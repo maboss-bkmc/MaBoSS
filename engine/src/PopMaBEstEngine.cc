@@ -332,16 +332,24 @@ void PopMaBEstEngine::runThread(PopCumulator *cumulator, unsigned int start_coun
           }
           
           
-          // Here only looking at the first defined division... for now
-          std::vector<double> rate_divisions = pop_network->getDivisionRates(pop.first, pop_network_state);
-          for (auto rate_division: rate_divisions) {
-            if (rate_division > 0){
-              rate_division *= pop.second;
-              total_rate += rate_division;
-
+          
+          for (auto division_rule: pop_network->getDivisionRules()) {
+            double division_rate = division_rule.getRate(pop.first, pop_network_state);
+            if (division_rate > 0){
+              
+              division_rate *= pop.second;
+              total_rate += division_rate;
+              
               PopNetworkState new_pop_network_state = PopNetworkState(pop_network_state);
-              new_pop_network_state.incr(t_network_state.getState());
-              popNodeTransitionRates.insert(std::pair<PopNetworkState_Impl, double>(new_pop_network_state.getState(), rate_division));
+              new_pop_network_state.decr(t_network_state.getState());
+              
+              NetworkState state_daughter1 = division_rule.applyRules(DivisionRule::DAUGHTER1, pop.first, pop_network_state);
+              new_pop_network_state.incr(state_daughter1.getState());
+              
+              NetworkState state_daughter2 = division_rule.applyRules(DivisionRule::DAUGHTER2, pop.first, pop_network_state);
+              new_pop_network_state.incr(state_daughter2.getState());
+              
+              popNodeTransitionRates.insert(std::pair<PopNetworkState_Impl, double>(new_pop_network_state.getState(), division_rate));
             }
           }
           double rate_death = pop_network->getDeathRate(pop.first, pop_network_state);

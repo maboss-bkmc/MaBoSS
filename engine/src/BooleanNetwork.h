@@ -327,22 +327,35 @@ class PopNetworkState_Impl : public STATE_MAP<NetworkState_Impl, unsigned int> {
   
   // Equality between population network states
   bool equal(const PopNetworkState_Impl& pop_state) const {
-    bool identical = true;
+    
+    // So when are two PopNetworkState inequals ?
+    // First, if they don't have the same length of states in the population
+    if (pop_state.size() != this->size()) {
+      return false;
+    }
+    
+    // If it's identical, we need to look further, so we look at each state
+    // bool identical = true;
     for (auto network_state: pop_state) {
+      
+        // Is this state also present ?
         if (find(network_state.first) != end()){
-          // const std::pair<const NetworkState_Impl, unsigned int> t_state = *(find(network_state.first));
+          
+          // And if so, does it have the same population size
           if((*(find(network_state.first))).second != network_state.second) {
-            identical = false;
-            // std::cout << "Not same pop" << std::endl;
-            break;
+            return false;
+            // identical = false;
+            // break;
           }
+          
         } else {
-          identical = false; 
-          // std::cout << "Not the same states" << std::endl;
-          break;
+        //Otherwise we just exit now
+          return false;
+          // identical = false; 
+          // break;
         }
     }
-    return identical;
+    return true;
 
   }
   
@@ -833,10 +846,39 @@ public:
   ~Network();
 };
 
+class DivisionRule {
+  
+  public:
+
+  static const int DAUGHTER1 = 1;
+  static const int DAUGHTER2 = 2;
+  std::map<Node*, Expression*> daughter1;
+  std::map<Node*, Expression*> daughter2;
+  std::map<int, std::map<Node*, Expression*> > daughters = {{DAUGHTER1, daughter1}, {DAUGHTER2, daughter2}};
+  Expression* rate;
+  
+  DivisionRule() {
+    daughter1.clear();
+    daughter2.clear();
+    rate = NULL;
+  }
+  
+  void setRate(Expression* rate);
+  double getRate(const NetworkState& state, const PopNetworkState& pop);
+  
+  void addDaughterNode(int daughter, Node* node, Expression* expression) {
+    daughters[daughter][node] = expression;
+    
+  }
+  
+  NetworkState applyRules(int daughter, const NetworkState& state, const PopNetworkState& pop);
+};
+
+
 class PopNetwork : public Network {
   public:
   
-  std::vector<Expression*> divisionRates;
+  std::vector<DivisionRule> divisionRules;
   Expression* deathRate;
   
   PopNetwork();
@@ -846,15 +888,12 @@ class PopNetwork : public Network {
 
   int parse(const char* file = NULL, std::map<std::string, NodeIndex>* nodes_indexes = NULL, bool is_temp_file = false);
   
-  void addDivisionRate(Expression* expr) {
-    if (expr == NULL){
-      std::cout << "NULL" << std::endl;
-    }
-    divisionRates.push_back(expr);
+  void addDivisionRule(DivisionRule rule) {
+    std::cout << "Adding a division rule" << std::endl;
+    divisionRules.push_back(rule);
   }
   
-  const std::vector<Expression*> getDivisionRates() const { return divisionRates; }
-  std::vector<double> getDivisionRates(const NetworkState& state, const PopNetworkState& pop) const;
+  const std::vector<DivisionRule> getDivisionRules() const { return divisionRules; }
   
   void setDeathRate(Expression* expr) {
     if (expr == NULL) {
@@ -1156,7 +1195,10 @@ PopNetworkState& operator=(const PopNetworkState &p ) {
   }
 
   void decr(NetworkState_Impl net_state) {
-    state[net_state]--;
+    if (state[net_state] > 1)
+      state[net_state]--;  
+    else
+      state.erase(net_state);
   }
   
   bool exists(NetworkState_Impl net_state) {
@@ -1169,7 +1211,7 @@ PopNetworkState& operator=(const PopNetworkState &p ) {
 
   void displayOneLine(std::ostream& os, Network* network, const std::string& sep = " -- ") const;
 
- unsigned int hamming(Network* network, const PopNetworkState_Impl& state) const;
+  unsigned int hamming(Network* network, const PopNetworkState_Impl& state) const;
 
 };
 
