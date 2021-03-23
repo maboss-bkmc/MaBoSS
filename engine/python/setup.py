@@ -7,7 +7,10 @@ maboss_version = '1.0.0-beta-6'
 maboss_sources = [
    "FinalStateSimulationEngine.cc", "MetaEngine.cc", "MaBEstEngine.cc", "EnsembleEngine.cc", 
    "Cumulator.cc", "ProbaDist.cc", "BooleanNetwork.cc", "BooleanGrammar.cc", "RunConfigGrammar.cc", 
-   "Function.cc", "BuiltinFunctions.cc", "RunConfig.cc", "LogicalExprGen.cc", "Utils.cc"
+   "Function.cc", "BuiltinFunctions.cc", "RunConfig.cc", "LogicalExprGen.cc", "Utils.cc",
+   "StatDistDisplayer.cc", "RandomGenerator.cc",
+   "ProbTrajDisplayer.cc", "FixedPointDisplayer.cc", "FinalStateDisplayer.cc",  "MBDynBitset.cc", 
+   "StochasticSimulationEngine.cc", "PopMaBEstEngine.cc", "PopCumulator.cc", "PopProbaDist.cc"
 ]
 
 maboss_module_sources = [
