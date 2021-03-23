@@ -55,7 +55,6 @@
 #include "RandomGenerator.h"
 
 const char* prog = "PopMaBoSS";
-size_t RandomGenerator::generated_number_count = 0;
 
 static int usage(std::ostream& os = std::cerr)
 {
