@@ -647,5 +647,7 @@ void PopMaBEstEngine::displayRunStats(std::ostream& os, time_t start_time, time_
   os << "StatDist user runtime: " << (getUserStatDistRunTime()/1000.) << " secs using 1 thread\n";
   os << "StatDist elapsed runtime: " << (getElapsedStatDistRunTime()/1000.) << " secs using 1 thread\n\n";
   
+  os << "Number of PopNetworkState_Impl created : " << PopNetworkState_Impl::generated_number_count << std::endl << std::endl;
+  
   runconfig->display(pop_network, start_time, end_time, os);
 }

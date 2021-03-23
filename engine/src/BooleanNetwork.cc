@@ -69,7 +69,9 @@ bool MaBoSS_quiet = false;
 bool Node::override = false;
 bool Node::augment = false;
 size_t Network::MAX_NODE_SIZE = 0;
-
+  
+// Number of generated PopNetworkState_Impl
+long PopNetworkState_Impl::generated_number_count = 0;
 
 void PopNetworkState_Impl::display(Network* network, std::ostream &strm) const {
     
