@@ -51,10 +51,10 @@
 #include <algorithm>
 #include "RunConfig.h"
 #include "BooleanNetwork.h"
-#include "MaBEstEngine.h"
-#include "EnsembleEngine.h"
-#include "PopMaBEstEngine.h"
-#include "FinalStateSimulationEngine.h"
+// #include "MaBEstEngine.h"
+// #include "EnsembleEngine.h"
+// #include "PopMaBEstEngine.h"
+// #include "FinalStateSimulationEngine.h"
 
 extern void RClex_destroy();
 
@@ -150,7 +150,7 @@ double max(std::vector<long long int> const& v) {
   return 1.0 * max;
 }
 #endif
-void RunConfig::display(Network* network, time_t start_time, time_t end_time, MaBEstEngine& mabest, std::ostream& os) const
+void RunConfig::display(Network* network, time_t start_time, time_t end_time, std::ostream& os) const
 {
   
 #ifdef MPI_COMPAT
@@ -160,43 +160,6 @@ if (mabest.getWorldRank() == 0) {
   const char sepfmt[] = "-----------------------------------------------%s-----------------------------------------------\n";
   char bufstr[1024];
 
-  os << '\n';
-  sprintf(bufstr, sepfmt, "--- Run ---");
-  os << bufstr;
-
-  os << "MaBoSS version: " << MaBEstEngine::VERSION << " [networks up to " << MAXNODES << " nodes]\n";
-  os << "\nRun start time: " << ctime(&start_time);
-  os << "Run end time: " << ctime(&end_time);
-
-#ifdef MPI_COMPAT
-
-  os << "\nAverage core user runtime: " << avg(mabest.getUserCoreRuntimes()) / 1000. << " secs ("
-       << min(mabest.getUserCoreRuntimes()) / 1000. << ","
-       << max(mabest.getUserCoreRuntimes()) / 1000. << ")"
-
-       << "\nAverage core elapsed runtime: " << avg(mabest.getElapsedCoreRuntimes()) / 1000. << " secs ("
-       << min(mabest.getElapsedCoreRuntimes()) / 1000. << ","
-       << max(mabest.getElapsedCoreRuntimes()) / 1000. << ")"
-
-       << "\nEpilogue user runtime: " << avg(mabest.getUserEpilogueRuntimes()) / 1000. << " secs ("
-       << min(mabest.getUserEpilogueRuntimes()) / 1000. << ","
-       << max(mabest.getUserEpilogueRuntimes()) / 1000. << ")"
-       << "\nEpilogue elapsed runtime: " << avg(mabest.getElapsedEpilogueRuntimes()) / 1000. << " secs ("
-       << min(mabest.getElapsedEpilogueRuntimes()) / 1000. << ","
-       << max(mabest.getElapsedEpilogueRuntimes()) / 1000. << ")";
-      
-#else
-
-  os << "\nCore user runtime: " << (mabest.getUserCoreRunTime()/1000.) << " secs using " << thread_count << " thread" << (thread_count > 1 ? "s" : "") << "\n";
-  os << "Core elapsed runtime: " << (mabest.getElapsedCoreRunTime()/1000.) << " secs using " << thread_count << " thread" << (thread_count > 1 ? "s" : "") << "\n\n";
-
-  os << "Epilogue user runtime: " << (mabest.getUserEpilogueRunTime()/1000.) << " secs using 1 thread\n";
-  os << "Epilogue elapsed runtime: " << (mabest.getElapsedEpilogueRunTime()/1000.) << " secs using 1 thread\n\n";
-
-#endif
-
-  os << "\nStatDist user runtime: " << (mabest.getUserStatDistRunTime()/1000.) << " secs using 1 thread\n";
-  os << "StatDist elapsed runtime: " << (mabest.getElapsedStatDistRunTime()/1000.) << " secs using 1 thread\n\n";
   os << "Time Tick: " << getTimeTick() << '\n';
   os << "Max Time: " <<getMaxTime() << '\n';
   os << "Sample Count: " << getSampleCount() << '\n';
@@ -223,101 +186,10 @@ if (mabest.getWorldRank() == 0) {
   network->getSymbolTable()->display(os);
   sprintf(bufstr, sepfmt, "-----------");
   os << bufstr << '\n';
-  
+    
 #ifdef MPI_COMPAT
 }
 #endif
-
-}
-
-void RunConfig::display(Network* network, time_t start_time, time_t end_time, PopMaBEstEngine& mabest, std::ostream& os) const
-{
-  const char sepfmt[] = "-----------------------------------------------%s-----------------------------------------------\n";
-  char bufstr[1024];
-
-  os << '\n';
-  sprintf(bufstr, sepfmt, "--- Run ---");
-  os << bufstr;
-
-  os << "MaBoSS version: " << PopMaBEstEngine::VERSION << " [networks up to " << MAXNODES << " nodes]\n";
-  os << "\nRun start time: " << ctime(&start_time);
-  os << "Run end time: " << ctime(&end_time);
-
-  os << "\nCore user runtime: " << (mabest.getUserCoreRunTime()/1000.) << " secs using " << thread_count << " thread" << (thread_count > 1 ? "s" : "") << "\n";
-  os << "Core elapsed runtime: " << (mabest.getElapsedCoreRunTime()/1000.) << " secs using " << thread_count << " thread" << (thread_count > 1 ? "s" : "") << "\n\n";
-
-  os << "Epilogue user runtime: " << (mabest.getUserEpilogueRunTime()/1000.) << " secs using 1 thread\n";
-  os << "Epilogue elapsed runtime: " << (mabest.getElapsedEpilogueRunTime()/1000.) << " secs using 1 thread\n\n";
-
-  os << "StatDist user runtime: " << (mabest.getUserStatDistRunTime()/1000.) << " secs using 1 thread\n";
-  os << "StatDist elapsed runtime: " << (mabest.getElapsedStatDistRunTime()/1000.) << " secs using 1 thread\n\n";
-  os << "Time Tick: " << getTimeTick() << '\n';
-  os << "Max Time: " <<getMaxTime() << '\n';
-  os << "Sample Count: " << getSampleCount() << '\n';
-  os << "StatDist Trajectory Count: " << getStatDistTrajCount() << '\n';
-  os << "StatDist Similarity Cache Maximum Size: " << getStatDistSimilarityCacheMaxSize() << '\n';
-  os << "Discrete Time: " << (isDiscreteTime() ? "TRUE" : "FALSE") << '\n';
-  os << "Random Generator: " << getRandomGeneratorFactory()->getName() << '\n';
-  if (getRandomGeneratorFactory()->isPseudoRandom()) {
-    os << "Seed Pseudo Random: " << getSeedPseudoRandom() << '\n';
-  }
-  os << "Generated Number Count: " << RandomGenerator::getGeneratedNumberCount() << "\n\n";
-
-  sprintf(bufstr, sepfmt, "-----------");
-  os << bufstr << '\n';
-
-  sprintf(bufstr, sepfmt, "- Network -");
-  os << bufstr;
-  network->display(os);
-  sprintf(bufstr, sepfmt, "-----------");
-  os << bufstr << '\n';
-
-  sprintf(bufstr, sepfmt, " Variables ");
-  os << bufstr;
-  network->getSymbolTable()->display(os);
-  sprintf(bufstr, sepfmt, "-----------");
-  os << bufstr << '\n';
-}
-
-void RunConfig::display(Network* network, time_t start_time, time_t end_time, FinalStateSimulationEngine& mabest, std::ostream& os) const
-{
-  const char sepfmt[] = "-----------------------------------------------%s-----------------------------------------------\n";
-  char bufstr[1024];
-
-  os << '\n';
-  sprintf(bufstr, sepfmt, "--- Run ---");
-  os << bufstr;
-
-  os << "MaBoSS version: " << FinalStateSimulationEngine::VERSION << " [networks up to " << MAXNODES << " nodes]\n";
-  os << "\nRun start time: " << ctime(&start_time);
-  os << "Run end time: " << ctime(&end_time);
-
-  os << "Time Tick: " << getTimeTick() << '\n';
-  os << "Max Time: " <<getMaxTime() << '\n';
-  os << "Sample Count: " << getSampleCount() << '\n';
-  os << "StatDist Trajectory Count: " << getStatDistTrajCount() << '\n';
-  os << "StatDist Similarity Cache Maximum Size: " << getStatDistSimilarityCacheMaxSize() << '\n';
-  os << "Discrete Time: " << (isDiscreteTime() ? "TRUE" : "FALSE") << '\n';
-  os << "Random Generator: " << getRandomGeneratorFactory()->getName() << '\n';
-  if (getRandomGeneratorFactory()->isPseudoRandom()) {
-    os << "Seed Pseudo Random: " << getSeedPseudoRandom() << '\n';
-  }
-  os << "Generated Number Count: " << RandomGenerator::getGeneratedNumberCount() << "\n\n";
-
-  sprintf(bufstr, sepfmt, "-----------");
-  os << bufstr << '\n';
-
-  sprintf(bufstr, sepfmt, "- Network -");
-  os << bufstr;
-  network->display(os);
-  sprintf(bufstr, sepfmt, "-----------");
-  os << bufstr << '\n';
-
-  sprintf(bufstr, sepfmt, " Variables ");
-  os << bufstr;
-  network->getSymbolTable()->display(os);
-  sprintf(bufstr, sepfmt, "-----------");
-  os << bufstr << '\n';
 }
 
 int RunConfig::parse(Network* network, const char* file)
@@ -383,22 +255,22 @@ int RunConfig::parseExpression(Network* network, const char* expr)
   }
 }
 
-void RunConfig::generateTemplate(Network* network, std::ostream& os) const
+void RunConfig::generateTemplate(Network* network, std::ostream& os, std::string version) const
 {
-  dump_perform(network, os, true);
+  dump_perform(network, os, true, version);
 }
 
-void RunConfig::dump(Network* network, std::ostream& os) const
+void RunConfig::dump(Network* network, std::ostream& os, std::string version) const
 {
-  dump_perform(network, os, false);
+  dump_perform(network, os, false, version);
 }
 
-void RunConfig::dump_perform(Network* network, std::ostream& os, bool is_template) const
+void RunConfig::dump_perform(Network* network, std::ostream& os, bool is_template, std::string version) const
 {
   time_t now = time(NULL);
 
   os << "//\n";
-  os << "// MaBoSS " << MaBEstEngine::VERSION << " configuration " << (is_template ? "template " : "") << "generated at " << ctime(&now);
+  os << "// MaBoSS " << version << " configuration " << (is_template ? "template " : "") << "generated at " << ctime(&now);
   os << "//\n\n";
 
   if (is_template) {

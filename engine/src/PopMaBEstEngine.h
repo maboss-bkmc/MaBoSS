@@ -130,6 +130,8 @@ public:
   void epilogue();
   static void* threadWrapper(void *arg);
   void runThread(PopCumulator* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj);
+  void displayRunStats(std::ostream& os, time_t start_time, time_t end_time) const;
+
 };
 
 #endif

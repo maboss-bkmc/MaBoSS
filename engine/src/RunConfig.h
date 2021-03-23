@@ -72,7 +72,7 @@ class RunConfig {
   unsigned int statdist_traj_count;
   double statdist_cluster_threshold;
   unsigned int statdist_similarity_cache_max_size;
-  void dump_perform(Network* network, std::ostream& os, bool is_template) const;
+  void dump_perform(Network* network, std::ostream& os, bool is_template, std::string version) const;
   unsigned int init_pop;
  public:
   RunConfig();
@@ -90,17 +90,17 @@ class RunConfig {
   bool isDiscreteTime() const {return discrete_time;}
   int getSeedPseudoRandom() const {return seed_pseudorand;}
   void setSeedPseudoRandom(int seed) { seed_pseudorand = seed;}
-  void display(Network* network, time_t start_time, time_t end_time, MaBEstEngine& mabest, std::ostream& os) const;
-  void display(Network* network, time_t start_time, time_t end_time, PopMaBEstEngine& mabest, std::ostream& os) const;
-  void display(Network* network, time_t start_time, time_t end_time, FinalStateSimulationEngine& engine, std::ostream& os) const;
+  void display(Network* network, time_t start_time, time_t end_time, std::ostream& os) const;
+  // void display(Network* network, time_t start_time, time_t end_time, PopMaBEstEngine& mabest, std::ostream& os) const;
+  // void display(Network* network, time_t start_time, time_t end_time, FinalStateSimulationEngine& engine, std::ostream& os) const;
   bool displayTrajectories() const {return display_traj;}
   unsigned int getThreadCount() const {return thread_count;}
   unsigned int getStatDistTrajCount() const {return statdist_traj_count <= sample_count ? statdist_traj_count : sample_count;}
   double getStatdistClusterThreshold() const {return statdist_cluster_threshold;}
   unsigned int getStatDistSimilarityCacheMaxSize() const {return statdist_similarity_cache_max_size;}
 
-  void generateTemplate(Network* network, std::ostream& os) const;
-  void dump(Network* network, std::ostream& os) const;
+  void generateTemplate(Network* network, std::ostream& os, std::string version) const;
+  void dump(Network* network, std::ostream& os, std::string version) const;
 };
 
 extern FILE* RCin;

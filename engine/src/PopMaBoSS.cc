@@ -284,11 +284,6 @@ int main(int argc, char* argv[])
   try {
     time_t start_time, end_time;
 
-    
-    // Network* network = new Network();
-
-    // network->parse(ctbndl_file);
-
     PopNetwork* pop_network = new PopNetwork();
     pop_network->parse(ctbndl_file);
 
@@ -296,7 +291,7 @@ int main(int argc, char* argv[])
 
     if (generate_config_template) {
       IStateGroup::checkAndComplete(pop_network);
-      runconfig->generateTemplate(pop_network, std::cout);
+      runconfig->generateTemplate(pop_network, std::cout, PopMaBEstEngine::VERSION);
       return 0;
     }
 
@@ -330,7 +325,7 @@ int main(int argc, char* argv[])
     }
 
     if (dump_config) {
-      runconfig->dump(pop_network, std::cout);
+      runconfig->dump(pop_network, std::cout, PopMaBEstEngine::VERSION);
       return 0;
     }
 
@@ -371,7 +366,7 @@ int main(int argc, char* argv[])
     
     time(&end_time);
 
-    runconfig->display(pop_network, start_time, end_time, mabest, *output_run);
+    mabest.displayRunStats(*output_run, start_time, end_time);
 
     ((std::ofstream*)output_run)->close();
     delete output_run;
@@ -387,7 +382,6 @@ int main(int argc, char* argv[])
     delete output_fp;
   
     delete runconfig;
-    // delete network;
     delete pop_network;
 
     Function::destroyFuncMap();  

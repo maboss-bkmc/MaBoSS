@@ -225,7 +225,7 @@ void Server::run(const ClientData& client_data, ServerData& server_data)
       
       time(&end_time);
 
-      runconfig->display(network, start_time, end_time, mabest, *output_run);
+      mabest.displayRunStats(*output_run, start_time, end_time);
 
       server_data.setStatus(0);
       server_data.setStatDist(ostringstream2str(output_statdist));
