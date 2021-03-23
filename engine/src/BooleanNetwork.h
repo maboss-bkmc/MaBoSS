@@ -850,11 +850,11 @@ class DivisionRule {
   
   public:
 
-  static const int DAUGHTER1 = 1;
-  static const int DAUGHTER2 = 2;
+  static const int DAUGHTER_1 = 1;
+  static const int DAUGHTER_2 = 2;
   std::map<Node*, Expression*> daughter1;
   std::map<Node*, Expression*> daughter2;
-  std::map<int, std::map<Node*, Expression*> > daughters = {{DAUGHTER1, daughter1}, {DAUGHTER2, daughter2}};
+  std::map<int, std::map<Node*, Expression*> > daughters = {{DAUGHTER_1, daughter1}, {DAUGHTER_2, daughter2}};
   Expression* rate;
   
   DivisionRule() {
