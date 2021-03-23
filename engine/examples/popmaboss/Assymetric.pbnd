@@ -27,8 +27,8 @@ division
 division
 {
   rate = (1/#cell())/2;
-  A.daughter[1] = 0;
-  B.daughter[1] = 1;
-  A.daughter[2] = 0;
-  C.daughter[2] = 1;
+  A.daughter1 = 0;
+  B.daughter1 = 1;
+  A.daughter2 = 0;
+  C.daughter2 = 1;
 }

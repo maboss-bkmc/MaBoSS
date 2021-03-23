@@ -99,7 +99,7 @@ static PopNetwork* current_pop_network;
 %token<d> DOUBLE
 %token<l> INTEGER
 
-%token LOGAND LOGOR LOGXOR LOGNOT EQUAL NOT_EQUAL NODE GTEQ LTEQ DIVISION DEATH RATE DAUGHTER CELL_NUMBER
+%token LOGAND LOGOR LOGXOR LOGNOT EQUAL NOT_EQUAL NODE GTEQ LTEQ DIVISION DEATH RATE DAUGHTER1 DAUGHTER2 CELL_NUMBER
 
 %%
 
@@ -201,6 +201,16 @@ division_decl: DIVISION '{' division_decl_rate division_list_daughter '}'
 {
   $$ = new DivisionDecl($4, $3);
 }
+| DIVISION '{' division_decl_rate '}'
+{
+  std::vector<DivisionDaughterDecl*>* empty_daughters = NULL;
+  $$ = new DivisionDecl(empty_daughters, $3);
+}
+| DIVISION '{' division_list_daughter '}'
+{
+  Expression* empty_rate = NULL;
+  $$ = new DivisionDecl($3, empty_rate);
+}
 ;
 
 division_decl_rate: RATE '=' expression ';'
@@ -209,9 +219,7 @@ division_decl_rate: RATE '=' expression ';'
 }
 ;
 
-division_list_daughter: 
-{ $$ = NULL; }
-| division_decl_daughter
+division_list_daughter: division_decl_daughter
 {
   $$ = new std::vector<DivisionDaughterDecl*>();
   $$->push_back($1);
@@ -223,10 +231,14 @@ division_list_daughter:
 }
 ;
 
-division_decl_daughter: IDENTIFIER '.' DAUGHTER '[' INTEGER ']' '=' expression ';'
+division_decl_daughter: IDENTIFIER '.' DAUGHTER1 '=' expression ';'
 {  
-  $$ = new DivisionDaughterDecl(current_network->getOrMakeNode($1), $5, $8);
-} 
+  $$ = new DivisionDaughterDecl(current_network->getOrMakeNode($1), DivisionRule::DAUGHTER1, $5);
+}
+| IDENTIFIER '.' DAUGHTER2 '=' expression ';'
+{
+  $$ = new DivisionDaughterDecl(current_network->getOrMakeNode($1), DivisionRule::DAUGHTER2, $5);  
+}
 ;
 
 death_decl: DEATH '{' death_decl_rate '}'

@@ -22,8 +22,8 @@ Node C
 division
 {
   rate = B ? 1/#cell(B) : 0;
-  A.daughter[1] = 0;
-  A.daughter[2] = 1;
+  A.daughter1 = 0;
+  A.daughter2 = 1;
 }
 
 death
