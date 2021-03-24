@@ -34,10 +34,10 @@ jobs:
         bash -c "cd engine/tests; bash ./test-ensemble.sh"
         bash -c "cd engine/tests; bash ./test-ewing.sh"
         bash -c "cd engine/tests; bash ./test-server.sh"
-        bash -c "cd engine/tests; bash ./test-user_func.sh"
         bash -c "cd engine/tests; bash ./test-prngs.sh"
         bash -c "cd engine/tests; bash ./test-rngs.sh"
         bash -c "cd engine/tests; bash ./test-popmaboss.sh"
+        bash -c "cd engine/tests; bash ./test-user_func.sh"
   
   maboss_conda:
     name: MaBoSS Anaconda package
