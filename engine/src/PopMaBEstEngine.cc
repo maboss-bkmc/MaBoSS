@@ -222,10 +222,7 @@ void *PopMaBEstEngine::threadWrapper(void *arg)
 void PopMaBEstEngine::runThread(PopCumulator *cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory *randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int> *fixpoint_map, std::ostream *output_traj)
 {
   const std::vector<Node *> &nodes = pop_network->getNodes();
-  // std::vector<Node*>::const_iterator begin = nodes.begin();
-  // std::vector<Node*>::const_iterator end = nodes.end();
   unsigned int stable_cnt = 0;
-  // NetworkState network_state;
   PopNetworkState pop_network_state;
 
   RandomGenerator *random_generator = randgen_factory->generateRandomGenerator(seed);
@@ -233,25 +230,23 @@ void PopMaBEstEngine::runThread(PopCumulator *cumulator, unsigned int start_coun
   {
     random_generator->setSeed(seed + start_count_thread + nn);
     cumulator->rewind();
-    std::cout << "> New simulation" << std::endl;
-    // network->initStates(network_state, random_generator);
-    // std::cout << "Initializing pop state" << std::endl;
+    std::cout << std::endl << "> New simulation" << std::endl;
+  
     pop_network->initPopStates(pop_network_state, random_generator, runconfig->getInitPop());
-    // std::cout << "Done" << std::endl;
     double tm = 0.;
     unsigned int step = 0;
-    // if (NULL != output_traj) {
-    //   (*output_traj) << "\nTrajectory #" << (nn+1) << '\n';
-    //   (*output_traj) << " istate\t";
-    //   network_state.displayOneLine(*output_traj, network);
-    //   (*output_traj) << '\n';
-    // }
+    if (NULL != output_traj) {
+      (*output_traj) << "\nTrajectory #" << (nn+1) << '\n';
+      (*output_traj) << " istate\t";
+      pop_network_state.displayOneLine(*output_traj, pop_network);
+      (*output_traj) << '\n';
+    }
     while (tm < max_time)
     {
       double total_rate = 0.;
 
       std::cout << ">> Present state : ";
-      pop_network_state.getState().displayOneLine(pop_network, std::cout);
+      pop_network_state.displayOneLine(std::cout, pop_network);
       std::cout << std::endl;
 
       STATE_MAP<PopNetworkState_Impl, double, PopNetworkState_ImplHash, PopNetworkState_ImplEquality> popNodeTransitionRates;
@@ -269,7 +264,6 @@ void PopMaBEstEngine::runThread(PopCumulator *cumulator, unsigned int start_coun
           {
 
             double nodeTransitionRate = 0;
-            NodeIndex node_idx = node->getIndex();
             if (node->getNodeState(t_network_state))
             {
               double r_down = node->getRateDown(t_network_state, pop_network_state);
@@ -292,38 +286,21 @@ void PopMaBEstEngine::runThread(PopCumulator *cumulator, unsigned int start_coun
             // if ρS→S' > 0 then
             if (nodeTransitionRate > 0.0)
             {
-
-              PopNetworkState new_pop_network_state = PopNetworkState(pop_network_state);
               // Construct ψ' from (ψ, S and S')
-              // std::cout << "Just copied from Phi";
-              // new_pop_network_state.getState().display(network, std::cout);
-              // std::cout << std::endl;
+              // ψ'(S'') ≡ ψ(S'' ), ∀S'' != (S, S')
+              PopNetworkState new_pop_network_state = PopNetworkState(pop_network_state);
               
-              // std::cout << "S state : " << t_network_state.getName(network) << std::endl;
               // ψ'(S) ≡ ψ(S) − 1
-              // new_pop_network_state.getState()[t_network_state.getState()]--;
-              new_pop_network_state.decr(t_network_state.getState());
-              // std::cout << "After decr";
-              // new_pop_network_state.getState().display(network, std::cout);
-              // std::cout << std::endl;
+              new_pop_network_state.decr(t_network_state);
               
-              // std::cout << "New pop state : ";
-              // new_pop_network_state.getState().display(network, std::cout);
-
               // ψ'(S') ≡ ψ(S') + 1
               NetworkState new_network_state = t_network_state;
               new_network_state.flipState(node);
-              // std::cout << "S' state : " << new_network_state.getName(network) << std::endl;
-
-              new_pop_network_state.incr(new_network_state.getState());
+              new_pop_network_state.incr(new_network_state); 
               
-              // ψ'(S'') ≡ ψ(S'' ), ∀S'' != (S, S')
-              // Done by initial copy
-
               // Compute the transition rate ρψ→ψ' using
               // ρψ→ψ' ≡ ψ(S)ρS→S'
-              nodeTransitionRate *= pop_network_state.getState()[t_network_state.getState()];
-              // nodeTransitionRate *= pop.second;
+              nodeTransitionRate *= pop.second;
 
               total_rate += nodeTransitionRate;
               // Put (ψ' , ρψ→ψ' ) in Ω
@@ -331,25 +308,34 @@ void PopMaBEstEngine::runThread(PopCumulator *cumulator, unsigned int start_coun
             }
           }
           
-          
-          
+          // forall Possible division do
           for (auto division_rule: pop_network->getDivisionRules()) {
+            
+            // Compute the transition rate of cell division from MaBoSS language, ρS→division
             double division_rate = division_rule.getRate(pop.first, pop_network_state);
+            
+            // if ρS→division > 0 then
             if (division_rate > 0){
               
-              division_rate *= pop.second;
-              total_rate += division_rate;
               
+              // Construct the two daughter cell states S' and S'' using MaBoSS language
+              // Construct the new state ψ 0 
               PopNetworkState new_pop_network_state = PopNetworkState(pop_network_state);
-              new_pop_network_state.decr(t_network_state.getState());
+              new_pop_network_state.decr(t_network_state);
               
               NetworkState state_daughter1 = division_rule.applyRules(DivisionRule::DAUGHTER_1, pop.first, pop_network_state);
-              new_pop_network_state.incr(state_daughter1.getState());
+              new_pop_network_state.incr(state_daughter1);
               
               NetworkState state_daughter2 = division_rule.applyRules(DivisionRule::DAUGHTER_2, pop.first, pop_network_state);
-              new_pop_network_state.incr(state_daughter2.getState());
+              new_pop_network_state.incr(state_daughter2);
               
+              // Compute the transition rate ρψ→ψ' = ψ(S)ρS→division
+              division_rate *= pop.second;
+              
+              // Put (ψ' , ρψ→ψ' ) in Ω
               popNodeTransitionRates.insert(std::pair<PopNetworkState_Impl, double>(new_pop_network_state.getState(), division_rate));
+              total_rate += division_rate;
+              
             }
           }
           double rate_death = pop_network->getDeathRate(pop.first, pop_network_state);
@@ -358,7 +344,7 @@ void PopMaBEstEngine::runThread(PopCumulator *cumulator, unsigned int start_coun
             total_rate += rate_death;
             
             PopNetworkState new_pop_network_state = PopNetworkState(pop_network_state);
-            new_pop_network_state.decr(t_network_state.getState());
+            new_pop_network_state.decr(t_network_state);
             popNodeTransitionRates.insert(std::pair<PopNetworkState_Impl, double>(new_pop_network_state.getState(), rate_death));
           }
           
@@ -372,16 +358,17 @@ void PopMaBEstEngine::runThread(PopCumulator *cumulator, unsigned int start_coun
             {
               (*fixpoint_map)[t_network_state.getState()]++;
             }
+
+            stable_cnt++;
           }
         }
       }
 
-      // std::cout << "Total rate : " << total_rate << std::endl;
       for (const auto &transition : popNodeTransitionRates)
       {
         std::cout << " >>> Transition : ";
-        // PopNetworkState_Impl t_state = transition.first;
-        transition.first.displayOneLine(pop_network, std::cout);
+        PopNetworkState t_state(transition.first);
+        t_state.displayOneLine(std::cout, pop_network);
         std::cout << ", proba=" << (int)(100*transition.second/total_rate) << std::endl;
       }
       double TH;
@@ -389,12 +376,6 @@ void PopMaBEstEngine::runThread(PopCumulator *cumulator, unsigned int start_coun
       {
         tm = max_time;
         TH = 0.;
-        // if (fixpoint_map->find(network_state.getState()) == fixpoint_map->end()) {
-        //   (*fixpoint_map)[network_state.getState()] = 1;
-        // } else {
-        //   (*fixpoint_map)[network_state.getState()]++;
-        // }
-        stable_cnt++;
       }
       else
       {
@@ -415,11 +396,11 @@ void PopMaBEstEngine::runThread(PopCumulator *cumulator, unsigned int start_coun
         // TH = computeTH(nodeTransitionRates, total_rate);
       }
 
-      // if (NULL != output_traj) {
-      //   (*output_traj) << std::setprecision(10) << tm << '\t';
-      //   network_state.displayOneLine(*output_traj, network);
-      //   (*output_traj) << '\t' << TH << '\n';
-      // }
+      if (NULL != output_traj) {
+        (*output_traj) << std::setprecision(10) << tm << '\t';
+        pop_network_state.displayOneLine(*output_traj, pop_network);
+        (*output_traj) << '\t' << TH << '\n';
+      }
 
       cumulator->cumul(pop_network_state, tm, TH);
 
@@ -429,7 +410,6 @@ void PopMaBEstEngine::runThread(PopCumulator *cumulator, unsigned int start_coun
       }
 
       pop_network_state = getTargetNode(random_generator, popNodeTransitionRates, total_rate);
-      // network_state.flipState(network->getNode(node_idx));
 
       step++;
     }
