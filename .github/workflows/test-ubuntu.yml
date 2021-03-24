@@ -136,7 +136,7 @@ jobs:
     - name: Build cMaBoSS
       run: |
         cd engine/src
-        make
+        make grammars
         cd ../python
         cp -r ../src .
         python3 setup.py build_ext --inplace
@@ -180,7 +180,7 @@ jobs:
     
     - name: Compile MaBoSS
       run: |
-        cd engine/src; make
+        cd engine/src; make grammars
         cd ../python; cp -r ../src .
         cd ../..
         pip install twine
@@ -208,7 +208,7 @@ jobs:
     
     - name: Compile MaBoSS
       run: |
-        cd engine/src; make
+        cd engine/src; make grammars
         cd ../python; cp -r ../src .
         cd ../..
         pip install twine
@@ -236,7 +236,7 @@ jobs:
     
     - name: Compile MaBoSS
       run: |
-        cd engine/src; make
+        cd engine/src; make grammars
         cd ../python; cp -r ../src .
         cd ../..
         pip install twine

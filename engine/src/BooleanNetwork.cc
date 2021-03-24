@@ -650,6 +650,23 @@ void NetworkState::displayOneLine(std::ostream& os, Network* network, const std:
   os << getName(network, sep);
 }
 
+
+std::string PopNetworkState::getName(Network * network, const std::string& sep) const {
+  
+  std::string res = "[";
+  
+  size_t i = state.size();
+  for (auto pop : state) {
+    NetworkState t_state(pop.first);
+    res += "{" + t_state.getName(network) + ":" + std::to_string(pop.second) + "}";
+    if (--i > 0) {
+      res += ",";
+    }
+  }
+  res += "]";
+  return res;
+}
+
 void PopNetworkState::displayOneLine(std::ostream& os, Network* network, const std::string& sep) const
 {
   state.displayOneLine(network, os, sep);
@@ -659,6 +676,7 @@ void PopNetworkState::displayJSON(std::ostream& os, Network* network, const std:
 {
   state.displayJSON(network, os, sep);
 }
+
 
 unsigned int PopNetworkState::count(Expression * expr) const
 {

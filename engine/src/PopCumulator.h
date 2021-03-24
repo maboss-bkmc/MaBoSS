@@ -56,6 +56,15 @@
 #include <vector>
 #include <iostream>
 #include <assert.h>
+#include <unordered_set>
+
+#ifdef PYTHON_API
+#define NO_IMPORT_ARRAY
+#define PY_ARRAY_UNIQUE_SYMBOL MABOSS_ARRAY_API
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#include <Python.h>
+#include <numpy/arrayobject.h>
+#endif
 
 static bool POP_COMPUTE_ERRORS = true;
 
@@ -131,29 +140,9 @@ class PopCumulator {
     }
 
     void cumulTMSliceSquare(const PopNetworkState_Impl& state, double tm_slice) {
-      // std::cout << "Entering cumulTMSliceSquare" << std::endl;
-      //  STATE_MAP<PopNetworkState_Impl, TickValue, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::iterator begin = mp.begin();
-      // STATE_MAP<PopNetworkState_Impl, TickValue, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::iterator end = mp.end();
-    
-    
-      // while(begin != end) {
-        
-      //   std::cout << (*begin).first.my_id << ", " 
-      //             << (*begin).second.tm_slice << " : "
-      //             << (*begin).second.tm_slice_square
-      //             << std::endl;
-      //   begin++;
-      // }
-    // std::cout << "Looking for " << state.my_id << std::endl;
       STATE_MAP<PopNetworkState_Impl, TickValue, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::iterator iter = realFind(state);
-      // std::cout << "Made iterator" << std::endl;
       assert(iter != mp.end());
-      // std::cout << "Computing tm slice square" << std::endl;
-      // std::cout << (*iter).first.my_id << std::endl;
-      // std::cout << (*iter).second.tm_slice << std::endl;
-      // std::cout << (*iter).second.tm_slice_square << std::endl;
       (*iter).second.tm_slice_square += tm_slice * tm_slice;
-      // std::cout << "Done" << std::endl;
     }
     
     void add(const PopNetworkState_Impl& state, const TickValue& tick_value) {
@@ -507,6 +496,19 @@ public:
   unsigned int getSampleCount() const {return sample_count;}
 
   static PopCumulator* mergePopCumulators(RunConfig* runconfig, std::vector<PopCumulator*>& cumulator_v);
+  
+  
+#ifdef PYTHON_API
+
+  PyObject* getNumpyStatesDists(PopNetwork* network) const;
+  // PyObject* getNumpyLastStatesDists(Network* network) const;;
+  std::vector<PopNetworkState_Impl> getStates(PopNetwork* network) const;
+  // std::vector<NetworkState_Impl> getLastStates() const;
+  // PyObject* getNumpyNodesDists(Network* network) const;
+  // PyObject* getNumpyLastNodesDists(Network* network) const;
+  // std::vector<Node*> getNodes(Network* network) const;
+  
+#endif
 };
 
 #endif

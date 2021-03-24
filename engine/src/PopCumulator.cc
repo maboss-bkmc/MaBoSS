@@ -372,3 +372,143 @@ PopCumulator* PopCumulator::mergePopCumulators(RunConfig* runconfig, std::vector
   return ret_cumul;
 }
 
+
+#ifdef PYTHON_API
+// std::unordered_set<PopNetworkState_Impl, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::iterator realFind(
+//   std::unordered_set<PopNetworkState_Impl, PopNetworkState_ImplHash, PopNetworkState_ImplEquality> set,
+//   const PopNetworkState_Impl& state
+// ) {
+//   std::unordered_set<PopNetworkState_Impl, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::iterator begin = set.begin();
+  
+//   while(begin != set.end()) {
+//     if (state.equal(*begin)) {
+//       return begin;
+//     }
+    
+//     begin++;
+//   }
+//   return begin;
+// }
+
+// std::vector<PopNetworkState_Impl>::iterator realFind(std::vector<PopNetworkState_Impl> vect, const PopNetworkState_Impl& state, PopNetwork* network) 
+// {
+//   std::vector<PopNetworkState_Impl>::iterator begin = vect.begin();
+  
+//   while(begin != vect.end()) {
+//     std::cout << "Are state ";
+//     state.displayOneLine(network, std::cout);
+//     std::cout << " and state ";
+//     begin->displayOneLine(network, std::cout);
+//     std::cout << " equals ? ";
+//     if (state.equal(*begin)) {
+//       std::cout << "Yes" << std::endl;
+//       return begin;
+//     }
+//     std::cout << "No" << std::endl;
+//     begin++;
+//   }
+//   std::cout << "Returning end, should add" << std::endl;
+//   std::cout << (begin == vect.end()) << std::endl;
+//   return begin;
+// }
+
+unsigned int realFindPos(std::vector<PopNetworkState_Impl> vect, const PopNetworkState_Impl& state) 
+{
+  std::vector<PopNetworkState_Impl>::iterator begin = vect.begin();
+  unsigned int pos = 0;
+  while(begin != vect.end()) {
+    if (state.equal(*begin)) {
+      return pos;
+    }
+    begin++;
+    pos++;
+  }
+  return pos;
+}
+
+bool realExists(std::vector<PopNetworkState_Impl> vect, const PopNetworkState_Impl& state) 
+{
+  std::vector<PopNetworkState_Impl>::iterator begin = vect.begin();
+  while(begin != vect.end()) {
+    if (state.equal(*begin)) {
+      return true;
+    }
+    begin++;
+  }
+  return false;
+}
+
+std::vector<PopNetworkState_Impl> PopCumulator::getStates(PopNetwork* network) const
+{
+  std::vector<PopNetworkState_Impl> result_states;
+
+  for (int nn=0; nn < getMaxTickIndex(); nn++) {
+    const PopCumulMap& mp = get_map(nn);
+    PopCumulMap::Iterator iter = mp.iterator();
+
+    while (iter.hasNext()) {
+      TickValue tick_value;
+      //#ifdef USE_NEXT_OPT
+      //const NetworkState_Impl& state = iter.next2(tick_value);
+      //#else
+      PopNetworkState_Impl state;
+      iter.next(state, tick_value);
+      //#endif
+      
+      if (!realExists(result_states, state)){
+        state.displayOneLine(network, std::cout);
+        std::cout<< std::endl;
+        result_states.push_back(PopNetworkState_Impl(state));
+      }
+    }
+  }
+
+  return result_states;
+}
+
+PyObject* PopCumulator::getNumpyStatesDists(PopNetwork* network) const 
+{
+  std::vector<PopNetworkState_Impl> list_states = getStates(network);
+  
+  npy_intp dims[2] = {(npy_intp) getMaxTickIndex(), (npy_intp) list_states.size()};
+  PyArrayObject* result = (PyArrayObject *) PyArray_ZEROS(2,dims,NPY_DOUBLE, 0); 
+
+  double ratio = time_tick*sample_count;
+
+  for (int nn=0; nn < getMaxTickIndex(); nn++) {
+    const PopCumulMap& mp = get_map(nn);
+    PopCumulMap::Iterator iter = mp.iterator();
+
+    while (iter.hasNext()) {
+      TickValue tick_value;
+      PopNetworkState_Impl state;
+      
+      iter.next(state, tick_value);
+      
+      void* ptr = PyArray_GETPTR2(result, nn, realFindPos(list_states, state));
+      PyArray_SETITEM(
+        result, 
+        (char*) ptr,
+        PyFloat_FromDouble(tick_value.tm_slice / ratio)
+      );
+    }
+  }
+  PyObject* pylist_state = PyList_New(list_states.size());
+  for (unsigned int i=0; i < list_states.size(); i++) {
+    PyList_SetItem(
+      pylist_state, i, 
+      PyUnicode_FromString(PopNetworkState(list_states[i]).getName(network).c_str())
+    );
+  }
+
+  PyObject* timepoints = PyList_New(getMaxTickIndex());
+  for (int i=0; i < getMaxTickIndex(); i++) {
+    PyList_SetItem(timepoints, i, PyFloat_FromDouble(((double) i) * time_tick));
+  }
+
+  return PyTuple_Pack(3, PyArray_Return(result), pylist_state, timepoints);
+}
+
+
+#endif
+

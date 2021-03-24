@@ -113,7 +113,7 @@ jobs:
       run: |
         cd engine/src
         make
-        cd ../python
+        cd ../python grammars
         cp -r ../src .
         python3 setup.py build_ext --inplace
         cd ../..
@@ -178,7 +178,7 @@ jobs:
 
     - name: Compile MaBoSS
       run: |
-        cd engine/src; make
+        cd engine/src; make grammars
         cd ../python; cp -r ../src .
         cd ../..
         

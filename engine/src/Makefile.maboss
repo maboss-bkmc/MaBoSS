@@ -104,6 +104,9 @@ client: $(MABOSS_CLIENT)
 .PHONY: server
 server: $(MABOSS_SERVER)
 
+.PHONY: grammars
+grammars: BooleanGrammar.cc RunConfigGrammar.cc
+
 all: $(MABOSS_LIB) $(MABOSS) $(POPMABOSS) $(MABOSS_SERVER) $(MABOSS_CLIENT) $(FUNC_MODULE)
 
 $(MABOSS_ALIB): $(CORE_LIB_OBJS) $(LIB_OBJS)

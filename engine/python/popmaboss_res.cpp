@@ -53,7 +53,7 @@
 #include <set>
 #include "src/BooleanNetwork.h"
 #include "src/PopMaBEstEngine.h"
-#include "src/PopProbTrajDisplayer.h"
+// #include "src/PopProbTrajDisplayer.h"
 
 typedef struct {
   PyObject_HEAD
@@ -94,9 +94,9 @@ static PyObject* cPopMaBoSSResult_get_fp_table(cPopMaBoSSResultObject* self) {
   return dict;
 }
 
-// static PyObject* cMaBoSSResult_get_probtraj(cMaBoSSResultObject* self) {
-//   return self->engine->getMergedCumulator()->getNumpyStatesDists(self->network);
-// }
+static PyObject* cPopMaBoSSResult_get_probtraj(cPopMaBoSSResultObject* self) {
+  return self->engine->getMergedCumulator()->getNumpyStatesDists(self->network);
+}
 
 // static PyObject* cMaBoSSResult_get_last_probtraj(cMaBoSSResultObject* self) {
 //   return self->engine->getMergedCumulator()->getNumpyLastStatesDists(self->network);
@@ -127,20 +127,23 @@ static PyObject* cPopMaBoSSResult_display_fp(cPopMaBoSSResultObject* self, PyObj
   return Py_None;
 }
 
-// static PyObject* cPopMaBoSSResult_display_probtraj(cPopMaBoSSResultObject* self, PyObject *args) 
-// {
-//   char * filename = NULL;
-//   int hexfloat = 0;
-//   if (!PyArg_ParseTuple(args, "s|i", &filename, &hexfloat))
-//     return NULL;
+static PyObject* cPopMaBoSSResult_display_probtraj(cPopMaBoSSResultObject* self, PyObject *args) 
+{
+  char * filename = NULL;
+  int hexfloat = 0;
+  if (!PyArg_ParseTuple(args, "s|i", &filename, &hexfloat))
+    return NULL;
     
-//   std::ostream* output_probtraj = new std::ofstream(filename);
-//   self->engine->displayProbTraj(*output_probtraj, (bool) hexfloat);
-//   ((std::ofstream*) output_probtraj)->close();
-//   delete output_probtraj;
+  std::ostream* output_probtraj = new std::ofstream(filename);
+  
+  CSVPopProbTrajDisplayer * pop_probtraj_displayer = new CSVPopProbTrajDisplayer(self->network, *output_probtraj, hexfloat);
+  self->engine->displayPopProbTraj(pop_probtraj_displayer);
+  
+  ((std::ofstream*) output_probtraj)->close();
+  delete output_probtraj;
 
-//   return Py_None;
-// }
+  return Py_None;
+}
 
 // static PyObject* cPopMaBoSSResult_display_statdist(cPopMaBoSSResultObject* self, PyObject *args) 
 // {
@@ -174,12 +177,12 @@ static PyObject* cPopMaBoSSResult_display_run(cPopMaBoSSResultObject* self, PyOb
 
 static PyMethodDef cPopMaBoSSResult_methods[] = {
     {"get_fp_table", (PyCFunction) cPopMaBoSSResult_get_fp_table, METH_NOARGS, "gets the fixpoints table"},
-    // {"get_probtraj", (PyCFunction) cMaBoSSResult_get_probtraj, METH_NOARGS, "gets the raw states probability trajectories of the simulation"},
+    {"get_probtraj", (PyCFunction) cPopMaBoSSResult_get_probtraj, METH_NOARGS, "gets the raw states probability trajectories of the simulation"},
     // {"get_last_probtraj", (PyCFunction) cMaBoSSResult_get_last_probtraj, METH_NOARGS, "gets the raw states probability trajectories of the simulation"},
     // {"get_nodes_probtraj", (PyCFunction) cMaBoSSResult_get_nodes_probtraj, METH_NOARGS, "gets the raw states probability trajectories of the simulation"},
     // {"get_last_nodes_probtraj", (PyCFunction) cMaBoSSResult_get_last_nodes_probtraj, METH_NOARGS, "gets the raw states probability trajectories of the simulation"},
     {"display_fp", (PyCFunction) cPopMaBoSSResult_display_fp, METH_VARARGS, "prints the fixpoints to a file"},
-    // {"display_probtraj", (PyCFunction) cMaBoSSResult_display_probtraj, METH_VARARGS, "prints the probtraj to a file"},
+    {"display_probtraj", (PyCFunction) cPopMaBoSSResult_display_probtraj, METH_VARARGS, "prints the probtraj to a file"},
     // {"display_statdist", (PyCFunction) cMaBoSSResult_display_statdist, METH_VARARGS, "prints the statdist to a file"},
     {"display_run", (PyCFunction) cPopMaBoSSResult_display_run, METH_VARARGS, "prints the run of the simulation to a file"},
     {NULL}  /* Sentinel */
