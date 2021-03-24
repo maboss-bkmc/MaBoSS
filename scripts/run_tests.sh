@@ -26,6 +26,8 @@ bash ./test-bnet.sh
 check "bnet"
 bash ./test-prngs.sh
 check "prngs"
+bash ./test-popmaboss.sh
+check popmaboss
 
 if [[ -n $RUNNER_OS ]] && [[ $RUNNER_OS != "Windows" ]]; then
     bash ./test-server.sh
