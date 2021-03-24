@@ -51,6 +51,7 @@
 #include <Python.h>
 #include <numpy/arrayobject.h>
 #include "maboss_sim.cpp"
+#include "popmaboss_sim.cpp"
 
 /*  define functions in module */
 static PyMethodDef cMaBoSS[] =
@@ -97,11 +98,15 @@ MODULE_INIT_NAME(void)
     if (PyType_Ready(&cMaBoSSResult) < 0){
         return NULL;
     }
-
     if (PyType_Ready(&cMaBoSSResultFinal) < 0){
         return NULL;
     }
-
+    if (PyType_Ready(&cPopMaBoSSSim) < 0){
+        return NULL;
+    }
+    if (PyType_Ready(&cPopMaBoSSResult) < 0){
+        return NULL;
+    }
     m = PyModule_Create(&cMaBoSSDef);
 
 #if ! defined (MAXNODES) || MAXNODES <= 64 
