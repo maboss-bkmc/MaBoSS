@@ -251,7 +251,7 @@ void PopMaBEstEngine::runThread(PopCumulator *cumulator, unsigned int start_coun
       double total_rate = 0.;
 
       std::cout << ">> Present state : ";
-      pop_network_state.getState().display(pop_network, std::cout);
+      pop_network_state.getState().displayOneLine(pop_network, std::cout);
       std::cout << std::endl;
 
       STATE_MAP<PopNetworkState_Impl, double, PopNetworkState_ImplHash, PopNetworkState_ImplEquality> popNodeTransitionRates;
@@ -381,7 +381,7 @@ void PopMaBEstEngine::runThread(PopCumulator *cumulator, unsigned int start_coun
       {
         std::cout << " >>> Transition : ";
         // PopNetworkState_Impl t_state = transition.first;
-        transition.first.display(pop_network, std::cout);
+        transition.first.displayOneLine(pop_network, std::cout);
         std::cout << ", proba=" << (int)(100*transition.second/total_rate) << std::endl;
       }
       double TH;
