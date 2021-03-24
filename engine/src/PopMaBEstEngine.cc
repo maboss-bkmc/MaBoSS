@@ -651,3 +651,21 @@ void PopMaBEstEngine::displayRunStats(std::ostream& os, time_t start_time, time_
   
   runconfig->display(pop_network, start_time, end_time, os);
 }
+
+const std::map<unsigned int, std::pair<NetworkState, double> > PopMaBEstEngine::getFixPointsDists() const {
+  
+  std::map<unsigned int, std::pair<NetworkState, double> > res;
+  if (0 == fixpoints.size()) {
+    return res;
+  }
+
+  STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator begin = fixpoints.begin();
+  STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator end = fixpoints.end();
+  
+  for (unsigned int nn = 0; begin != end; ++nn) {
+    const NetworkState& network_state = (*begin).first;
+    res[nn] = std::make_pair(network_state,(double) (*begin).second / sample_count);
+    ++begin;
+  }
+  return res;
+}

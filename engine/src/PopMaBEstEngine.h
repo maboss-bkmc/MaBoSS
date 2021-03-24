@@ -115,6 +115,7 @@ public:
 
   bool converges() const {return fixpoints.size() > 0;}
   const STATE_MAP<NetworkState_Impl, unsigned int>& getFixpoints() const {return fixpoints;}
+  const std::map<unsigned int, std::pair<NetworkState, double> > getFixPointsDists() const;
 
   PopCumulator* getMergedCumulator() {
     return merged_cumulator; 

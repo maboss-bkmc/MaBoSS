@@ -116,14 +116,14 @@ void JSONPopProbTrajDisplayer::endDisplay() {
 
 void CSVPopProbTrajDisplayer::beginDisplay() {
 
-  os_probtraj << "Time";//"\tTH" << (compute_errors ? "\tErrorTH" : "") << "\tH";
+  os_probtraj << "Time\tTH" << (compute_errors ? "\tErrorTH" : "") << "\tH";
 
-  // for (unsigned int jj = 0; jj <= refnode_count; ++jj) {
-  //   os_probtraj << "\tHD=" << jj;
-  // }
+  for (unsigned int jj = 0; jj <= refnode_count; ++jj) {
+    os_probtraj << "\tHD=" << jj;
+  }
 
   for (unsigned int nn = 0; nn < maxcols; ++nn) {
-    os_probtraj << "\tState\tProba";// << (compute_errors ? "\tErrorProba" : "");
+    os_probtraj << "\tState\tProba" << (compute_errors ? "\tErrorProba" : "");
   }
 
   os_probtraj << '\n';
@@ -139,24 +139,24 @@ void CSVPopProbTrajDisplayer::endTimeTickDisplay() {
     os_probtraj << std::hexfloat;
   }
 #endif
-  // if (hexfloat) {
-  //   os_probtraj << '\t' << fmthexdouble(TH);
-  //   os_probtraj << '\t' << fmthexdouble(err_TH);
-  //   os_probtraj << '\t' << fmthexdouble(H);
-  // } else {
-  //   os_probtraj << '\t' << TH;
-  //   os_probtraj << '\t' << err_TH;
-  //   os_probtraj << '\t' << H;
-  // }
+  if (hexfloat) {
+    os_probtraj << '\t' << fmthexdouble(TH);
+    os_probtraj << '\t' << fmthexdouble(err_TH);
+    os_probtraj << '\t' << fmthexdouble(H);
+  } else {
+    os_probtraj << '\t' << TH;
+    os_probtraj << '\t' << err_TH;
+    os_probtraj << '\t' << H;
+  }
 
-  // for (unsigned int nn = 0; nn <= refnode_count; nn++) {
-  //   os_probtraj << '\t';
-  //   if (hexfloat) {
-  //     os_probtraj << fmthexdouble(HD_v[nn]);
-  //   } else {
-  //     os_probtraj << HD_v[nn];
-  //   }
-  // }
+  for (unsigned int nn = 0; nn <= refnode_count; nn++) {
+    os_probtraj << '\t';
+    if (hexfloat) {
+      os_probtraj << fmthexdouble(HD_v[nn]);
+    } else {
+      os_probtraj << HD_v[nn];
+    }
+  }
 
   for (const Proba &proba : proba_v) {
     os_probtraj << '\t';
@@ -164,10 +164,10 @@ void CSVPopProbTrajDisplayer::endTimeTickDisplay() {
     network_state.displayOneLine(os_probtraj, network);
     if (hexfloat) {
       os_probtraj << '\t' << fmthexdouble(proba.proba);
-      // os_probtraj << '\t' << fmthexdouble(proba.err_proba);
+      os_probtraj << '\t' << fmthexdouble(proba.err_proba);
     } else {
       os_probtraj << '\t' << std::setprecision(6) << proba.proba;
-      // os_probtraj << '\t' << proba.err_proba;
+      os_probtraj << '\t' << proba.err_proba;
     }
   }
   os_probtraj << '\n';
