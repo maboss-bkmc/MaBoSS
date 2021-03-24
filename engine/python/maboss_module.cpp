@@ -51,6 +51,7 @@
 #include <Python.h>
 #include <numpy/arrayobject.h>
 #include "maboss_sim.cpp"
+#include "popmaboss_sim.cpp"
 
 // I use these to define the name of the library, and the init function
 // Not sure why we need this 2 level thingy... Came from https://stackoverflow.com/a/1489971/11713763
@@ -109,11 +110,15 @@ MODULE_INIT_NAME(void)
     if (PyType_Ready(&cMaBoSSResult) < 0){
         return NULL;
     }
-
     if (PyType_Ready(&cMaBoSSResultFinal) < 0){
         return NULL;
     }
-
+    if (PyType_Ready(&cPopMaBoSSSim) < 0){
+        return NULL;
+    }
+    if (PyType_Ready(&cPopMaBoSSResult) < 0){
+        return NULL;
+    }
     m = PyModule_Create(&cMaBoSSDef);
 
 #if ! defined (MAXNODES) || MAXNODES <= 64 
