@@ -164,7 +164,6 @@ int main(int argc, char* argv[])
 
   for (int nn = 1; nn < argc; ++nn) {
     const char* s = argv[nn];
-    std::cout << "Arg : " << s << std::endl;
     if (s[0] == '-') {
       if (!strcmp(s, "-version") || !strcmp(s, "--version") || !strcmp(s, "-V")) { // keep -version for backward compatibility
 	std::cout << prog << " version " + PopMaBEstEngine::VERSION << " [networks up to " << MAXNODES << " nodes]\n";

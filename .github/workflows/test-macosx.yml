@@ -107,7 +107,7 @@ jobs:
     - name: Install dependencies
       run: |
         brew install flex bison gcc@10 python3
-        pip3 install numpy
+        pip3 install numpy pandas
         
     - name: Build cMaBoSS
       run: |

@@ -54,7 +54,7 @@
 class PopProbTrajDisplayer {
 
 protected:
-  Network* network;
+  PopNetwork* network;
   bool hexfloat;
   bool compute_errors;
   size_t maxcols;
@@ -75,7 +75,7 @@ protected:
 
   std::vector<Proba> proba_v;
 
-  PopProbTrajDisplayer(Network* network, bool hexfloat = false) : network(network), hexfloat(hexfloat), current_line(0), HD_v(NULL) { }
+  PopProbTrajDisplayer(PopNetwork* network, bool hexfloat = false) : network(network), hexfloat(hexfloat), current_line(0), HD_v(NULL) { }
 
 public:
   void begin(bool compute_errors, size_t maxcols, size_t refnode_count) {
@@ -135,7 +135,7 @@ class CSVPopProbTrajDisplayer : public PopProbTrajDisplayer {
   std::ostream& os_probtraj;
 
 public:
-  CSVPopProbTrajDisplayer(Network* network, std::ostream& os_probtraj, bool hexfloat = false) : PopProbTrajDisplayer(network, hexfloat), os_probtraj(os_probtraj) { }
+  CSVPopProbTrajDisplayer(PopNetwork* network, std::ostream& os_probtraj, bool hexfloat = false) : PopProbTrajDisplayer(network, hexfloat), os_probtraj(os_probtraj) { }
 
   virtual void beginDisplay();
   virtual void beginTimeTickDisplay();
@@ -148,7 +148,7 @@ class JSONPopProbTrajDisplayer : public PopProbTrajDisplayer {
   std::ostream& os_probtraj;
 
 public:
-  JSONPopProbTrajDisplayer(Network* network, std::ostream& os_probtraj, bool hexfloat = false) : PopProbTrajDisplayer(network, hexfloat), os_probtraj(os_probtraj) { }
+  JSONPopProbTrajDisplayer(PopNetwork* network, std::ostream& os_probtraj, bool hexfloat = false) : PopProbTrajDisplayer(network, hexfloat), os_probtraj(os_probtraj) { }
 
   virtual void beginDisplay();
   virtual void beginTimeTickDisplay();

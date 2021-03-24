@@ -121,7 +121,7 @@ void PopCumulator::computeMaxTickIndex()
   }
 }
 
-void PopCumulator::epilogue(Network* network, const PopNetworkState& reference_state)
+void PopCumulator::epilogue(PopNetwork* network, const PopNetworkState& reference_state)
 {
   computeMaxTickIndex();
 
@@ -157,12 +157,12 @@ void PopCumulator::epilogue(Network* network, const PopNetworkState& reference_s
       double TH = tick_value.TH / sample_count;
       H_v[nn] += -log2(proba) * proba;
 #ifndef HD_BUG
-      int hd = reference_state.hamming(network, state);
-      if (hd_m.find(hd) == hd_m.end()) {
-	hd_m[hd] = proba;
-      } else {
-	hd_m[hd] += proba;
-      }
+  //     int hd = reference_state.hamming(network, state);
+  //     if (hd_m.find(hd) == hd_m.end()) {
+	// hd_m[hd] = proba;
+  //     } else {
+	// hd_m[hd] += proba;
+  //     }
 #endif
       TH_v[nn] += TH;
     }
@@ -199,7 +199,7 @@ void PopCumulator::epilogue(Network* network, const PopNetworkState& reference_s
 #endif
 }
 
-void PopCumulator::displayPopProbTraj(Network* network, unsigned int refnode_count, PopProbTrajDisplayer* displayer) const
+void PopCumulator::displayPopProbTraj(PopNetwork* network, unsigned int refnode_count, PopProbTrajDisplayer* displayer) const
 {
   std::vector<Node*>::const_iterator begin_network;
 
@@ -417,7 +417,7 @@ unsigned int realFindPos(std::vector<PopNetworkState_Impl> vect, const PopNetwor
   std::vector<PopNetworkState_Impl>::iterator begin = vect.begin();
   unsigned int pos = 0;
   while(begin != vect.end()) {
-    if (state.equal(*begin)) {
+    if (state == *begin) {
       return pos;
     }
     begin++;
@@ -430,7 +430,7 @@ bool realExists(std::vector<PopNetworkState_Impl> vect, const PopNetworkState_Im
 {
   std::vector<PopNetworkState_Impl>::iterator begin = vect.begin();
   while(begin != vect.end()) {
-    if (state.equal(*begin)) {
+    if (state == *begin) {
       return true;
     }
     begin++;
@@ -448,16 +448,11 @@ std::vector<PopNetworkState_Impl> PopCumulator::getStates(PopNetwork* network) c
 
     while (iter.hasNext()) {
       TickValue tick_value;
-      //#ifdef USE_NEXT_OPT
-      //const NetworkState_Impl& state = iter.next2(tick_value);
-      //#else
+
       PopNetworkState_Impl state;
       iter.next(state, tick_value);
-      //#endif
       
       if (!realExists(result_states, state)){
-        state.displayOneLine(network, std::cout);
-        std::cout<< std::endl;
         result_states.push_back(PopNetworkState_Impl(state));
       }
     }
@@ -506,7 +501,7 @@ PyObject* PopCumulator::getNumpyStatesDists(PopNetwork* network) const
     PyList_SetItem(timepoints, i, PyFloat_FromDouble(((double) i) * time_tick));
   }
 
-  return PyTuple_Pack(3, PyArray_Return(result), pylist_state, timepoints);
+  return PyTuple_Pack(3, PyArray_Return(result), timepoints, pylist_state);
 }
 
 

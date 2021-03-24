@@ -68,36 +68,6 @@ size_t Network::MAX_NODE_SIZE = 0;
 // Number of generated PopNetworkState_Impl
 long PopNetworkState_Impl::generated_number_count = 0;
 
-void PopNetworkState_Impl::displayOneLine(Network* network, std::ostream &strm, const std::string& sep) const {
-    
-  strm << "[";
-  size_t i = this->size();
-  for (auto pop : *this) {
-    NetworkState t_state(pop.first);
-    strm << "{" << t_state.getName(network, sep) << ":" << pop.second << "}";
-    if (--i > 0) {
-      strm << ",";
-    }
-  }
-  strm << "]";
-  
-}
-
-void PopNetworkState_Impl::displayJSON(Network* network, std::ostream &strm, const std::string& sep) const {
-    
-  strm << "[";
-  size_t i = this->size();
-  for (auto pop : *this) {
-    NetworkState t_state(pop.first);
-    strm << "{\"" << t_state.getName(network) << "\":" << pop.second << "}";
-    if (--i > 0) {
-      strm << ",";
-    }
-  }
-  strm << "]";
-  
-}
-
 Node::Node(const std::string& label, const std::string& description, NodeIndex index) : label(label), description(description), istate_set(false), is_internal(false), is_reference(false), referenceState(false), logicalInputExpr(NULL), rateUpExpr(NULL), rateDownExpr(NULL), index(index)
 {
 #if !defined(USE_STATIC_BITSET) && !defined(USE_BOOST_BITSET) && !defined(USE_DYNAMIC_BITSET)
@@ -235,14 +205,15 @@ int PopNetwork::parse(const char* file, std::map<std::string, NodeIndex>* nodes_
   return res;
 }
 
-// std::vector<double> PopNetwork::getDivisionRates(const NetworkState& state, const PopNetworkState& pop) const {
-//   std::vector<double> rates;
-//   for (auto division_rate: divisionRates) {
-//     rates.push_back(division_rate->eval(NULL, state, pop));
-//   }
+
+int PopNetwork::parseExpression(const char* content, std::map<std::string, NodeIndex>* nodes_indexes){
   
-//   return rates;
-// } 
+  set_pop_network(this);
+  int res = Network::parseExpression(content, nodes_indexes);
+  
+  set_pop_network(NULL);
+  return res;
+}
 
 void DivisionRule::setRate(Expression* rate) {  
   this->rate = rate->clone();
@@ -650,8 +621,7 @@ void NetworkState::displayOneLine(std::ostream& os, Network* network, const std:
   os << getName(network, sep);
 }
 
-
-std::string PopNetworkState::getName(Network * network, const std::string& sep) const {
+std::string PopNetworkState::getName(PopNetwork * network, const std::string& sep) const {
   
   std::string res = "[";
   
@@ -667,33 +637,74 @@ std::string PopNetworkState::getName(Network * network, const std::string& sep) 
   return res;
 }
 
-void PopNetworkState::displayOneLine(std::ostream& os, Network* network, const std::string& sep) const
-{
-  state.displayOneLine(network, os, sep);
+void PopNetworkState::displayOneLine(std::ostream &strm, PopNetwork* network, const std::string& sep) const 
+{    
+  strm << getName(network, sep);
 }
 
-void PopNetworkState::displayJSON(std::ostream& os, Network* network, const std::string& sep) const
-{
-  state.displayJSON(network, os, sep);
+void PopNetworkState::displayJSON(std::ostream &strm, PopNetwork* network, const std::string& sep) const 
+{    
+  strm << "[";
+  size_t i = state.size();
+  for (auto pop : state) {
+    NetworkState t_state(pop.first);
+    strm << "{\"" << t_state.getName(network) << "\":" << pop.second << "}";
+    if (--i > 0) {
+      strm << ",";
+    }
+  }
+  strm << "]";
 }
-
 
 unsigned int PopNetworkState::count(Expression * expr) const
 {
   unsigned int res = 0;
-  // std::cout << "Expression to count pop" << std::endl;
-  // std::cout << expr->toString() << std::endl;
-  // if (expr != NULL) {
-    for (auto network_state_proba : state) {
-      NetworkState network_state = NetworkState(network_state_proba.first);
-      if (expr == NULL || (bool)expr->eval(NULL, network_state)) {
-        res += network_state_proba.second;
-      }
+  
+  for (auto network_state_proba : state) {
+    NetworkState network_state = NetworkState(network_state_proba.first);
+    if (expr == NULL || (bool)expr->eval(NULL, network_state)) {
+      res += network_state_proba.second;
     }
-  // }
+  }
+  
   return res;
 }
 
+
+unsigned int PopNetworkState::hamming(PopNetwork* network, const PopNetworkState_Impl& state2) const
+{
+  unsigned int hd = 0;
+// #ifdef HAMMING_METHOD1
+//   // faster way
+//   unsigned long s = (state ^ (state2 & state));
+//   unsigned int node_count = network->getNodes().size();
+//   for (unsigned int nn = 0; nn < node_count; ++nn) {
+//     if ((1ULL << nn) & s) {
+//       hd++;
+//     }
+//   }
+//   return hd;
+// #endif
+
+// #ifdef HAMMING_METHOD2
+//   NetworkState network_state2(state2, 1);
+//   const std::vector<Node*>& nodes = network->getNodes();
+//   std::vector<Node*>::const_iterator begin = nodes.begin();
+//   std::vector<Node*>::const_iterator end = nodes.end();
+
+//   while (begin != end) {
+//     Node* node = *begin;
+//     if (node->isReference()) {
+//       NodeState node_state1 = getNodeState(node);
+//       NodeState node_state2 = network_state2.getNodeState(node);
+//       hd += 1 - (node_state1 == node_state2);
+//     }
+//     ++begin;
+//   }
+// #endif
+
+  return hd;
+}
 
 std::ostream& operator<<(std::ostream& os, const BNException& e)
 {

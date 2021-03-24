@@ -79,10 +79,6 @@ protected:
 
   mutable long long elapsed_core_runtime, user_core_runtime, elapsed_statdist_runtime, user_statdist_runtime, elapsed_epilogue_runtime, user_epilogue_runtime;
   
-  // STATE_MAP<NetworkState_Impl, unsigned int> fixpoints;
-  // std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*> fixpoint_map_v;
-  // STATE_MAP<NetworkState_Impl, unsigned int>* mergeFixpointMaps();
-
 public:
 
   MetaEngine(Network* network, RunConfig* runconfig) : 
@@ -104,13 +100,6 @@ public:
 
   long long getElapsedStatDistRunTime() const {return elapsed_statdist_runtime;}
   long long getUserStatDistRunTime() const {return user_statdist_runtime;}
-
-  // bool converges() const {return fixpoints.size() > 0;}
-  // const STATE_MAP<NetworkState_Impl, unsigned int>& getFixpoints() const {return fixpoints;}
-  // const std::map<unsigned int, std::pair<NetworkState, double> > getFixPointsDists() const;
-
-  // void displayFixpoints(std::ostream& output_fp, bool hexfloat = false) const;
-  // void displayFixpoints(FixedPointDisplayer* displayer) const;
 
 };
 

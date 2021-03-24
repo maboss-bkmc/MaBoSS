@@ -89,7 +89,7 @@ void JSONPopProbTrajDisplayer::endTimeTickDisplay() {
   os_probtraj << "\"probas\":[";
   unsigned int idx = 0;
   for (const Proba &proba : proba_v) {
-    PopNetworkState network_state(proba.state, 1);
+    PopNetworkState network_state(proba.state);
     os_probtraj << "{\"state\":";
     network_state.displayJSON(os_probtraj, network);
     os_probtraj << ",";
@@ -160,7 +160,7 @@ void CSVPopProbTrajDisplayer::endTimeTickDisplay() {
 
   for (const Proba &proba : proba_v) {
     os_probtraj << '\t';
-    PopNetworkState network_state(proba.state, 1);
+    PopNetworkState network_state(proba.state);
     network_state.displayOneLine(os_probtraj, network);
     if (hexfloat) {
       os_probtraj << '\t' << fmthexdouble(proba.proba);

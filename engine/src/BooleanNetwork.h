@@ -257,32 +257,15 @@ class PopNetworkState_Impl : public STATE_MAP<NetworkState_Impl, unsigned int> {
     insert ( std::pair<NetworkState_Impl,unsigned int>(state,value) );
   }
   
-  // // Copy constructor : real copy
-  // PopNetworkState_Impl(PopNetworkState_Impl& state) : STATE_MAP<NetworkState_Impl, unsigned int>(state) { 
-  //   my_id = PopNetworkState_Impl::generated_number_count++;
-  // }
-  
-  // // Copy constructor : not real copy
-  // PopNetworkState_Impl(PopNetworkState_Impl& state) { 
-  //   *this = state;
-  // }
-  
-  // Copy const constructor : Real copy
   PopNetworkState_Impl(const PopNetworkState_Impl& state) { 
     *this = state;
   }
-  
-  // PopNetworkState_Impl& operator=(PopNetworkState_Impl& state) {
-  //   STATE_MAP<NetworkState_Impl, unsigned int>::operator=(state);
-  //   return *this;
-  // }
   
   PopNetworkState_Impl& operator=(const PopNetworkState_Impl& state) {
     STATE_MAP<NetworkState_Impl, unsigned int>::operator=(state);
     my_id = PopNetworkState_Impl::generated_number_count++;
     return *this;
   }
-  
   
   // & operator for applying the mask
   PopNetworkState_Impl operator&(NetworkState_Impl& mask) { 
@@ -298,10 +281,7 @@ class PopNetworkState_Impl : public STATE_MAP<NetworkState_Impl, unsigned int> {
     
     return state; 
   }
-  
-  // Equality between population network states
-  bool equal(const PopNetworkState_Impl& pop_state) const {
-    
+  bool operator==(const PopNetworkState_Impl& pop_state) const {
     // So when are two PopNetworkState inequals ?
     // First, if they don't have the same length of states in the population
     if (pop_state.size() != this->size()) {
@@ -309,7 +289,6 @@ class PopNetworkState_Impl : public STATE_MAP<NetworkState_Impl, unsigned int> {
     }
     
     // If it's identical, we need to look further, so we look at each state
-    // bool identical = true;
     for (auto network_state: pop_state) {
       
         // Is this state also present ?
@@ -318,24 +297,16 @@ class PopNetworkState_Impl : public STATE_MAP<NetworkState_Impl, unsigned int> {
           // And if so, does it have the same population size
           if((*(find(network_state.first))).second != network_state.second) {
             return false;
-            // identical = false;
-            // break;
           }
           
         } else {
         //Otherwise we just exit now
           return false;
-          // identical = false; 
-          // break;
         }
     }
     return true;
-
   }
   
-  void displayOneLine(Network* network, std::ostream &strm, const std::string& sep = " -- ") const;
-  void displayJSON(Network* network, std::ostream &strm, const std::string& sep = " -- ") const;
-
   size_t id() const {
       std::hash<long> long_hash;
       return long_hash(my_id);
@@ -351,14 +322,9 @@ public:
 struct PopNetworkState_ImplEquality {
 public:
     bool operator() (const PopNetworkState_Impl &a, const PopNetworkState_Impl &b) const {
-        return a.equal(b);
+        return a == b;
     }
 };
-  
-
-
-// typedef STATE_MAP<NetworkState_Impl, double> PopNetworkState_Impl;
-
 
 static const std::string ATTR_RATE_UP = "rate_up";
 static const std::string ATTR_RATE_DOWN = "rate_down";
@@ -806,12 +772,21 @@ class DivisionRule {
   
   public:
 
+  //During a division, you remove the cell and create two new cells
   static const int DAUGHTER_1 = 1;
+  // and 
   static const int DAUGHTER_2 = 2;
+  
+  // Each one has it's own map which will change a node value according to an expression
   std::map<Node*, Expression*> daughter1;
   std::map<Node*, Expression*> daughter2;
+  
+  // And we have an map to select the map of each daughter
   std::map<int, std::map<Node*, Expression*> > daughters = {{DAUGHTER_1, daughter1}, {DAUGHTER_2, daughter2}};
+  
+  // Division also have a rate
   Expression* rate;
+  
   
   DivisionRule() {
     daughter1.clear();
@@ -824,9 +799,9 @@ class DivisionRule {
   
   void addDaughterNode(int daughter, Node* node, Expression* expression) {
     daughters[daughter][node] = expression;
-    
   }
   
+  // This will return a new state based on the mother cell, properly modified according to the maps
   NetworkState applyRules(int daughter, const NetworkState& state, const PopNetworkState& pop);
 };
 
@@ -834,7 +809,12 @@ class DivisionRule {
 class PopNetwork : public Network {
   public:
   
+  // Population networks have two extra fields :
+  
+  // Rules for division (speed, state modifications)
   std::vector<DivisionRule> divisionRules;
+  
+  // Death rate
   Expression* deathRate;
   
   PopNetwork();
@@ -843,24 +823,16 @@ class PopNetwork : public Network {
   PopNetwork& operator=(const PopNetwork& network);
 
   int parse(const char* file = NULL, std::map<std::string, NodeIndex>* nodes_indexes = NULL, bool is_temp_file = false);
-  
-  void addDivisionRule(DivisionRule rule) {
-    std::cout << "Adding a division rule" << std::endl;
-    divisionRules.push_back(rule);
-  }
+  int parseExpression(const char* content, std::map<std::string, NodeIndex>* nodes_indexes);
+
+  void addDivisionRule(DivisionRule rule) { divisionRules.push_back(rule); }
+  void setDeathRate(Expression* expr) { deathRate = expr; }
   
   const std::vector<DivisionRule> getDivisionRules() const { return divisionRules; }
-  
-  void setDeathRate(Expression* expr) {
-    if (expr == NULL) {
-      std::cout << "NULL" << std::endl;
-    }
-    deathRate = expr;
-  }
-
   const Expression* getDeathRate() const { return deathRate; }
+  
+  // Evaluation of the death rate according to the state
   double getDeathRate(const NetworkState& state, const PopNetworkState& pop) const;
-
 };
 
 // global state of the boolean network
@@ -962,80 +934,51 @@ public:
 class PopNetworkState {
   PopNetworkState_Impl state;
 
-#if !defined(USE_STATIC_BITSET) && !defined(USE_BOOST_BITSET) && !defined(USE_DYNAMIC_BITSET)
-  static NetworkState_Impl nodeBit(const Node* node) {
-    return node->getNodeBit();
-  }
-
 public:
-  static NetworkState_Impl nodeBit(NodeIndex node_index) {
-    return (1ULL << node_index);
+  PopNetworkState() { state = PopNetworkState_Impl(1, 0ULL); }
+  PopNetworkState(const PopNetworkState_Impl& state) : state(state) { }
+  PopNetworkState(const PopNetworkState &p ) { *this = p; }
+  
+  PopNetworkState& operator=(const PopNetworkState &p ) 
+  {     
+    state = PopNetworkState_Impl(p.getState());
+    return *this;
   }
-#endif
-
-public:
-  PopNetworkState(const PopNetworkState_Impl& state) : state(state){ }
-#ifdef USE_DYNAMIC_BITSET
-  PopNetworkState(const PopNetworkState_Impl& state, int copy) : state(state, 1) { }
-#else
-  PopNetworkState(const PopNetworkState_Impl& state, int copy) : state(state) { }
-#endif
-
-#ifdef USE_STATIC_BITSET
-  PopNetworkState() { }
-#elif defined(USE_BOOST_BITSET) || defined(USE_DYNAMIC_BITSET)
-  // EV: 2020-10-23
-  //NetworkState() : state(MAXNODES) { }
-  PopNetworkState() : state(Network::getMaxNodeSize()) { }
-  // EV: 2020-12-01 would be better to create a 0-size state and then call resize dynamically
-  //NetworkState() : state(0) { }
-#else
-  PopNetworkState() : state(1, 0ULL) { }
-#endif
-
-PopNetworkState(const PopNetworkState &p ) { 
-		
-*this = p;
-}
-
-
-PopNetworkState& operator=(const PopNetworkState &p ) { 
-		
-	state = PopNetworkState_Impl(p.getState());
-	return *this;
-}
-
-#ifdef USE_DYNAMIC_BITSET
-  PopNetworkState_Impl getState(int copy) const {return PopNetworkState_Impl(state, copy);}
-#endif
+  
+  // Returns the implementation of the state
   PopNetworkState_Impl getState() const {return state;}
 
-  void incr(NetworkState_Impl net_state) {
-    if (exists(net_state))
-      state[net_state]++;
+  // Increases the population of the state
+  void incr(NetworkState net_state) {
+    NetworkState_Impl t_state = net_state.getState();
+    if (state.find(t_state) != state.end())
+      state[t_state]++;
     else
-      state[net_state] = 1;
+      state[t_state] = 1;
   }
 
-  void decr(NetworkState_Impl net_state) {
-    if (state[net_state] > 1)
-      state[net_state]--;  
+  // Decreases the population of the state
+  void decr(NetworkState net_state) {
+    NetworkState_Impl t_state = net_state.getState();
+    if (state[t_state] > 1)
+      state[t_state]--;  
     else
-      state.erase(net_state);
+      state.erase(t_state);
   }
   
-  bool exists(NetworkState_Impl net_state) {
-    return state.find(net_state) != state.end();
+  // Returns if the state exists
+  bool exists(NetworkState net_state) {
+    return state.find(net_state.getState()) != state.end();
   }
   
+  // Count the population satisfying an expression
   unsigned int count(Expression * expr) const;
   
-  std::string getName(Network * network, const std::string& sep=" -- ") const;
+  std::string getName(PopNetwork * network, const std::string& sep=" -- ") const;
+  void displayOneLine(std::ostream& os, PopNetwork* network, const std::string& sep = " -- ") const;
+  void displayJSON(std::ostream& os, PopNetwork* network, const std::string& sep = " -- ") const;
 
-  void displayOneLine(std::ostream& os, Network* network, const std::string& sep = " -- ") const;
-  void displayJSON(std::ostream& os, Network* network, const std::string& sep = " -- ") const;
-
-  unsigned int hamming(Network* network, const PopNetworkState_Impl& state) const;
+  unsigned int hamming(PopNetwork* network, const PopNetworkState_Impl& state) const;
 };
 
 // abstract base class used for expression evaluation
