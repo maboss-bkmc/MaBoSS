@@ -75,3 +75,9 @@ class TestCMaBoSS(TestCase):
         with open("../examples/metastasis-error.bnd", "r") as bnd, open("../examples/metastasis.cfg", "r") as cfg:    
             with self.assertRaises(cmaboss.BNException):
                 cmaboss.MaBoSSSim(network_str=bnd.read(),config_str=cfg.read())
+                
+                
+    def test_popmaboss(self):
+        sim = cmaboss.PopMaBoSSSim("../examples/popmaboss/Fork.bnd", "../examples/popmaboss/Fork.cfg")
+        res = sim.run()
+        print(res.get_fp_table())

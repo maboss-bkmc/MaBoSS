@@ -138,6 +138,13 @@ MODULE_INIT_NAME(void)
         Py_DECREF(m);
         return NULL;
     }
+    
+    Py_INCREF(&cPopMaBoSSSim);
+    if (PyModule_AddObject(m, "PopMaBoSSSim", (PyObject *) &cPopMaBoSSSim) < 0) {
+        Py_DECREF(&cPopMaBoSSSim);
+        Py_DECREF(m);
+        return NULL;
+    }
 
     Py_INCREF(&cMaBoSSNetwork);
     if (PyModule_AddObject(m, "MaBoSSNet", (PyObject *) &cMaBoSSNetwork) < 0) {

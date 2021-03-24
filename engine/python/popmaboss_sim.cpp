@@ -58,7 +58,7 @@
 
 typedef struct {
   PyObject_HEAD
-  PopNetwork* pop_network;
+  PopNetwork* network;
   RunConfig* runconfig;
 } cPopMaBoSSSimObject;
 
@@ -84,11 +84,11 @@ static PyObject * cPopMaBoSSSim_new(PyTypeObject* type, PyObject *args, PyObject
     ))
       return NULL;
       
-    Network* network = nullptr;
+    PopNetwork* network = nullptr;
     RunConfig* runconfig = nullptr;
     if (network_file != NULL && config_file != NULL) {
       // Loading bnd file
-      network = new Network();
+      network = new PopNetwork();
       network->parse(network_file);
 
       // Loading cfg file
@@ -99,15 +99,15 @@ static PyObject * cPopMaBoSSSim_new(PyTypeObject* type, PyObject *args, PyObject
     } 
     // else if (network_str != NULL && config_str != NULL) {
     //   // Loading bnd file
-    //   network = new Network();
+    //   network = new PopNetwork();
     //   network->parseExpression((const char *) network_str);
       
     //   // Loading cfg file
     //   runconfig = new RunConfig();
     //   IStateGroup::reset(network);
     //   runconfig->parseExpression(network, config_str);
-
-    // } else if (net != NULL && cfg != NULL) {
+    // } 
+    // else if (net != NULL && cfg != NULL) {
     //   network = ((cMaBoSSNetworkObject*) net)->network;
     //   runconfig = ((cMaBoSSConfigObject*) cfg)->config;
     // }
@@ -145,20 +145,19 @@ static PyObject* cPopMaBoSSSim_run(cPopMaBoSSSimObject* self, PyObject *args, Py
 
   RandomGenerator::resetGeneratedNumberCount();
   
-    PopMaBEstEngine* simulation = new PopMaBEstEngine(self->network, self->runconfig);
-    time(&start_time);
-    simulation->run(NULL);
-    time(&end_time);
-    
-    cPopMaBoSSResultObject* res = (cPopMaBoSSResultObject*) PyObject_New(cPopMaBoSSResultObject, &cPopMaBoSSResult);
-    res->network = self->network;
-    res->runconfig = self->runconfig;
-    res->engine = simulation;
-    res->start_time = start_time;
-    res->end_time = end_time;
-    
-    return (PyObject*) res;
-  }
+  PopMaBEstEngine* simulation = new PopMaBEstEngine(self->network, self->runconfig);
+  time(&start_time);
+  simulation->run(NULL);
+  time(&end_time);
+  
+  cPopMaBoSSResultObject* res = (cPopMaBoSSResultObject*) PyObject_New(cPopMaBoSSResultObject, &cPopMaBoSSResult);
+  res->network = self->network;
+  res->runconfig = self->runconfig;
+  res->engine = simulation;
+  res->start_time = start_time;
+  res->end_time = end_time;
+  
+  return (PyObject*) res;
 }
 
 static PyMethodDef cPopMaBoSSSim_methods[] = {

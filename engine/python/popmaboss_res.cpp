@@ -53,10 +53,11 @@
 #include <set>
 #include "src/BooleanNetwork.h"
 #include "src/PopMaBEstEngine.h"
+#include "src/PopProbTrajDisplayer.h"
 
 typedef struct {
   PyObject_HEAD
-  PopNetwork* pop_network;
+  PopNetwork* network;
   RunConfig* runconfig;
   PopMaBEstEngine* engine;
   time_t start_time;
@@ -117,7 +118,9 @@ static PyObject* cPopMaBoSSResult_display_fp(cPopMaBoSSResultObject* self, PyObj
     return NULL;
     
   std::ostream* output_fp = new std::ofstream(filename);
-  self->engine->displayFixpoints(*output_fp, (bool) hexfloat);
+  CSVFixedPointDisplayer * fp_displayer = new CSVFixedPointDisplayer(self->network, *output_fp, hexfloat);
+
+  self->engine->displayFixpoints(fp_displayer);
   ((std::ofstream*) output_fp)->close();
   delete output_fp;
 
