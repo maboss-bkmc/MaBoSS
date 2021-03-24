@@ -73,12 +73,31 @@ size_t Network::MAX_NODE_SIZE = 0;
 // Number of generated PopNetworkState_Impl
 long PopNetworkState_Impl::generated_number_count = 0;
 
-void PopNetworkState_Impl::display(Network* network, std::ostream &strm) const {
+void PopNetworkState_Impl::displayOneLine(Network* network, std::ostream &strm, const std::string& sep) const {
     
   strm << "[";
+  size_t i = this->size();
   for (auto pop : *this) {
     NetworkState t_state(pop.first);
-    strm << "{" << t_state.getName(network) << ":" << pop.second << "},";
+    strm << "{" << t_state.getName(network, sep) << ":" << pop.second << "}";
+    if (--i > 0) {
+      strm << ",";
+    }
+  }
+  strm << "]";
+  
+}
+
+void PopNetworkState_Impl::displayJSON(Network* network, std::ostream &strm, const std::string& sep) const {
+    
+  strm << "[";
+  size_t i = this->size();
+  for (auto pop : *this) {
+    NetworkState t_state(pop.first);
+    strm << "{\"" << t_state.getName(network) << "\":" << pop.second << "}";
+    if (--i > 0) {
+      strm << ",";
+    }
   }
   strm << "]";
   
@@ -663,8 +682,12 @@ void NetworkState::displayOneLine(std::ostream& os, Network* network, const std:
 
 void PopNetworkState::displayOneLine(std::ostream& os, Network* network, const std::string& sep) const
 {
-  
-  state.display(network, os);
+  state.displayOneLine(network, os, sep);
+}
+
+void PopNetworkState::displayJSON(std::ostream& os, Network* network, const std::string& sep) const
+{
+  state.displayJSON(network, os, sep);
 }
 
 unsigned int PopNetworkState::count(Expression * expr) const

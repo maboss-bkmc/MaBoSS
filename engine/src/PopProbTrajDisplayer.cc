@@ -90,9 +90,9 @@ void JSONPopProbTrajDisplayer::endTimeTickDisplay() {
   unsigned int idx = 0;
   for (const Proba &proba : proba_v) {
     PopNetworkState network_state(proba.state, 1);
-    os_probtraj << "{\"state\":\"";
-    network_state.displayOneLine(os_probtraj, network);
-    os_probtraj << "\",";
+    os_probtraj << "{\"state\":";
+    network_state.displayJSON(os_probtraj, network);
+    os_probtraj << ",";
     if (hexfloat) {
       os_probtraj << "\"proba\":" << fmthexdouble(proba.proba, true) << ",";
       os_probtraj << "\"err_proba\":" << fmthexdouble(proba.err_proba, true);

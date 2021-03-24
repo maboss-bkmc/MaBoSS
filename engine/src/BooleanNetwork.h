@@ -362,7 +362,8 @@ class PopNetworkState_Impl : public STATE_MAP<NetworkState_Impl, unsigned int> {
 
   }
   
-  void display(Network* network, std::ostream &strm) const;
+  void displayOneLine(Network* network, std::ostream &strm, const std::string& sep = " -- ") const;
+  void displayJSON(Network* network, std::ostream &strm, const std::string& sep = " -- ") const;
 
   size_t id() const {
       std::hash<long> long_hash;
@@ -1210,12 +1211,10 @@ PopNetworkState& operator=(const PopNetworkState &p ) {
   
   unsigned int count(Expression * expr) const;
   
-  void display(std::ostream& os, Network* network) const;
-
   void displayOneLine(std::ostream& os, Network* network, const std::string& sep = " -- ") const;
+  void displayJSON(std::ostream& os, Network* network, const std::string& sep = " -- ") const;
 
   unsigned int hamming(Network* network, const PopNetworkState_Impl& state) const;
-
 };
 
 // abstract base class used for expression evaluation
