@@ -96,4 +96,22 @@ class TestCMaBoSS(TestCase):
 def test_popmaboss(self):
         sim = cmaboss.PopMaBoSSSim("../examples/popmaboss/Fork.bnd", "../examples/popmaboss/Fork.cfg")
         res = sim.run()
-        print(res.get_fp_table())
+
+        (data, cols, rows) = res.get_probtraj()
+        expected = np.array(['[{A -- C:2},{A -- B:1}]', '[{A -- C:3}]', '[{A:1},{A -- C:1},{A -- B:1}]', '[{A:1},{A -- C:2}]', '[{A -- B:3}]', '[{A:1},{A -- B:2}]', '[{A:2},{A -- C:1}]', '[{A:2},{A -- B:1}]', '[{A:3}]'])
+        self.assertTrue((expected == cols).all())
+        
+        expected = np.array([0.0, 1.0, 2.0, 3.0])
+        self.assertTrue((expected == rows).all())
+        
+        expected = np.array([[0.09550711, 0.02469615, 0.16469156, 0.15948447, 0.09704259,
+        0.15443514, 0.10494093, 0.00507406, 0.19412798],
+       [0.33333333, 0.33333333, 0.        , 0.        , 0.33333333,
+        0.        , 0.        , 0.        , 0.        ],
+       [0.33333333, 0.33333333, 0.        , 0.        , 0.33333333,
+        0.        , 0.        , 0.        , 0.        ],
+       [0.33333333, 0.33333333, 0.        , 0.        , 0.33333333,
+        0.        , 0.        , 0.        , 0.        ]], dtype=np.float64)
+        
+        self.assertTrue(np.allclose(res.get_probtraj()[0] ,expected))
+

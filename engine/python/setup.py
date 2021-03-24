@@ -3,6 +3,8 @@ from setuptools import setup, Extension, find_packages
 maboss_version = '1.0.0b17'
 
 maboss_sources = [
+   # PopMaBoSS
+   "PopMaBEstEngine.cc", "PopCumulator.cc", "PopProbaDist.cc", "PopProbTrajDisplayer.cc",
    # Core
    "BooleanNetwork.cc", "BooleanGrammar.cc", "RunConfigGrammar.cc", "Function.cc", "BuiltinFunctions.cc", 
    "RunConfig.cc", "LogicalExprGen.cc", "Utils.cc", "MBDynBitset.cc", "RandomGenerator.cc", "FixedPointDisplayer.cc", 
@@ -11,10 +13,9 @@ maboss_sources = [
    "MetaEngine.cc", "FixedPointEngine.cc", "ProbTrajEngine.cc",
    "FinalStateSimulationEngine.cc", "StochasticSimulationEngine.cc", "MaBEstEngine.cc", "EnsembleEngine.cc", 
    "Cumulator.cc", "ProbaDist.cc", 
-   "StatDistDisplayer.cc", "FinalStateDisplayer.cc",  
+   "StatDistDisplayer.cc", "FinalStateDisplayer.cc"
    
-   # PopMaBoSS
-   "PopMaBEstEngine.cc", "PopCumulator.cc", "PopProbaDist.cc", "PopProbTrajDisplayer.cc"
+   
 ]
 
 maboss_module_sources = [

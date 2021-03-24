@@ -156,5 +156,4 @@ public:
   virtual void endDisplay();
 };
 
-
 #endif
