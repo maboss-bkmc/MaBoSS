@@ -30,29 +30,25 @@ rm -rf tmp; mkdir -p tmp
 
 if [ $? != 0 ]; then exit 1; fi
 
+python compare_probtrajs.py popmaboss/refer/res_fork_pop_probtraj.csv tmp/res_fork_pop_probtraj.csv --exact
+check_file "pop_projtraj"
+
+
 /usr/bin/time -p $LAUNCHER $POPMABOSS -c ../examples/popmaboss/Log_Growth.cfg -o tmp/res_log_growth ../examples/popmaboss/Log_Growth.pbnd >/dev/null
 
 if [ $? != 0 ]; then exit 1; fi
+
+python compare_probtrajs.py popmaboss/refer/res_log_growth_pop_probtraj.csv tmp/res_log_growth_pop_probtraj.csv --exact
+check_file "pop_projtraj"
+
 
 /usr/bin/time -p $LAUNCHER $POPMABOSS -c ../examples/popmaboss/Assymetric.cfg -o tmp/res_assymetric ../examples/popmaboss/Assymetric.pbnd > /dev/null
 
 if [ $? != 0 ]; then exit 1; fi
 
-# python compare_probtrajs.py ensemble/refer/res_probtraj.csv tmp/res_probtraj.csv --exact
-# check_file "projtraj"
-# python compare_probtrajs.py ensemble/refer/res_model_0_probtraj.csv tmp/res_model_0_probtraj.csv --exact
-# check_file "projtraj_model_0"
-# python compare_probtrajs.py ensemble/refer/res_model_1_probtraj.csv tmp/res_model_1_probtraj.csv --exact
-# check_file "projtraj_model_1"
-# python compare_probtrajs.py ensemble/refer/res_model_2_probtraj.csv tmp/res_model_2_probtraj.csv --exact
-# check_file "projtraj_model_2"
-# python compare_probtrajs.py ensemble/refer/res_model_3_probtraj.csv tmp/res_model_3_probtraj.csv --exact
-# check_file "projtraj_model_3"
-# python compare_probtrajs.py ensemble/refer/res_model_4_probtraj.csv tmp/res_model_4_probtraj.csv --exact
-# check_file "projtraj_model_4"
-# python compare_probtrajs.py ensemble/refer/res_model_5_probtraj.csv tmp/res_model_5_probtraj.csv --exact
-# check_file "projtraj_model_5"
+python compare_probtrajs.py popmaboss/refer/res_assymetric_pop_probtraj.csv tmp/res_assymetric_pop_probtraj.csv --exact
+check_file "pop_projtraj"
 
-# rm -rf tmp; 
+rm -rf tmp; 
 
 exit $return_code
