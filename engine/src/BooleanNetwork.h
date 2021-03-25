@@ -270,7 +270,6 @@ typedef unsigned long long NetworkState_Impl;
 
 class PopNetworkState_Impl : public MAP<NetworkState_Impl, unsigned int> {
   
-
   public:
   static long generated_number_count;
 
@@ -324,7 +323,7 @@ class PopNetworkState_Impl : public MAP<NetworkState_Impl, unsigned int> {
         if (find(network_state.first) != end()){
           
           // And if so, does it have the same population size
-          if((*(find(network_state.first))).second != network_state.second) {
+          if(find(network_state.first)->second != network_state.second) {
             return false;
           }
           
@@ -337,6 +336,12 @@ class PopNetworkState_Impl : public MAP<NetworkState_Impl, unsigned int> {
   }
   
   bool operator<(const PopNetworkState_Impl& pop_state) const {
+    // if (size() != pop_state.size()) {
+    //   return size() < pop_state.size();
+    // }
+    
+    // for (auto network_state: pop_state) {}
+    
     return id() < pop_state.id();
   }
   
