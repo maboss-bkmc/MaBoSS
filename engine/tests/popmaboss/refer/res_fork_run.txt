@@ -2,29 +2,29 @@
 -------------------------------------------------- Run --------------------------------------------------
 MaBoSS version: 0.0.1 [networks up to 64 nodes]
 
-Run start time: Wed Mar 24 14:39:20 2021
-Run end time: Wed Mar 24 14:39:20 2021
+Run start time: Thu Mar 25 11:46:35 2021
+Run end time: Thu Mar 25 11:46:41 2021
 
-Core user runtime: 0 secs using 1 thread
-Core elapsed runtime: 0 secs using 1 thread
+Core user runtime: 2.66 secs using 1 thread
+Core elapsed runtime: 2.886 secs using 1 thread
 
-Epilogue user runtime: 0 secs using 1 thread
-Epilogue elapsed runtime: 0 secs using 1 thread
+Epilogue user runtime: 2.35 secs using 1 thread
+Epilogue elapsed runtime: 2.567 secs using 1 thread
 
-StatDist user runtime: 1.04 secs using 1 thread
-StatDist elapsed runtime: 0 secs using 1 thread
+StatDist user runtime: 0 secs using 1 thread
+StatDist elapsed runtime: 0.064 secs using 1 thread
 
-Number of PopNetworkState_Impl created : 525
+Number of PopNetworkState_Impl created : 14550371
 
 Time Tick: 1
-Max Time: 5
-Sample Count: 3
+Max Time: 10
+Sample Count: 100000
 StatDist Trajectory Count: 0
 StatDist Similarity Cache Maximum Size: 20000
 Discrete Time: FALSE
 Random Generator: rand48
 Seed Pseudo Random: 100
-Generated Number Count: 18
+Generated Number Count: 600000
 
 ---------------------------------------------------------------------------------------------------------
 
