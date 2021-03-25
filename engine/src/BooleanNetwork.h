@@ -268,7 +268,7 @@ typedef unsigned long long NetworkState_Impl;
 
 
 
-class PopNetworkState_Impl : public STATE_MAP<NetworkState_Impl, unsigned int> {
+class PopNetworkState_Impl : public MAP<NetworkState_Impl, unsigned int> {
   
 
   public:
@@ -277,7 +277,7 @@ class PopNetworkState_Impl : public STATE_MAP<NetworkState_Impl, unsigned int> {
   long my_id;
 
   // Default constructor : Empty map, random id  
-  PopNetworkState_Impl() : STATE_MAP<NetworkState_Impl, unsigned int>() {
+  PopNetworkState_Impl() : MAP<NetworkState_Impl, unsigned int>() {
     my_id = PopNetworkState_Impl::generated_number_count++;
   }
   
@@ -291,7 +291,7 @@ class PopNetworkState_Impl : public STATE_MAP<NetworkState_Impl, unsigned int> {
   }
   
   PopNetworkState_Impl& operator=(const PopNetworkState_Impl& state) {
-    STATE_MAP<NetworkState_Impl, unsigned int>::operator=(state);
+    MAP<NetworkState_Impl, unsigned int>::operator=(state);
     my_id = PopNetworkState_Impl::generated_number_count++;
     return *this;
   }
@@ -348,6 +348,19 @@ class PopNetworkState_Impl : public STATE_MAP<NetworkState_Impl, unsigned int> {
 
 // Overloading hash function for PopNetworkState_Impl
 // Here I use a basic id, implemented using a counter of generated objects
+//
+// The obvious problem is that equal objects can have different ids, which means that 
+// when we centralize PopNetworkState_Impl into a map, there will be doublons.
+// So we'll have to have a real find function, which will look at each PopNetworkState_impl 
+// and use the equality function when we want to find the key we're looking for. 
+// Bad for performances, but that's what I have for now
+//
+// An alternative would be an id based on the actual population state, which is computed 
+// - Once we know it won't be modified, we call a function like compute_id()
+// - Everytime we modify it (at that time, it shouldn't be in a map anyway)
+// Now the problem of this, is that we need to be sure two states which don't have the same order
+// of population will be equals, which basically means we have to use a sorted map
+// Also, how do we build this id exactly ?
 namespace std {
   template <> struct hash<PopNetworkState_Impl>
   {
