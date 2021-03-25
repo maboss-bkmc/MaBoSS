@@ -93,16 +93,16 @@ class PopCumulator {
   };
 
   class PopCumulMap {
-    STATE_MAP<PopNetworkState_Impl, TickValue, PopNetworkState_ImplHash> mp;
+    STATE_MAP<PopNetworkState_Impl, TickValue> mp;
 
   public:
     size_t size() const {
       return mp.size();
     }
 
-    STATE_MAP<PopNetworkState_Impl, TickValue, PopNetworkState_ImplHash>::iterator realFind(const PopNetworkState_Impl& state) {
+    STATE_MAP<PopNetworkState_Impl, TickValue>::iterator realFind(const PopNetworkState_Impl& state) {
        
-      STATE_MAP<PopNetworkState_Impl, TickValue, PopNetworkState_ImplHash>::iterator begin = mp.begin();
+      STATE_MAP<PopNetworkState_Impl, TickValue>::iterator begin = mp.begin();
       
       while(begin != mp.end()) {
         if (state == begin->first) {
@@ -115,7 +115,7 @@ class PopCumulator {
     }
 
     void incr(const PopNetworkState_Impl& state, double tm_slice, double TH) {
-      STATE_MAP<PopNetworkState_Impl, TickValue, PopNetworkState_ImplHash>::iterator iter = realFind(state);
+      STATE_MAP<PopNetworkState_Impl, TickValue>::iterator iter = realFind(state);
       if (iter == mp.end()) {
 	mp[state] = TickValue(tm_slice, tm_slice * TH);
       } else {
@@ -125,13 +125,13 @@ class PopCumulator {
     }
 
     void cumulTMSliceSquare(const PopNetworkState_Impl& state, double tm_slice) {
-      STATE_MAP<PopNetworkState_Impl, TickValue, PopNetworkState_ImplHash>::iterator iter = realFind(state);
+      STATE_MAP<PopNetworkState_Impl, TickValue>::iterator iter = realFind(state);
       assert(iter != mp.end());
       (*iter).second.tm_slice_square += tm_slice * tm_slice;
     }
     
     void add(const PopNetworkState_Impl& state, const TickValue& tick_value) {
-      STATE_MAP<PopNetworkState_Impl, TickValue, PopNetworkState_ImplHash>::iterator iter = realFind(state);
+      STATE_MAP<PopNetworkState_Impl, TickValue>::iterator iter = realFind(state);
       if (iter == mp.end()) {
 	mp[state] = tick_value;
       } else {
@@ -147,7 +147,7 @@ class PopCumulator {
     class Iterator {
     
       const PopCumulMap& cumul_map;
-      STATE_MAP<PopNetworkState_Impl, TickValue, PopNetworkState_ImplHash>::const_iterator iter, end;
+      STATE_MAP<PopNetworkState_Impl, TickValue>::const_iterator iter, end;
 
     public:
       Iterator(const PopCumulMap& cumul_map) : cumul_map(cumul_map) {
@@ -188,11 +188,11 @@ class PopCumulator {
 
 #ifdef HD_BUG
   class HDPopCumulMap {
-    STATE_MAP<PopNetworkState_Impl, double, PopNetworkState_ImplHash, PopNetworkState_ImplEquality> mp;
+    STATE_MAP<PopNetworkState_Impl, double> mp;
 
   public:
     void incr(const PopNetworkState_Impl& fullstate, double tm_slice) {
-      STATE_MAP<PopNetworkState_Impl, double, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::iterator iter = mp.find(fullstate);
+      STATE_MAP<PopNetworkState_Impl, double>::iterator iter = mp.find(fullstate);
       if (iter == mp.end()) {
 	mp[fullstate] = tm_slice;
       } else {
@@ -201,7 +201,7 @@ class PopCumulator {
     }
 
     void add(const PopNetworkState_Impl& fullstate, double tm_slice) {
-      STATE_MAP<PopNetworkState_Impl, double, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::iterator iter = mp.find(fullstate);
+      STATE_MAP<PopNetworkState_Impl, double>::iterator iter = mp.find(fullstate);
       if (iter == mp.end()) {
 	mp[fullstate] = tm_slice;
       } else {
@@ -212,7 +212,7 @@ class PopCumulator {
     class Iterator {
     
       const HDPopCumulMap& hd_cumul_map;
-      STATE_MAP<PopNetworkState_Impl, double, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::const_iterator iter, end;
+      STATE_MAP<PopNetworkState_Impl, double>::const_iterator iter, end;
 
     public:
       Iterator(const HDPopCumulMap& hd_cumul_map) : hd_cumul_map(hd_cumul_map) {
@@ -272,7 +272,7 @@ class PopCumulator {
   
   std::vector<PopProbaDist> proba_dist_v;
   PopProbaDist curtraj_proba_dist;
-  STATE_MAP<PopNetworkState_Impl, LastTickValue, PopNetworkState_ImplHash, PopNetworkState_ImplEquality> last_tick_map;
+  STATE_MAP<PopNetworkState_Impl, LastTickValue> last_tick_map;
   bool tick_completed;
 
   PopCumulMap& get_map() {
@@ -331,7 +331,7 @@ class PopCumulator {
     hd_mp.incr(fullstate, tm_slice);
 #endif
 
-    STATE_MAP<PopNetworkState_Impl, LastTickValue, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::iterator last_tick_iter = last_tick_map.find(state);
+    STATE_MAP<PopNetworkState_Impl, LastTickValue>::iterator last_tick_iter = last_tick_map.find(state);
     if (last_tick_iter == last_tick_map.end()) {
       last_tick_map[state] = LastTickValue(tm_slice, tm_slice * TH);
     } else {
@@ -394,8 +394,8 @@ public:
 
   void next() {
     if (tick_index < max_size) {
-      STATE_MAP<PopNetworkState_Impl, LastTickValue, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::const_iterator begin = last_tick_map.begin();
-      STATE_MAP<PopNetworkState_Impl, LastTickValue, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::const_iterator end = last_tick_map.end();
+      STATE_MAP<PopNetworkState_Impl, LastTickValue>::const_iterator begin = last_tick_map.begin();
+      STATE_MAP<PopNetworkState_Impl, LastTickValue>::const_iterator end = last_tick_map.end();
       PopCumulMap& mp = get_map();
       double TH = 0.0;
       while (begin != end) {

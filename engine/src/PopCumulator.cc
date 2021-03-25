@@ -55,7 +55,7 @@
 #include <math.h>
 #include <float.h>
 
-double distance(const STATE_MAP<PopNetworkState_Impl, double, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>& proba_dist1, const STATE_MAP<PopNetworkState_Impl, double, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>& proba_dist2)
+double distance(const STATE_MAP<PopNetworkState_Impl, double>& proba_dist1, const STATE_MAP<PopNetworkState_Impl, double>& proba_dist2)
 {
   return 0.;
 }
@@ -374,11 +374,11 @@ PopCumulator* PopCumulator::mergePopCumulators(RunConfig* runconfig, std::vector
 
 
 #ifdef PYTHON_API
-// std::unordered_set<PopNetworkState_Impl, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::iterator realFind(
-//   std::unordered_set<PopNetworkState_Impl, PopNetworkState_ImplHash, PopNetworkState_ImplEquality> set,
+// std::unordered_set<PopNetworkState_Impl>::iterator realFind(
+//   std::unordered_set<PopNetworkState_Impl> set,
 //   const PopNetworkState_Impl& state
 // ) {
-//   std::unordered_set<PopNetworkState_Impl, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::iterator begin = set.begin();
+//   std::unordered_set<PopNetworkState_Impl>::iterator begin = set.begin();
   
 //   while(begin != set.end()) {
 //     if (state.equal(*begin)) {
