@@ -314,7 +314,6 @@ void PopCumulator::add(unsigned int where, const HDPopCumulMap& add_hd_cumul_map
 
 PopCumulator* PopCumulator::mergePopCumulators(RunConfig* runconfig, std::vector<PopCumulator*>& cumulator_v)
 {
-  std::cout << "Merging cumulators" << std::endl;
   size_t size = cumulator_v.size();
   if (1 == size) {
     PopCumulator* cumulator = cumulator_v[0];

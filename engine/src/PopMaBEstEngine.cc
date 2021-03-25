@@ -230,7 +230,7 @@ void PopMaBEstEngine::runThread(PopCumulator *cumulator, unsigned int start_coun
   {
     random_generator->setSeed(seed + start_count_thread + nn);
     cumulator->rewind();
-    std::cout << std::endl << "> New simulation" << std::endl;
+    // std::cout << std::endl << "> New simulation" << std::endl;
   
     pop_network->initPopStates(pop_network_state, random_generator, runconfig->getInitPop());
     double tm = 0.;
@@ -245,9 +245,9 @@ void PopMaBEstEngine::runThread(PopCumulator *cumulator, unsigned int start_coun
     {
       double total_rate = 0.;
 
-      std::cout << ">> Present state : ";
-      pop_network_state.displayOneLine(std::cout, pop_network);
-      std::cout << std::endl;
+      // std::cout << ">> Present state : ";
+      // pop_network_state.displayOneLine(std::cout, pop_network);
+      // std::cout << std::endl;
 
       STATE_MAP<PopNetworkState_Impl, double> popNodeTransitionRates;
       // forall S ∈ Σ such that ψ(S) > 0 do
@@ -364,13 +364,13 @@ void PopMaBEstEngine::runThread(PopCumulator *cumulator, unsigned int start_coun
         }
       }
 
-      for (const auto &transition : popNodeTransitionRates)
-      {
-        std::cout << " >>> Transition : ";
-        PopNetworkState t_state(transition.first);
-        t_state.displayOneLine(std::cout, pop_network);
-        std::cout << ", proba=" << (int)(100*transition.second/total_rate) << std::endl;
-      }
+      // for (const auto &transition : popNodeTransitionRates)
+      // {
+      //   std::cout << " >>> Transition : ";
+      //   PopNetworkState t_state(transition.first);
+      //   t_state.displayOneLine(std::cout, pop_network);
+      //   std::cout << ", proba=" << (int)(100*transition.second/total_rate) << std::endl;
+      // }
       double TH;
       if (total_rate == 0)
       {
