@@ -61,12 +61,12 @@
 
 class PopProbaDist {
  
-  STATE_MAP<PopNetworkState_Impl, double, PopNetworkState_ImplHash, PopNetworkState_ImplEquality> mp;
+  STATE_MAP<PopNetworkState_Impl, double> mp;
 
  public:
  
  PopProbaDist() {
-   mp = STATE_MAP<PopNetworkState_Impl, double, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>();
+   mp = STATE_MAP<PopNetworkState_Impl, double>();
  }
 
   size_t size() const {
@@ -74,7 +74,7 @@ class PopProbaDist {
   }
 
   void incr(const PopNetworkState_Impl& state, double tm_slice) {
-    STATE_MAP<PopNetworkState_Impl, double, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::iterator proba_iter = mp.find(state);
+    STATE_MAP<PopNetworkState_Impl, double>::iterator proba_iter = mp.find(state);
     if (proba_iter == mp.end()) {
       mp[state] = tm_slice;
     } else {
@@ -91,7 +91,7 @@ class PopProbaDist {
   }
 
   bool hasState(const PopNetworkState_Impl& state, double& tm_slice) const {
-    STATE_MAP<PopNetworkState_Impl, double, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::const_iterator iter = mp.find(state);
+    STATE_MAP<PopNetworkState_Impl, double>::const_iterator iter = mp.find(state);
     if (iter != mp.end()) {
       tm_slice = (*iter).second;
       return true;
@@ -102,7 +102,7 @@ class PopProbaDist {
   class Iterator {
     
     const PopProbaDist& proba_dist_map;
-    STATE_MAP<PopNetworkState_Impl, double, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::const_iterator iter, end;
+    STATE_MAP<PopNetworkState_Impl, double>::const_iterator iter, end;
 
   public:
   Iterator(const PopProbaDist& proba_dist_map) : proba_dist_map(proba_dist_map) {

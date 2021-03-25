@@ -336,24 +336,27 @@ class PopNetworkState_Impl : public STATE_MAP<NetworkState_Impl, unsigned int> {
     return true;
   }
   
+  bool operator<(const PopNetworkState_Impl& pop_state) const {
+    return id() < pop_state.id();
+  }
+  
   size_t id() const {
       std::hash<long> long_hash;
       return long_hash(my_id);
   }
 };
-struct PopNetworkState_ImplHash {
-public:
-    size_t operator() (const PopNetworkState_Impl &c) const {
-        return c.id();
-    }
-};
 
-struct PopNetworkState_ImplEquality {
-public:
-    bool operator() (const PopNetworkState_Impl &a, const PopNetworkState_Impl &b) const {
-        return a == b;
+// Overloading hash function for PopNetworkState_Impl
+// Here I use a basic id, implemented using a counter of generated objects
+namespace std {
+  template <> struct hash<PopNetworkState_Impl>
+  {
+    size_t operator()(const PopNetworkState_Impl & x) const
+    {
+      return x.id();
     }
-};
+  };
+}
 
 static const std::string ATTR_RATE_UP = "rate_up";
 static const std::string ATTR_RATE_DOWN = "rate_down";

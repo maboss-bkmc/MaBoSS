@@ -123,12 +123,12 @@ PopMaBEstEngine::PopMaBEstEngine(PopNetwork *pop_network, RunConfig *runconfig) 
   }
 }
 
-PopNetworkState_Impl PopMaBEstEngine::getTargetNode(RandomGenerator *random_generator, const STATE_MAP<PopNetworkState_Impl, double, PopNetworkState_ImplHash, PopNetworkState_ImplEquality> popNodeTransitionRates, double total_rate) const
+PopNetworkState_Impl PopMaBEstEngine::getTargetNode(RandomGenerator *random_generator, const STATE_MAP<PopNetworkState_Impl, double> popNodeTransitionRates, double total_rate) const
 {
   double U_rand2 = random_generator->generate();
   double random_rate = U_rand2 * total_rate;
-  STATE_MAP<PopNetworkState_Impl, double, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::const_iterator begin = popNodeTransitionRates.begin();
-  STATE_MAP<PopNetworkState_Impl, double, PopNetworkState_ImplHash, PopNetworkState_ImplEquality>::const_iterator end = popNodeTransitionRates.end();
+  STATE_MAP<PopNetworkState_Impl, double>::const_iterator begin = popNodeTransitionRates.begin();
+  STATE_MAP<PopNetworkState_Impl, double>::const_iterator end = popNodeTransitionRates.end();
 
   PopNetworkState_Impl result = PopNetworkState_Impl();
   while (begin != end && random_rate > 0.)
@@ -249,7 +249,7 @@ void PopMaBEstEngine::runThread(PopCumulator *cumulator, unsigned int start_coun
       pop_network_state.displayOneLine(std::cout, pop_network);
       std::cout << std::endl;
 
-      STATE_MAP<PopNetworkState_Impl, double, PopNetworkState_ImplHash, PopNetworkState_ImplEquality> popNodeTransitionRates;
+      STATE_MAP<PopNetworkState_Impl, double> popNodeTransitionRates;
       // forall S ∈ Σ such that ψ(S) > 0 do
       for (auto pop : pop_network_state.getState())
       {
