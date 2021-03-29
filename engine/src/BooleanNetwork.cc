@@ -120,6 +120,8 @@ Network::Network() : last_index(0U)
 {
   istate_group_list = new std::vector<IStateGroup*>();
   symbol_table = new SymbolTable();
+  set_current_network(NULL);
+  set_pop_network(NULL);
 }
 
 PopNetwork::PopNetwork() : Network() { deathRate = NULL; divisionRules.clear();}
