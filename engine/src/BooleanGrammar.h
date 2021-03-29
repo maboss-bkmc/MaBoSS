@@ -138,7 +138,8 @@ class DivisionDecl {
       }
     }
     
-    get_pop_network()->addDivisionRule(new_rule);
+    if (get_pop_network() != NULL)  
+      get_pop_network()->addDivisionRule(new_rule);
   }
 };
 #endif

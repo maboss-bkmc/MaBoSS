@@ -236,7 +236,8 @@ death_decl: DEATH '{' death_decl_rate '}'
 
 death_decl_rate: RATE '=' expression ';'
 {
-  current_pop_network->setDeathRate($3);
+  if (current_pop_network != NULL)
+    current_pop_network->setDeathRate($3);
 }
 ;
 
