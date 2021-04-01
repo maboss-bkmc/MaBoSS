@@ -134,6 +134,9 @@ class DivisionDecl {
   public:
   
   DivisionDecl(std::vector<DivisionDaughterDecl*>* daughters, Expression* rate) {
+    if (get_pop_network() == NULL)    
+      throw BNException("Please use PopMaBoSS to simulate PopMaBoSS models");
+
     DivisionRule new_rule = DivisionRule();
     
     new_rule.setRate(rate);
@@ -144,8 +147,7 @@ class DivisionDecl {
       }
     }
     
-    if (get_pop_network() != NULL)  
-      get_pop_network()->addDivisionRule(new_rule);
+    get_pop_network()->addDivisionRule(new_rule);
   }
 };
 #endif
