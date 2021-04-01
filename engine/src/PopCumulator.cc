@@ -55,7 +55,7 @@
 #include <math.h>
 #include <float.h>
 
-double distance(const STATE_MAP<PopNetworkState_Impl, double>& proba_dist1, const STATE_MAP<PopNetworkState_Impl, double>& proba_dist2)
+double distance(const STATE_MAP<PopNetworkState, double>& proba_dist1, const STATE_MAP<PopNetworkState, double>& proba_dist2)
 {
   return 0.;
 }
@@ -84,6 +84,7 @@ void PopCumulator::trajectoryEpilogue()
   PopProbaDist::Iterator curtraj_proba_dist_iter = curtraj_proba_dist.iterator();
 
   double proba_max_time = 0.;
+
   while (curtraj_proba_dist_iter.hasNext()) {
     double tm_slice;
     curtraj_proba_dist_iter.next(tm_slice);
@@ -96,7 +97,7 @@ void PopCumulator::trajectoryEpilogue()
 
   PopProbaDist& proba_dist = proba_dist_v[sample_num++];
   while (curtraj_proba_dist_iter.hasNext()) {
-    PopNetworkState_Impl state;
+    PopNetworkState state;
     double tm_slice;
     curtraj_proba_dist_iter.next(state, tm_slice);
     //assert(proba_dist.find(state) == proba_dist.end());
@@ -147,9 +148,9 @@ void PopCumulator::epilogue(PopNetwork* network, const PopNetworkState& referenc
     while (iter.hasNext()) {
       TickValue tick_value;
 #ifdef USE_NEXT_OPT
-      const PopNetworkState_Impl &state = iter.next2(tick_value);
+      const PopNetworkState &state = iter.next2(tick_value);
 #else
-      PopNetworkState_Impl state;
+      PopNetworkState state;
       iter.next(state, tick_value);
 #endif
       double tm_slice = tick_value.tm_slice;
@@ -157,12 +158,12 @@ void PopCumulator::epilogue(PopNetwork* network, const PopNetworkState& referenc
       double TH = tick_value.TH / sample_count;
       H_v[nn] += -log2(proba) * proba;
 #ifndef HD_BUG
-  //     int hd = reference_state.hamming(network, state);
-  //     if (hd_m.find(hd) == hd_m.end()) {
-	// hd_m[hd] = proba;
-  //     } else {
-	// hd_m[hd] += proba;
-  //     }
+      int hd = reference_state.hamming(network, state);
+      if (hd_m.find(hd) == hd_m.end()) {
+	hd_m[hd] = proba;
+      } else {
+	hd_m[hd] += proba;
+      }
 #endif
       TH_v[nn] += TH;
     }
@@ -182,18 +183,18 @@ void PopCumulator::epilogue(PopNetwork* network, const PopNetworkState& referenc
     while (iter.hasNext()) {
       double tm_slice;
 #ifdef USE_NEXT_OPT
-      const PopNetworkState_Impl &state = iter.next2(tm_slice);
+      const PopNetworkState &state = iter.next2(tm_slice);
 #else
-      PopNetworkState_Impl state;
+      PopNetworkState state;
       iter.next(state, tm_slice);
 #endif
       double proba = tm_slice / ratio;      
-  //     int hd = reference_state.hamming(network, state);
-  //     if (hd_m.find(hd) == hd_m.end()) {
-	// hd_m[hd] = proba;
-  //     } else {
-	// hd_m[hd] += proba;
-  //     }
+      int hd = reference_state.hamming(network, state);
+      if (hd_m.find(hd) == hd_m.end()) {
+	hd_m[hd] = proba;
+      } else {
+	hd_m[hd] += proba;
+      }
     }
   }
 #endif
@@ -250,9 +251,9 @@ void PopCumulator::displayPopProbTraj(PopNetwork* network, unsigned int refnode_
     while (iter.hasNext()) {
       TickValue tick_value;
 #ifdef USE_NEXT_OPT
-      const PopNetworkState_Impl& state = iter.next2(tick_value);
+      const PopNetworkState& state = iter.next2(tick_value);
 #else
-      PopNetworkState_Impl state;
+      PopNetworkState state;
       iter.next(state, tick_value);
 #endif
       double proba = tick_value.tm_slice / ratio;      
@@ -284,9 +285,9 @@ void PopCumulator::add(unsigned int where, const PopCumulMap& add_cumul_map)
   while (iter.hasNext()) {
     TickValue tick_value;
 #ifdef USE_NEXT_OPT
-    const PopNetworkState_Impl& state = iter.next2(tick_value);
+    const PopNetworkState& state = iter.next2(tick_value);
 #else
-    PopNetworkState_Impl state;
+    PopNetworkState state;
     iter.next(state, tick_value);
 #endif
     to_cumul_map.add(state, tick_value);
@@ -302,9 +303,9 @@ void PopCumulator::add(unsigned int where, const HDPopCumulMap& add_hd_cumul_map
   while (iter.hasNext()) {
     double tm_slice;
 #ifdef USE_NEXT_OPT
-    const PopNetworkState_Impl& state = iter.next2(tm_slice);
+    const PopNetworkState& state = iter.next2(tm_slice);
 #else
-    PopNetworkState_Impl state;
+    PopNetworkState state;
     iter.next(state, tm_slice);
 #endif
     to_hd_cumul_map.add(state, tm_slice);
@@ -373,47 +374,10 @@ PopCumulator* PopCumulator::mergePopCumulators(RunConfig* runconfig, std::vector
 
 
 #ifdef PYTHON_API
-// std::unordered_set<PopNetworkState_Impl>::iterator realFind(
-//   std::unordered_set<PopNetworkState_Impl> set,
-//   const PopNetworkState_Impl& state
-// ) {
-//   std::unordered_set<PopNetworkState_Impl>::iterator begin = set.begin();
-  
-//   while(begin != set.end()) {
-//     if (state.equal(*begin)) {
-//       return begin;
-//     }
-    
-//     begin++;
-//   }
-//   return begin;
-// }
 
-// std::vector<PopNetworkState_Impl>::iterator realFind(std::vector<PopNetworkState_Impl> vect, const PopNetworkState_Impl& state, PopNetwork* network) 
-// {
-//   std::vector<PopNetworkState_Impl>::iterator begin = vect.begin();
-  
-//   while(begin != vect.end()) {
-//     std::cout << "Are state ";
-//     state.displayOneLine(network, std::cout);
-//     std::cout << " and state ";
-//     begin->displayOneLine(network, std::cout);
-//     std::cout << " equals ? ";
-//     if (state.equal(*begin)) {
-//       std::cout << "Yes" << std::endl;
-//       return begin;
-//     }
-//     std::cout << "No" << std::endl;
-//     begin++;
-//   }
-//   std::cout << "Returning end, should add" << std::endl;
-//   std::cout << (begin == vect.end()) << std::endl;
-//   return begin;
-// }
-
-unsigned int realFindPos(std::vector<PopNetworkState_Impl> vect, const PopNetworkState_Impl& state) 
+unsigned int realFindPos(std::vector<PopNetworkState> vect, const PopNetworkState& state) 
 {
-  std::vector<PopNetworkState_Impl>::iterator begin = vect.begin();
+  std::vector<PopNetworkState>::iterator begin = vect.begin();
   unsigned int pos = 0;
   while(begin != vect.end()) {
     if (state == *begin) {
@@ -425,9 +389,9 @@ unsigned int realFindPos(std::vector<PopNetworkState_Impl> vect, const PopNetwor
   return pos;
 }
 
-bool realExists(std::vector<PopNetworkState_Impl> vect, const PopNetworkState_Impl& state) 
+bool realExists(std::vector<PopNetworkState> vect, const PopNetworkState& state) 
 {
-  std::vector<PopNetworkState_Impl>::iterator begin = vect.begin();
+  std::vector<PopNetworkState>::iterator begin = vect.begin();
   while(begin != vect.end()) {
     if (state == *begin) {
       return true;
@@ -437,9 +401,9 @@ bool realExists(std::vector<PopNetworkState_Impl> vect, const PopNetworkState_Im
   return false;
 }
 
-std::vector<PopNetworkState_Impl> PopCumulator::getStates(PopNetwork* network) const
+std::vector<PopNetworkState> PopCumulator::getStates(PopNetwork* network) const
 {
-  std::vector<PopNetworkState_Impl> result_states;
+  std::vector<PopNetworkState> result_states;
 
   for (int nn=0; nn < getMaxTickIndex(); nn++) {
     const PopCumulMap& mp = get_map(nn);
@@ -448,11 +412,11 @@ std::vector<PopNetworkState_Impl> PopCumulator::getStates(PopNetwork* network) c
     while (iter.hasNext()) {
       TickValue tick_value;
 
-      PopNetworkState_Impl state;
+      PopNetworkState state;
       iter.next(state, tick_value);
       
       if (!realExists(result_states, state)){
-        result_states.push_back(PopNetworkState_Impl(state));
+        result_states.push_back(PopNetworkState(state));
       }
     }
   }
@@ -462,7 +426,7 @@ std::vector<PopNetworkState_Impl> PopCumulator::getStates(PopNetwork* network) c
 
 PyObject* PopCumulator::getNumpyStatesDists(PopNetwork* network) const 
 {
-  std::vector<PopNetworkState_Impl> list_states = getStates(network);
+  std::vector<PopNetworkState> list_states = getStates(network);
   
   npy_intp dims[2] = {(npy_intp) getMaxTickIndex(), (npy_intp) list_states.size()};
   PyArrayObject* result = (PyArrayObject *) PyArray_ZEROS(2,dims,NPY_DOUBLE, 0); 
@@ -475,7 +439,7 @@ PyObject* PopCumulator::getNumpyStatesDists(PopNetwork* network) const
 
     while (iter.hasNext()) {
       TickValue tick_value;
-      PopNetworkState_Impl state;
+      PopNetworkState state;
       
       iter.next(state, tick_value);
       

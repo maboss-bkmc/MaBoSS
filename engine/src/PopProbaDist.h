@@ -61,20 +61,20 @@
 
 class PopProbaDist {
  
-  STATE_MAP<PopNetworkState_Impl, double> mp;
+  STATE_MAP<PopNetworkState, double> mp;
 
  public:
  
  PopProbaDist() {
-   mp = STATE_MAP<PopNetworkState_Impl, double>();
+   mp = STATE_MAP<PopNetworkState, double>();
  }
 
   size_t size() const {
     return mp.size();
   }
 
-  void incr(const PopNetworkState_Impl& state, double tm_slice) {
-    STATE_MAP<PopNetworkState_Impl, double>::iterator proba_iter = mp.find(state);
+  void incr(const PopNetworkState& state, double tm_slice) {
+    STATE_MAP<PopNetworkState, double>::iterator proba_iter = mp.find(state);
     if (proba_iter == mp.end()) {
       mp[state] = tm_slice;
     } else {
@@ -86,12 +86,12 @@ class PopProbaDist {
     mp.clear();
   }
 
-  void set(const PopNetworkState_Impl& state, double tm_slice) {
+  void set(const PopNetworkState& state, double tm_slice) {
     mp[state] = tm_slice;
   }
 
-  bool hasState(const PopNetworkState_Impl& state, double& tm_slice) const {
-    STATE_MAP<PopNetworkState_Impl, double>::const_iterator iter = mp.find(state);
+  bool hasState(const PopNetworkState& state, double& tm_slice) const {
+    STATE_MAP<PopNetworkState, double>::const_iterator iter = mp.find(state);
     if (iter != mp.end()) {
       tm_slice = (*iter).second;
       return true;
@@ -102,7 +102,7 @@ class PopProbaDist {
   class Iterator {
     
     const PopProbaDist& proba_dist_map;
-    STATE_MAP<PopNetworkState_Impl, double>::const_iterator iter, end;
+    STATE_MAP<PopNetworkState, double>::const_iterator iter, end;
 
   public:
   Iterator(const PopProbaDist& proba_dist_map) : proba_dist_map(proba_dist_map) {
@@ -118,23 +118,23 @@ class PopProbaDist {
       return iter != end;
     }
 
-    void next(PopNetworkState_Impl& state, double& tm_slice) {
+    void next(PopNetworkState& state, double& tm_slice) {
       state = (*iter).first;
       tm_slice = (*iter).second;
       ++iter;
     }
 
-    void next(PopNetworkState_Impl& state) {
+    void next(PopNetworkState& state) {
       state = (*iter).first;
       ++iter;
     }
 
-    const PopNetworkState_Impl& next2(double& tm_slice) {
+    const PopNetworkState& next2(double& tm_slice) {
       tm_slice = (*iter).second;
       return (*iter++).first;
     }
 
-    const PopNetworkState_Impl& next2() {
+    const PopNetworkState& next2() {
       return (*iter++).first;
     }
 

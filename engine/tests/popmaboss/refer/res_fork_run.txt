@@ -2,19 +2,17 @@
 -------------------------------------------------- Run --------------------------------------------------
 MaBoSS version: 0.0.1 [networks up to 64 nodes]
 
-Run start time: Thu Mar 25 11:46:35 2021
-Run end time: Thu Mar 25 11:46:41 2021
+Run start time: Thu Apr  1 20:43:30 2021
+Run end time: Thu Apr  1 20:43:33 2021
 
-Core user runtime: 2.66 secs using 1 thread
-Core elapsed runtime: 2.886 secs using 1 thread
+Core user runtime: 2.32 secs using 1 thread
+Core elapsed runtime: 2.433 secs using 1 thread
 
-Epilogue user runtime: 2.35 secs using 1 thread
-Epilogue elapsed runtime: 2.567 secs using 1 thread
+Epilogue user runtime: 0.23 secs using 1 thread
+Epilogue elapsed runtime: 0.288 secs using 1 thread
 
 StatDist user runtime: 0 secs using 1 thread
 StatDist elapsed runtime: 0.064 secs using 1 thread
-
-Number of PopNetworkState_Impl created : 14550371
 
 Time Tick: 1
 Max Time: 10

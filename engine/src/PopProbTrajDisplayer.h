@@ -66,11 +66,11 @@ protected:
   double TH, err_TH, H;
   double* HD_v;
   struct Proba {
-    PopNetworkState_Impl state;
+    PopNetworkState state;
     double proba;
     double err_proba;
 
-    Proba(const PopNetworkState_Impl& state, double proba, double err_proba) : state(state), proba(proba), err_proba(err_proba) { }
+    Proba(const PopNetworkState& state, double proba, double err_proba) : state(state), proba(proba), err_proba(err_proba) { }
   };
 
   std::vector<Proba> proba_v;
@@ -108,7 +108,7 @@ public:
     this->HD_v[ind] = HD;
   }
 
-  void addProba(const PopNetworkState_Impl& state, double proba, double err_proba) {
+  void addProba(const PopNetworkState& state, double proba, double err_proba) {
     proba_v.push_back(Proba(state, proba, err_proba));
   }
 
