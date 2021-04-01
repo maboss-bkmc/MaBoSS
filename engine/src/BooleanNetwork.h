@@ -268,21 +268,28 @@ typedef unsigned long long NetworkState_Impl;
 
 
 
-class PopNetworkState_Impl : public MAP<NetworkState_Impl, unsigned int> {
+class PopNetworkState_Impl  {
   
   public:
+  std::map<NetworkState_Impl, unsigned int> pop_state;
   static long generated_number_count;
-
-  long my_id;
+  mutable size_t hash;
+  // long my_id;
 
   // Default constructor : Empty map, random id  
-  PopNetworkState_Impl() : MAP<NetworkState_Impl, unsigned int>() {
-    my_id = PopNetworkState_Impl::generated_number_count++;
+  PopNetworkState_Impl() {
+    pop_state = std::map<NetworkState_Impl, unsigned int>();
+    hash = 0;
+    // my_id = PopNetworkState_Impl::generated_number_count++;
   }
+  
+  
   
   // Values constructor : create, and add one pop state
   PopNetworkState_Impl(NetworkState_Impl state, unsigned int value) : PopNetworkState_Impl() {
-    insert ( std::pair<NetworkState_Impl,unsigned int>(state,value) );
+    pop_state[state] = value;
+    hash = compute_hash();
+    // insert ( std::pair<NetworkState_Impl,unsigned int>(state,value) );
   }
   
   PopNetworkState_Impl(const PopNetworkState_Impl& state) { 
@@ -290,40 +297,43 @@ class PopNetworkState_Impl : public MAP<NetworkState_Impl, unsigned int> {
   }
   
   PopNetworkState_Impl& operator=(const PopNetworkState_Impl& state) {
-    MAP<NetworkState_Impl, unsigned int>::operator=(state);
-    my_id = PopNetworkState_Impl::generated_number_count++;
+    pop_state = std::map<NetworkState_Impl, unsigned int>(state.pop_state);
+    // my_id = PopNetworkState_Impl::generated_number_count++;
+    hash = state.hash;
     return *this;
   }
   
   // & operator for applying the mask
   PopNetworkState_Impl operator&(NetworkState_Impl& mask) { 
     
-    PopNetworkState_Impl state = PopNetworkState_Impl();
-    for (auto network_state : *this) {
-      if (state.find(network_state.first) != state.end()) {
-        state[network_state.first] += network_state.second;
+    PopNetworkState_Impl masked_pop_state = PopNetworkState_Impl();
+    for (auto network_state : pop_state) {
+      NetworkState_Impl masked_network_state = network_state.first & mask;
+      if (masked_pop_state.pop_state.find(masked_network_state) != masked_pop_state.pop_state.end()) {
+        masked_pop_state.pop_state[masked_network_state] += network_state.second;
       } else {
-        state.insert(network_state);  
+        masked_pop_state.pop_state[masked_network_state] = network_state.second;  
       } 
     }
+    masked_pop_state.hash = masked_pop_state.compute_hash();
     
-    return state; 
+    return masked_pop_state; 
   }
   bool operator==(const PopNetworkState_Impl& pop_state) const {
     // So when are two PopNetworkState inequals ?
     // First, if they don't have the same length of states in the population
-    if (pop_state.size() != this->size()) {
+    if (pop_state.pop_state.size() != this->pop_state.size()) {
       return false;
     }
     
     // If it's identical, we need to look further, so we look at each state
-    for (auto network_state: pop_state) {
+    for (auto network_state: pop_state.pop_state) {
       
         // Is this state also present ?
-        if (find(network_state.first) != end()){
+        if (this->pop_state.find(network_state.first) != this->pop_state.end()){
           
           // And if so, does it have the same population size
-          if(find(network_state.first)->second != network_state.second) {
+          if(this->pop_state.find(network_state.first)->second != network_state.second) {
             return false;
           }
           
@@ -342,13 +352,26 @@ class PopNetworkState_Impl : public MAP<NetworkState_Impl, unsigned int> {
     
     // for (auto network_state: pop_state) {}
     
-    return id() < pop_state.id();
+    return hash < pop_state.hash;
   }
   
-  size_t id() const {
-      std::hash<long> long_hash;
-      return long_hash(my_id);
+  size_t compute_hash() const {
+    // hash = ...;
+    // std::string str;
+    // for (auto state_iter : state ) {
+    //   const NetworkState_Impl& network_state_impl = state_iter->first;
+    //   unsigned int popcnt = state_iter->second;
+    //   str += string_repr(...); // pour l'instant
+    // }
+    // return hash;
+    // // finalement ne pas trop se casser la tete, eviter trop de collision:
+    return pop_state.size(); //dans un premier temps ? un peu exagere, mais why not
   }
+  
+  // size_t id() const {
+  //     std::hash<long> long_hash;
+  //     return long_hash(my_id);
+  // }
 };
 
 // Overloading hash function for PopNetworkState_Impl
@@ -371,7 +394,7 @@ namespace std {
   {
     size_t operator()(const PopNetworkState_Impl & x) const
     {
-      return x.id();
+      return x.hash;
     }
   };
 }
@@ -1153,24 +1176,27 @@ public:
   // Increases the population of the state
   void incr(NetworkState net_state) {
     NetworkState_Impl t_state = net_state.getState();
-    if (state.find(t_state) != state.end())
-      state[t_state]++;
+    if (state.pop_state.find(t_state) != state.pop_state.end())
+      state.pop_state[t_state]++;
     else
-      state[t_state] = 1;
+      state.pop_state[t_state] = 1;
+    state.hash = state.compute_hash();
   }
 
   // Decreases the population of the state
   void decr(NetworkState net_state) {
     NetworkState_Impl t_state = net_state.getState();
-    if (state[t_state] > 1)
-      state[t_state]--;  
+    if (state.pop_state[t_state] > 1)
+      state.pop_state[t_state]--;  
     else
-      state.erase(t_state);
+      state.pop_state.erase(t_state);
+    state.hash = state.compute_hash();
+
   }
   
   // Returns if the state exists
   bool exists(NetworkState net_state) {
-    return state.find(net_state.getState()) != state.end();
+    return state.pop_state.find(net_state.getState()) != state.pop_state.end();
   }
   
   // Count the population satisfying an expression

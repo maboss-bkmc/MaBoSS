@@ -660,8 +660,8 @@ std::string PopNetworkState::getName(PopNetwork * network, const std::string& se
   
   std::string res = "[";
   
-  size_t i = state.size();
-  for (auto pop : state) {
+  size_t i = state.pop_state.size();
+  for (auto pop : state.pop_state) {
     NetworkState t_state(pop.first);
     res += "{" + t_state.getName(network) + ":" + std::to_string(pop.second) + "}";
     if (--i > 0) {
@@ -680,8 +680,8 @@ void PopNetworkState::displayOneLine(std::ostream &strm, PopNetwork* network, co
 void PopNetworkState::displayJSON(std::ostream &strm, PopNetwork* network, const std::string& sep) const 
 {    
   strm << "[";
-  size_t i = state.size();
-  for (auto pop : state) {
+  size_t i = state.pop_state.size();
+  for (auto pop : state.pop_state) {
     NetworkState t_state(pop.first);
     strm << "{\"" << t_state.getName(network) << "\":" << pop.second << "}";
     if (--i > 0) {
@@ -695,7 +695,7 @@ unsigned int PopNetworkState::count(Expression * expr) const
 {
   unsigned int res = 0;
   
-  for (auto network_state_proba : state) {
+  for (auto network_state_proba : state.pop_state) {
     NetworkState network_state = NetworkState(network_state_proba.first);
     if (expr == NULL || (bool)expr->eval(NULL, network_state)) {
       res += network_state_proba.second;

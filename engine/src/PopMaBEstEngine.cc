@@ -251,7 +251,7 @@ void PopMaBEstEngine::runThread(PopCumulator *cumulator, unsigned int start_coun
 
       STATE_MAP<PopNetworkState_Impl, double> popNodeTransitionRates;
       // forall S ∈ Σ such that ψ(S) > 0 do
-      for (auto pop : pop_network_state.getState())
+      for (auto pop : pop_network_state.getState().pop_state)
       {
         if (pop.second > 0)
         {

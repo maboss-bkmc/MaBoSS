@@ -115,7 +115,7 @@ class PopCumulator {
     }
 
     void incr(const PopNetworkState_Impl& state, double tm_slice, double TH) {
-      STATE_MAP<PopNetworkState_Impl, TickValue>::iterator iter = realFind(state);
+      STATE_MAP<PopNetworkState_Impl, TickValue>::iterator iter = mp.find(state);//realFind(state);
       if (iter == mp.end()) {
 	mp[state] = TickValue(tm_slice, tm_slice * TH);
       } else {
@@ -125,13 +125,13 @@ class PopCumulator {
     }
 
     void cumulTMSliceSquare(const PopNetworkState_Impl& state, double tm_slice) {
-      STATE_MAP<PopNetworkState_Impl, TickValue>::iterator iter = realFind(state);
+      STATE_MAP<PopNetworkState_Impl, TickValue>::iterator iter = mp.find(state);//realFind(state);
       assert(iter != mp.end());
       (*iter).second.tm_slice_square += tm_slice * tm_slice;
     }
     
     void add(const PopNetworkState_Impl& state, const TickValue& tick_value) {
-      STATE_MAP<PopNetworkState_Impl, TickValue>::iterator iter = realFind(state);
+      STATE_MAP<PopNetworkState_Impl, TickValue>::iterator iter = mp.find(state);//realFind(state);
       if (iter == mp.end()) {
 	mp[state] = tick_value;
       } else {
