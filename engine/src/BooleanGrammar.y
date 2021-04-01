@@ -236,8 +236,10 @@ death_decl: DEATH '{' death_decl_rate '}'
 
 death_decl_rate: RATE '=' expression ';'
 {
-  if (current_pop_network != NULL)
-    current_pop_network->setDeathRate($3);
+  if (current_pop_network == NULL) 
+      throw BNException("Please use PopMaBoSS to simulate PopMaBoSS models");
+
+  current_pop_network->setDeathRate($3);
 }
 ;
 
