@@ -126,7 +126,7 @@ public:
   void display(PopProbTrajDisplayer* pop_probtraj_displayer, FixedPointDisplayer* fp_displayer) const;
   
   std::vector<ArgWrapper*> arg_wrapper_v;
-  PopNetworkState_Impl getTargetNode(RandomGenerator* random_generator, const STATE_MAP<PopNetworkState_Impl, double> popNodeTransitionRates, double total_rate) const;
+  PopNetworkState getTargetNode(RandomGenerator* random_generator, const STATE_MAP<PopNetworkState, double> popNodeTransitionRates, double total_rate) const;
   double computeTH(const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
   void epilogue();
   static void* threadWrapper(void *arg);

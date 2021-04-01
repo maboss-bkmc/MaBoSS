@@ -123,14 +123,14 @@ PopMaBEstEngine::PopMaBEstEngine(PopNetwork *pop_network, RunConfig *runconfig) 
   }
 }
 
-PopNetworkState_Impl PopMaBEstEngine::getTargetNode(RandomGenerator *random_generator, const STATE_MAP<PopNetworkState_Impl, double> popNodeTransitionRates, double total_rate) const
+PopNetworkState PopMaBEstEngine::getTargetNode(RandomGenerator *random_generator, const STATE_MAP<PopNetworkState, double> popNodeTransitionRates, double total_rate) const
 {
   double U_rand2 = random_generator->generate();
   double random_rate = U_rand2 * total_rate;
-  STATE_MAP<PopNetworkState_Impl, double>::const_iterator begin = popNodeTransitionRates.begin();
-  STATE_MAP<PopNetworkState_Impl, double>::const_iterator end = popNodeTransitionRates.end();
+  auto begin = popNodeTransitionRates.begin();
+  auto end = popNodeTransitionRates.end();
 
-  PopNetworkState_Impl result = PopNetworkState_Impl();
+  PopNetworkState result = PopNetworkState();
   while (begin != end && random_rate > 0.)
   {
     double rate = begin->second;
@@ -249,9 +249,9 @@ void PopMaBEstEngine::runThread(PopCumulator *cumulator, unsigned int start_coun
       // pop_network_state.displayOneLine(std::cout, pop_network);
       // std::cout << std::endl;
 
-      STATE_MAP<PopNetworkState_Impl, double> popNodeTransitionRates;
+      STATE_MAP<PopNetworkState, double> popNodeTransitionRates;
       // forall S ∈ Σ such that ψ(S) > 0 do
-      for (auto pop : pop_network_state.getState().pop_state)
+      for (auto pop : pop_network_state.getMap())
       {
         if (pop.second > 0)
         {
@@ -304,7 +304,7 @@ void PopMaBEstEngine::runThread(PopCumulator *cumulator, unsigned int start_coun
 
               total_rate += nodeTransitionRate;
               // Put (ψ' , ρψ→ψ' ) in Ω
-              popNodeTransitionRates.insert(std::pair<PopNetworkState_Impl, double>(new_pop_network_state.getState(), nodeTransitionRate));
+              popNodeTransitionRates.insert(std::pair<PopNetworkState, double>(new_pop_network_state, nodeTransitionRate));
             }
           }
           
@@ -333,7 +333,7 @@ void PopMaBEstEngine::runThread(PopCumulator *cumulator, unsigned int start_coun
               division_rate *= pop.second;
               
               // Put (ψ' , ρψ→ψ' ) in Ω
-              popNodeTransitionRates.insert(std::pair<PopNetworkState_Impl, double>(new_pop_network_state.getState(), division_rate));
+              popNodeTransitionRates.insert(std::pair<PopNetworkState, double>(new_pop_network_state, division_rate));
               total_rate += division_rate;
               
             }
@@ -345,7 +345,7 @@ void PopMaBEstEngine::runThread(PopCumulator *cumulator, unsigned int start_coun
             
             PopNetworkState new_pop_network_state = PopNetworkState(pop_network_state);
             new_pop_network_state.decr(t_network_state);
-            popNodeTransitionRates.insert(std::pair<PopNetworkState_Impl, double>(new_pop_network_state.getState(), rate_death));
+            popNodeTransitionRates.insert(std::pair<PopNetworkState, double>(new_pop_network_state, rate_death));
           }
           
           if (total_pop_rate == 0)
@@ -627,7 +627,7 @@ void PopMaBEstEngine::displayRunStats(std::ostream& os, time_t start_time, time_
   os << "StatDist user runtime: " << (getUserStatDistRunTime()/1000.) << " secs using 1 thread\n";
   os << "StatDist elapsed runtime: " << (getElapsedStatDistRunTime()/1000.) << " secs using 1 thread\n\n";
   
-  os << "Number of PopNetworkState_Impl created : " << PopNetworkState_Impl::generated_number_count << std::endl << std::endl;
+  // os << "Number of PopNetworkState_Impl created : " << PopNetworkState_Impl::generated_number_count << std::endl << std::endl;
   
   runconfig->display(pop_network, start_time, end_time, os);
 }

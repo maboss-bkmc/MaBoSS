@@ -93,45 +93,31 @@ class PopCumulator {
   };
 
   class PopCumulMap {
-    STATE_MAP<PopNetworkState_Impl, TickValue> mp;
+    STATE_MAP<PopNetworkState, TickValue> mp;
 
   public:
     size_t size() const {
       return mp.size();
     }
 
-    STATE_MAP<PopNetworkState_Impl, TickValue>::iterator realFind(const PopNetworkState_Impl& state) {
-       
-      STATE_MAP<PopNetworkState_Impl, TickValue>::iterator begin = mp.begin();
-      
-      while(begin != mp.end()) {
-        if (state == begin->first) {
-          return begin;
-        }
-        
-        begin++;
-      }
-      return begin;
-    }
-
-    void incr(const PopNetworkState_Impl& state, double tm_slice, double TH) {
-      STATE_MAP<PopNetworkState_Impl, TickValue>::iterator iter = mp.find(state);//realFind(state);
+    void incr(const PopNetworkState& state, double tm_slice, double TH) {
+      STATE_MAP<PopNetworkState, TickValue>::iterator iter = mp.find(state);
       if (iter == mp.end()) {
 	mp[state] = TickValue(tm_slice, tm_slice * TH);
       } else {
 	(*iter).second.tm_slice += tm_slice;
 	(*iter).second.TH += tm_slice * TH;
-      }  
+      }
     }
 
-    void cumulTMSliceSquare(const PopNetworkState_Impl& state, double tm_slice) {
-      STATE_MAP<PopNetworkState_Impl, TickValue>::iterator iter = mp.find(state);//realFind(state);
+    void cumulTMSliceSquare(const PopNetworkState& state, double tm_slice) {
+      STATE_MAP<PopNetworkState, TickValue>::iterator iter = mp.find(state);
       assert(iter != mp.end());
       (*iter).second.tm_slice_square += tm_slice * tm_slice;
     }
     
-    void add(const PopNetworkState_Impl& state, const TickValue& tick_value) {
-      STATE_MAP<PopNetworkState_Impl, TickValue>::iterator iter = mp.find(state);//realFind(state);
+    void add(const PopNetworkState& state, const TickValue& tick_value) {
+      STATE_MAP<PopNetworkState, TickValue>::iterator iter = mp.find(state);
       if (iter == mp.end()) {
 	mp[state] = tick_value;
       } else {
@@ -147,7 +133,7 @@ class PopCumulator {
     class Iterator {
     
       const PopCumulMap& cumul_map;
-      STATE_MAP<PopNetworkState_Impl, TickValue>::const_iterator iter, end;
+      STATE_MAP<PopNetworkState, TickValue>::const_iterator iter, end;
 
     public:
       Iterator(const PopCumulMap& cumul_map) : cumul_map(cumul_map) {
@@ -163,14 +149,14 @@ class PopCumulator {
 	return iter != end;
       }
 
-      void next(PopNetworkState_Impl& state, TickValue& tick_value) {
+      void next(PopNetworkState& state, TickValue& tick_value) {
 	state = (*iter).first;
 	tick_value = (*iter).second;
 	++iter;
       }
 	
 #ifdef USE_NEXT_OPT
-      const PopNetworkState_Impl& next2(TickValue& tick_value) {
+      const PopNetworkState& next2(TickValue& tick_value) {
 	tick_value = (*iter).second;
 	return (*iter++).first;
       }
@@ -188,11 +174,11 @@ class PopCumulator {
 
 #ifdef HD_BUG
   class HDPopCumulMap {
-    STATE_MAP<PopNetworkState_Impl, double> mp;
+    STATE_MAP<PopNetworkState, double> mp;
 
   public:
-    void incr(const PopNetworkState_Impl& fullstate, double tm_slice) {
-      STATE_MAP<PopNetworkState_Impl, double>::iterator iter = mp.find(fullstate);
+    void incr(const PopNetworkState& fullstate, double tm_slice) {
+      STATE_MAP<PopNetworkState, double>::iterator iter = mp.find(fullstate);
       if (iter == mp.end()) {
 	mp[fullstate] = tm_slice;
       } else {
@@ -200,8 +186,8 @@ class PopCumulator {
       }
     }
 
-    void add(const PopNetworkState_Impl& fullstate, double tm_slice) {
-      STATE_MAP<PopNetworkState_Impl, double>::iterator iter = mp.find(fullstate);
+    void add(const PopNetworkState& fullstate, double tm_slice) {
+      STATE_MAP<PopNetworkState, double>::iterator iter = mp.find(fullstate);
       if (iter == mp.end()) {
 	mp[fullstate] = tm_slice;
       } else {
@@ -212,7 +198,7 @@ class PopCumulator {
     class Iterator {
     
       const HDPopCumulMap& hd_cumul_map;
-      STATE_MAP<PopNetworkState_Impl, double>::const_iterator iter, end;
+      STATE_MAP<PopNetworkState, double>::const_iterator iter, end;
 
     public:
       Iterator(const HDPopCumulMap& hd_cumul_map) : hd_cumul_map(hd_cumul_map) {
@@ -228,14 +214,14 @@ class PopCumulator {
 	return iter != end;
       }
 
-      void next(PopNetworkState_Impl& state, double& tm_slice) {
+      void next(PopNetworkState& state, double& tm_slice) {
 	state = (*iter).first;
 	tm_slice = (*iter).second;
 	++iter;
       }
 	
 #ifdef USE_NEXT_OPT
-      const PopNetworkState_Impl& next2(double& tm_slice) {
+      const PopNetworkState& next2(double& tm_slice) {
 	tm_slice = (*iter).second;
 	return (*iter++).first;
       }
@@ -269,10 +255,9 @@ class PopCumulator {
 #ifdef HD_BUG
   std::vector<HDPopCumulMap> hd_cumul_map_v;
 #endif
-  
   std::vector<PopProbaDist> proba_dist_v;
   PopProbaDist curtraj_proba_dist;
-  STATE_MAP<PopNetworkState_Impl, LastTickValue> last_tick_map;
+  STATE_MAP<PopNetworkState, LastTickValue> last_tick_map;
   bool tick_completed;
 
   PopCumulMap& get_map() {
@@ -314,7 +299,7 @@ class PopCumulator {
     return at_tick_index * time_tick;
   }
 
-  bool incr(const PopNetworkState_Impl& state, double tm_slice, double TH, const PopNetworkState_Impl& fullstate) {
+  bool incr(const PopNetworkState& state, double tm_slice, double TH, const PopNetworkState& fullstate) {
     if (tm_slice == 0.0) {
       return true;
     }
@@ -331,7 +316,7 @@ class PopCumulator {
     hd_mp.incr(fullstate, tm_slice);
 #endif
 
-    STATE_MAP<PopNetworkState_Impl, LastTickValue>::iterator last_tick_iter = last_tick_map.find(state);
+    STATE_MAP<PopNetworkState, LastTickValue>::iterator last_tick_iter = last_tick_map.find(state);
     if (last_tick_iter == last_tick_map.end()) {
       last_tick_map[state] = LastTickValue(tm_slice, tm_slice * TH);
     } else {
@@ -375,7 +360,6 @@ public:
 	TH_square_v[nn] = 0.;
       }
     }
-    
     proba_dist_v.resize(sample_count);
     tick_completed = false;
   }
@@ -394,12 +378,13 @@ public:
 
   void next() {
     if (tick_index < max_size) {
-      STATE_MAP<PopNetworkState_Impl, LastTickValue>::const_iterator begin = last_tick_map.begin();
-      STATE_MAP<PopNetworkState_Impl, LastTickValue>::const_iterator end = last_tick_map.end();
+      STATE_MAP<PopNetworkState, LastTickValue>::const_iterator begin = last_tick_map.begin();
+      STATE_MAP<PopNetworkState, LastTickValue>::const_iterator end = last_tick_map.end();
       PopCumulMap& mp = get_map();
       double TH = 0.0;
       while (begin != end) {
-	PopNetworkState_Impl state = (*begin).first;
+  // PopNetworkState state = (*begin).first;
+	const PopNetworkState& state = (*begin).first;
   double tm_slice = (*begin).second.tm_slice;
   TH += (*begin).second.TH;
   if (POP_COMPUTE_ERRORS) {
@@ -418,17 +403,16 @@ public:
 
   void cumul(const PopNetworkState& network_state, double tm, double TH) {
 #ifdef USE_DYNAMIC_BITSET
-    PopNetworkState_Impl fullstate(network_state.getState(), 1);
+    PopNetworkState fullstate(network_state);
 #else
-    PopNetworkState_Impl fullstate(network_state.getState());
+    PopNetworkState fullstate(network_state);
 #endif
-    PopNetworkState_Impl state(fullstate & output_mask);
+    PopNetworkState state(fullstate & output_mask);
     
     double time_1 = cumultime(tick_index+1);
     if (tm < time_1) {
       incr(state, tm - last_tm, TH, fullstate);
       last_tm = tm;
-      
       return;
     }
 
@@ -436,18 +420,15 @@ public:
       last_tm = tm;
       return;
     }
-    
     next();
-    
     for (; cumultime(tick_index+1) < tm; next()) {
       if (!incr(state, time_tick, TH, fullstate)) {
 	last_tm = tm;
 	return;
       }
     }
-          
+      
     incr(state, tm - cumultime(), TH, fullstate);
-    
     last_tm = tm;
   }
 
@@ -472,7 +453,7 @@ public:
 
   PyObject* getNumpyStatesDists(PopNetwork* network) const;
   // PyObject* getNumpyLastStatesDists(Network* network) const;;
-  std::vector<PopNetworkState_Impl> getStates(PopNetwork* network) const;
+  std::vector<PopNetworkState> getStates(PopNetwork* network) const;
   // std::vector<NetworkState_Impl> getLastStates() const;
   // PyObject* getNumpyNodesDists(Network* network) const;
   // PyObject* getNumpyLastNodesDists(Network* network) const;

@@ -69,7 +69,7 @@ const int DivisionRule::DAUGHTER_1 = 1;
 const int DivisionRule::DAUGHTER_2 = 2;
 
 // Number of generated PopNetworkState_Impl
-long PopNetworkState_Impl::generated_number_count = 0;
+// long PopNetworkState_Impl::generated_number_count = 0;
 
 Node::Node(const std::string& label, const std::string& description, NodeIndex index) : label(label), description(description), istate_set(false), is_internal(false), is_reference(false), referenceState(false), logicalInputExpr(NULL), rateUpExpr(NULL), rateDownExpr(NULL), index(index)
 {
@@ -630,8 +630,8 @@ std::string PopNetworkState::getName(PopNetwork * network, const std::string& se
   
   std::string res = "[";
   
-  size_t i = state.pop_state.size();
-  for (auto pop : state.pop_state) {
+  size_t i = mp.size();
+  for (auto pop : mp) {
     NetworkState t_state(pop.first);
     res += "{" + t_state.getName(network) + ":" + std::to_string(pop.second) + "}";
     if (--i > 0) {
@@ -650,8 +650,8 @@ void PopNetworkState::displayOneLine(std::ostream &strm, PopNetwork* network, co
 void PopNetworkState::displayJSON(std::ostream &strm, PopNetwork* network, const std::string& sep) const 
 {    
   strm << "[";
-  size_t i = state.pop_state.size();
-  for (auto pop : state.pop_state) {
+  size_t i = mp.size();
+  for (auto pop : mp) {
     NetworkState t_state(pop.first);
     strm << "{\"" << t_state.getName(network) << "\":" << pop.second << "}";
     if (--i > 0) {
@@ -665,7 +665,7 @@ unsigned int PopNetworkState::count(Expression * expr) const
 {
   unsigned int res = 0;
   
-  for (auto network_state_proba : state.pop_state) {
+  for (auto network_state_proba : mp) {
     NetworkState network_state = NetworkState(network_state_proba.first);
     if (expr == NULL || (bool)expr->eval(NULL, network_state)) {
       res += network_state_proba.second;
@@ -676,7 +676,7 @@ unsigned int PopNetworkState::count(Expression * expr) const
 }
 
 
-unsigned int PopNetworkState::hamming(PopNetwork* network, const PopNetworkState_Impl& state2) const
+unsigned int PopNetworkState::hamming(PopNetwork* network, const PopNetworkState& state2) const
 {
   unsigned int hd = 0;
 // #ifdef HAMMING_METHOD1
@@ -815,8 +815,7 @@ void IStateGroup::initPopStates(Network* network, PopNetworkState& initial_state
 {
   NetworkState state;
   initStates(network, state, randgen);
-  PopNetworkState_Impl t_pop_state = PopNetworkState_Impl(state.getState(), pop);
-  initial_state = PopNetworkState(t_pop_state);
+  initial_state = PopNetworkState(state.getState(), pop);
 }
 
 
