@@ -923,6 +923,28 @@ public:
     return true;
   }
   
+  // bool operator==(const PopNetworkState& pop_state) const {
+  //   // Version for sorted maps. But perfectly sorted map require a perfect hash function. 
+  //   // So should we just forget it and use the other one ?
+  //   // So when are two PopNetworkState inequals ?
+  //   // First, if they don't have the same length of states in the population
+  //   const std::map<NetworkState_Impl, unsigned int>& other_mp = pop_state.getMap();
+  //   if (mp.size() != other_mp.size()) {
+  //     return false;
+  //   }
+    
+  //   // If it's identical, we need to look at each state, if there is the same at the same position
+  //   auto other_network_state = mp.begin();
+  //   for (auto network_state: other_mp) {
+  //     if (network_state.first != other_network_state->first || network_state.second != other_network_state->second) {
+  //       return false;
+  //     }
+  //     other_network_state++;
+  //   }
+  //   return true;
+  // }
+  
+  
   // Increases the population of the state
   void incr(const NetworkState& net_state) {
     NetworkState_Impl t_state = net_state.getState();
@@ -949,14 +971,29 @@ public:
   }
   
   bool operator<(const PopNetworkState& pop_state) const {
-    return hash < pop_state.getHash();
+    return getHash() < pop_state.getHash();
   }
   
   size_t compute_hash() const {
     
-    return mp.size(); //dans un premier temps ? un peu exagere, mais why not
+    // return mp.size(); //dans un premier temps ? un peu exagere, mais why not
+    // New one : for all state:pop, compute sum_i = state_i * pop_i;
+    // Expensive, but should be a good one ?
     
+    size_t result = 0;
+    for (auto network_state_pop: mp) {
+      NetworkState_Impl t_state = network_state_pop.first;
+      
+#if defined(USE_STATIC_BITSET)
+      result += t_state.to_ulong() * network_state_pop.second;
+#elif defined(USE_DYNAMIC_BITSET)
+      result += t_state.to_ulong() * network_state_pop.second;
+#else
+      result += t_state * network_state_pop.second;
+#endif
+    }
     
+    return result;
   }
   
   // Count the population satisfying an expression
