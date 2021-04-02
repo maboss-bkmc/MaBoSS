@@ -2,14 +2,14 @@
 -------------------------------------------------- Run --------------------------------------------------
 MaBoSS version: 0.0.1 [networks up to 64 nodes]
 
-Run start time: Thu Apr  1 20:43:33 2021
-Run end time: Thu Apr  1 20:43:33 2021
+Run start time: Fri Apr  2 09:48:21 2021
+Run end time: Fri Apr  2 09:48:21 2021
 
-Core user runtime: 0.18 secs using 1 thread
-Core elapsed runtime: 0.18 secs using 1 thread
+Core user runtime: 0.06 secs using 1 thread
+Core elapsed runtime: 0.06 secs using 1 thread
 
 Epilogue user runtime: 0 secs using 1 thread
-Epilogue elapsed runtime: 0.009 secs using 1 thread
+Epilogue elapsed runtime: 0.005 secs using 1 thread
 
 StatDist user runtime: 0 secs using 1 thread
 StatDist elapsed runtime: 0.064 secs using 1 thread
