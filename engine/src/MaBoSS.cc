@@ -143,7 +143,7 @@ static std::string format_extension(OutputFormat format) {
   }
 }
 
-void run_ensemble_istates(std::vector<char *> ctbndl_files, std::vector<ConfigOpt> runconfig_file_or_expr_v, const char* output, OutputFormat format, bool hexfloat, bool save_individual_results, bool random_sampling) 
+int run_ensemble_istates(std::vector<char *> ctbndl_files, std::vector<ConfigOpt> runconfig_file_or_expr_v, const char* output, OutputFormat format, bool hexfloat, bool save_individual_results, bool random_sampling) 
 {
   time_t start_time, end_time;
      
@@ -264,9 +264,10 @@ void run_ensemble_istates(std::vector<char *> ctbndl_files, std::vector<ConfigOp
   // ((std::ofstream*)output_run)->close();
   ((std::ofstream*)output_probtraj)->close();
   ((std::ofstream*)output_fp)->close();
+  return 0;
 }
 
-void run_ensemble(std::vector<char *> ctbndl_files, std::vector<ConfigOpt> runconfig_file_or_expr_v, const char* output, OutputFormat format, bool hexfloat, bool save_individual_results, bool random_sampling)
+int run_ensemble(std::vector<char *> ctbndl_files, std::vector<ConfigOpt> runconfig_file_or_expr_v, const char* output, OutputFormat format, bool hexfloat, bool save_individual_results, bool random_sampling)
 {
   
   time_t start_time, end_time;
@@ -397,7 +398,7 @@ nodes[j]->isInternal(first_network_nodes[j]->isInternal());
     delete *it;
 
   Function::destroyFuncMap();  
-
+  return 0;
 }
 
 int run_single(const char* ctbndl_file, std::vector<std::string> runconfig_var_v, std::vector<ConfigOpt> runconfig_file_or_expr_v, const char* output, OutputFormat format, bool hexfloat, bool generate_config_template) 
@@ -450,6 +451,8 @@ int run_single(const char* ctbndl_file, std::vector<std::string> runconfig_var_v
   delete network;
 
   Function::destroyFuncMap();  
+  
+  return 0;
 }
 
 int main(int argc, char* argv[])
@@ -665,13 +668,13 @@ int main(int argc, char* argv[])
 
     if (ensemble) {
       if (ensemble_istates) {
-        run_ensemble_istates(
+        return run_ensemble_istates(
           ctbndl_files, runconfig_file_or_expr_v, output, format, hexfloat, 
           ensemble_save_individual_results, ensemble_random_sampling
         );
  
       } else {
-        run_ensemble(
+        return run_ensemble(
           ctbndl_files, runconfig_file_or_expr_v, output, format, hexfloat, 
           ensemble_save_individual_results, ensemble_random_sampling
         );
