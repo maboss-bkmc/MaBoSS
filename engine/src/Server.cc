@@ -63,6 +63,7 @@
 #include "ProbTrajDisplayer.h"
 #include "StatDistDisplayer.h"
 #include "FixedPointDisplayer.h"
+#include "FinalStateDisplayer.h"
 
 Server* Server::server;
 static const char* RPC_portname;
@@ -119,6 +120,8 @@ void Server::run(const ClientData& client_data, ServerData& server_data)
   std::ostream* output_traj = NULL;
   std::ostream* output_probtraj = NULL;
   std::ostream* output_statdist = NULL;
+  std::ostream* output_statdist_cluster = NULL;
+  std::ostream* output_statdist_distrib = NULL;      
   std::ostream* output_fp = NULL;
 
   std::ostringstream ostr;

@@ -666,4 +666,3 @@ EnsembleEngine::~EnsembleEngine()
   for (auto t_fixpoint: fixpoints_per_model)
     delete t_fixpoint;
 }
-
