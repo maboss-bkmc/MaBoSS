@@ -107,10 +107,10 @@ public:
   const double getFinalTime() const;
 
   void displayStatDist(StatDistDisplayer* output_statdist) const;
-  void displayProbTraj(ProbTrajDisplayer<Network, NetworkState>* displayer) const;
+  void displayProbTraj(ProbTrajDisplayer<NetworkState>* displayer) const;
   void displayAsymptotic(std::ostream& output_asymptprob, bool hexfloat = false, bool proba = true) const;
 
-  void display(ProbTrajDisplayer<Network, NetworkState>* probtraj_displayer, StatDistDisplayer* statdist_displayer, FixedPointDisplayer* fp_displayer) const;
+  void display(ProbTrajDisplayer<NetworkState>* probtraj_displayer, StatDistDisplayer* statdist_displayer, FixedPointDisplayer* fp_displayer) const;
 
 };
 

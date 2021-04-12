@@ -153,15 +153,15 @@ static void display(ProbTrajEngine* engine, Network* network, const char* prefix
   std::ostream* output_statdist_cluster = new std::ofstream((std::string(prefix) + "_statdist_cluster" + format_extension(format)).c_str());
   std::ostream* output_statdist_distrib = new std::ofstream((std::string(prefix) + "_statdist_distrib" + format_extension(format)).c_str());
 
-  ProbTrajDisplayer<Network, NetworkState>* probtraj_displayer;
+  ProbTrajDisplayer<NetworkState>* probtraj_displayer;
   StatDistDisplayer* statdist_displayer;
   FixedPointDisplayer* fp_displayer;
   if (format == CSV_FORMAT) {
-    probtraj_displayer = new CSVProbTrajDisplayer<Network, NetworkState>(network, *output_probtraj, hexfloat);
+    probtraj_displayer = new CSVProbTrajDisplayer<NetworkState>(network, *output_probtraj, hexfloat);
     statdist_displayer = new CSVStatDistDisplayer(network, *output_statdist, hexfloat);
     fp_displayer = new CSVFixedPointDisplayer(network, *output_fp, hexfloat);
   } else if (format == JSON_FORMAT) {
-    probtraj_displayer =  new JSONProbTrajDisplayer<Network, NetworkState>(network, *output_probtraj, hexfloat);
+    probtraj_displayer =  new JSONProbTrajDisplayer<NetworkState>(network, *output_probtraj, hexfloat);
     statdist_displayer = new JSONStatDistDisplayer(network, *output_statdist, *output_statdist_cluster, *output_statdist_distrib, hexfloat);
     fp_displayer = new JsonFixedPointDisplayer(network, *output_fp, hexfloat);
   } else {

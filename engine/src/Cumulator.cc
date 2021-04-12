@@ -188,7 +188,7 @@ void Cumulator::epilogue(Network* network, const NetworkState& reference_state)
   }
 }
 
-void Cumulator::displayProbTraj(Network* network, unsigned int refnode_count, ProbTrajDisplayer<Network, NetworkState>* displayer) const
+void Cumulator::displayProbTraj(Network* network, unsigned int refnode_count, ProbTrajDisplayer<NetworkState>* displayer) const
 {
   displayer->begin(COMPUTE_ERRORS, maxcols, refnode_count);
 

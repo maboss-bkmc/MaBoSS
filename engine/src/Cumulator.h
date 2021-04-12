@@ -93,7 +93,7 @@ static bool COMPUTE_ERRORS = true;
 #include "RunConfig.h"
 
 class Network;
-template <class N, class S> class ProbTrajDisplayer;
+template <class S> class ProbTrajDisplayer;
 class StatDistDisplayer;
 
 class Cumulator {
@@ -630,7 +630,7 @@ public:
     this->refnode_mask = refnode_mask;
   }
 
-  void displayProbTraj(Network* network, unsigned int refnode_count, ProbTrajDisplayer<Network, NetworkState>* displayer) const;
+  void displayProbTraj(Network* network, unsigned int refnode_count, ProbTrajDisplayer<NetworkState>* displayer) const;
   void displayStatDist(Network* network, unsigned int refnode_count, StatDistDisplayer* displayer) const;
   void displayAsymptoticCSV(Network* network, unsigned int refnode_count, std::ostream& os_asymptprob = std::cout, bool hexfloat = false, bool proba = true) const;
 

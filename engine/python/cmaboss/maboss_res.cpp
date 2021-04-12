@@ -189,7 +189,7 @@ static PyObject* cMaBoSSResult_display_probtraj(cMaBoSSResultObject* self, PyObj
     return NULL;
     
   std::ostream* output_probtraj = new std::ofstream(filename);
-  CSVProbTrajDisplayer* probtraj_displayer = new CSVProbTrajDisplayer(self->network, *output_probtraj, (bool)hexfloat);
+  CSVProbTrajDisplayer<NetworkState>* probtraj_displayer = new CSVProbTrajDisplayer<NetworkState>(self->network, *output_probtraj, (bool)hexfloat);
   
   self->engine->displayProbTraj(probtraj_displayer);
   

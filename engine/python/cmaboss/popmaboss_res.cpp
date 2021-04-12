@@ -136,7 +136,7 @@ static PyObject* cPopMaBoSSResult_display_probtraj(cPopMaBoSSResultObject* self,
     
   std::ostream* output_probtraj = new std::ofstream(filename);
   
-  CSVPopProbTrajDisplayer * pop_probtraj_displayer = new CSVPopProbTrajDisplayer(self->network, *output_probtraj, hexfloat);
+  CSVProbTrajDisplayer<PopNetworkState> * pop_probtraj_displayer = new CSVProbTrajDisplayer<PopNetworkState>(self->network, *output_probtraj, hexfloat);
   self->engine->displayPopProbTraj(pop_probtraj_displayer);
   
   ((std::ofstream*) output_probtraj)->close();

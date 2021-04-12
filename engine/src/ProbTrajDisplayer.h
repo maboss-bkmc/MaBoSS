@@ -56,11 +56,11 @@
 #include "Utils.h"
 #include <iomanip>
 
-template <class N, class S>
+template <class S>
 class ProbTrajDisplayer {
 
 public:
-  N* network;
+  Network* network;
   bool hexfloat;
   bool compute_errors;
   size_t maxcols;
@@ -82,7 +82,7 @@ public:
 
   std::vector<Proba> proba_v;
 
-  ProbTrajDisplayer(N* network, bool hexfloat = false) : network(network), hexfloat(hexfloat), current_line(0), HD_v(NULL) { }
+  ProbTrajDisplayer(Network* network, bool hexfloat = false) : network(network), hexfloat(hexfloat), current_line(0), HD_v(NULL) { }
 
 // public:
   void begin(bool compute_errors, size_t maxcols, size_t refnode_count) {
@@ -138,13 +138,13 @@ public:
 };
 
 
-template <class N, class S>
-class CSVProbTrajDisplayer : public ProbTrajDisplayer<N, S> {
+template <class S>
+class CSVProbTrajDisplayer : public ProbTrajDisplayer<S> {
 
   std::ostream& os_probtraj;
 
 public:
-  CSVProbTrajDisplayer(N* network, std::ostream& os_probtraj, bool hexfloat = false) : ProbTrajDisplayer<N, S>(network, hexfloat), os_probtraj(os_probtraj) { }
+  CSVProbTrajDisplayer(Network* network, std::ostream& os_probtraj, bool hexfloat = false) : ProbTrajDisplayer<S>(network, hexfloat), os_probtraj(os_probtraj) { }
 
   virtual void beginDisplay() {
     os_probtraj << "Time\tTH" << (this->compute_errors ? "\tErrorTH" : "") << "\tH";
@@ -185,7 +185,7 @@ public:
       }
     }
 
-    for (const typename ProbTrajDisplayer<N, S>::Proba &proba : this->proba_v) {
+    for (const typename ProbTrajDisplayer<S>::Proba &proba : this->proba_v) {
       os_probtraj << '\t';
       // NetworkState network_state(proba.state, 1);
       // network_state.displayOneLine(os_probtraj, network);
@@ -203,13 +203,13 @@ public:
   virtual void endDisplay() {}
 };
 
-template <class N, class S>
-class JSONProbTrajDisplayer : public ProbTrajDisplayer<N, S> {
+template <class S>
+class JSONProbTrajDisplayer : public ProbTrajDisplayer<S> {
 
   std::ostream& os_probtraj;
 
 public:
-  JSONProbTrajDisplayer(N* network, std::ostream& os_probtraj, bool hexfloat = false) : ProbTrajDisplayer<N, S>(network, hexfloat), os_probtraj(os_probtraj) { }
+  JSONProbTrajDisplayer(Network* network, std::ostream& os_probtraj, bool hexfloat = false) : ProbTrajDisplayer<S>(network, hexfloat), os_probtraj(os_probtraj) { }
 
   virtual void beginDisplay() {
     // void JSONProbTrajDisplayer<N, S>::beginDisplay() {
@@ -250,7 +250,7 @@ public:
 
     os_probtraj << "\"probas\":[";
     unsigned int idx = 0;
-    for (const typename ProbTrajDisplayer<N, S>::Proba &proba : this->proba_v) {
+    for (const typename ProbTrajDisplayer<S>::Proba &proba : this->proba_v) {
       // NetworkState network_state(proba.state, 1);
       os_probtraj << "{\"state\":\"";
       proba.state.displayJSON(os_probtraj, this->network);

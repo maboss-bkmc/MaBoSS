@@ -201,7 +201,7 @@ void PopCumulator::epilogue(PopNetwork* network, const PopNetworkState& referenc
 #endif
 }
 
-void PopCumulator::displayPopProbTraj(PopNetwork* network, unsigned int refnode_count, ProbTrajDisplayer<PopNetwork, PopNetworkState>* displayer) const
+void PopCumulator::displayPopProbTraj(PopNetwork* network, unsigned int refnode_count, ProbTrajDisplayer<PopNetworkState>* displayer) const
 {
   std::vector<Node*>::const_iterator begin_network;
 
