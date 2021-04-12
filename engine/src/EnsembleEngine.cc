@@ -633,7 +633,7 @@ void EnsembleEngine::displayIndividualFixpoints(unsigned int model_id, FixedPoin
 #endif
 }
 
-void EnsembleEngine::displayIndividual(unsigned int model_id, ProbTrajDisplayer* probtraj_displayer, StatDistDisplayer* statdist_displayer, FixedPointDisplayer* fp_displayer) const
+void EnsembleEngine::displayIndividual(unsigned int model_id, ProbTrajDisplayer<Network, NetworkState>* probtraj_displayer, StatDistDisplayer* statdist_displayer, FixedPointDisplayer* fp_displayer) const
 {
 #ifdef MPI_COMPAT
 if (world_rank == 0){

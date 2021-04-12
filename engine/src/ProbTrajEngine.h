@@ -63,6 +63,7 @@
 #include "RandomGenerator.h"
 #include "RunConfig.h"
 #include "FixedPointDisplayer.h"
+#include "ProbTrajDisplayer.h"
 
 struct EnsembleArgWrapper;
 
@@ -106,10 +107,10 @@ public:
   const double getFinalTime() const;
 
   void displayStatDist(StatDistDisplayer* output_statdist) const;
-  void displayProbTraj(ProbTrajDisplayer* displayer) const;
+  void displayProbTraj(ProbTrajDisplayer<Network, NetworkState>* displayer) const;
   void displayAsymptotic(std::ostream& output_asymptprob, bool hexfloat = false, bool proba = true) const;
 
-  void display(ProbTrajDisplayer* probtraj_displayer, StatDistDisplayer* statdist_displayer, FixedPointDisplayer* fp_displayer) const;
+  void display(ProbTrajDisplayer<Network, NetworkState>* probtraj_displayer, StatDistDisplayer* statdist_displayer, FixedPointDisplayer* fp_displayer) const;
 
 };
 

@@ -371,7 +371,7 @@ const double ProbTrajEngine::getFinalTime() const {
 //   merged_cumulator->displayProbTrajCSV_OBSOLETE(network, refnode_count, output_probtraj, hexfloat);
 // }
 
-void ProbTrajEngine::displayProbTraj(ProbTrajDisplayer* displayer) const {
+void ProbTrajEngine::displayProbTraj(ProbTrajDisplayer<Network, NetworkState>* displayer) const {
 
 #ifdef MPI_COMPAT
 if (getWorldRank() == 0) {
@@ -435,7 +435,7 @@ if (getWorldRank() == 0) {
 //   displayFixpoints(output_fp, hexfloat);
 // }
 
-void ProbTrajEngine::display(ProbTrajDisplayer* probtraj_displayer, StatDistDisplayer* statdist_displayer, FixedPointDisplayer* fp_displayer) const
+void ProbTrajEngine::display(ProbTrajDisplayer<Network, NetworkState>* probtraj_displayer, StatDistDisplayer* statdist_displayer, FixedPointDisplayer* fp_displayer) const
 {
   displayProbTraj(probtraj_displayer);
   displayStatDist(statdist_displayer);
