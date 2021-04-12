@@ -51,8 +51,8 @@
 #include <fstream>
 #include <stdlib.h>
 #include "Utils.h"
-#include "PopProbTrajDisplayer.h"
 #include "RandomGenerator.h"
+#include "ProbTrajDisplayer.h"
 
 const char* prog = "PopMaBoSS";
 
@@ -346,14 +346,14 @@ int main(int argc, char* argv[])
     PopMaBEstEngine mabest(pop_network, runconfig);
     mabest.run(output_traj);
     
-    PopProbTrajDisplayer* pop_probtraj_displayer;
+    ProbTrajDisplayer<PopNetwork, PopNetworkState>* pop_probtraj_displayer;
     FixedPointDisplayer* fp_displayer;
     
     if (format == CSV_FORMAT) {
-      pop_probtraj_displayer = new CSVPopProbTrajDisplayer(pop_network, *output_pop_probtraj, hexfloat);
+      pop_probtraj_displayer = new CSVProbTrajDisplayer<PopNetwork, PopNetworkState>(pop_network, *output_pop_probtraj, hexfloat);
       fp_displayer = new CSVFixedPointDisplayer(pop_network, *output_fp, hexfloat);
     } else if (format == JSON_FORMAT) {
-      pop_probtraj_displayer = new JSONPopProbTrajDisplayer(pop_network, *output_pop_probtraj, hexfloat);
+      pop_probtraj_displayer = new JSONProbTrajDisplayer<PopNetwork, PopNetworkState>(pop_network, *output_pop_probtraj, hexfloat);
       // Use CSV displayer for fixed points as the Json one is not fully implemented
       fp_displayer = new CSVFixedPointDisplayer(pop_network, *output_fp, hexfloat);
     } else {

@@ -594,12 +594,12 @@ void PopMaBEstEngine::displayFixpoints(FixedPointDisplayer *displayer) const
   displayer->end();
 }
 
-void PopMaBEstEngine::displayPopProbTraj(PopProbTrajDisplayer *displayer) const
+void PopMaBEstEngine::displayPopProbTraj(ProbTrajDisplayer<PopNetwork, PopNetworkState> *displayer) const
 {
   merged_cumulator->displayPopProbTraj(pop_network, refnode_count, displayer);
 }
 
-void PopMaBEstEngine::display(PopProbTrajDisplayer *pop_probtraj_displayer, FixedPointDisplayer *fp_displayer) const
+void PopMaBEstEngine::display(ProbTrajDisplayer<PopNetwork, PopNetworkState> *pop_probtraj_displayer, FixedPointDisplayer *fp_displayer) const
 {
   displayPopProbTraj(pop_probtraj_displayer);
   displayFixpoints(fp_displayer);

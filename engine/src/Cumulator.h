@@ -74,7 +74,7 @@ static bool COMPUTE_ERRORS = true;
 #include "ProbaDist.h"
 
 class Network;
-class ProbTrajDisplayer;
+template <class N, class S> class ProbTrajDisplayer;
 class StatDistDisplayer;
 
 class Cumulator {
@@ -441,7 +441,7 @@ public:
 
   void displayCSV(Network* network, unsigned int refnode_count, std::ostream& os_probtraj = std::cout, std::ostream& os_statdist = std::cout, bool hexfloat = false) const;
   void displayProbTrajCSV_OBSOLETE(Network* network, unsigned int refnode_count, std::ostream& os_probtraj = std::cout, bool hexfloat = false) const;
-  void displayProbTraj(Network* network, unsigned int refnode_count, ProbTrajDisplayer* displayer) const;
+  void displayProbTraj(Network* network, unsigned int refnode_count, ProbTrajDisplayer<Network, NetworkState>* displayer) const;
   void displayStatDistCSV_OBSOLETE(Network* network, unsigned int refnode_count, std::ostream& os_statdist = std::cout, bool hexfloat = false) const;
   void displayStatDist(Network* network, unsigned int refnode_count, StatDistDisplayer* displayer) const;
   void displayAsymptoticCSV(Network* network, unsigned int refnode_count, std::ostream& os_asymptprob = std::cout, bool hexfloat = false, bool proba = true) const;

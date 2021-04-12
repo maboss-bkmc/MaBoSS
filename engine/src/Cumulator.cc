@@ -203,7 +203,7 @@ void Cumulator::epilogue(Network* network, const NetworkState& reference_state)
 #endif
 }
 
-void Cumulator::displayProbTraj(Network* network, unsigned int refnode_count, ProbTrajDisplayer* displayer) const
+void Cumulator::displayProbTraj(Network* network, unsigned int refnode_count, ProbTrajDisplayer<Network, NetworkState>* displayer) const
 {
   std::vector<Node*>::const_iterator begin_network;
 
@@ -254,10 +254,14 @@ void Cumulator::displayProbTraj(Network* network, unsigned int refnode_count, Pr
     while (iter.hasNext()) {
       TickValue tick_value;
 #ifdef USE_NEXT_OPT
-      const NetworkState_Impl& state = iter.next2(tick_value);
+      const NetworkState_Impl& t_state = iter.next2(tick_value);
+      // Here I'm copying because it was a copy in the displayer
+      // But do we really need it ?
+      NetworkState state(t_state, 1);
 #else
-      NetworkState_Impl state;
-      iter.next(state, tick_value);
+      NetworkState_Impl t_state;
+      iter.next(t_state, tick_value);
+      NetworkState state(t_state);
 #endif
       double proba = tick_value.tm_slice / ratio;      
       if (COMPUTE_ERRORS) {

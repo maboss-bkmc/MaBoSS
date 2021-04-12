@@ -260,7 +260,7 @@ void ProbTrajEngine::displayProbTraj(std::ostream& output_probtraj, bool hexfloa
   merged_cumulator->displayProbTrajCSV_OBSOLETE(network, refnode_count, output_probtraj, hexfloat);
 }
 
-void ProbTrajEngine::displayProbTraj(ProbTrajDisplayer* displayer) const {
+void ProbTrajEngine::displayProbTraj(ProbTrajDisplayer<Network, NetworkState>* displayer) const {
   merged_cumulator->displayProbTraj(network, refnode_count, displayer);
 }
 
@@ -299,14 +299,14 @@ void ProbTrajEngine::display(std::ostream& output_probtraj, std::ostream& output
   displayFixpoints(output_fp, hexfloat);
 }
 
-void ProbTrajEngine::display(ProbTrajDisplayer* probtraj_displayer, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat) const
+void ProbTrajEngine::display(ProbTrajDisplayer<Network, NetworkState>* probtraj_displayer, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat) const
 {
   displayProbTraj(probtraj_displayer);
   displayStatDist(output_statdist, hexfloat);
   displayFixpoints(output_fp, hexfloat);
 }
 
-void ProbTrajEngine::display(ProbTrajDisplayer* probtraj_displayer, StatDistDisplayer* statdist_displayer, FixedPointDisplayer* fp_displayer) const
+void ProbTrajEngine::display(ProbTrajDisplayer<Network, NetworkState>* probtraj_displayer, StatDistDisplayer* statdist_displayer, FixedPointDisplayer* fp_displayer) const
 {
   displayProbTraj(probtraj_displayer);
   displayStatDist(statdist_displayer);

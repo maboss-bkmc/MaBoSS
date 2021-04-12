@@ -48,7 +48,8 @@
 #include "BooleanNetwork.h"
 #include "PopCumulator.h"
 #include "RunConfig.h"
-#include "PopProbTrajDisplayer.h"
+// #include "PopProbTrajDisplayer.h"
+#include "ProbTrajDisplayer.h"
 #include "Utils.h"
 #include <sstream>
 #include <iomanip>
@@ -200,7 +201,7 @@ void PopCumulator::epilogue(PopNetwork* network, const PopNetworkState& referenc
 #endif
 }
 
-void PopCumulator::displayPopProbTraj(PopNetwork* network, unsigned int refnode_count, PopProbTrajDisplayer* displayer) const
+void PopCumulator::displayPopProbTraj(PopNetwork* network, unsigned int refnode_count, ProbTrajDisplayer<PopNetwork, PopNetworkState>* displayer) const
 {
   std::vector<Node*>::const_iterator begin_network;
 
