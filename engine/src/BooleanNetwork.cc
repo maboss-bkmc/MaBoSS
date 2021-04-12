@@ -626,6 +626,11 @@ void NetworkState::displayOneLine(std::ostream& os, Network* network, const std:
   os << getName(network, sep);
 }
 
+void NetworkState::displayJSON(std::ostream& os, Network* network, const std::string& sep) const
+{
+  os << getName(network, sep);
+}
+
 std::string PopNetworkState::getName(PopNetwork * network, const std::string& sep) const {
   
   std::string res = "[";
