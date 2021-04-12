@@ -84,7 +84,7 @@ void Cumulator::trajectoryEpilogue()
 {
   assert(sample_num < sample_count);
 
-  ProbaDist::Iterator curtraj_proba_dist_iter = curtraj_proba_dist.iterator();
+  ProbaDist<NetworkState>::Iterator curtraj_proba_dist_iter = curtraj_proba_dist.iterator();
 
   double proba_max_time = 0.;
 
@@ -98,9 +98,9 @@ void Cumulator::trajectoryEpilogue()
   double proba = 0;
   curtraj_proba_dist_iter.rewind();
 
-  ProbaDist& proba_dist = proba_dist_v[sample_num++];
+  ProbaDist<NetworkState>& proba_dist = proba_dist_v[sample_num++];
   while (curtraj_proba_dist_iter.hasNext()) {
-    NetworkState_Impl state;
+    NetworkState state;
     double tm_slice;
     curtraj_proba_dist_iter.next(state, tm_slice);
     //assert(proba_dist.find(state) == proba_dist.end());
@@ -298,7 +298,7 @@ void Cumulator::displayStatDist(Network* network, unsigned int refnode_count, St
   unsigned int cnt = 0;
   unsigned int proba_dist_size = proba_dist_v.size();
   for (unsigned int nn = 0; nn < proba_dist_size; ++nn) {
-    const ProbaDist& proba_dist = proba_dist_v[nn];
+    const ProbaDist<NetworkState>& proba_dist = proba_dist_v[nn];
     if (proba_dist.size() > max_size) {
       max_size = proba_dist.size();
     }
@@ -312,7 +312,7 @@ void Cumulator::displayStatDist(Network* network, unsigned int refnode_count, St
   cnt = 0;
   displayer->beginStatDistDisplay();
   for (unsigned int nn = 0; nn < proba_dist_size; ++nn) {
-    const ProbaDist& proba_dist = proba_dist_v[nn];
+    const ProbaDist<NetworkState>& proba_dist = proba_dist_v[nn];
     displayer->beginStateProba(cnt+1);
     cnt++;
 

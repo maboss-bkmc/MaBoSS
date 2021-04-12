@@ -74,8 +74,8 @@ CHECK_BISON = $(BISON) --version > /dev/null
 
 CORE_LIB_SRC := BooleanNetwork.cc BooleanGrammar.cc RunConfigGrammar.cc Function.cc BuiltinFunctions.cc RunConfig.cc LogicalExprGen.cc Utils.cc MBDynBitset.cc RandomGenerator.cc FixedPointDisplayer.cc 
 CORE_LIB_OBJS := BooleanNetwork$(INFIX).o BooleanGrammar$(INFIX).o RunConfigGrammar$(INFIX).o Function$(INFIX).o BuiltinFunctions$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o Utils$(INFIX).o MBDynBitset$(INFIX).o RandomGenerator$(INFIX).o  FixedPointDisplayer$(INFIX).o
-POP_LIB_SRC := PopMaBEstEngine.cc PopCumulator.cc PopProbaDist.cc
-POP_LIB_OBJS := PopMaBEstEngine$(INFIX).o PopCumulator$(INFIX).o PopProbaDist$(INFIX).o
+POP_LIB_SRC := PopMaBEstEngine.cc PopCumulator.cc
+POP_LIB_OBJS := PopMaBEstEngine$(INFIX).o PopCumulator$(INFIX).o
 LIB_SRC := FinalStateSimulationEngine.cc StochasticSimulationEngine.cc MetaEngine.cc FixedPointEngine.cc ProbTrajEngine.cc MaBEstEngine.cc EnsembleEngine.cc Cumulator.cc ProbaDist.cc StatDistDisplayer.cc FinalStateDisplayer.cc
 LIB_OBJS := FinalStateSimulationEngine$(INFIX).o StochasticSimulationEngine$(INFIX).o MetaEngine$(INFIX).o FixedPointEngine$(INFIX).o ProbTrajEngine$(INFIX).o MaBEstEngine$(INFIX).o EnsembleEngine$(INFIX).o Cumulator$(INFIX).o ProbaDist$(INFIX).o StatDistDisplayer$(INFIX).o FinalStateDisplayer$(INFIX).o
 

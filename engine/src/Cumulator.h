@@ -257,8 +257,8 @@ class Cumulator {
 #ifdef HD_BUG
   std::vector<HDCumulMap> hd_cumul_map_v;
 #endif
-  std::vector<ProbaDist> proba_dist_v;
-  ProbaDist curtraj_proba_dist;
+  std::vector<ProbaDist<NetworkState> > proba_dist_v;
+  ProbaDist<NetworkState> curtraj_proba_dist;
   STATE_MAP<NetworkState_Impl, LastTickValue> last_tick_map;
   bool tick_completed;
 
@@ -306,7 +306,7 @@ class Cumulator {
       return true;
     }
 
-    curtraj_proba_dist.incr(fullstate, tm_slice);
+    curtraj_proba_dist.incr(NetworkState(fullstate), tm_slice);
 
     if (tick_index >= max_size) {
       return false;
