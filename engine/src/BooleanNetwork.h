@@ -1000,11 +1000,11 @@ public:
   // Count the population satisfying an expression
   unsigned int count(Expression * expr) const;
   
-  std::string getName(PopNetwork * network, const std::string& sep=" -- ") const;
-  void displayOneLine(std::ostream& os, PopNetwork* network, const std::string& sep = " -- ") const;
-  void displayJSON(std::ostream& os, PopNetwork* network, const std::string& sep = " -- ") const;
+  std::string getName(Network * network, const std::string& sep=" -- ") const;
+  void displayOneLine(std::ostream& os, Network* network, const std::string& sep = " -- ") const;
+  void displayJSON(std::ostream& os, Network* network, const std::string& sep = " -- ") const;
 
-  unsigned int hamming(PopNetwork* network, const PopNetworkState& state) const;
+  unsigned int hamming(Network* network, const PopNetworkState& state) const;
 };
 
 namespace std {

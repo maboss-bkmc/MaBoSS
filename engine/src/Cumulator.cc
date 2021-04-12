@@ -203,7 +203,7 @@ void Cumulator::epilogue(Network* network, const NetworkState& reference_state)
 #endif
 }
 
-void Cumulator::displayProbTraj(Network* network, unsigned int refnode_count, ProbTrajDisplayer<Network, NetworkState>* displayer) const
+void Cumulator::displayProbTraj(Network* network, unsigned int refnode_count, ProbTrajDisplayer<NetworkState>* displayer) const
 {
   std::vector<Node*>::const_iterator begin_network;
 

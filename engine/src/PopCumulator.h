@@ -73,7 +73,7 @@ static bool POP_COMPUTE_ERRORS = true;
 #include "PopProbaDist.h"
 
 class Network;
-template <class N, class S> class ProbTrajDisplayer;
+template <class S> class ProbTrajDisplayer;
 
 class PopCumulator {
 
@@ -436,7 +436,7 @@ public:
     this->output_mask = output_mask;
   }
 
-  void displayPopProbTraj(PopNetwork* network, unsigned int refnode_count, ProbTrajDisplayer<PopNetwork, PopNetworkState>* displayer) const;
+  void displayPopProbTraj(PopNetwork* network, unsigned int refnode_count, ProbTrajDisplayer<PopNetworkState>* displayer) const;
 
   void computeMaxTickIndex();
   int getMaxTickIndex() const { return max_tick_index;} 

@@ -710,15 +710,15 @@ int main(int argc, char* argv[])
         time(&start_time);
         MaBEstEngine mabest(network, runconfig);
         mabest.run(output_traj);
-	ProbTrajDisplayer<Network, NetworkState>* probtraj_displayer;
+	ProbTrajDisplayer<NetworkState>* probtraj_displayer;
 	StatDistDisplayer* statdist_displayer;
 	FixedPointDisplayer* fp_displayer;
 	if (format == CSV_FORMAT) {
-	  probtraj_displayer = new CSVProbTrajDisplayer<Network, NetworkState>(network, *output_probtraj, hexfloat);
+	  probtraj_displayer = new CSVProbTrajDisplayer<NetworkState>(network, *output_probtraj, hexfloat);
 	  statdist_displayer = new CSVStatDistDisplayer(network, *output_statdist, hexfloat);
 	  fp_displayer = new CSVFixedPointDisplayer(network, *output_fp, hexfloat);
 	} else if (format == JSON_FORMAT) {
-	  probtraj_displayer =  new JSONProbTrajDisplayer<Network, NetworkState>(network, *output_probtraj, hexfloat);
+	  probtraj_displayer =  new JSONProbTrajDisplayer<NetworkState>(network, *output_probtraj, hexfloat);
 	  statdist_displayer = new JSONStatDistDisplayer(network, *output_statdist, *output_statdist_cluster, *output_statdist_distrib, hexfloat);
 	  // Use CSV displayer for fixed points as the Json one is not fully implemented
 	  fp_displayer = new CSVFixedPointDisplayer(network, *output_fp, hexfloat);

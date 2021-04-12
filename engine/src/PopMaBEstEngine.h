@@ -122,8 +122,8 @@ public:
   }
 
   void displayFixpoints(FixedPointDisplayer* displayer) const;
-  void displayPopProbTraj(ProbTrajDisplayer<PopNetwork, PopNetworkState>* displayer) const;
-  void display(ProbTrajDisplayer<PopNetwork, PopNetworkState>* pop_probtraj_displayer, FixedPointDisplayer* fp_displayer) const;
+  void displayPopProbTraj(ProbTrajDisplayer<PopNetworkState>* displayer) const;
+  void display(ProbTrajDisplayer<PopNetworkState>* pop_probtraj_displayer, FixedPointDisplayer* fp_displayer) const;
   
   std::vector<ArgWrapper*> arg_wrapper_v;
   PopNetworkState getTargetNode(RandomGenerator* random_generator, const STATE_MAP<PopNetworkState, double> popNodeTransitionRates, double total_rate) const;

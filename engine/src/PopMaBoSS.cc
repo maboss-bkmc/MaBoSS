@@ -346,14 +346,14 @@ int main(int argc, char* argv[])
     PopMaBEstEngine mabest(pop_network, runconfig);
     mabest.run(output_traj);
     
-    ProbTrajDisplayer<PopNetwork, PopNetworkState>* pop_probtraj_displayer;
+    ProbTrajDisplayer<PopNetworkState>* pop_probtraj_displayer;
     FixedPointDisplayer* fp_displayer;
     
     if (format == CSV_FORMAT) {
-      pop_probtraj_displayer = new CSVProbTrajDisplayer<PopNetwork, PopNetworkState>(pop_network, *output_pop_probtraj, hexfloat);
+      pop_probtraj_displayer = new CSVProbTrajDisplayer<PopNetworkState>(pop_network, *output_pop_probtraj, hexfloat);
       fp_displayer = new CSVFixedPointDisplayer(pop_network, *output_fp, hexfloat);
     } else if (format == JSON_FORMAT) {
-      pop_probtraj_displayer = new JSONProbTrajDisplayer<PopNetwork, PopNetworkState>(pop_network, *output_pop_probtraj, hexfloat);
+      pop_probtraj_displayer = new JSONProbTrajDisplayer<PopNetworkState>(pop_network, *output_pop_probtraj, hexfloat);
       // Use CSV displayer for fixed points as the Json one is not fully implemented
       fp_displayer = new CSVFixedPointDisplayer(pop_network, *output_fp, hexfloat);
     } else {

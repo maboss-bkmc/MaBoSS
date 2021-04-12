@@ -98,11 +98,11 @@ public:
   void displayProbTraj(std::ostream& output_probtraj, bool hexfloat = false) const;
   void displayAsymptotic(std::ostream& output_asymptprob, bool hexfloat = false, bool proba = true) const;
 
-  void displayProbTraj(ProbTrajDisplayer<Network, NetworkState>* displayer) const;
+  void displayProbTraj(ProbTrajDisplayer<NetworkState>* displayer) const;
   void displayStatDist(StatDistDisplayer* output_statdist) const;
 
-  void display(ProbTrajDisplayer<Network, NetworkState>* probtraj_displayer, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat = false) const;
-  void display(ProbTrajDisplayer<Network, NetworkState>* probtraj_displayer, StatDistDisplayer* statdist_displayer, FixedPointDisplayer* fp_displayer) const;
+  void display(ProbTrajDisplayer<NetworkState>* probtraj_displayer, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat = false) const;
+  void display(ProbTrajDisplayer<NetworkState>* probtraj_displayer, StatDistDisplayer* statdist_displayer, FixedPointDisplayer* fp_displayer) const;
 };
 
 #endif

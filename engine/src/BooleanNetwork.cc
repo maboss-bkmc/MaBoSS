@@ -631,7 +631,7 @@ void NetworkState::displayJSON(std::ostream& os, Network* network, const std::st
   os << getName(network, sep);
 }
 
-std::string PopNetworkState::getName(PopNetwork * network, const std::string& sep) const {
+std::string PopNetworkState::getName(Network * network, const std::string& sep) const {
   
   std::string res = "[";
   
@@ -647,12 +647,12 @@ std::string PopNetworkState::getName(PopNetwork * network, const std::string& se
   return res;
 }
 
-void PopNetworkState::displayOneLine(std::ostream &strm, PopNetwork* network, const std::string& sep) const 
+void PopNetworkState::displayOneLine(std::ostream &strm, Network* network, const std::string& sep) const 
 {    
   strm << getName(network, sep);
 }
 
-void PopNetworkState::displayJSON(std::ostream &strm, PopNetwork* network, const std::string& sep) const 
+void PopNetworkState::displayJSON(std::ostream &strm, Network* network, const std::string& sep) const 
 {    
   strm << "[";
   size_t i = mp.size();
@@ -681,7 +681,7 @@ unsigned int PopNetworkState::count(Expression * expr) const
 }
 
 
-unsigned int PopNetworkState::hamming(PopNetwork* network, const PopNetworkState& state2) const
+unsigned int PopNetworkState::hamming(Network* network, const PopNetworkState& state2) const
 {
   unsigned int hd = 0;
 // #ifdef HAMMING_METHOD1
