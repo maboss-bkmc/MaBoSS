@@ -90,7 +90,7 @@ void Cumulator::trajectoryEpilogue()
 
   assert(sample_num < sample_count);
 
-  ProbaDist::Iterator curtraj_proba_dist_iter = curtraj_proba_dist.iterator();
+  ProbaDist<NetworkState>::Iterator curtraj_proba_dist_iter = curtraj_proba_dist.iterator();
 
   double proba_max_time = 0.;
 
@@ -106,9 +106,9 @@ void Cumulator::trajectoryEpilogue()
 #endif
   curtraj_proba_dist_iter.rewind();
 
-  ProbaDist& proba_dist = proba_dist_v[sample_num++];
+  ProbaDist<NetworkState>& proba_dist = proba_dist_v[sample_num++];
   while (curtraj_proba_dist_iter.hasNext()) {
-    NetworkState_Impl state;
+    NetworkState state;
     double tm_slice;
     curtraj_proba_dist_iter.next(state, tm_slice);
     //assert(proba_dist.find(state) == proba_dist.end());
@@ -272,7 +272,7 @@ void Cumulator::displayStatDist(Network* network, unsigned int refnode_count, St
   unsigned int cnt = 0;
   unsigned int proba_dist_size = proba_dist_v.size();
   for (unsigned int nn = 0; nn < proba_dist_size; ++nn) {
-    const ProbaDist& proba_dist = proba_dist_v[nn];
+    const ProbaDist<NetworkState>& proba_dist = proba_dist_v[nn];
     if (proba_dist.size() > max_size) {
       max_size = proba_dist.size();
     }
@@ -286,7 +286,7 @@ void Cumulator::displayStatDist(Network* network, unsigned int refnode_count, St
   cnt = 0;
   displayer->beginStatDistDisplay();
   for (unsigned int nn = 0; nn < proba_dist_size; ++nn) {
-    const ProbaDist& proba_dist = proba_dist_v[nn];
+    const ProbaDist<NetworkState>& proba_dist = proba_dist_v[nn];
     displayer->beginStateProba(cnt+1);
     cnt++;
 
@@ -820,7 +820,7 @@ void Cumulator::MPI_Unpack_Cumulator(Cumulator* mpi_ret_cumul, char* buff, unsig
   
   size_t begin = mpi_ret_cumul->statdist_trajcount - t_proba_dist_size;
   for (size_t ii = 0; ii < t_proba_dist_size; ii++) {
-    ProbaDist t_proba_dist;
+    ProbaDist<NetworkState> t_proba_dist;
     t_proba_dist.my_MPI_Unpack(buff, buff_size, &position);
     mpi_ret_cumul->proba_dist_v[begin + ii] = t_proba_dist;
   }    
@@ -875,7 +875,7 @@ void Cumulator::MPI_Recv_Cumulator(Cumulator* mpi_ret_cumul, int origin)
 
   for (size_t ii = 0; ii < t_proba_dist_size; ii++) {
     // Here we are receiving the proba_dist, which is a map of <state, double>
-    ProbaDist t_proba_dist;
+    ProbaDist<NetworkState> t_proba_dist;
     t_proba_dist.my_MPI_Recv(origin);
     mpi_ret_cumul->proba_dist_v[begin+ii] = t_proba_dist;  
   }   

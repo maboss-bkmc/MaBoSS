@@ -65,7 +65,7 @@ static double abs(double d)
 }
 */
 
-void ProbaDistCluster::add(unsigned int index, const ProbaDist& proba_dist)
+void ProbaDistCluster::add(unsigned int index, const ProbaDist<NetworkState>& proba_dist)
 {
   proba_dist_map[index] = proba_dist;
   factory->setClusterized(index);
@@ -76,17 +76,17 @@ void ProbaDistCluster::complete(double threshold, unsigned int statdist_traj_cou
   for (;;) {
     unsigned int added_proba_dist_cnt = 0;
     std::vector<unsigned int> toadd_map;
-    MAP<unsigned int, ProbaDist>::iterator begin = proba_dist_map.begin();
-    MAP<unsigned int, ProbaDist>::iterator end = proba_dist_map.end();
+    MAP<unsigned int, ProbaDist<NetworkState> >::iterator begin = proba_dist_map.begin();
+    MAP<unsigned int, ProbaDist<NetworkState> >::iterator end = proba_dist_map.end();
     while (begin != end) {
       unsigned int nn1 = (*begin).first;
-      const ProbaDist& proba_dist1 = (*begin).second;
+      const ProbaDist<NetworkState>& proba_dist1 = (*begin).second;
 #ifdef CLUSTER_OPTIM
       MAP<unsigned int, bool>::const_iterator not_clusterized_iter = factory->getNotClusterizedMap().begin();
       MAP<unsigned int, bool>::const_iterator not_clusterized_end = factory->getNotClusterizedMap().end();
       while (not_clusterized_iter != not_clusterized_end) {
 	unsigned int nn2 = (*not_clusterized_iter).first;
-	const ProbaDist& proba_dist2 = factory->getProbaDist(nn2);
+	const ProbaDist<NetworkState>& proba_dist2 = factory->getProbaDist(nn2);
 	double simil = similarity(nn1, proba_dist1, nn2, proba_dist2, factory->getSimilarityCache());
 	if (simil >= threshold) {
 	  toadd_map.push_back(nn2);
@@ -153,12 +153,12 @@ void ProbaDistClusterFactory::cacheSimilarities()
 
 void ProbaDistCluster::display(Network* network, std::ostream& os, bool hexfloat) const
 {
-  MAP<unsigned int, ProbaDist>::const_iterator begin = proba_dist_map.begin();
-  MAP<unsigned int, ProbaDist>::const_iterator end = proba_dist_map.end();
+  MAP<unsigned int, ProbaDist<NetworkState> >::const_iterator begin = proba_dist_map.begin();
+  MAP<unsigned int, ProbaDist<NetworkState> >::const_iterator end = proba_dist_map.end();
 
   while (begin != end) {
     unsigned int nn = (*begin).first;
-    const ProbaDist& proba_dist = (*begin).second;
+    const ProbaDist<NetworkState>& proba_dist = (*begin).second;
     os << "#" << (nn+1);
     proba_dist.display(os, network, hexfloat);
     ++begin;
@@ -189,14 +189,14 @@ void ProbaDistClusterFactory::displayStationaryDistribution(Network* network, st
 
 void ProbaDistCluster::computeStationaryDistribution()
 {
-  MAP<unsigned int, ProbaDist>::iterator begin = proba_dist_map.begin();
-  MAP<unsigned int, ProbaDist>::iterator end = proba_dist_map.end();
+  MAP<unsigned int, ProbaDist<NetworkState> >::iterator begin = proba_dist_map.begin();
+  MAP<unsigned int, ProbaDist<NetworkState> >::iterator end = proba_dist_map.end();
   while (begin != end) {
-    const ProbaDist& proba_dist = (*begin).second;
-    ProbaDist::Iterator iter(proba_dist);
+    const ProbaDist<NetworkState>& proba_dist = (*begin).second;
+    ProbaDist<NetworkState>::Iterator iter(proba_dist);
     while (iter.hasNext()) {
       double proba;
-      const NetworkState_Impl& state = iter.next2(proba);
+      const NetworkState& state = iter.next2(proba);
       if (stat_dist_map.find(state) == stat_dist_map.end()) {
 	stat_dist_map[state] = Proba(proba, proba*proba);
       } else {
@@ -210,14 +210,14 @@ void ProbaDistCluster::computeStationaryDistribution()
 
 void ProbaDistCluster::displayStationaryDistribution(Network* network, std::ostream& os, bool hexfloat) const
 {
-  STATE_MAP<NetworkState_Impl, Proba>::const_iterator stat_dist_iter = stat_dist_map.begin();
-  STATE_MAP<NetworkState_Impl, Proba>::const_iterator stat_dist_end = stat_dist_map.end();
+  STATE_MAP<NetworkState, Proba>::const_iterator stat_dist_iter = stat_dist_map.begin();
+  STATE_MAP<NetworkState, Proba>::const_iterator stat_dist_end = stat_dist_map.end();
 
   unsigned int sz = size();
   const double minsquaredouble = DBL_MIN*DBL_MIN;
   while (stat_dist_iter != stat_dist_end) {
     //NetworkState_Impl state = (*stat_dist_iter).first;
-    const NetworkState_Impl& state = (*stat_dist_iter).first;
+    const NetworkState& state = (*stat_dist_iter).first;
     const Proba& pb = (*stat_dist_iter).second;
     NetworkState network_state(state);
     os << '\t';
@@ -255,19 +255,19 @@ void ProbaDistClusterFactory::computeStationaryDistribution()
   }
 }
 
-double ProbaDistCluster::similarity(unsigned int nn1, const ProbaDist& proba_dist1, unsigned int nn2, const ProbaDist& proba_dist2, double** similarity_cache)
+double ProbaDistCluster::similarity(unsigned int nn1, const ProbaDist<NetworkState>& proba_dist1, unsigned int nn2, const ProbaDist<NetworkState>& proba_dist2, double** similarity_cache)
 {
   if (NULL != similarity_cache) {
     return nn2 > nn1 ? similarity_cache[nn1][nn2] : similarity_cache[nn2][nn1];
   }
 
-  ProbaDist::Iterator proba_dist1_iter = proba_dist1.iterator();
+  ProbaDist<NetworkState>::Iterator proba_dist1_iter = proba_dist1.iterator();
   double simil1 = 0.0;
   double simil2 = 0.0;
   unsigned int out_of_support = 0;
   while (proba_dist1_iter.hasNext()) {
     double proba1, proba2;
-    const NetworkState_Impl& state = proba_dist1_iter.next2(proba1);
+    const NetworkState& state = proba_dist1_iter.next2(proba1);
 
     if (proba_dist2.hasState(state, proba2)) {
       simil1 += proba1;
@@ -280,47 +280,47 @@ double ProbaDistCluster::similarity(unsigned int nn1, const ProbaDist& proba_dis
   return simil1 * simil2;
 }
 
-void ProbaDist::display(std::ostream& os, Network* network, bool hexfloat) const
-{
-  ProbaDist::Iterator proba_dist_iter = iterator();
-  os << std::setprecision(10);
-  while (proba_dist_iter.hasNext()) {
-    NetworkState_Impl state;
-    double proba;
-    proba_dist_iter.next(state, proba);
-    NetworkState network_state(state);
-    os << '\t';
-    network_state.displayOneLine(os, network);
-    if (hexfloat) {
-      os << '\t' << fmthexdouble(proba);
-    } else {
-      os << '\t' << proba;
-    }
-  }
-  os << '\n';
-}
+// void ProbaDist::display(std::ostream& os, Network* network, bool hexfloat) const
+// {
+//   ProbaDist::Iterator proba_dist_iter = iterator();
+//   os << std::setprecision(10);
+//   while (proba_dist_iter.hasNext()) {
+//     NetworkState_Impl state;
+//     double proba;
+//     proba_dist_iter.next(state, proba);
+//     NetworkState network_state(state);
+//     os << '\t';
+//     network_state.displayOneLine(os, network);
+//     if (hexfloat) {
+//       os << '\t' << fmthexdouble(proba);
+//     } else {
+//       os << '\t' << proba;
+//     }
+//   }
+//   os << '\n';
+// }
 
 //////// StatDistDisplayer
 
-void ProbaDist::display(StatDistDisplayer* displayer) const
-{
-  ProbaDist::Iterator proba_dist_iter = iterator();
-  while (proba_dist_iter.hasNext()) {
-    NetworkState_Impl state;
-    double proba;
-    proba_dist_iter.next(state, proba);
-    displayer->addStateProba(state, proba);
-  }
-}
+// void ProbaDist::display(StatDistDisplayer* displayer) const
+// {
+//   ProbaDist::Iterator proba_dist_iter = iterator();
+//   while (proba_dist_iter.hasNext()) {
+//     NetworkState_Impl state;
+//     double proba;
+//     proba_dist_iter.next(state, proba);
+//     displayer->addStateProba(state, proba);
+//   }
+// }
 
 void ProbaDistCluster::display(StatDistDisplayer* displayer) const
 {
-  MAP<unsigned int, ProbaDist>::const_iterator begin = proba_dist_map.begin();
-  MAP<unsigned int, ProbaDist>::const_iterator end = proba_dist_map.end();
+  MAP<unsigned int, ProbaDist<NetworkState> >::const_iterator begin = proba_dist_map.begin();
+  MAP<unsigned int, ProbaDist<NetworkState> >::const_iterator end = proba_dist_map.end();
 
   while (begin != end) {
     unsigned int nn = (*begin).first;
-    const ProbaDist& proba_dist = (*begin).second;
+    const ProbaDist<NetworkState>& proba_dist = (*begin).second;
     displayer->beginStateProba(nn+1);
     proba_dist.display(displayer);
     displayer->endStateProba();
@@ -344,13 +344,13 @@ void ProbaDistClusterFactory::display(StatDistDisplayer* displayer) const
 
 void ProbaDistCluster::displayStationaryDistribution(StatDistDisplayer* displayer) const
 {
-  STATE_MAP<NetworkState_Impl, Proba>::const_iterator stat_dist_iter = stat_dist_map.begin();
-  STATE_MAP<NetworkState_Impl, Proba>::const_iterator stat_dist_end = stat_dist_map.end();
+  STATE_MAP<NetworkState, Proba>::const_iterator stat_dist_iter = stat_dist_map.begin();
+  STATE_MAP<NetworkState, Proba>::const_iterator stat_dist_end = stat_dist_map.end();
 
   unsigned int sz = size();
   const double minsquaredouble = DBL_MIN*DBL_MIN;
   while (stat_dist_iter != stat_dist_end) {
-    const NetworkState_Impl& state = stat_dist_iter->first;
+    const NetworkState& state = stat_dist_iter->first;
     const Proba& pb = stat_dist_iter->second;
     double proba = pb.proba/sz;
     double probaSquare = pb.probaSquare/sz;
@@ -361,7 +361,7 @@ void ProbaDistCluster::displayStationaryDistribution(StatDistDisplayer* displaye
     } else {
       variance = sqrt(vr);
     }
-    displayer->addProbaVariance(state, proba, variance);
+    displayer->addProbaVariance(state.getState(), proba, variance);
     ++stat_dist_iter;
   }
 }

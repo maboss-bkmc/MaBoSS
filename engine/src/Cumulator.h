@@ -440,8 +440,8 @@ class Cumulator {
   std::vector<HDCumulMap> hd_cumul_map_v;
   unsigned int statdist_trajcount;
   NetworkState_Impl refnode_mask;
-  std::vector<ProbaDist> proba_dist_v;
-  ProbaDist curtraj_proba_dist;
+  std::vector<ProbaDist<NetworkState> > proba_dist_v;
+  ProbaDist<NetworkState> curtraj_proba_dist;
   STATE_MAP<NetworkState_Impl, LastTickValue> last_tick_map;
   bool tick_completed;
 
@@ -493,7 +493,7 @@ static void MPI_Recv_Cumulator(Cumulator* mpi_ret_cumul, int origin);
     }
 
     if (sample_num < statdist_trajcount) {
-      curtraj_proba_dist.incr(fullstate, tm_slice);
+      curtraj_proba_dist.incr(NetworkState(fullstate), tm_slice);
     }
     if (tick_index >= max_size) {
       return false;

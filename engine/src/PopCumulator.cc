@@ -82,7 +82,7 @@ void PopCumulator::trajectoryEpilogue()
 {
   assert(sample_num < sample_count);
 
-  PopProbaDist::Iterator curtraj_proba_dist_iter = curtraj_proba_dist.iterator();
+  ProbaDist<PopNetworkState>::Iterator curtraj_proba_dist_iter = curtraj_proba_dist.iterator();
 
   double proba_max_time = 0.;
 
@@ -96,7 +96,7 @@ void PopCumulator::trajectoryEpilogue()
   double proba = 0;
   curtraj_proba_dist_iter.rewind();
 
-  PopProbaDist& proba_dist = proba_dist_v[sample_num++];
+  ProbaDist<PopNetworkState>& proba_dist = proba_dist_v[sample_num++];
   while (curtraj_proba_dist_iter.hasNext()) {
     PopNetworkState state;
     double tm_slice;

@@ -70,7 +70,7 @@ static bool POP_COMPUTE_ERRORS = true;
 
 #define HD_BUG
 
-#include "PopProbaDist.h"
+#include "ProbaDist.h"
 
 class Network;
 template <class S> class ProbTrajDisplayer;
@@ -255,8 +255,8 @@ class PopCumulator {
 #ifdef HD_BUG
   std::vector<HDPopCumulMap> hd_cumul_map_v;
 #endif
-  std::vector<PopProbaDist> proba_dist_v;
-  PopProbaDist curtraj_proba_dist;
+  std::vector<ProbaDist<PopNetworkState> > proba_dist_v;
+  ProbaDist<PopNetworkState> curtraj_proba_dist;
   STATE_MAP<PopNetworkState, LastTickValue> last_tick_map;
   bool tick_completed;
 
@@ -303,7 +303,7 @@ class PopCumulator {
     if (tm_slice == 0.0) {
       return true;
     }
-    curtraj_proba_dist.incr(fullstate, tm_slice);
+    // curtraj_proba_dist.incr(fullstate, tm_slice);
 
     if (tick_index >= max_size) {
       return false;

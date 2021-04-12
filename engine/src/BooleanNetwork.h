@@ -897,7 +897,7 @@ public:
     
   }
 
-  void my_MPI_Pack(void* buff, unsigned int size_pack, int* position) {
+  void my_MPI_Pack(void* buff, unsigned int size_pack, int* position) const {
 #ifdef USE_STATIC_BITSET
     
     std::vector<unsigned long long> arr = to_ullongs(state);
@@ -962,7 +962,7 @@ public:
 #endif
   }
   
-  void my_MPI_Send(int dest) 
+  void my_MPI_Send(int dest) const
   {
 #ifdef USE_STATIC_BITSET
     std::vector<unsigned long long> arr = to_ullongs(state);
@@ -1023,6 +1023,34 @@ public:
 #endif
 
 };
+namespace std {
+  template <> struct HASH_STRUCT<NetworkState> : public std::unary_function<NetworkState, size_t>
+  {
+    size_t operator()(const NetworkState& val) const {
+      return std::hash<NetworkState_Impl>{}(val.getState());
+    }
+  };
+  
+  template <> struct equal_to<NetworkState> : public binary_function<NetworkState, NetworkState, bool>
+  {
+    size_t operator()(const NetworkState& val1, const NetworkState& val2) const {
+      return val1.getState() == val2.getState();
+    }
+  };
+
+  // // Added less operator, necessary for maps, sets. Code from https://stackoverflow.com/a/21245301/11713763
+  // template <> struct less<bitset<MAXNODES> > : public binary_function<bitset<MAXNODES>, bitset<MAXNODES>, bool>
+  // {
+  //   size_t operator()(const bitset<MAXNODES>& val1, const bitset<MAXNODES>& val2) const {
+  //   for (int i = MAXNODES-1; i >= 0; i--) {
+  //       if (val1[i] ^ val2[i]) return val2[i];
+  //   }
+  //   return false;
+
+  //   }
+  // };
+}
+
 // global state of the population boolean network
 class PopNetworkState {
   

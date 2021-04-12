@@ -4,7 +4,7 @@ maboss_version = '1.0.0b17'
 
 maboss_sources = [
    # PopMaBoSS
-   "PopMaBEstEngine.cc", "PopCumulator.cc", "PopProbaDist.cc", 
+   "PopMaBEstEngine.cc", "PopCumulator.cc", 
    # Core
    "BooleanNetwork.cc", "BooleanGrammar.cc", "RunConfigGrammar.cc", "Function.cc", "BuiltinFunctions.cc", 
    "RunConfig.cc", "LogicalExprGen.cc", "Utils.cc", "MBDynBitset.cc", "RandomGenerator.cc", "FixedPointDisplayer.cc", 
