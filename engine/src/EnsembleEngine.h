@@ -91,7 +91,9 @@ public:
 
   void run(std::ostream* output_traj);
 
-  void displayIndividual(unsigned int model_id, std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat = false) const;
+  void displayIndividual(unsigned int model_id, ProbTrajDisplayer<NetworkState>* probtraj_displayer, StatDistDisplayer* statdist_displayer, FixedPointDisplayer* fp_displayer) const;
+  void displayIndividualProbTraj(unsigned int model_id, ProbTrajDisplayer<NetworkState>* probtraj_displayer) const;
+  void displayIndividualFixpoints(unsigned int model_id, FixedPointDisplayer* fp_displayer) const;
 
   ~EnsembleEngine();
 };

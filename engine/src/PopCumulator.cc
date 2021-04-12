@@ -361,8 +361,6 @@ PopCumulator* PopCumulator::mergePopCumulators(RunConfig* runconfig, std::vector
 #endif
       ret_cumul->TH_square_v[nn] += cumulator->TH_square_v[nn];
     }
-    
-    // Commenting for now
     unsigned int proba_dist_size = cumulator->proba_dist_v.size();
     for (unsigned int ii = 0; ii < proba_dist_size; ++ii) {
       assert(ret_cumul->proba_dist_v.size() > rr);

@@ -93,9 +93,9 @@ public:
   int getMaxTickIndex() const {return merged_cumulator->getMaxTickIndex();} 
   const double getFinalTime() const;
 
-  void display(std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat = false) const;
-  void displayStatDist(std::ostream& output_statdist, bool hexfloat = false) const;
-  void displayProbTraj(std::ostream& output_probtraj, bool hexfloat = false) const;
+  // void display(std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat = false) const;
+  // void displayStatDist(std::ostream& output_statdist, bool hexfloat = false) const;
+  // void displayProbTraj(std::ostream& output_probtraj, bool hexfloat = false) const;
   void displayAsymptotic(std::ostream& output_asymptprob, bool hexfloat = false, bool proba = true) const;
 
   void displayProbTraj(ProbTrajDisplayer<NetworkState>* displayer) const;

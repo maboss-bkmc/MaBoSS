@@ -256,26 +256,26 @@ const double ProbTrajEngine::getFinalTime() const {
   return merged_cumulator->getFinalTime();
 }
 
-void ProbTrajEngine::displayProbTraj(std::ostream& output_probtraj, bool hexfloat) const {
-  merged_cumulator->displayProbTrajCSV_OBSOLETE(network, refnode_count, output_probtraj, hexfloat);
-}
+// void ProbTrajEngine::displayProbTraj(std::ostream& output_probtraj, bool hexfloat) const {
+//   merged_cumulator->displayProbTrajCSV_OBSOLETE(network, refnode_count, output_probtraj, hexfloat);
+// }
 
 void ProbTrajEngine::displayProbTraj(ProbTrajDisplayer<NetworkState>* displayer) const {
   merged_cumulator->displayProbTraj(network, refnode_count, displayer);
 }
 
-void ProbTrajEngine::displayStatDist(std::ostream& output_statdist, bool hexfloat) const {
-  Probe probe;
-  merged_cumulator->displayStatDistCSV_OBSOLETE(network, refnode_count, output_statdist, hexfloat);
-  probe.stop();
-  elapsed_statdist_runtime = probe.elapsed_msecs();
-  user_statdist_runtime = probe.user_msecs();
+// void ProbTrajEngine::displayStatDist(std::ostream& output_statdist, bool hexfloat) const {
+//   Probe probe;
+//   merged_cumulator->displayStatDistCSV_OBSOLETE(network, refnode_count, output_statdist, hexfloat);
+//   probe.stop();
+//   elapsed_statdist_runtime = probe.elapsed_msecs();
+//   user_statdist_runtime = probe.user_msecs();
 
-  unsigned int statdist_traj_count = runconfig->getStatDistTrajCount();
-  if (statdist_traj_count == 0) {
-    output_statdist << "Trajectory\tState\tProba\n";
-  }
-}
+//   unsigned int statdist_traj_count = runconfig->getStatDistTrajCount();
+//   if (statdist_traj_count == 0) {
+//     output_statdist << "Trajectory\tState\tProba\n";
+//   }
+// }
 
 void ProbTrajEngine::displayStatDist(StatDistDisplayer* statdist_displayer) const {
   Probe probe;
@@ -292,19 +292,19 @@ void ProbTrajEngine::displayStatDist(StatDistDisplayer* statdist_displayer) cons
   */
 }
 
-void ProbTrajEngine::display(std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat) const
-{
-  displayProbTraj(output_probtraj, hexfloat);
-  displayStatDist(output_statdist, hexfloat);
-  displayFixpoints(output_fp, hexfloat);
-}
+// void ProbTrajEngine::display(std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat) const
+// {
+//   displayProbTraj(output_probtraj, hexfloat);
+//   displayStatDist(output_statdist, hexfloat);
+//   displayFixpoints(output_fp, hexfloat);
+// }
 
-void ProbTrajEngine::display(ProbTrajDisplayer<NetworkState>* probtraj_displayer, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat) const
-{
-  displayProbTraj(probtraj_displayer);
-  displayStatDist(output_statdist, hexfloat);
-  displayFixpoints(output_fp, hexfloat);
-}
+// void ProbTrajEngine::display(ProbTrajDisplayer<NetworkState>* probtraj_displayer, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat) const
+// {
+//   displayProbTraj(probtraj_displayer);
+//   displayStatDist(output_statdist, hexfloat);
+//   displayFixpoints(output_fp, hexfloat);
+// }
 
 void ProbTrajEngine::display(ProbTrajDisplayer<NetworkState>* probtraj_displayer, StatDistDisplayer* statdist_displayer, FixedPointDisplayer* fp_displayer) const
 {
