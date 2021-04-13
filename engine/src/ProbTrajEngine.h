@@ -71,15 +71,15 @@ class ProbTrajEngine : public FixedPointEngine {
 
 protected:
 
- Cumulator* merged_cumulator;
-  std::vector<Cumulator*> cumulator_v;
+  Cumulator<NetworkState>* merged_cumulator;
+  std::vector<Cumulator<NetworkState>*> cumulator_v;
 
   static void* threadMergeWrapper(void *arg);
 
-  static std::pair<Cumulator*, STATE_MAP<NetworkState_Impl, unsigned int>*> mergeResults(std::vector<Cumulator*>& cumulator_v, std::vector<STATE_MAP<NetworkState_Impl, unsigned int> *>& fixpoint_map_v);  
+  static std::pair<Cumulator<NetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> mergeResults(std::vector<Cumulator<NetworkState>*>& cumulator_v, std::vector<STATE_MAP<NetworkState_Impl, unsigned int> *>& fixpoint_map_v);  
   
 #ifdef MPI_COMPAT
-  static std::pair<Cumulator*, STATE_MAP<NetworkState_Impl, unsigned int>*> mergeMPIResults(RunConfig* runconfig, Cumulator* ret_cumul, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints, int world_size, int world_rank, bool pack=true);
+  static std::pair<Cumulator<NetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> mergeMPIResults(RunConfig* runconfig, Cumulator<NetworkState>* ret_cumul, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints, int world_size, int world_rank, bool pack=true);
   
 #endif
 
@@ -91,7 +91,7 @@ public:
   const STATE_MAP<NetworkState_Impl, double> getNthStateDist(int nn) const;
   const STATE_MAP<NetworkState_Impl, double> getAsymptoticStateDist() const;
 
-  Cumulator* getMergedCumulator() {
+  Cumulator<NetworkState>* getMergedCumulator() {
     return merged_cumulator; 
   }
 

@@ -107,9 +107,13 @@ PopMaBEstEngine::PopMaBEstEngine(PopNetwork *pop_network, RunConfig *runconfig) 
   cumulator_v.resize(thread_count);
   unsigned int count = sample_count / thread_count;
   unsigned int firstcount = count + sample_count - count * thread_count;
+  
+  unsigned int scount = statdist_trajcount / thread_count;
+  unsigned int first_scount = scount + statdist_trajcount - scount * thread_count;
+
   for (unsigned int nn = 0; nn < thread_count; ++nn)
   {
-    GenericCumulator<PopNetworkState> *cumulator = new GenericCumulator<PopNetworkState>(runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), (nn == 0 ? firstcount : count));
+    Cumulator<PopNetworkState> *cumulator = new Cumulator<PopNetworkState>(runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), (nn == 0 ? firstcount : count), (nn == 0 ? first_scount : scount ));
     if (has_internal)
     {
 #ifdef USE_STATIC_BITSET
@@ -190,13 +194,13 @@ struct ArgWrapper
   PopMaBEstEngine *mabest;
   unsigned int start_count_thread;
   unsigned int sample_count_thread;
-  GenericCumulator<PopNetworkState> *cumulator;
+  Cumulator<PopNetworkState> *cumulator;
   RandomGeneratorFactory *randgen_factory;
   int seed;
   STATE_MAP<NetworkState_Impl, unsigned int> *fixpoint_map;
   std::ostream *output_traj;
 
-  ArgWrapper(PopMaBEstEngine *mabest, unsigned int start_count_thread, unsigned int sample_count_thread, GenericCumulator<PopNetworkState> *cumulator, RandomGeneratorFactory *randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int> *fixpoint_map, std::ostream *output_traj) : mabest(mabest), start_count_thread(start_count_thread), sample_count_thread(sample_count_thread), cumulator(cumulator), randgen_factory(randgen_factory), seed(seed), fixpoint_map(fixpoint_map), output_traj(output_traj) {}
+  ArgWrapper(PopMaBEstEngine *mabest, unsigned int start_count_thread, unsigned int sample_count_thread, Cumulator<PopNetworkState> *cumulator, RandomGeneratorFactory *randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int> *fixpoint_map, std::ostream *output_traj) : mabest(mabest), start_count_thread(start_count_thread), sample_count_thread(sample_count_thread), cumulator(cumulator), randgen_factory(randgen_factory), seed(seed), fixpoint_map(fixpoint_map), output_traj(output_traj) {}
 };
 
 void *PopMaBEstEngine::threadWrapper(void *arg)
@@ -219,7 +223,7 @@ void *PopMaBEstEngine::threadWrapper(void *arg)
   return NULL;
 }
 
-void PopMaBEstEngine::runThread(GenericCumulator<PopNetworkState> *cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory *randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int> *fixpoint_map, std::ostream *output_traj)
+void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory *randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int> *fixpoint_map, std::ostream *output_traj)
 {
   const std::vector<Node *> &nodes = pop_network->getNodes();
   unsigned int stable_cnt = 0;
@@ -484,25 +488,110 @@ STATE_MAP<NetworkState_Impl, unsigned int> *PopMaBEstEngine::mergeFixpointMaps()
   return fixpoint_map;
 }
 
+
+void PopMaBEstEngine::mergePairOfFixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_1, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_2)
+{
+  for (auto& fixpoint: *fixpoints_2) {
+    
+    STATE_MAP<NetworkState_Impl, unsigned int>::iterator t_fixpoint = fixpoints_1->find(fixpoint.first);
+    if (fixpoints_1->find(fixpoint.first) == fixpoints_1->end()) {
+      (*fixpoints_1)[fixpoint.first] = fixpoint.second;
+    
+    } else {
+      t_fixpoint->second += fixpoint.second;
+    
+    }
+  }
+  delete fixpoints_2; 
+}
+
+struct PopMergeWrapper {
+  Cumulator<PopNetworkState>* cumulator_1;
+  Cumulator<PopNetworkState>* cumulator_2;
+  STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_1;
+  STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_2;
+  
+  PopMergeWrapper(Cumulator<PopNetworkState>* cumulator_1, Cumulator<PopNetworkState>* cumulator_2, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_1, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_2) :
+    cumulator_1(cumulator_1), cumulator_2(cumulator_2), fixpoints_1(fixpoints_1), fixpoints_2(fixpoints_2) { }
+};
+
+void* PopMaBEstEngine::threadMergeWrapper(void *arg)
+{
+#ifdef USE_DYNAMIC_BITSET
+  MBDynBitset::init_pthread();
+#endif
+  PopMergeWrapper* warg = (PopMergeWrapper*)arg;
+  try {
+    Cumulator<PopNetworkState>::mergePairOfCumulators(warg->cumulator_1, warg->cumulator_2);
+    PopMaBEstEngine::mergePairOfFixpoints(warg->fixpoints_1, warg->fixpoints_2);
+  } catch(const BNException& e) {
+    std::cerr << e;
+  }
+#ifdef USE_DYNAMIC_BITSET
+  MBDynBitset::end_pthread();
+#endif
+  return NULL;
+}
+
+
+std::pair<Cumulator<PopNetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> PopMaBEstEngine::mergeResults(std::vector<Cumulator<PopNetworkState>*> cumulator_v, std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*> fixpoint_map_v)
+{
+size_t size = cumulator_v.size();
+  
+  if (size == 0) {
+    return std::make_pair((Cumulator<PopNetworkState>*) NULL, new STATE_MAP<NetworkState_Impl, unsigned int>());
+  }
+  
+  if (size > 1) {
+    
+    
+    unsigned int lvl=1;
+    unsigned int max_lvl = ceil(log2(size));
+
+    while(lvl <= max_lvl) {      
+    
+      unsigned int step_lvl = pow(2, lvl-1);
+      unsigned int width_lvl = floor(size/(step_lvl*2)) + 1;
+      pthread_t* tid = new pthread_t[width_lvl];
+      unsigned int nb_threads = 0;
+      std::vector<PopMergeWrapper*> wargs;
+      for(unsigned int i=0; i < size; i+=(step_lvl*2)) {
+        
+        if (i+step_lvl < size) {
+          PopMergeWrapper* warg = new PopMergeWrapper(cumulator_v[i], cumulator_v[i+step_lvl], fixpoint_map_v[i], fixpoint_map_v[i+step_lvl]);
+          pthread_create(&tid[nb_threads], NULL, PopMaBEstEngine::threadMergeWrapper, warg);
+          nb_threads++;
+          wargs.push_back(warg);
+        } 
+      }
+      
+      for(unsigned int i=0; i < nb_threads; i++) {   
+          pthread_join(tid[i], NULL);
+          
+      }
+      
+      for (auto warg: wargs) {
+        delete warg;
+      }
+      delete [] tid;
+      lvl++;
+    }
+  
+   
+  }
+  
+  return std::make_pair(cumulator_v[0], fixpoint_map_v[0]);
+
+}
+
 void PopMaBEstEngine::epilogue()
 {
-  merged_cumulator = GenericCumulator<PopNetworkState>::mergeCumulators(runconfig, cumulator_v);
+  std::pair<Cumulator<PopNetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> res = mergeResults(cumulator_v, fixpoint_map_v);
+
+  merged_cumulator = res.first;
   merged_cumulator->epilogue(pop_network, reference_state);
 
-  for (auto t_cumulator : cumulator_v)
-    delete t_cumulator;
-
-  STATE_MAP<NetworkState_Impl, unsigned int> *merged_fixpoint_map = mergeFixpointMaps();
-
-  STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator b = merged_fixpoint_map->begin();
-  STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator e = merged_fixpoint_map->end();
-
-  while (b != e)
-  {
-    fixpoints[NetworkState((*b).first).getState()] = (*b).second;
-    ++b;
-  }
-  delete merged_fixpoint_map;
+  fixpoints = *(res.second);
 }
 
 PopMaBEstEngine::~PopMaBEstEngine()

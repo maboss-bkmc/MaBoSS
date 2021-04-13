@@ -197,7 +197,7 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
   unsigned int offset = 0;
   for (unsigned int nn = 0; nn < thread_count; ++nn) {
     unsigned int t_count = (nn == 0 ? firstcount : count);
-    Cumulator* cumulator = new Cumulator(runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), t_count, (nn == 0 ? first_scount : scount ));
+    Cumulator<NetworkState>* cumulator = new Cumulator<NetworkState>(runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), t_count, (nn == 0 ? first_scount : scount ));
     if (has_internal) {
 #ifdef USE_STATIC_BITSET
       NetworkState_Impl state2 = ~internal_state.getState();
@@ -309,7 +309,7 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
 
       for (nnn = 0; nnn < count_by_models.size(); nnn++) {
         if (count_by_models[nnn] > 0) {
-          Cumulator* t_cumulator = new Cumulator(
+          Cumulator<NetworkState>* t_cumulator = new Cumulator<NetworkState>(
             runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), count_by_models[nnn], statdist_trajcount
           );
           if (has_internal) {
@@ -340,10 +340,10 @@ struct EnsembleArgWrapper {
   EnsembleEngine* mabest;
   unsigned int start_count_thread;
   unsigned int sample_count_thread;
-  Cumulator* cumulator;
+  Cumulator<NetworkState>* cumulator;
 
   std::vector<unsigned int> simulations_per_model;
-  std::vector<Cumulator*> models_cumulators;
+  std::vector<Cumulator<NetworkState>*> models_cumulators;
   std::vector<STATE_MAP<NetworkState_Impl, unsigned int>* > models_fixpoints;
   
   RandomGeneratorFactory* randgen_factory;
@@ -353,8 +353,8 @@ struct EnsembleArgWrapper {
 
   EnsembleArgWrapper(
     EnsembleEngine* mabest, unsigned int start_count_thread, unsigned int sample_count_thread, 
-    Cumulator* cumulator, std::vector<unsigned int> simulations_per_model, 
-    std::vector<Cumulator*> models_cumulators, std::vector<STATE_MAP<NetworkState_Impl, unsigned int>* > models_fixpoints,
+    Cumulator<NetworkState>* cumulator, std::vector<unsigned int> simulations_per_model, 
+    std::vector<Cumulator<NetworkState>*> models_cumulators, std::vector<STATE_MAP<NetworkState_Impl, unsigned int>* > models_fixpoints,
     RandomGeneratorFactory* randgen_factory, int seed, 
     STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj) :
 
@@ -387,9 +387,9 @@ void* EnsembleEngine::threadWrapper(void *arg)
   return NULL;
 }
 
-void EnsembleEngine::runThread(Cumulator* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, 
+void EnsembleEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, 
   RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj, 
-  std::vector<unsigned int> simulation_ind, std::vector<Cumulator*> t_models_cumulators, std::vector<STATE_MAP<NetworkState_Impl, unsigned int>* > t_models_fixpoints)
+  std::vector<unsigned int> simulation_ind, std::vector<Cumulator<NetworkState>*> t_models_cumulators, std::vector<STATE_MAP<NetworkState_Impl, unsigned int>* > t_models_fixpoints)
 {
   unsigned int stable_cnt = 0;
   NetworkState network_state; 
@@ -552,7 +552,7 @@ void EnsembleEngine::mergeMPIIndividual(bool pack)
   if (world_size > 1) {
     for (unsigned int model=0; model < networks.size(); model++) {
       
-      std::pair<Cumulator*, STATE_MAP<NetworkState_Impl, unsigned int>*> results = mergeMPIResults(runconfig, cumulators_per_model[model], fixpoints_per_model[model], world_size, world_rank);
+      std::pair<Cumulator<NetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> results = mergeMPIResults(runconfig, cumulators_per_model[model], fixpoints_per_model[model], world_size, world_rank);
       cumulators_per_model[model] = results.first;
       fixpoints_per_model[model] = results.second;
     }
@@ -563,12 +563,12 @@ void EnsembleEngine::mergeMPIIndividual(bool pack)
 
 void EnsembleEngine::epilogue()
 {
-  std::pair<Cumulator*, STATE_MAP<NetworkState_Impl, unsigned int>*> results = mergeResults(cumulator_v, fixpoint_map_v);
+  std::pair<Cumulator<NetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> results = mergeResults(cumulator_v, fixpoint_map_v);
   merged_cumulator = results.first;
   fixpoints = *(results.second);
 
 #ifdef MPI_COMPAT
-  std::pair<Cumulator*, STATE_MAP<NetworkState_Impl, unsigned int>*> mpi_results = mergeMPIResults(runconfig, merged_cumulator, &fixpoints, world_size, world_rank);
+  std::pair<Cumulator<NetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> mpi_results = mergeMPIResults(runconfig, merged_cumulator, &fixpoints, world_size, world_rank);
   merged_cumulator = mpi_results.first;
   fixpoints = *(mpi_results.second);
   
@@ -598,7 +598,7 @@ void EnsembleEngine::mergeIndividual() {
 
   for (unsigned int i=0; i < networks.size(); i++) {
     
-    std::pair<Cumulator*, STATE_MAP<NetworkState_Impl, unsigned int>*> results = mergeResults(cumulators_thread_v[i], fixpoints_threads_v[i]);
+    std::pair<Cumulator<NetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> results = mergeResults(cumulators_thread_v[i], fixpoints_threads_v[i]);
     cumulators_per_model[i] = results.first;
     fixpoints_per_model[i] = results.second;
     

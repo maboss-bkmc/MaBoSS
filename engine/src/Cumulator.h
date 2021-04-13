@@ -56,6 +56,7 @@
 #include <vector>
 #include <iostream>
 #include <assert.h>
+#include <cfloat>
 
 #ifdef PYTHON_API
 #define NO_IMPORT_ARRAY
@@ -89,13 +90,16 @@
 
 static bool COMPUTE_ERRORS = true;
 
+#include "RunConfig.h"
 #include "ProbaDist.h"
 #include "RunConfig.h"
+#include "StatDistDisplayer.h"
+#include "ProbTrajDisplayer.h"
 
 class Network;
 template <class S> class ProbTrajDisplayer;
-class StatDistDisplayer;
 
+template <class S>
 class Cumulator {
 
   struct TickValue {
@@ -114,15 +118,15 @@ class Cumulator {
   };
 
   class CumulMap {
-    STATE_MAP<NetworkState_Impl, TickValue> mp;
+    STATE_MAP<S, TickValue> mp;
 
   public:
     size_t size() const {
       return mp.size();
     }
 
-    void incr(const NetworkState_Impl& state, double tm_slice, double TH) {
-      STATE_MAP<NetworkState_Impl, TickValue>::iterator iter = mp.find(state);
+    void incr(const S& state, double tm_slice, double TH) {
+      typename STATE_MAP<S, TickValue>::iterator iter = mp.find(state);
       if (iter == mp.end()) {
 	mp[state] = TickValue(tm_slice, tm_slice * TH);
       } else {
@@ -131,14 +135,14 @@ class Cumulator {
       }
     }
 
-    void cumulTMSliceSquare(const NetworkState_Impl& state, double tm_slice) {
-      STATE_MAP<NetworkState_Impl, TickValue>::iterator iter = mp.find(state);
+    void cumulTMSliceSquare(const S& state, double tm_slice) {
+      typename STATE_MAP<S, TickValue>::iterator iter = mp.find(state);
       assert(iter != mp.end());
       (*iter).second.tm_slice_square += tm_slice * tm_slice;
     }
     
-    void add(const NetworkState_Impl& state, const TickValue& tick_value) {
-      STATE_MAP<NetworkState_Impl, TickValue>::iterator iter = mp.find(state);
+    void add(const S& state, const TickValue& tick_value) {
+      typename STATE_MAP<S, TickValue>::iterator iter = mp.find(state);
       if (iter == mp.end()) {
 	mp[state] = tick_value;
       } else {
@@ -153,7 +157,7 @@ class Cumulator {
     
 #ifdef MPI_COMPAT
     size_t my_MPI_Size() {
-      return sizeof(size_t) + size() * (sizeof(double)*2 + NetworkState::my_MPI_Pack_Size());
+      return sizeof(size_t) + size() * (sizeof(double)*2 + S::my_MPI_Pack_Size());
     }
 
     void my_MPI_Pack(void* buff, unsigned int size_pack, int* position) {
@@ -165,10 +169,9 @@ class Cumulator {
       TickValue t_tick_value;
       while ( t_iterator.hasNext()) {
 
-        const NetworkState_Impl& state = t_iterator.next2(t_tick_value);        
-        NetworkState t_state(state);
+        const S& state = t_iterator.next2(t_tick_value);        
         
-        t_state.my_MPI_Pack(buff, size_pack, position);
+        state.my_MPI_Pack(buff, size_pack, position);
 
         MPI_Pack(&(t_tick_value.tm_slice), 1, MPI_DOUBLE, buff, size_pack, position, MPI_COMM_WORLD);
         MPI_Pack(&(t_tick_value.TH), 1, MPI_DOUBLE, buff, size_pack, position, MPI_COMM_WORLD);
@@ -183,7 +186,7 @@ class Cumulator {
 
       for (size_t j=0; j < s_cumulMap; j++) {
         
-        NetworkState t_state;
+        S t_state;
         t_state.my_MPI_Unpack(buff, buff_size, position);
      
         double t_tm_slice;
@@ -204,7 +207,7 @@ class Cumulator {
       MPI_Recv(&s_cumulMap, 1, my_MPI_SIZE_T, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       for (size_t j=0; j < s_cumulMap; j++) {
         
-        NetworkState t_state;
+        S t_state;
         t_state.my_MPI_Recv(source);
      
         double t_tm_slice;
@@ -227,11 +230,8 @@ class Cumulator {
       TickValue t_tick_value;
       while ( t_iterator.hasNext()) {
 
-        const NetworkState_Impl& state = t_iterator.next2(t_tick_value);
-        
-        NetworkState t_state(state);
-        t_state.my_MPI_Send(dest);
-        
+        const S& state = t_iterator.next2(t_tick_value);
+        state.my_MPI_Send(dest);
         MPI_Send(&(t_tick_value.tm_slice), 1, MPI_DOUBLE, dest, 0, MPI_COMM_WORLD);
         MPI_Send(&(t_tick_value.TH), 1, MPI_DOUBLE, dest, 0, MPI_COMM_WORLD);
 
@@ -242,7 +242,7 @@ class Cumulator {
     class Iterator {
     
       const CumulMap& cumul_map;
-      STATE_MAP<NetworkState_Impl, TickValue>::const_iterator iter, end;
+      typename STATE_MAP<S, TickValue>::const_iterator iter, end;
 
     public:
       Iterator(const CumulMap& cumul_map) : cumul_map(cumul_map) {
@@ -258,13 +258,13 @@ class Cumulator {
 	return iter != end;
       }
 
-      void next(NetworkState_Impl& state, TickValue& tick_value) {
+      void next(S& state, TickValue& tick_value) {
 	state = (*iter).first;
 	tick_value = (*iter).second;
 	++iter;
       }
 	
-      const NetworkState_Impl& next2(TickValue& tick_value) {
+      const S& next2(TickValue& tick_value) {
 	tick_value = (*iter).second;
 	return (*iter++).first;
       }
@@ -279,15 +279,15 @@ class Cumulator {
     Iterator iterator() const {return Iterator(*this);}
   };
   class HDCumulMap {
-    STATE_MAP<NetworkState_Impl, double> mp;
+    typename STATE_MAP<S, double> mp;
 
   public:
     size_t size() const {
       return mp.size();
     }
 
-    void incr(const NetworkState_Impl& fullstate, double tm_slice) {
-      STATE_MAP<NetworkState_Impl, double>::iterator iter = mp.find(fullstate);
+    void incr(const S& fullstate, double tm_slice) {
+      typename STATE_MAP<S, double>::iterator iter = mp.find(fullstate);
       if (iter == mp.end()) {
 	mp[fullstate] = tm_slice;
       } else {
@@ -295,8 +295,8 @@ class Cumulator {
       }
     }
 
-    void add(const NetworkState_Impl& fullstate, double tm_slice) {
-      STATE_MAP<NetworkState_Impl, double>::iterator iter = mp.find(fullstate);
+    void add(const S& fullstate, double tm_slice) {
+      typename STATE_MAP<S, double>::iterator iter = mp.find(fullstate);
       if (iter == mp.end()) {
 	mp[fullstate] = tm_slice;
       } else {
@@ -306,7 +306,7 @@ class Cumulator {
 
 #ifdef MPI_COMPAT
     size_t my_MPI_Size() {
-      return sizeof(size_t) + size() * (sizeof(double) + NetworkState::my_MPI_Pack_Size());
+      return sizeof(size_t) + size() * (sizeof(double) + S::my_MPI_Pack_Size());
     }
     
     void my_MPI_Pack(void* buff, unsigned int size_pack, int* position) 
@@ -319,10 +319,9 @@ class Cumulator {
       double tm_slice;
       while ( t_hd_iterator.hasNext()) {
 
-        const NetworkState_Impl& state = t_hd_iterator.next2(tm_slice);
-        NetworkState t_state(state);
-      
-        t_state.my_MPI_Pack(buff, size_pack, position);
+        const S& state = t_hd_iterator.next2(tm_slice);
+        
+        state.my_MPI_Pack(buff, size_pack, position);
         MPI_Pack(&tm_slice, 1, MPI_DOUBLE, buff, size_pack, position, MPI_COMM_WORLD);
       }
     }
@@ -335,7 +334,7 @@ class Cumulator {
       
       for (size_t j=0; j < s_HDCumulMap; j++) {
         
-        NetworkState t_state;
+        S t_state;
         t_state.my_MPI_Unpack(buff, buff_size, position);
       
         double t_tm_slice;
@@ -351,7 +350,7 @@ class Cumulator {
       MPI_Recv(&s_HDCumulMap, 1, my_MPI_SIZE_T, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       for (size_t j=0; j < s_HDCumulMap; j++) {
         
-        NetworkState t_state;
+        S t_state;
         t_state.my_MPI_Recv(source);
 
         double t_tm_slice;
@@ -371,10 +370,8 @@ class Cumulator {
       double tm_slice;
       while ( t_hd_iterator.hasNext()) {
 
-        const NetworkState_Impl& state = t_hd_iterator.next2(tm_slice);
-        
-        NetworkState t_state(state);
-        t_state.my_MPI_Send(dest);
+        const S& state = t_hd_iterator.next2(tm_slice);
+        state.my_MPI_Send(dest);
         MPI_Send(&tm_slice, 1, MPI_DOUBLE, dest, 0, MPI_COMM_WORLD);
 
       }
@@ -385,7 +382,7 @@ class Cumulator {
     class Iterator {
     
       const HDCumulMap& hd_cumul_map;
-      STATE_MAP<NetworkState_Impl, double>::const_iterator iter, end;
+      typename STATE_MAP<S, double>::const_iterator iter, end;
 
     public:
       Iterator(const HDCumulMap& hd_cumul_map) : hd_cumul_map(hd_cumul_map) {
@@ -401,13 +398,13 @@ class Cumulator {
 	return iter != end;
       }
 
-      void next(NetworkState_Impl& state, double& tm_slice) {
+      void next(S& state, double& tm_slice) {
 	state = (*iter).first;
 	tm_slice = (*iter).second;
 	++iter;
       }
 	
-      const NetworkState_Impl& next2(double& tm_slice) {
+      const S& next2(double& tm_slice) {
 	tm_slice = (*iter).second;
 	return (*iter++).first;
       }
@@ -439,10 +436,11 @@ class Cumulator {
   std::vector<CumulMap> cumul_map_v;
   std::vector<HDCumulMap> hd_cumul_map_v;
   unsigned int statdist_trajcount;
+  unsigned int refnode_count;
   NetworkState_Impl refnode_mask;
-  std::vector<ProbaDist<NetworkState> > proba_dist_v;
-  ProbaDist<NetworkState> curtraj_proba_dist;
-  STATE_MAP<NetworkState_Impl, LastTickValue> last_tick_map;
+  std::vector<ProbaDist<S> > proba_dist_v;
+  ProbaDist<S> curtraj_proba_dist;
+  STATE_MAP<S, LastTickValue> last_tick_map;
   bool tick_completed;
 
   CumulMap& get_map() {
@@ -475,11 +473,11 @@ class Cumulator {
     return hd_cumul_map_v[nn];
   }
 
-#ifdef MPI_COMPAT
+// #ifdef MPI_COMPAT
 
-static void MPI_Send_Cumulator(Cumulator* ret_cumul, int dest);
-static void MPI_Recv_Cumulator(Cumulator* mpi_ret_cumul, int origin);
-#endif
+// static void MPI_Send_Cumulator(Cumulator* ret_cumul, int dest);
+// static void MPI_Recv_Cumulator(Cumulator* mpi_ret_cumul, int origin);
+// #endif
   double cumultime(int at_tick_index = -1) {
     if (at_tick_index < 0) {
       at_tick_index = tick_index;
@@ -487,13 +485,13 @@ static void MPI_Recv_Cumulator(Cumulator* mpi_ret_cumul, int origin);
     return at_tick_index * time_tick;
   }
 
-  bool incr(const NetworkState_Impl& state, double tm_slice, double TH, const NetworkState_Impl& fullstate) {
+  bool incr(const S& state, double tm_slice, double TH, const S& fullstate) {
     if (tm_slice == 0.0) {
       return true;
     }
 
     if (sample_num < statdist_trajcount) {
-      curtraj_proba_dist.incr(NetworkState(fullstate), tm_slice);
+      curtraj_proba_dist.incr(S(fullstate), tm_slice);
     }
     if (tick_index >= max_size) {
       return false;
@@ -505,7 +503,7 @@ static void MPI_Recv_Cumulator(Cumulator* mpi_ret_cumul, int origin);
     HDCumulMap& hd_mp = get_hd_map();
     hd_mp.incr(fullstate, tm_slice);
 
-    STATE_MAP<NetworkState_Impl, LastTickValue>::iterator last_tick_iter = last_tick_map.find(state);
+    typename STATE_MAP<S, LastTickValue>::iterator last_tick_iter = last_tick_map.find(state);
     if (last_tick_iter == last_tick_map.end()) {
       last_tick_map[state] = LastTickValue(tm_slice, tm_slice * TH);
     } else {
@@ -516,10 +514,46 @@ static void MPI_Recv_Cumulator(Cumulator* mpi_ret_cumul, int origin);
     return true;
   }
 
-  void check() const;
+  void check() const {
+    // check that for each tick (except the last one), the sigma of each map == 1.
+    for (int nn = 0; nn < max_tick_index; ++nn) {
+    const CumulMap& mp = get_map(nn);
+    typename CumulMap::Iterator iter = mp.iterator();
+    double sum = 0.;
+    while (iter.hasNext()) {
+      TickValue tick_value;
+      iter.next(tick_value);
+      sum += tick_value.tm_slice;
+    }
+    sum /= time_tick*sample_count;
+    assert(sum >= 1. - 0.0001 && sum <= 1. + 0.0001);
+  }
+  }
 
-  void add(unsigned int where, const CumulMap& add_cumul_map);
-  void add(unsigned int where, const HDCumulMap& add_hd_cumul_map);
+  void add(unsigned int where, const CumulMap& add_cumul_map) 
+  {
+    CumulMap& to_cumul_map = get_map(where);
+
+    typename CumulMap::Iterator iter = add_cumul_map.iterator();
+    while (iter.hasNext()) {
+      TickValue tick_value;
+      const S& state = iter.next2(tick_value);
+      to_cumul_map.add(state, tick_value);
+    }
+
+  }
+  void add(unsigned int where, const HDCumulMap& add_hd_cumul_map) 
+  {
+    HDCumulMap& to_hd_cumul_map = get_hd_map(where);
+
+    typename HDCumulMap::Iterator iter = add_hd_cumul_map.iterator();
+    while (iter.hasNext()) {
+      double tm_slice;
+      const S& state = iter.next2(tm_slice);
+      to_hd_cumul_map.add(state, tm_slice);
+    }
+
+  }
   
 public:
 
@@ -568,13 +602,13 @@ public:
 
   void next() {
     if (tick_index < max_size) {
-      STATE_MAP<NetworkState_Impl, LastTickValue>::iterator begin = last_tick_map.begin();
-      STATE_MAP<NetworkState_Impl, LastTickValue>::iterator end = last_tick_map.end();
+      typename STATE_MAP<S, LastTickValue>::iterator begin = last_tick_map.begin();
+      typename STATE_MAP<S, LastTickValue>::iterator end = last_tick_map.end();
       CumulMap& mp = get_map();
       double TH = 0.0;
       while (begin != end) {
-	//NetworkState_Impl state = (*begin).first;
-	const NetworkState_Impl& state = (*begin).first;
+	//S state = (*begin).first;
+	const S& state = (*begin).first;
 	double tm_slice = (*begin).second.tm_slice;
 	TH += (*begin).second.TH;
 	if (COMPUTE_ERRORS) {
@@ -591,13 +625,13 @@ public:
     last_tick_map.clear();
   }
 
-  void cumul(const NetworkState& network_state, double tm, double TH) {
+  void cumul(const S& network_state, double tm, double TH) {
 #ifdef USE_DYNAMIC_BITSET
-    NetworkState_Impl fullstate(network_state.getState() & refnode_mask, 1);
+    S fullstate(network_state & refnode_mask, 1);
 #else
-    NetworkState_Impl fullstate(network_state.getState() & refnode_mask);
+    S fullstate(network_state & refnode_mask);
 #endif    
-    NetworkState_Impl state(network_state.getState() & output_mask);
+    S state(network_state & output_mask);
     double time_1 = cumultime(tick_index+1);
     if (tm < time_1) {
       incr(state, tm - last_tm, TH, fullstate);
@@ -622,53 +656,859 @@ public:
     last_tm = tm;
   }
 
-  void setOutputMask(const NetworkState_Impl& output_mask) {
-    this->output_mask = output_mask;
+  void setOutputMask(const NetworkState& output_mask) {
+    this->output_mask = output_mask.getState();
   }
   
   void setRefnodeMask(const NetworkState_Impl& refnode_mask) {
     this->refnode_mask = refnode_mask;
   }
 
-  void displayProbTraj(Network* network, unsigned int refnode_count, ProbTrajDisplayer<NetworkState>* displayer) const;
-  void displayStatDist(Network* network, unsigned int refnode_count, StatDistDisplayer* displayer) const;
-  void displayAsymptoticCSV(Network* network, unsigned int refnode_count, std::ostream& os_asymptprob = std::cout, bool hexfloat = false, bool proba = true) const;
+  void displayProbTraj(Network* network, unsigned int refnode_count, ProbTrajDisplayer<S>* displayer) const 
+  {
+    std::vector<Node*>::const_iterator begin_network;
+
+    displayer->begin(COMPUTE_ERRORS, maxcols, refnode_count);
+
+    double time_tick2 = time_tick * time_tick;
+    double ratio = time_tick*sample_count;
+    for (int nn = 0; nn < max_tick_index; ++nn) {
+      displayer->beginTimeTick(nn*time_tick);
+      // TH
+      const CumulMap& mp = get_map(nn);
+      typename CumulMap::Iterator iter = mp.iterator();
+      displayer->setTH(TH_v[nn]);
+
+      // ErrorTH
+      //assert((size_t)nn < TH_square_v.size());
+      if (COMPUTE_ERRORS) {
+        double TH_square = TH_square_v[nn];
+        double TH = TH_v[nn]; // == TH
+        double variance_TH = (TH_square / ((sample_count-1) * time_tick2)) - (TH*TH*sample_count/(sample_count-1));
+        double err_TH;
+        double variance_TH_sample_count = variance_TH/sample_count;
+        //assert(variance_TH > 0.0);
+        if (variance_TH_sample_count >= 0.0) {
+    err_TH = sqrt(variance_TH_sample_count);
+        } else {
+    err_TH = 0.;
+        }
+        displayer->setErrorTH(err_TH);
+      }
+
+      // H
+      displayer->setH(H_v[nn]);
+
+      std::string zero_hexfloat = fmthexdouble(0.0);
+      // HD
+      const MAP<unsigned int, double>& hd_m = HD_v[nn];
+      for (unsigned int hd = 0; hd <= refnode_count; ++hd) { 
+        MAP<unsigned int, double>::const_iterator hd_m_iter = hd_m.find(hd);
+        if (hd_m_iter != hd_m.end()) {
+    displayer->setHD(hd, hd_m_iter->second);
+        } else {
+    displayer->setHD(hd, 0.);
+        }
+      }
+
+      // Proba, ErrorProba
+      while (iter.hasNext()) {
+        TickValue tick_value;
+  #ifdef USE_NEXT_OPT
+        const S& state = S(iter.next2(tick_value), 1);
+        // Here I'm copying because it was a copy in the displayer
+        // But do we really need it ?
+        // NetworkState state(t_state, 1);
+  #else
+        S state;
+        iter.next(state, tick_value);
+        // NetworkState state(t_state);
+  #endif
+        double proba = tick_value.tm_slice / ratio;      
+        if (COMPUTE_ERRORS) {
+    double tm_slice_square = tick_value.tm_slice_square;
+    double variance_proba = (tm_slice_square / ((sample_count-1) * time_tick2)) - (proba*proba*sample_count/(sample_count-1));
+    double err_proba;
+    double variance_proba_sample_count = variance_proba/sample_count;
+    if (variance_proba_sample_count >= DBL_MIN) {
+      err_proba = sqrt(variance_proba_sample_count);
+    } else {
+      err_proba = 0.;
+    }
+    displayer->addProba(state, proba, err_proba);
+        } else {
+    displayer->addProba(state, proba, 0.);
+        }
+      }
+      displayer->endTimeTick();
+    }
+    displayer->end();
+  }
+  void displayStatDist(Network* network, unsigned int refnode_count, StatDistDisplayer* displayer) const {
+    // should not be in cumulator, but somehwere in ProbaDist*
+
+    // Probability distribution
+    unsigned int statdist_traj_count = runconfig->getStatDistTrajCount();
+    if (statdist_traj_count == 0) {
+      return;
+    }
+
+    unsigned int max_size = 0;
+    unsigned int cnt = 0;
+    unsigned int proba_dist_size = proba_dist_v.size();
+    for (unsigned int nn = 0; nn < proba_dist_size; ++nn) {
+      const ProbaDist<S>& proba_dist = proba_dist_v[nn];
+      if (proba_dist.size() > max_size) {
+        max_size = proba_dist.size();
+      }
+      cnt++;
+      if (cnt > statdist_traj_count) {
+        break;
+      }
+    }
+
+    displayer->begin(max_size, statdist_traj_count);
+    cnt = 0;
+    displayer->beginStatDistDisplay();
+    for (unsigned int nn = 0; nn < proba_dist_size; ++nn) {
+      const ProbaDist<S>& proba_dist = proba_dist_v[nn];
+      displayer->beginStateProba(cnt+1);
+      cnt++;
+
+      proba_dist.display(displayer);
+      displayer->endStateProba();
+      if (cnt >= statdist_traj_count) {
+        break;
+      }
+    }
+    displayer->endStatDistDisplay();
+
+    // should not be called from here, but from MaBestEngine
+    ProbaDistClusterFactory* clusterFactory = new ProbaDistClusterFactory(proba_dist_v, statdist_traj_count);
+    clusterFactory->makeClusters(runconfig);
+    clusterFactory->display(displayer);
+    clusterFactory->computeStationaryDistribution();
+    clusterFactory->displayStationaryDistribution(displayer);
+    displayer->end();
+    delete clusterFactory;
+  }
+  void displayAsymptoticCSV(Network* network, unsigned int refnode_count, std::ostream& os_asymptprob = std::cout, bool hexfloat = false, bool proba = true) const
+  {
+    double ratio;
+  if (proba)
+  {
+    ratio = time_tick * sample_count;
+  }
+  else
+  {
+    ratio = time_tick;
+  }
+
+  // Choosing the last tick
+  int nn = max_tick_index - 1;
+
+#ifdef HAS_STD_HEXFLOAT
+  if (hexfloat)
+  {
+    os_asymptprob << std::hexfloat;
+  }
+#endif
+  // TH
+  const CumulMap &mp = get_map(nn);
+  typename CumulMap::Iterator iter = mp.iterator();
+
+
+  while (iter.hasNext())
+  {
+    TickValue tick_value;
+#ifdef USE_NEXT_OPT
+    const S& state = iter.next2(tick_value);
+#else
+    S state;
+    iter.next(state, tick_value);
+#endif
+    double proba = tick_value.tm_slice / ratio;
+    if (proba)
+    {
+      if (hexfloat)
+      {
+        os_asymptprob << std::setprecision(6) << fmthexdouble(proba);
+      }
+      else
+      {
+        os_asymptprob << std::setprecision(6) << proba;
+      }
+    }
+    else
+    {
+      int t_proba = static_cast<int>(round(proba));
+      os_asymptprob << std::fixed << t_proba;
+    }
+
+    os_asymptprob << '\t';
+    // NetworkState network_state(state);
+    state.displayOneLine(os_asymptprob, network);
+
+    os_asymptprob << '\n';
+
+  }
+  }
 
 
 #ifdef PYTHON_API
 
-  PyObject* getNumpyStatesDists(Network* network) const;
-  PyObject* getNumpyLastStatesDists(Network* network) const;
-  std::set<NetworkState_Impl> getStates() const;
-  std::vector<NetworkState_Impl> getLastStates() const;
-  PyObject* getNumpyNodesDists(Network* network, std::vector<Node*> output_nodes) const;
-  PyObject* getNumpyLastNodesDists(Network* network, std::vector<Node*> output_nodes) const;
-  std::vector<Node*> getNodes(Network* network) const;
+std::set<S> getStates() const
+{
+  std::set<S> result_states;
+
+  for (int nn=0; nn < getMaxTickIndex(); nn++) {
+    const CumulMap& mp = get_map(nn);
+    typename CumulMap::Iterator iter = mp.iterator();
+
+    while (iter.hasNext()) {
+      TickValue tick_value;
+      const S& state = iter.next2(tick_value);
+      result_states.insert(state);
+    }
+  }
+
+  return result_states;
+}
+
+std::vector<S> getLastStates() const
+{
+  std::vector<S> result_states;
+
+    const CumulMap& mp = get_map(getMaxTickIndex()-1);
+    typename CumulMap::Iterator iter = mp.iterator();
+
+    while (iter.hasNext()) {
+      TickValue tick_value;
+      const S& state = iter.next2(tick_value);
+      result_states.push_back(state);
+    }
+
+  return result_states;
+}
+
+
+PyObject* getNumpyStatesDists(Network* network) const 
+{
+  std::set<S> result_states = getStates();
+  
+  npy_intp dims[2] = {(npy_intp) getMaxTickIndex(), (npy_intp) result_states.size()};
+  PyArrayObject* result = (PyArrayObject *) PyArray_ZEROS(2,dims,NPY_DOUBLE, 0); 
+
+  std::vector<S> list_states(result_states.begin(), result_states.end());
+  STATE_MAP<S, unsigned int> pos_states;
+  for(unsigned int i=0; i < list_states.size(); i++) {
+    pos_states[list_states[i]] = i;
+  }
+
+  double ratio = time_tick*sample_count;
+
+  for (int nn=0; nn < getMaxTickIndex(); nn++) {
+    const CumulMap& mp = get_map(nn);
+    typename CumulMap::Iterator iter = mp.iterator();
+
+    while (iter.hasNext()) {
+      TickValue tick_value;
+      const S& state = iter.next2(tick_value);
+      
+      void* ptr = PyArray_GETPTR2(result, nn, pos_states[state]);
+      PyArray_SETITEM(
+        result, 
+        (char*) ptr,
+        PyFloat_FromDouble(tick_value.tm_slice / ratio)
+      );
+    }
+  }
+  PyObject* pylist_state = PyList_New(list_states.size());
+  for (unsigned int i=0; i < list_states.size(); i++) {
+    PyList_SetItem(
+      pylist_state, i, 
+      PyUnicode_FromString(list_states[i].getName(network).c_str())
+    );
+  }
+
+  PyObject* timepoints = PyList_New(getMaxTickIndex());
+  for (int i=0; i < getMaxTickIndex(); i++) {
+    PyList_SetItem(timepoints, i, PyFloat_FromDouble(((double) i) * time_tick));
+  }
+
+  return PyTuple_Pack(3, PyArray_Return(result), pylist_state, timepoints);
+}
+
+
+PyObject* getNumpyLastStatesDists(Network* network) const 
+{
+  std::vector<S> result_last_states = getLastStates();
+  
+  npy_intp dims[2] = {(npy_intp) 1, (npy_intp) result_last_states.size()};
+  PyArrayObject* result = (PyArrayObject *) PyArray_ZEROS(2,dims,NPY_DOUBLE, 0); 
+
+  STATE_MAP<S, unsigned int> pos_states;
+  for(unsigned int i=0; i < result_last_states.size(); i++) {
+    pos_states[result_last_states[i]] = i;
+  }
+
+  double ratio = time_tick*sample_count;
+
+  const CumulMap& mp = get_map(getMaxTickIndex()-1);
+  typename CumulMap::Iterator iter = mp.iterator();
+
+  while (iter.hasNext()) {
+    TickValue tick_value;
+    const S& state = iter.next2(tick_value);
+    
+    void* ptr = PyArray_GETPTR2(result, 0, pos_states[state]);
+    PyArray_SETITEM(
+      result, 
+      (char*) ptr,
+      PyFloat_FromDouble(tick_value.tm_slice / ratio)
+    );
+  }
+
+  PyObject* pylist_state = PyList_New(result_last_states.size());
+  for (unsigned int i=0; i < result_last_states.size(); i++) {
+    PyList_SetItem(
+      pylist_state, i, 
+      PyUnicode_FromString(result_last_states[i].getName(network).c_str())
+    );
+  }
+
+  PyObject* timepoints = PyList_New(1);
+  PyList_SetItem(
+    timepoints, 0, 
+    PyFloat_FromDouble(
+      (
+        (double) (getMaxTickIndex()-1)
+      )*time_tick
+    )
+  );
+
+  return PyTuple_Pack(3, PyArray_Return(result), pylist_state, timepoints);
+}
+
+
+
+
+std::vector<Node*> getNodes(Network* network) const {
+  std::vector<Node*> result_nodes;
+
+  for (auto node: network->getNodes()) {
+    if (!node->isInternal())
+      result_nodes.push_back(node);
+  }
+  return result_nodes;
+}
+
+PyObject* getNumpyNodesDists(Network* network, std::vector<Node*> output_nodes) const 
+{
+  if (output_nodes.size() == 0){
+    output_nodes = getNodes(network);
+  }
+  
+  npy_intp dims[2] = {(npy_intp) getMaxTickIndex(), (npy_intp) output_nodes.size()};
+  PyArrayObject* result = (PyArrayObject *) PyArray_ZEROS(2,dims,NPY_DOUBLE, 0); 
+
+  STATE_MAP<Node*, unsigned int> pos_nodes;
+  for(unsigned int i=0; i < output_nodes.size(); i++) {
+    pos_nodes[output_nodes[i]] = i;
+  }
+
+  double ratio = time_tick*sample_count;
+
+  for (int nn=0; nn < getMaxTickIndex(); nn++) {
+    const CumulMap& mp = get_map(nn);
+    typename CumulMap::Iterator iter = mp.iterator();
+
+    while (iter.hasNext()) {
+      TickValue tick_value;
+      const S& state = iter.next2(tick_value);
+      
+      for (auto node: output_nodes) {
+        
+        if ((state).getNodeState(node)){
+          void* ptr_val = PyArray_GETPTR2(result, nn, pos_nodes[node]);
+
+          PyArray_SETITEM(
+            result, 
+            (char*) ptr_val,
+            PyFloat_FromDouble(
+              PyFloat_AsDouble(PyArray_GETITEM(result, (char*) ptr_val))
+              + (tick_value.tm_slice / ratio)
+            )
+          );
+        }
+      }
+    }
+  }
+  PyObject* pylist_nodes = PyList_New(output_nodes.size());
+  for (unsigned int i=0; i < output_nodes.size(); i++) {
+    PyList_SetItem(
+      pylist_nodes, i, 
+      PyUnicode_FromString(output_nodes[i]->getLabel().c_str())
+    );
+  }
+
+  PyObject* timepoints = PyList_New(getMaxTickIndex());
+  for (int i=0; i < getMaxTickIndex(); i++) {
+    PyList_SetItem(timepoints, i, PyFloat_FromDouble(((double) i) * time_tick));
+  }
+
+  return PyTuple_Pack(3, PyArray_Return(result), pylist_nodes, timepoints);
+}
+
+
+PyObject* getNumpyLastNodesDists(Network* network, std::vector<Node*> output_nodes) const 
+{
+  if (output_nodes.size() == 0){
+    output_nodes = getNodes(network);
+  }
+  
+  npy_intp dims[2] = {(npy_intp) 1, (npy_intp) output_nodes.size()};
+  PyArrayObject* result = (PyArrayObject *) PyArray_ZEROS(2,dims,NPY_DOUBLE, 0); 
+
+  STATE_MAP<Node*, unsigned int> pos_nodes;
+  for(unsigned int i=0; i < output_nodes.size(); i++) {
+    pos_nodes[output_nodes[i]] = i;
+  }
+
+  double ratio = time_tick*sample_count;
+
+  const CumulMap& mp = get_map(getMaxTickIndex()-1);
+  typename CumulMap::Iterator iter = mp.iterator();
+
+  while (iter.hasNext()) {
+    TickValue tick_value;
+    const S& state = iter.next2(tick_value);
+    
+    for (auto node: output_nodes) {
+      
+      if ((state).getNodeState(node)){
+        void* ptr_val = PyArray_GETPTR2(result, 0, pos_nodes[node]);
+
+        PyArray_SETITEM(
+          result, 
+          (char*) ptr_val,
+          PyFloat_FromDouble(
+            PyFloat_AsDouble(PyArray_GETITEM(result, (char*) ptr_val))
+            + (tick_value.tm_slice / ratio)
+          )
+        );
+      }
+    }
+  }
+  PyObject* pylist_nodes = PyList_New(output_nodes.size());
+  for (unsigned int i=0; i < output_nodes.size(); i++) {
+    PyList_SetItem(
+      pylist_nodes, i, 
+      PyUnicode_FromString(output_nodes[i]->getLabel().c_str())
+    );
+  }
+  PyObject* timepoints = PyList_New(1);
+  PyList_SetItem(
+    timepoints, 0, 
+    PyFloat_FromDouble(
+      (
+        (double) (getMaxTickIndex()-1)
+      )*time_tick
+    )
+  );
+  
+  return PyTuple_Pack(3, PyArray_Return(result), pylist_nodes, timepoints);
+}
+
+
+
+
+  // PyObject* getNumpyStatesDists(Network* network) const;
+  // PyObject* getNumpyLastStatesDists(Network* network) const;
+  // std::set<S> getStates() const;
+  // std::vector<S> getLastStates() const;
+  // PyObject* getNumpyNodesDists(Network* network) const;
+  // PyObject* getNumpyLastNodesDists(Network* network) const;
+  // std::vector<Node*> getNodes(Network* network) const;
   
 #endif
-  const std::map<double, STATE_MAP<NetworkState_Impl, double> > getStateDists() const;
-  const STATE_MAP<NetworkState_Impl, double> getNthStateDist(int nn) const;
-  const STATE_MAP<NetworkState_Impl, double> getAsymptoticStateDist() const;
-  const double getFinalTime() const;
+//   const std::map<double, STATE_MAP<S, double> > getStateDists() const;
+//   const STATE_MAP<S, double> getNthStateDist(int nn) const;
+//   const STATE_MAP<S, double> getAsymptoticStateDist() const;
+  const double getFinalTime() const {
+      return time_tick*(getMaxTickIndex()-1);
 
-  void computeMaxTickIndex();
+  }
+
+  void computeMaxTickIndex() {
+    if (max_tick_index > tick_index) {
+      max_tick_index = tick_index;
+    }
+  }
+  
   int getMaxTickIndex() const { return max_tick_index;} 
 
-  void epilogue(Network* network, const NetworkState& reference_state);
-  void trajectoryEpilogue();
+  void epilogue(Network* network, const S& reference_state) 
+  {
+    computeMaxTickIndex();
+
+    // compute H (Entropy), TH (Transition entropy) and HD (Hamming distance)
+    H_v.resize(max_tick_index);
+    TH_v.resize(max_tick_index);
+
+    maxcols = 0;
+    double ratio = time_tick * sample_count;
+    for (int nn = 0; nn < max_tick_index; ++nn) { // time tick
+      const CumulMap& mp = get_map(nn);
+      typename CumulMap::Iterator iter = mp.iterator();
+      H_v[nn] = 0.;
+      TH_v[nn] = 0.;
+      while (iter.hasNext()) {
+        TickValue tick_value;
+  #ifdef USE_NEXT_OPT
+        const S &state = iter.next2(tick_value);
+  #else
+        S state;
+        iter.next(state, tick_value);
+  #endif
+        double tm_slice = tick_value.tm_slice;
+        double proba = tm_slice / ratio;      
+        double TH = tick_value.TH / sample_count;
+        H_v[nn] += -log2(proba) * proba;
+        TH_v[nn] += TH;
+      }
+      TH_v[nn] /= time_tick;
+      if (mp.size() > maxcols) {
+        maxcols = mp.size();
+      }
+    }
+
+    HD_v.resize(max_tick_index);
+
+    for (int nn = 0; nn < max_tick_index; ++nn) { // time tick
+      const HDCumulMap& hd_mp = get_hd_map(nn);
+      typename HDCumulMap::Iterator iter = hd_mp.iterator();
+      MAP<unsigned int, double>& hd_m = HD_v[nn];
+      while (iter.hasNext()) {
+        double tm_slice;
+  #ifdef USE_NEXT_OPT
+        const S &state = iter.next2(tm_slice);
+  #else
+        S state;
+        iter.next(state, tm_slice);
+  #endif
+        double proba = tm_slice / ratio;      
+        int hd = reference_state.hamming(network, state);
+        if (hd_m.find(hd) == hd_m.end()) {
+    hd_m[hd] = proba;
+        } else {
+    hd_m[hd] += proba;
+        }
+      }
+    }
+  }
+  
+  void trajectoryEpilogue() 
+  {
+    assert(sample_num < sample_count);
+
+    typename ProbaDist<S>::Iterator curtraj_proba_dist_iter = curtraj_proba_dist.iterator();
+
+    double proba_max_time = 0.;
+
+    while (curtraj_proba_dist_iter.hasNext()) {
+      double tm_slice;
+      curtraj_proba_dist_iter.next(tm_slice);
+      proba_max_time += tm_slice;
+    }
+
+    //std::cout << "Trajepilogue #" << (sample_num+1) << " " << proba_max_time << '\n';
+    double proba = 0;
+    curtraj_proba_dist_iter.rewind();
+
+    ProbaDist<S>& proba_dist = proba_dist_v[sample_num++];
+    while (curtraj_proba_dist_iter.hasNext()) {
+      S state;
+      double tm_slice;
+      curtraj_proba_dist_iter.next(state, tm_slice);
+      //assert(proba_dist.find(state) == proba_dist.end());
+      double new_tm_slice = tm_slice / proba_max_time;
+      proba_dist.set(state, new_tm_slice);
+      proba += new_tm_slice;
+    }
+
+    assert(proba >= 0.9999 && proba <= 1.0001);
+  }
 
   unsigned int getSampleCount() const {return sample_count;}
 
-  static void mergePairOfCumulators(Cumulator* cumulator_1, Cumulator* cumulator_2);
+static void mergePairOfCumulators(Cumulator<S>* cumulator_1, Cumulator<S>* cumulator_2) {
+    
+  cumulator_1->sample_count += cumulator_2->sample_count;
+  
+  unsigned int rr = cumulator_1->proba_dist_v.size();
+  cumulator_1->statdist_trajcount += cumulator_2->statdist_trajcount;
+  cumulator_1->proba_dist_v.resize(cumulator_1->statdist_trajcount);
+  
+  cumulator_1->computeMaxTickIndex();
+  cumulator_2->computeMaxTickIndex();
+  if (cumulator_2->cumul_map_v.size() > cumulator_1->cumul_map_v.size()) {
+    cumulator_1->cumul_map_v.resize(cumulator_2->cumul_map_v.size());
+    cumulator_1->hd_cumul_map_v.resize(cumulator_2->cumul_map_v.size());
+  }
+  if (cumulator_2->max_tick_index > cumulator_1->max_tick_index) {
+    cumulator_1->max_tick_index = cumulator_1->tick_index = cumulator_2->max_tick_index;
+  }
+
+  for (unsigned int nn = 0; nn < cumulator_2->cumul_map_v.size(); ++nn) {
+    cumulator_1->add(nn, cumulator_2->cumul_map_v[nn]);
+    cumulator_1->add(nn, cumulator_2->hd_cumul_map_v[nn]);
+    cumulator_1->TH_square_v[nn] += cumulator_2->TH_square_v[nn];
+  }
+  unsigned int proba_dist_size = cumulator_2->proba_dist_v.size();
+  for (unsigned int ii = 0; ii < proba_dist_size; ++ii) {
+    assert(cumulator_1->proba_dist_v.size() > rr);
+    cumulator_1->proba_dist_v[rr++] = cumulator_2->proba_dist_v[ii];
+  }
+  delete cumulator_2;
+}
 
 #ifdef MPI_COMPAT
-  static Cumulator* mergePairOfMPICumulators(Cumulator* ret_cumul, int world_rank, int rank_receives, int rank_sends, RunConfig* runconfig, bool pack=true);
+static size_t MPI_Size_Cumulator(Cumulator<S>* ret_cumul)
+{
+  size_t total_size = sizeof(size_t);
+  size_t t_cumul_size = ret_cumul != NULL ? ret_cumul->cumul_map_v.size() : 0;
+  
+  
+  for (size_t nn = 0; nn < t_cumul_size; ++nn) {
+    
+    total_size += ret_cumul->get_map(nn).my_MPI_Size();
 
-  static size_t MPI_Size_Cumulator(Cumulator* ret_cumul);
-  static char* MPI_Pack_Cumulator(Cumulator* ret_cumul, int dest, unsigned int * buff_size);
-  static void MPI_Unpack_Cumulator(Cumulator* mpi_ret_cumul, char* buff, unsigned int buff_size);
+    total_size += ret_cumul->get_hd_map(nn).my_MPI_Size();
+    
+    total_size += sizeof(double);  
+  }
+  
+  total_size += sizeof(size_t);
+  size_t t_proba_dist_size = ret_cumul != NULL ? ret_cumul->proba_dist_v.size() : 0;
+  
+  for (size_t ii = 0; ii < t_proba_dist_size; ii++) {
+    total_size += ret_cumul->proba_dist_v[ii].my_MPI_Size();
+  }
+  return total_size;
+}
+
+static char* MPI_Pack_Cumulator(Cumulator<S>* ret_cumul, int dest, unsigned int * buff_size) 
+{
+  *buff_size = MPI_Size_Cumulator(ret_cumul);
+  char* buff = new char[*buff_size];
+  int position = 0;
+  size_t t_cumul_size = ret_cumul != NULL ? ret_cumul->cumul_map_v.size() : 0;
+  MPI_Pack(&t_cumul_size, 1, my_MPI_SIZE_T, buff, *buff_size, &position, MPI_COMM_WORLD);
+  
+  for (size_t nn = 0; nn < t_cumul_size; ++nn) {
+    
+    ret_cumul->get_map(nn).my_MPI_Pack(buff, *buff_size, &position);
+
+    ret_cumul->get_hd_map(nn).my_MPI_Pack(buff, *buff_size, &position);
+      
+    double t_th_square = ret_cumul->TH_square_v[nn];
+    MPI_Pack(&t_th_square, 1, MPI_DOUBLE, buff, *buff_size, &position, MPI_COMM_WORLD);
+  }
+  
+  size_t t_proba_dist_size = ret_cumul != NULL ? ret_cumul->proba_dist_v.size() : 0;
+  MPI_Pack(&t_proba_dist_size, 1, my_MPI_SIZE_T, buff, *buff_size, &position, MPI_COMM_WORLD);
+
+  for (size_t ii = 0; ii < t_proba_dist_size; ii++) {
+    ret_cumul->proba_dist_v[ii].my_MPI_Pack(buff, *buff_size, &position);
+  }
+  
+  
+  return buff;
+}
+
+static void MPI_Unpack_Cumulator(Cumulator<S>* mpi_ret_cumul, char* buff, unsigned int buff_size )
+{
+  size_t t_cumul_size;
+  int position = 0;
+  MPI_Unpack(buff, buff_size, &position, &t_cumul_size, 1, my_MPI_SIZE_T, MPI_COMM_WORLD);
+
+  for (size_t nn = 0; nn < t_cumul_size; ++nn) {
+
+    CumulMap t_cumulMap;
+    t_cumulMap.my_MPI_Unpack(buff, buff_size, &position);  
+    mpi_ret_cumul->add(nn, t_cumulMap);
+
+    HDCumulMap t_HDCumulMap;
+    t_HDCumulMap.my_MPI_Unpack(buff, buff_size, &position);
+    mpi_ret_cumul->add(nn, t_HDCumulMap);
+  
+    double t_th_square;
+    MPI_Unpack(buff, buff_size, &position, &t_th_square, 1, MPI_DOUBLE, MPI_COMM_WORLD);
+    mpi_ret_cumul->TH_square_v.push_back(t_th_square);
+  }
+  
+  size_t t_proba_dist_size;
+  MPI_Unpack(buff, buff_size, &position, &t_proba_dist_size, 1, my_MPI_SIZE_T, MPI_COMM_WORLD);
+  
+  size_t begin = mpi_ret_cumul->statdist_trajcount - t_proba_dist_size;
+  for (size_t ii = 0; ii < t_proba_dist_size; ii++) {
+    ProbaDist<S> t_proba_dist;
+    t_proba_dist.my_MPI_Unpack(buff, buff_size, &position);
+    mpi_ret_cumul->proba_dist_v[begin + ii] = t_proba_dist;
+  }    
+}
+
+
+static void MPI_Send_Cumulator(Cumulator<S>* ret_cumul, int dest) 
+{
+  size_t t_cumul_size = ret_cumul != NULL ? ret_cumul->cumul_map_v.size() : 0;
+  MPI_Send(&t_cumul_size, 1, my_MPI_SIZE_T, dest, 0, MPI_COMM_WORLD);
+
+  for (size_t nn = 0; nn < t_cumul_size; ++nn) {
+    
+    ret_cumul->get_map(nn).my_MPI_Send(dest);
+    ret_cumul->get_hd_map(nn).my_MPI_Send(dest);
+      
+    double t_th_square = ret_cumul->TH_square_v[nn];
+    MPI_Send(&t_th_square, 1, MPI_DOUBLE, dest, 0, MPI_COMM_WORLD);
+  }
+  
+  size_t t_proba_dist_size = ret_cumul != NULL ? ret_cumul->proba_dist_v.size() : 0;
+  MPI_Send(&t_proba_dist_size, 1, my_MPI_SIZE_T, dest, 0, MPI_COMM_WORLD);
+  
+  for (size_t ii = 0; ii < t_proba_dist_size; ii++) {
+    ret_cumul->proba_dist_v[ii].my_MPI_Send(dest);
+  }          
+}
+
+static void MPI_Recv_Cumulator(Cumulator<S>* mpi_ret_cumul, int origin) 
+{
+  size_t t_cumul_size;
+  MPI_Recv(&t_cumul_size, 1, my_MPI_SIZE_T, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+  for (size_t nn = 0; nn < t_cumul_size; ++nn) {
+
+    CumulMap t_cumulMap;
+    t_cumulMap.my_MPI_Recv(origin);  
+    mpi_ret_cumul->add(nn, t_cumulMap);
+
+    HDCumulMap t_HDCumulMap;
+    t_HDCumulMap.my_MPI_Recv(origin);
+    mpi_ret_cumul->add(nn, t_HDCumulMap);
+  
+    double t_th_square;
+    MPI_Recv(&t_th_square, 1, MPI_DOUBLE, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    mpi_ret_cumul->TH_square_v.push_back(t_th_square);
+  }
+  
+  size_t t_proba_dist_size;
+  MPI_Recv(&t_proba_dist_size, 1, my_MPI_SIZE_T, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+  size_t begin = mpi_ret_cumul->statdist_trajcount - t_proba_dist_size;
+
+  for (size_t ii = 0; ii < t_proba_dist_size; ii++) {
+    // Here we are receiving the proba_dist, which is a map of <state, double>
+    ProbaDist<S> t_proba_dist;
+    t_proba_dist.my_MPI_Recv(origin);
+    mpi_ret_cumul->proba_dist_v[begin+ii] = t_proba_dist;  
+  }   
+}
+
+static Cumulator<S>* mergePairOfMPICumulators(Cumulator<S>* ret_cumul, int world_rank, int dest, int origin, RunConfig* runconfig, bool pack) 
+{
+  if (world_rank == dest) {
+        
+    unsigned int other_cumulator_size;
+    MPI_Recv( &other_cumulator_size, 1, MPI_UNSIGNED, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+    unsigned int other_cumulator_statdist;
+    MPI_Recv( &other_cumulator_statdist, 1, MPI_UNSIGNED, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+    if (ret_cumul != NULL) {
+      ret_cumul->sample_count += other_cumulator_size;
+      ret_cumul->statdist_trajcount += other_cumulator_statdist;
+      ret_cumul->proba_dist_v.resize(ret_cumul->statdist_trajcount);
+      
+    } else {
+      ret_cumul = new Cumulator<S>(runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), other_cumulator_size, other_cumulator_statdist);
+    }
+    
+    size_t remote_cumul_size;
+    MPI_Recv( &remote_cumul_size, 1, my_MPI_SIZE_T, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+    int remote_max_tick_index;
+    MPI_Recv( &remote_max_tick_index, 1, MPI_INT, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+    if (remote_cumul_size > ret_cumul->cumul_map_v.size()) {
+      ret_cumul->cumul_map_v.resize(remote_cumul_size);
+      ret_cumul->hd_cumul_map_v.resize(remote_cumul_size);
+    }
+    
+    ret_cumul->computeMaxTickIndex();
+    if (remote_max_tick_index > ret_cumul->max_tick_index) {
+      ret_cumul->max_tick_index = ret_cumul->tick_index = remote_max_tick_index;
+    }
+    
+    if (pack) {
+      unsigned int buff_size;
+      MPI_Recv( &buff_size, 1, MPI_UNSIGNED, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      char* buff = new char[buff_size];
+      MPI_Recv( buff, buff_size, MPI_PACKED, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
+      
+      MPI_Unpack_Cumulator(ret_cumul, buff, buff_size);
+      delete buff;
+      
+    } else {
+      MPI_Recv_Cumulator(ret_cumul, origin);
+    }
+    
+  } else if (world_rank == origin) {
+        
+    unsigned int local_cumulator_size = ret_cumul != NULL ? ret_cumul->sample_count : 0;
+    MPI_Send(&local_cumulator_size, 1, MPI_UNSIGNED, dest, 0, MPI_COMM_WORLD);
+    
+    unsigned int local_statdist_trajcount = ret_cumul != NULL ? ret_cumul->statdist_trajcount : 0;
+    MPI_Send(&local_statdist_trajcount, 1, MPI_UNSIGNED, dest, 0, MPI_COMM_WORLD);
+    
+    if (ret_cumul != NULL) {
+      ret_cumul->computeMaxTickIndex();
+    }
+    
+    size_t local_cumul_size = ret_cumul != NULL ? ret_cumul->cumul_map_v.size() : 0;
+    MPI_Send(&local_cumul_size, 1, my_MPI_SIZE_T, dest, 0, MPI_COMM_WORLD);
+
+    int local_max_tick_index = ret_cumul != NULL ? ret_cumul->max_tick_index : 0;
+    MPI_Send(&local_max_tick_index, 1, MPI_INT, dest, 0, MPI_COMM_WORLD);
+
+    if (pack) {
+
+      unsigned int buff_size;
+      char* buff = MPI_Pack_Cumulator(ret_cumul, 0, &buff_size);
+      MPI_Send(&buff_size, 1, MPI_UNSIGNED, dest, 0, MPI_COMM_WORLD);
+      MPI_Send( buff, buff_size, MPI_PACKED, dest, 0, MPI_COMM_WORLD); 
+      delete buff;
+      
+    } else {
+     
+      MPI_Send_Cumulator(ret_cumul, dest);
+    }
+  }
+  
+  return ret_cumul;
+}
 
 #endif
+
+//   static void mergePairOfCumulators(Cumulator* cumulator_1, Cumulator* cumulator_2);
+
+// #ifdef MPI_COMPAT
+//   static Cumulator* mergePairOfMPICumulators(Cumulator* ret_cumul, int world_rank, int rank_receives, int rank_sends, RunConfig* runconfig, bool pack=true);
+
+//   static size_t MPI_Size_Cumulator(Cumulator* ret_cumul);
+//   static char* MPI_Pack_Cumulator(Cumulator* ret_cumul, int dest, unsigned int * buff_size);
+//   static void MPI_Unpack_Cumulator(Cumulator* mpi_ret_cumul, char* buff, unsigned int buff_size);
+
+// #endif
 
 };
 

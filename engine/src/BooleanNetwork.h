@@ -811,11 +811,19 @@ public:
 
 public:
   NetworkState(const NetworkState_Impl& state) : state(state) { }
+  NetworkState(const NetworkState& state) : state(state.getState()) {}
 #ifdef USE_DYNAMIC_BITSET
   NetworkState(const NetworkState_Impl& state, int copy) : state(state, 1) { }
+  NetworkState(const NetworkState& state, int copy) : state(state.getState(), 1) {}
 #else
   NetworkState(const NetworkState_Impl& state, int copy) : state(state) { }
+  NetworkState(const NetworkState& state, int copy) : state(state.getState()) {}
 #endif
+
+  NetworkState operator&(const NetworkState& mask) const { 
+    return NetworkState(state & mask.getState());
+  }
+  
 
 #ifdef USE_STATIC_BITSET
   NetworkState() { }
@@ -880,6 +888,7 @@ public:
   }
 #endif
   unsigned int hamming(Network* network, const NetworkState_Impl& state) const;
+  unsigned int hamming(Network* network, const NetworkState& state) const;
 
 
 #ifdef MPI_COMPAT
@@ -1039,16 +1048,12 @@ namespace std {
   };
 
   // // Added less operator, necessary for maps, sets. Code from https://stackoverflow.com/a/21245301/11713763
-  // template <> struct less<bitset<MAXNODES> > : public binary_function<bitset<MAXNODES>, bitset<MAXNODES>, bool>
-  // {
-  //   size_t operator()(const bitset<MAXNODES>& val1, const bitset<MAXNODES>& val2) const {
-  //   for (int i = MAXNODES-1; i >= 0; i--) {
-  //       if (val1[i] ^ val2[i]) return val2[i];
-  //   }
-  //   return false;
-
-  //   }
-  // };
+  template <> struct less<NetworkState> : public binary_function<NetworkState, NetworkState, bool>
+  {
+    size_t operator()(const NetworkState& val1, const NetworkState& val2) const {
+      return val1.getState() < val2.getState();
+    }
+  };
 }
 
 // global state of the population boolean network
@@ -1095,7 +1100,7 @@ public:
   }
   
   // & operator for applying the mask
-  PopNetworkState operator&(const NetworkState_Impl& mask) { 
+  PopNetworkState operator&(const NetworkState_Impl& mask) const { 
     
     PopNetworkState masked_pop_state = PopNetworkState();
     for (auto network_state_pop : mp) {
@@ -1107,7 +1112,7 @@ public:
   }
   
   // & operator for applying the mask
-  PopNetworkState operator&(const NetworkState& mask) { 
+  PopNetworkState operator&(const NetworkState& mask) const { 
     
     PopNetworkState masked_pop_state = PopNetworkState();
     for (auto network_state_pop : mp) {
