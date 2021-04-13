@@ -79,7 +79,7 @@ POP_LIB_OBJS := PopMaBEstEngine$(INFIX).o
 LIB_SRC := FinalStateSimulationEngine.cc StochasticSimulationEngine.cc MetaEngine.cc FixedPointEngine.cc ProbTrajEngine.cc MaBEstEngine.cc EnsembleEngine.cc ProbaDist.cc StatDistDisplayer.cc FinalStateDisplayer.cc
 LIB_OBJS := FinalStateSimulationEngine$(INFIX).o StochasticSimulationEngine$(INFIX).o MetaEngine$(INFIX).o FixedPointEngine$(INFIX).o ProbTrajEngine$(INFIX).o MaBEstEngine$(INFIX).o EnsembleEngine$(INFIX).o ProbaDist$(INFIX).o StatDistDisplayer$(INFIX).o FinalStateDisplayer$(INFIX).o
 
-SERVER_OBJS := Server.o DataStreamer.o RPC.o
+SERVER_OBJS := Server$(INFIX).o DataStreamer$(INFIX).o RPC$(INFIX).o
 
 # if USE_LIB is set, maboss library will be used for MaBoSS and MaBoSS-server programs => that will oblige the user to set LD_LIBRARY_PATH or DYLD_LIBRARY_PATH environment variable to execute MaBoSS or MaBoSS-server
 #USE_LIB = 1
