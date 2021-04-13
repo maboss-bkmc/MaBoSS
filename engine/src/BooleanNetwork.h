@@ -891,6 +891,7 @@ public:
   
   PopNetworkState() : mp(std::map<NetworkState_Impl, unsigned int>()), hash(0) { }
   PopNetworkState(const PopNetworkState &p ) { *this = p; }
+  PopNetworkState(const PopNetworkState &p , int copy) { *this = p; }
   
   PopNetworkState(NetworkState_Impl state, unsigned int value) : mp(std::map<NetworkState_Impl, unsigned int>()), hash(0) {
     mp[state] = value;
@@ -918,6 +919,18 @@ public:
     PopNetworkState masked_pop_state = PopNetworkState();
     for (auto network_state_pop : mp) {
       NetworkState_Impl masked_network_state = network_state_pop.first & mask;
+      masked_pop_state.addStatePop(masked_network_state, network_state_pop.second);
+    }
+    
+    return masked_pop_state; 
+  }
+  
+  // & operator for applying the mask
+  PopNetworkState operator&(const NetworkState& mask) { 
+    
+    PopNetworkState masked_pop_state = PopNetworkState();
+    for (auto network_state_pop : mp) {
+      NetworkState_Impl masked_network_state = network_state_pop.first & mask.getState();
       masked_pop_state.addStatePop(masked_network_state, network_state_pop.second);
     }
     

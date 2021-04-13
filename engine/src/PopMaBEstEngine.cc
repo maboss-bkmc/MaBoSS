@@ -109,7 +109,7 @@ PopMaBEstEngine::PopMaBEstEngine(PopNetwork *pop_network, RunConfig *runconfig) 
   unsigned int firstcount = count + sample_count - count * thread_count;
   for (unsigned int nn = 0; nn < thread_count; ++nn)
   {
-    PopCumulator *cumulator = new PopCumulator(runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), (nn == 0 ? firstcount : count));
+    GenericCumulator<PopNetworkState> *cumulator = new GenericCumulator<PopNetworkState>(runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), (nn == 0 ? firstcount : count));
     if (has_internal)
     {
 #ifdef USE_STATIC_BITSET
@@ -190,13 +190,13 @@ struct ArgWrapper
   PopMaBEstEngine *mabest;
   unsigned int start_count_thread;
   unsigned int sample_count_thread;
-  PopCumulator *cumulator;
+  GenericCumulator<PopNetworkState> *cumulator;
   RandomGeneratorFactory *randgen_factory;
   int seed;
   STATE_MAP<NetworkState_Impl, unsigned int> *fixpoint_map;
   std::ostream *output_traj;
 
-  ArgWrapper(PopMaBEstEngine *mabest, unsigned int start_count_thread, unsigned int sample_count_thread, PopCumulator *cumulator, RandomGeneratorFactory *randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int> *fixpoint_map, std::ostream *output_traj) : mabest(mabest), start_count_thread(start_count_thread), sample_count_thread(sample_count_thread), cumulator(cumulator), randgen_factory(randgen_factory), seed(seed), fixpoint_map(fixpoint_map), output_traj(output_traj) {}
+  ArgWrapper(PopMaBEstEngine *mabest, unsigned int start_count_thread, unsigned int sample_count_thread, GenericCumulator<PopNetworkState> *cumulator, RandomGeneratorFactory *randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int> *fixpoint_map, std::ostream *output_traj) : mabest(mabest), start_count_thread(start_count_thread), sample_count_thread(sample_count_thread), cumulator(cumulator), randgen_factory(randgen_factory), seed(seed), fixpoint_map(fixpoint_map), output_traj(output_traj) {}
 };
 
 void *PopMaBEstEngine::threadWrapper(void *arg)
@@ -219,7 +219,7 @@ void *PopMaBEstEngine::threadWrapper(void *arg)
   return NULL;
 }
 
-void PopMaBEstEngine::runThread(PopCumulator *cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory *randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int> *fixpoint_map, std::ostream *output_traj)
+void PopMaBEstEngine::runThread(GenericCumulator<PopNetworkState> *cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory *randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int> *fixpoint_map, std::ostream *output_traj)
 {
   const std::vector<Node *> &nodes = pop_network->getNodes();
   unsigned int stable_cnt = 0;
@@ -486,7 +486,7 @@ STATE_MAP<NetworkState_Impl, unsigned int> *PopMaBEstEngine::mergeFixpointMaps()
 
 void PopMaBEstEngine::epilogue()
 {
-  merged_cumulator = PopCumulator::mergePopCumulators(runconfig, cumulator_v);
+  merged_cumulator = GenericCumulator<PopNetworkState>::mergeCumulators(runconfig, cumulator_v);
   merged_cumulator->epilogue(pop_network, reference_state);
 
   for (auto t_cumulator : cumulator_v)
@@ -596,7 +596,7 @@ void PopMaBEstEngine::displayFixpoints(FixedPointDisplayer *displayer) const
 
 void PopMaBEstEngine::displayPopProbTraj(ProbTrajDisplayer<PopNetworkState> *displayer) const
 {
-  merged_cumulator->displayPopProbTraj(pop_network, refnode_count, displayer);
+  merged_cumulator->displayProbTraj(pop_network, refnode_count, displayer);
 }
 
 void PopMaBEstEngine::display(ProbTrajDisplayer<PopNetworkState> *pop_probtraj_displayer, FixedPointDisplayer *fp_displayer) const

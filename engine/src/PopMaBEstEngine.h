@@ -55,7 +55,7 @@
 
 // #include "MetaEngine.h"
 #include "BooleanNetwork.h"
-#include "PopCumulator.h"
+#include "GenericCumulator.h"
 #include "RandomGenerator.h"
 #include "RunConfig.h"
 #include "FixedPointDisplayer.h"
@@ -84,8 +84,8 @@ class PopMaBEstEngine {
   STATE_MAP<NetworkState_Impl, unsigned int> fixpoints;
   std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*> fixpoint_map_v;
   
-  PopCumulator* merged_cumulator;
-  std::vector<PopCumulator*> cumulator_v;
+  GenericCumulator<PopNetworkState>* merged_cumulator;
+  std::vector<GenericCumulator<PopNetworkState>* > cumulator_v;
 
   STATE_MAP<NetworkState_Impl, unsigned int>* mergeFixpointMaps();
 
@@ -117,7 +117,7 @@ public:
   const STATE_MAP<NetworkState_Impl, unsigned int>& getFixpoints() const {return fixpoints;}
   const std::map<unsigned int, std::pair<NetworkState, double> > getFixPointsDists() const;
 
-  PopCumulator* getMergedCumulator() {
+  GenericCumulator<PopNetworkState>* getMergedCumulator() {
     return merged_cumulator; 
   }
 
@@ -130,7 +130,7 @@ public:
   double computeTH(const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
   void epilogue();
   static void* threadWrapper(void *arg);
-  void runThread(PopCumulator* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj);
+  void runThread(GenericCumulator<PopNetworkState>* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj);
   void displayRunStats(std::ostream& os, time_t start_time, time_t end_time) const;
 
 };
