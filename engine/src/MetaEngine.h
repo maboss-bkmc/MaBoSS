@@ -54,7 +54,6 @@
 #include <assert.h>
 
 #include "BooleanNetwork.h"
-#include "Cumulator.h"
 #include "RandomGenerator.h"
 #include "RunConfig.h"
 #include "FixedPointDisplayer.h"

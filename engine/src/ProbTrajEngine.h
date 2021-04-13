@@ -67,8 +67,8 @@ class ProbTrajEngine : public FixedPointEngine {
 
 protected:
   
-  Cumulator* merged_cumulator;
-  std::vector<Cumulator*> cumulator_v;
+  Cumulator<NetworkState>* merged_cumulator;
+  std::vector<Cumulator<NetworkState>*> cumulator_v;
 
 public:
 
@@ -78,7 +78,7 @@ public:
   const STATE_MAP<NetworkState_Impl, double> getNthStateDist(int nn) const;
   const STATE_MAP<NetworkState_Impl, double> getAsymptoticStateDist() const;
 
-  Cumulator* getMergedCumulator() {
+  Cumulator<NetworkState>* getMergedCumulator() {
     return merged_cumulator; 
   }
 

@@ -560,6 +560,11 @@ unsigned int NetworkState::hamming(Network* network, const NetworkState_Impl& st
 #endif
 }
 
+unsigned int NetworkState::hamming(Network* network, const NetworkState& state2) const
+{
+  return hamming(network, state2.getState());
+}
+
 void Network::displayHeader(std::ostream& os) const
 {
   std::vector<Node*>::const_iterator begin = nodes.begin();

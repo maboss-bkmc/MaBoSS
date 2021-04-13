@@ -763,11 +763,19 @@ public:
 
 public:
   NetworkState(const NetworkState_Impl& state) : state(state) { }
+  NetworkState(const NetworkState& state) : state(state.getState()) {}
 #ifdef USE_DYNAMIC_BITSET
   NetworkState(const NetworkState_Impl& state, int copy) : state(state, 1) { }
+  NetworkState(const NetworkState& state, int copy) : state(state.getState(), 1) {}
 #else
   NetworkState(const NetworkState_Impl& state, int copy) : state(state) { }
+  NetworkState(const NetworkState& state, int copy) : state(state.getState()) {}
 #endif
+
+  NetworkState operator&(const NetworkState& mask) { 
+    return NetworkState(state & mask.getState());
+  }
+  
 
 #ifdef USE_STATIC_BITSET
   NetworkState() { }
@@ -832,6 +840,7 @@ public:
   }
 #endif
   unsigned int hamming(Network* network, const NetworkState_Impl& state) const;
+  unsigned int hamming(Network* network, const NetworkState& state) const;
 
   static NodeState getState(Node* node, const NetworkState_Impl &state) {
 #if defined(USE_STATIC_BITSET) || defined(USE_BOOST_BITSET) || defined(USE_DYNAMIC_BITSET)

@@ -134,7 +134,7 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
   unsigned int offset = 0;
   for (unsigned int nn = 0; nn < thread_count; ++nn) {
     unsigned int t_count = (nn == 0 ? firstcount : count);
-    Cumulator* cumulator = new Cumulator(runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), t_count);
+    Cumulator<NetworkState>* cumulator = new Cumulator<NetworkState>(runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), t_count);
     if (has_internal) {
 #ifdef USE_STATIC_BITSET
       NetworkState_Impl state2 = ~internal_state.getState();
@@ -236,7 +236,7 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
 
       for (nnn = 0; nnn < count_by_models.size(); nnn++) {
         if (count_by_models[nnn] > 0) {
-          Cumulator* t_cumulator = new Cumulator(
+          Cumulator<NetworkState>* t_cumulator = new Cumulator<NetworkState>(
             runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), count_by_models[nnn]
           );
       
@@ -327,10 +327,10 @@ struct EnsembleArgWrapper {
   EnsembleEngine* mabest;
   unsigned int start_count_thread;
   unsigned int sample_count_thread;
-  Cumulator* cumulator;
+  Cumulator<NetworkState>* cumulator;
 
   std::vector<unsigned int> simulations_per_model;
-  std::vector<Cumulator*> models_cumulators;
+  std::vector<Cumulator<NetworkState>*> models_cumulators;
   std::vector<STATE_MAP<NetworkState_Impl, unsigned int>* > models_fixpoints;
   
   RandomGeneratorFactory* randgen_factory;
@@ -340,8 +340,8 @@ struct EnsembleArgWrapper {
 
   EnsembleArgWrapper(
     EnsembleEngine* mabest, unsigned int start_count_thread, unsigned int sample_count_thread, 
-    Cumulator* cumulator, std::vector<unsigned int> simulations_per_model, 
-    std::vector<Cumulator*> models_cumulators, std::vector<STATE_MAP<NetworkState_Impl, unsigned int>* > models_fixpoints,
+    Cumulator<NetworkState>* cumulator, std::vector<unsigned int> simulations_per_model, 
+    std::vector<Cumulator<NetworkState>*> models_cumulators, std::vector<STATE_MAP<NetworkState_Impl, unsigned int>* > models_fixpoints,
     RandomGeneratorFactory* randgen_factory, int seed, 
     STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj) :
 
@@ -374,9 +374,9 @@ void* EnsembleEngine::threadWrapper(void *arg)
   return NULL;
 }
 
-void EnsembleEngine::runThread(Cumulator* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, 
+void EnsembleEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, 
   RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj, 
-  std::vector<unsigned int> simulation_ind, std::vector<Cumulator*> t_models_cumulators, std::vector<STATE_MAP<NetworkState_Impl, unsigned int>* > t_models_fixpoints)
+  std::vector<unsigned int> simulation_ind, std::vector<Cumulator<NetworkState>*> t_models_cumulators, std::vector<STATE_MAP<NetworkState_Impl, unsigned int>* > t_models_fixpoints)
 {
   unsigned int stable_cnt = 0;
   NetworkState network_state; 
@@ -588,7 +588,7 @@ void EnsembleEngine::mergeEnsembleFixpointMaps()
 
 void EnsembleEngine::epilogue()
 {
-  merged_cumulator = Cumulator::mergeCumulators(runconfig, cumulator_v);
+  merged_cumulator = Cumulator<NetworkState>::mergeCumulators(runconfig, cumulator_v);
   merged_cumulator->epilogue(networks[0], reference_state);
 
   if (save_individual_result) {
@@ -596,14 +596,14 @@ void EnsembleEngine::epilogue()
     cumulators_per_model.resize(networks.size(), NULL);
 
     for (unsigned int i=0; i < networks.size(); i++) {
-      std::vector<Cumulator*> model_cumulator = cumulators_thread_v[i];
+      std::vector<Cumulator<NetworkState>*> model_cumulator = cumulators_thread_v[i];
       if (model_cumulator.size() > 0) {
         
         if (model_cumulator.size() == 1) {
           cumulators_per_model[i] = model_cumulator[0];
           cumulators_per_model[i]->epilogue(networks[i], reference_state);
         } else {
-          Cumulator* t_cumulator = Cumulator::mergeCumulators(runconfig, model_cumulator);
+          Cumulator<NetworkState>* t_cumulator = Cumulator<NetworkState>::mergeCumulators(runconfig, model_cumulator);
           t_cumulator->epilogue(networks[i], reference_state);
           cumulators_per_model[i] = t_cumulator;
           

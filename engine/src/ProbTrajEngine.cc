@@ -51,206 +51,206 @@
 #include "Probe.h"
 #include "Utils.h"
 
-const std::map<double, STATE_MAP<NetworkState_Impl, double> > ProbTrajEngine::getStateDists() const {
-  return merged_cumulator->getStateDists();
-}
+// const std::map<double, STATE_MAP<NetworkState_Impl, double> > ProbTrajEngine::getStateDists() const {
+//   return merged_cumulator->getStateDists();
+// }
 
-const STATE_MAP<NetworkState_Impl, double> ProbTrajEngine::getNthStateDist(int nn) const {
-  return merged_cumulator->getNthStateDist(nn);
-}
+// const STATE_MAP<NetworkState_Impl, double> ProbTrajEngine::getNthStateDist(int nn) const {
+//   return merged_cumulator->getNthStateDist(nn);
+// }
 
-const STATE_MAP<NetworkState_Impl, double> ProbTrajEngine::getAsymptoticStateDist() const {
-  return merged_cumulator->getAsymptoticStateDist();
-}
+// const STATE_MAP<NetworkState_Impl, double> ProbTrajEngine::getAsymptoticStateDist() const {
+//   return merged_cumulator->getAsymptoticStateDist();
+// }
 
-const std::map<double, std::map<Node *, double> > ProbTrajEngine::getNodesDists() const {
+// const std::map<double, std::map<Node *, double> > ProbTrajEngine::getNodesDists() const {
 
-  std::map<double, std::map<Node *, double> > result;
+//   std::map<double, std::map<Node *, double> > result;
 
-  const std::map<double, STATE_MAP<NetworkState_Impl, double> > state_dist = merged_cumulator->getStateDists();
+//   const std::map<double, STATE_MAP<NetworkState_Impl, double> > state_dist = merged_cumulator->getStateDists();
 
-  std::map<double, STATE_MAP<NetworkState_Impl, double> >::const_iterator begin = state_dist.begin();
-  std::map<double, STATE_MAP<NetworkState_Impl, double> >::const_iterator end = state_dist.end();
+//   std::map<double, STATE_MAP<NetworkState_Impl, double> >::const_iterator begin = state_dist.begin();
+//   std::map<double, STATE_MAP<NetworkState_Impl, double> >::const_iterator end = state_dist.end();
   
-  const std::vector<Node*>& nodes = network->getNodes();
+//   const std::vector<Node*>& nodes = network->getNodes();
 
-  while(begin != end) {
+//   while(begin != end) {
 
-    std::map<Node *, double> node_dist;
-    STATE_MAP<NetworkState_Impl, double> present_state_dist = begin->second;
+//     std::map<Node *, double> node_dist;
+//     STATE_MAP<NetworkState_Impl, double> present_state_dist = begin->second;
 
-    std::vector<Node *>::const_iterator nodes_begin = nodes.begin();
-    std::vector<Node *>::const_iterator nodes_end = nodes.end();
+//     std::vector<Node *>::const_iterator nodes_begin = nodes.begin();
+//     std::vector<Node *>::const_iterator nodes_end = nodes.end();
 
-    while(nodes_begin != nodes_end) {
+//     while(nodes_begin != nodes_end) {
 
-      if (!(*nodes_begin)->isInternal())
-      {
-        double dist = 0;
+//       if (!(*nodes_begin)->isInternal())
+//       {
+//         double dist = 0;
 
-        STATE_MAP<NetworkState_Impl, double>::const_iterator states_begin = present_state_dist.begin();
-        STATE_MAP<NetworkState_Impl, double>::const_iterator states_end = present_state_dist.end();
+//         STATE_MAP<NetworkState_Impl, double>::const_iterator states_begin = present_state_dist.begin();
+//         STATE_MAP<NetworkState_Impl, double>::const_iterator states_end = present_state_dist.end();
       
-        while(states_begin != states_end) {
+//         while(states_begin != states_end) {
 
-          NetworkState state = states_begin->first;
-          dist += states_begin->second * ((double) state.getNodeState(*nodes_begin));
+//           NetworkState state = states_begin->first;
+//           dist += states_begin->second * ((double) state.getNodeState(*nodes_begin));
 
-          states_begin++;
-        }
+//           states_begin++;
+//         }
 
-        node_dist[*nodes_begin] = dist;
-      }
-      nodes_begin++;
-    }
+//         node_dist[*nodes_begin] = dist;
+//       }
+//       nodes_begin++;
+//     }
 
-    result[begin->first] = node_dist;
+//     result[begin->first] = node_dist;
 
-    begin++;
-  }
+//     begin++;
+//   }
 
-  return result;
-}
+//   return result;
+// }
 
-const std::map<Node*, double> ProbTrajEngine::getNthNodesDist(int nn) const {
-  std::map<Node *, double> result;
+// const std::map<Node*, double> ProbTrajEngine::getNthNodesDist(int nn) const {
+//   std::map<Node *, double> result;
 
-  const STATE_MAP<NetworkState_Impl, double> state_dist = merged_cumulator->getNthStateDist(nn);
+//   const STATE_MAP<NetworkState_Impl, double> state_dist = merged_cumulator->getNthStateDist(nn);
   
-  const std::vector<Node*>& nodes = network->getNodes();
-  std::vector<Node *>::const_iterator nodes_begin = nodes.begin();
-  std::vector<Node *>::const_iterator nodes_end = nodes.end();
+//   const std::vector<Node*>& nodes = network->getNodes();
+//   std::vector<Node *>::const_iterator nodes_begin = nodes.begin();
+//   std::vector<Node *>::const_iterator nodes_end = nodes.end();
 
-  while(nodes_begin != nodes_end) {
+//   while(nodes_begin != nodes_end) {
 
-    if (!(*nodes_begin)->isInternal())
-    {
-      double dist = 0;
+//     if (!(*nodes_begin)->isInternal())
+//     {
+//       double dist = 0;
 
-      STATE_MAP<NetworkState_Impl, double>::const_iterator states_begin = state_dist.begin();
-      STATE_MAP<NetworkState_Impl, double>::const_iterator states_end = state_dist.end();
+//       STATE_MAP<NetworkState_Impl, double>::const_iterator states_begin = state_dist.begin();
+//       STATE_MAP<NetworkState_Impl, double>::const_iterator states_end = state_dist.end();
     
-      while(states_begin != states_end) {
+//       while(states_begin != states_end) {
 
-        NetworkState state = states_begin->first;
-        dist += states_begin->second * ((double) state.getNodeState(*nodes_begin));
+//         NetworkState state = states_begin->first;
+//         dist += states_begin->second * ((double) state.getNodeState(*nodes_begin));
 
-        states_begin++;
-      }
+//         states_begin++;
+//       }
 
-      result[*nodes_begin] = dist;
-    }
-    nodes_begin++;
-  }
+//       result[*nodes_begin] = dist;
+//     }
+//     nodes_begin++;
+//   }
 
-  return result;  
-}
+//   return result;  
+// }
 
-const std::map<Node*, double> ProbTrajEngine::getAsymptoticNodesDist() const {
-  std::map<Node *, double> result;
+// const std::map<Node*, double> ProbTrajEngine::getAsymptoticNodesDist() const {
+//   std::map<Node *, double> result;
 
-  const STATE_MAP<NetworkState_Impl, double> state_dist = merged_cumulator->getAsymptoticStateDist();
+//   const STATE_MAP<NetworkState_Impl, double> state_dist = merged_cumulator->getAsymptoticStateDist();
   
-  const std::vector<Node*>& nodes = network->getNodes();
-  std::vector<Node *>::const_iterator nodes_begin = nodes.begin();
-  std::vector<Node *>::const_iterator nodes_end = nodes.end();
+//   const std::vector<Node*>& nodes = network->getNodes();
+//   std::vector<Node *>::const_iterator nodes_begin = nodes.begin();
+//   std::vector<Node *>::const_iterator nodes_end = nodes.end();
 
-  while(nodes_begin != nodes_end) {
+//   while(nodes_begin != nodes_end) {
 
-    if (!(*nodes_begin)->isInternal())
-    {
-      double dist = 0;
+//     if (!(*nodes_begin)->isInternal())
+//     {
+//       double dist = 0;
 
-      STATE_MAP<NetworkState_Impl, double>::const_iterator states_begin = state_dist.begin();
-      STATE_MAP<NetworkState_Impl, double>::const_iterator states_end = state_dist.end();
+//       STATE_MAP<NetworkState_Impl, double>::const_iterator states_begin = state_dist.begin();
+//       STATE_MAP<NetworkState_Impl, double>::const_iterator states_end = state_dist.end();
     
-      while(states_begin != states_end) {
+//       while(states_begin != states_end) {
 
-        NetworkState state = states_begin->first;
-        dist += states_begin->second * ((double) state.getNodeState(*nodes_begin));
+//         NetworkState state = states_begin->first;
+//         dist += states_begin->second * ((double) state.getNodeState(*nodes_begin));
 
-        states_begin++;
-      }
+//         states_begin++;
+//       }
 
-      result[*nodes_begin] = dist;
-    }
-    nodes_begin++;
-  }
+//       result[*nodes_begin] = dist;
+//     }
+//     nodes_begin++;
+//   }
 
-  return result;  
-}
+//   return result;  
+// }
 
-const std::map<double, double> ProbTrajEngine::getNodeDists(Node * node) const {
+// const std::map<double, double> ProbTrajEngine::getNodeDists(Node * node) const {
  
-  std::map<double, double> result;
+//   std::map<double, double> result;
 
-  const std::map<double, STATE_MAP<NetworkState_Impl, double> > state_dist = merged_cumulator->getStateDists();
+//   const std::map<double, STATE_MAP<NetworkState_Impl, double> > state_dist = merged_cumulator->getStateDists();
 
-  std::map<double, STATE_MAP<NetworkState_Impl, double> >::const_iterator begin = state_dist.begin();
-  std::map<double, STATE_MAP<NetworkState_Impl, double> >::const_iterator end = state_dist.end();
+//   std::map<double, STATE_MAP<NetworkState_Impl, double> >::const_iterator begin = state_dist.begin();
+//   std::map<double, STATE_MAP<NetworkState_Impl, double> >::const_iterator end = state_dist.end();
 
-  while(begin != end) {
+//   while(begin != end) {
 
-    STATE_MAP<NetworkState_Impl, double> present_state_dist = begin->second;
-    double dist = 0;
+//     STATE_MAP<NetworkState_Impl, double> present_state_dist = begin->second;
+//     double dist = 0;
 
-    STATE_MAP<NetworkState_Impl, double>::const_iterator states_begin = present_state_dist.begin();
-    STATE_MAP<NetworkState_Impl, double>::const_iterator states_end = present_state_dist.end();
+//     STATE_MAP<NetworkState_Impl, double>::const_iterator states_begin = present_state_dist.begin();
+//     STATE_MAP<NetworkState_Impl, double>::const_iterator states_end = present_state_dist.end();
   
-    while(states_begin != states_end) {
+//     while(states_begin != states_end) {
 
-      NetworkState state = states_begin->first;
-      dist += states_begin->second * ((double) state.getNodeState(node));
+//       NetworkState state = states_begin->first;
+//       dist += states_begin->second * ((double) state.getNodeState(node));
 
-      states_begin++;
-    }
-    result[begin->first] = dist;
+//       states_begin++;
+//     }
+//     result[begin->first] = dist;
 
-    begin++;
-  }
+//     begin++;
+//   }
 
-  return result; 
-}
+//   return result; 
+// }
 
-double ProbTrajEngine::getNthNodeDist(Node * node, int nn) const {
+// double ProbTrajEngine::getNthNodeDist(Node * node, int nn) const {
 
-  double result = 0;
+//   double result = 0;
 
-  const STATE_MAP<NetworkState_Impl, double> state_dist = merged_cumulator->getNthStateDist(nn);
+//   const STATE_MAP<NetworkState_Impl, double> state_dist = merged_cumulator->getNthStateDist(nn);
   
-  STATE_MAP<NetworkState_Impl, double>::const_iterator states_begin = state_dist.begin();
-  STATE_MAP<NetworkState_Impl, double>::const_iterator states_end = state_dist.end();
+//   STATE_MAP<NetworkState_Impl, double>::const_iterator states_begin = state_dist.begin();
+//   STATE_MAP<NetworkState_Impl, double>::const_iterator states_end = state_dist.end();
 
-  while(states_begin != states_end) {
+//   while(states_begin != states_end) {
 
-    NetworkState state = states_begin->first;
-    result += states_begin->second * ((double) state.getNodeState(node));
+//     NetworkState state = states_begin->first;
+//     result += states_begin->second * ((double) state.getNodeState(node));
 
-    states_begin++;
-  }
+//     states_begin++;
+//   }
 
-  return result;  
-}
+//   return result;  
+// }
 
-double ProbTrajEngine::getAsymptoticNodeDist(Node * node) const {
+// double ProbTrajEngine::getAsymptoticNodeDist(Node * node) const {
 
-  double result = 0;
+//   double result = 0;
 
-  const STATE_MAP<NetworkState_Impl, double> state_dist = merged_cumulator->getAsymptoticStateDist();
+//   const STATE_MAP<NetworkState_Impl, double> state_dist = merged_cumulator->getAsymptoticStateDist();
   
-  STATE_MAP<NetworkState_Impl, double>::const_iterator states_begin = state_dist.begin();
-  STATE_MAP<NetworkState_Impl, double>::const_iterator states_end = state_dist.end();
+//   STATE_MAP<NetworkState_Impl, double>::const_iterator states_begin = state_dist.begin();
+//   STATE_MAP<NetworkState_Impl, double>::const_iterator states_end = state_dist.end();
 
-  while(states_begin != states_end) {
+//   while(states_begin != states_end) {
 
-    NetworkState state = states_begin->first;
-    result += states_begin->second * ((double) state.getNodeState(node));
+//     NetworkState state = states_begin->first;
+//     result += states_begin->second * ((double) state.getNodeState(node));
 
-    states_begin++;
-  }
+//     states_begin++;
+//   }
 
-  return result;  
-}
+//   return result;  
+// }
 
 const double ProbTrajEngine::getFinalTime() const {
   return merged_cumulator->getFinalTime();
