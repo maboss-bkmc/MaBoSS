@@ -32,10 +32,10 @@ setup (name = 'cmaboss',
    description = """MaBoSS python bindings""",
    ext_modules = [
       getExtensionByMaxnodes(), 
-      # getExtensionByMaxnodes(128), 
-      # getExtensionByMaxnodes(256), 
-      # getExtensionByMaxnodes(512),
-      # getExtensionByMaxnodes(1024)
+      getExtensionByMaxnodes(128), 
+      getExtensionByMaxnodes(256), 
+      getExtensionByMaxnodes(512),
+      getExtensionByMaxnodes(1024)
    ],
    install_requires = ["numpy"]
 )

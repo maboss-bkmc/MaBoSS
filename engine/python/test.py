@@ -77,4 +77,5 @@ class TestCMaBoSS(TestCase):
                 cmaboss.MaBoSSSim(network_str=bnd.read(),config_str=cfg.read())
 
     def test_load_sbml(self):
-        cmaboss.MaBoSSSim("../tests/sbml/cell_fate.sbml", "../tests/sbml/cell_fate.cfg")
+        sim = cmaboss.MaBoSSSim("../tests/sbml/cell_fate.sbml", "../tests/sbml/cell_fate.cfg")
+        res = sim.run()

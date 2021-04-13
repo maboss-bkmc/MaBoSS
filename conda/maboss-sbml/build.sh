@@ -1,6 +1,7 @@
 cd engine/src
 
-export EXTRA_CXXFLAGS=-I${PREFIX}/include
+export EXTRA_CXXFLAGS="-I${PREFIX}/include -I${PREFIX}/include/libxml2"
+export LIBRARY_PATH=${PREFIX}/include:${LIBRARY_PATH}
 export EXTRA_LDFLAGS="-L${PREFIX}/lib -lxml2"
 
 make SBML_COMPAT=1 install

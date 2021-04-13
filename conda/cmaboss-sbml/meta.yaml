@@ -1,0 +1,44 @@
+{% set name = "cMaBoSS" %}
+{% set version = "1.0.0b6" %}
+
+package:
+  name: '{{ name|lower }}'
+  version: '{{ version }}'
+
+source:
+  path: ../..
+
+
+build:
+  number: 0
+  string: py{{CONDA_PY}}
+
+requirements:
+  build:
+    - {{ compiler('cxx') }}
+    - flex
+    - bison
+    - make
+    - python {{ python }}
+    - numpy {{ numpy }}
+    - setuptools
+    - libsbml-plus-packages
+    - libxml2
+    
+  host: 
+    - python {{ python }}
+    - numpy {{ numpy }}
+    - setuptools
+    - libsbml-plus-packages
+    - libxml2
+  
+  run: 
+    - python {{ python }}
+    - numpy {{ numpy }}
+    - setuptools
+    - libsbml-plus-packages
+    - libxml2
+
+about:
+  home:  https://maboss.curie.fr
+
