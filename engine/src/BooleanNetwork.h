@@ -1069,15 +1069,15 @@ namespace std {
   template <> struct equal_to<NetworkState> : public binary_function<NetworkState, NetworkState, bool>
   {
     size_t operator()(const NetworkState& val1, const NetworkState& val2) const {
-      return val1.getState() == val2.getState();
+      return std::equal_to<NetworkState_Impl>{}(val1.getState(), val2.getState());
     }
   };
 
-  // // Added less operator, necessary for maps, sets. Code from https://stackoverflow.com/a/21245301/11713763
+  // Added less operator, necessary for maps, sets. Code from https://stackoverflow.com/a/21245301/11713763
   template <> struct less<NetworkState> : public binary_function<NetworkState, NetworkState, bool>
   {
     size_t operator()(const NetworkState& val1, const NetworkState& val2) const {
-      return val1.getState() < val2.getState();
+      return std::less<NetworkState_Impl>{}(val1.getState(), val2.getState());
     }
   };
 }

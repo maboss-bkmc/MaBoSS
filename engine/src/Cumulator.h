@@ -782,62 +782,62 @@ public:
   void displayAsymptoticCSV(Network* network, unsigned int refnode_count, std::ostream& os_asymptprob = std::cout, bool hexfloat = false, bool proba = true) const
   {
     double ratio;
-  if (proba)
-  {
-    ratio = time_tick * sample_count;
-  }
-  else
-  {
-    ratio = time_tick;
-  }
-
-  // Choosing the last tick
-  int nn = max_tick_index - 1;
-
-#ifdef HAS_STD_HEXFLOAT
-  if (hexfloat)
-  {
-    os_asymptprob << std::hexfloat;
-  }
-#endif
-  // TH
-  const CumulMap &mp = get_map(nn);
-  typename CumulMap::Iterator iter = mp.iterator();
-
-
-  while (iter.hasNext())
-  {
-    TickValue tick_value;
-#ifdef USE_NEXT_OPT
-    const S& state = iter.next2(tick_value);
-#else
-    S state;
-    iter.next(state, tick_value);
-#endif
-    double proba = tick_value.tm_slice / ratio;
     if (proba)
     {
-      if (hexfloat)
-      {
-        os_asymptprob << std::setprecision(6) << fmthexdouble(proba);
-      }
-      else
-      {
-        os_asymptprob << std::setprecision(6) << proba;
-      }
+      ratio = time_tick * sample_count;
     }
     else
     {
-      int t_proba = static_cast<int>(round(proba));
-      os_asymptprob << std::fixed << t_proba;
+      ratio = time_tick;
     }
 
-    os_asymptprob << '\t';
-    state.displayOneLine(os_asymptprob, network);
+    // Choosing the last tick
+    int nn = max_tick_index - 1;
 
-    os_asymptprob << '\n';
+  #ifdef HAS_STD_HEXFLOAT
+    if (hexfloat)
+    {
+      os_asymptprob << std::hexfloat;
+    }
+  #endif
+    // TH
+    const CumulMap &mp = get_map(nn);
+    typename CumulMap::Iterator iter = mp.iterator();
 
-  }
+
+    while (iter.hasNext())
+    {
+      TickValue tick_value;
+  #ifdef USE_NEXT_OPT
+      const S& state = iter.next2(tick_value);
+  #else
+      S state;
+      iter.next(state, tick_value);
+  #endif
+      double proba = tick_value.tm_slice / ratio;
+      if (proba)
+      {
+        if (hexfloat)
+        {
+          os_asymptprob << std::setprecision(6) << fmthexdouble(proba);
+        }
+        else
+        {
+          os_asymptprob << std::setprecision(6) << proba;
+        }
+      }
+      else
+      {
+        int t_proba = static_cast<int>(round(proba));
+        os_asymptprob << std::fixed << t_proba;
+      }
+
+      os_asymptprob << '\t';
+      state.displayOneLine(os_asymptprob, network);
+
+      os_asymptprob << '\n';
+
+    }
   }
 
 
