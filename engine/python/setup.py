@@ -13,7 +13,7 @@ maboss_sources = [
 maboss_module_sources = [
    'maboss_module.cpp', 
 ]
-extra_compile_args = ['-std=c++11', '-DPYTHON_API']
+extra_compile_args = ['-std=c++11', '-DPYTHON_API', '-DSBML_COMPAT']
 
 def getExtensionByMaxnodes(maxnodes=64):
    import numpy
@@ -22,6 +22,7 @@ def getExtensionByMaxnodes(maxnodes=64):
       sources=maboss_module_sources + ["src/%s" % source for source in maboss_sources], 
       include_dirs=[numpy.get_include()],
       extra_compile_args=(extra_compile_args + (['-DMAXNODES=%d' % max(maxnodes, 64)])),
+      libraries=["sbml"],
       language="c++"
    )
 
@@ -31,10 +32,10 @@ setup (name = 'cmaboss',
    description = """MaBoSS python bindings""",
    ext_modules = [
       getExtensionByMaxnodes(), 
-      getExtensionByMaxnodes(128), 
-      getExtensionByMaxnodes(256), 
-      getExtensionByMaxnodes(512),
-      getExtensionByMaxnodes(1024)
+      # getExtensionByMaxnodes(128), 
+      # getExtensionByMaxnodes(256), 
+      # getExtensionByMaxnodes(512),
+      # getExtensionByMaxnodes(1024)
    ],
    install_requires = ["numpy"]
 )

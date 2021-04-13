@@ -19,15 +19,39 @@ jobs:
     - uses: actions/checkout@v2
     - name: Install dependencies
       run : |
-        brew install flex bison gcc@10
+        brew install flex bison gcc@10 libxml2 cmake
         pip install numpy
+        wget https://sourceforge.net/projects/sbml/files/libsbml/5.19.0/stable/libSBML-5.19.0-core-plus-packages-src.tar.gz
+        tar -zxf libSBML-5.19.0-core-plus-packages-src.tar.gz
+        cd libSBML-5.19.0-Source
+        mkdir build
+        cd build
+        cmake -DCMAKE_INSTALL_PREFIX=/usr \
+        -DCMAKE_INSTALL_LIBDIR=/usr/lib \
+        -DCMAKE_CXX_COMPILER=g++ \
+        -DCMAKE_C_COMPILER=gcc \
+        -DCMAKE_CXX_STANDARD_LIBRARIES=-lxml2 \
+        -DWITH_SWIG=OFF \
+        -DLIBXML_LIBRARY=/usr/local/opt/libxml2/lib \
+        -DLIBXML_INCLUDE_DIR=/usr/local/opt/libxml2/include \
+        -DENABLE_COMP=ON \
+        -DENABLE_FBC=ON \
+        -DENABLE_GROUPS=ON \
+        -DENABLE_LAYOUT=ON \
+        -DENABLE_MULTI=ON \
+        -DENABLE_QUAL=ON \
+        -DENABLE_RENDER=ON \
+        -DENABLE_DISTRIB=ON \
+        ..
+        make
+        sudo make install
 
     - name: Build MaBoSS
       run: |
         cd engine/src
         make clean
-        make CXX=g++-10 install
-        make CXX=g++-10 MAXNODES=128 install
+        make CXX=g++-10 install SBML_COMPAT=1
+        make CXX=g++-10 MAXNODES=128 install SBML_COMPAT=1
         
     - name: Test MaBoSS
       run: |
@@ -35,9 +59,10 @@ jobs:
         bash -c "cd engine/tests; bash ./test-ensemble.sh"
         bash -c "cd engine/tests; bash ./test-ewing.sh"
         bash -c "cd engine/tests; bash ./test-server.sh"
-        bash -c "cd engine/tests; bash ./test-user_func.sh"
+        bash -c "cd engine/tests; bash ./test-sbml.sh"
         bash -c "cd engine/tests; bash ./test-prngs.sh"
         bash -c "cd engine/tests; bash ./test-rngs.sh"
+        bash -c "cd engine/tests; bash ./test-user_func.sh"
         
   maboss_llvm:
     name: MaBoSS (clang)
@@ -47,16 +72,41 @@ jobs:
     - uses: actions/checkout@v2
     - name: Install dependencies
       run : |
-        brew install flex bison
+        brew install flex bison libxml2 cmake
         pip install numpy
+        wget https://sourceforge.net/projects/sbml/files/libsbml/5.19.0/stable/libSBML-5.19.0-core-plus-packages-src.tar.gz
+        tar -zxf libSBML-5.19.0-core-plus-packages-src.tar.gz
+        cd libSBML-5.19.0-Source
+        mkdir build
+        cd build
+        cmake -DCMAKE_INSTALL_PREFIX=/usr \
+        -DCMAKE_INSTALL_LIBDIR=/usr/lib \
+        -DCMAKE_CXX_COMPILER=g++ \
+        -DCMAKE_C_COMPILER=gcc \
+        -DCMAKE_CXX_STANDARD_LIBRARIES=-lxml2 \
+        -DWITH_SWIG=OFF \
+        -DLIBXML_LIBRARY=/usr/local/opt/libxml2/lib \
+        -DLIBXML_INCLUDE_DIR=/usr/local/opt/libxml2/include \
+        -DENABLE_COMP=ON \
+        -DENABLE_FBC=ON \
+        -DENABLE_GROUPS=ON \
+        -DENABLE_LAYOUT=ON \
+        -DENABLE_MULTI=ON \
+        -DENABLE_QUAL=ON \
+        -DENABLE_RENDER=ON \
+        -DENABLE_DISTRIB=ON \
+        ..
+        make
+        sudo make install
+
 
     - name: Build MaBoSS
       run: |
         cd engine/src
         make clean
         g++ --version
-        make CXX=g++ install
-        make CXX=g++ MAXNODES=128 install
+        make CXX=g++ install SBML_COMPAT=1
+        make CXX=g++ MAXNODES=128 install SBML_COMPAT=1
         
     - name: Test MaBoSS
       run: |
@@ -64,9 +114,10 @@ jobs:
         bash -c "cd engine/tests; bash ./test-ensemble.sh"
         bash -c "cd engine/tests; bash ./test-ewing.sh"
         bash -c "cd engine/tests; bash ./test-server.sh"
-        bash -c "cd engine/tests; bash ./test-user_func.sh"
+        bash -c "cd engine/tests; bash ./test-sbml.sh"
         bash -c "cd engine/tests; bash ./test-prngs.sh"
         bash -c "cd engine/tests; bash ./test-rngs.sh"
+        bash -c "cd engine/tests; bash ./test-user_func.sh"
   
   conda_maboss:
     name: Build Conda MaBoSS package
@@ -87,7 +138,7 @@ jobs:
     
     - name: Build MaBoSS Anaconda package
       run: |
-        conda build conda/maboss
+        conda build conda/maboss-sbml
               
     - name: Upload MaBoSS to Anaconda cloud
       if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'sysbio-curie/MaBoSS-env-2.0'

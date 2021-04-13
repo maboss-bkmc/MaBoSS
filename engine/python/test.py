@@ -75,3 +75,6 @@ class TestCMaBoSS(TestCase):
         with open("../examples/metastasis-error.bnd", "r") as bnd, open("../examples/metastasis.cfg", "r") as cfg:    
             with self.assertRaises(cmaboss.BNException):
                 cmaboss.MaBoSSSim(network_str=bnd.read(),config_str=cfg.read())
+
+    def test_load_sbml(self):
+        cmaboss.MaBoSSSim("../tests/sbml/cell_fate.sbml", "../tests/sbml/cell_fate.cfg")
