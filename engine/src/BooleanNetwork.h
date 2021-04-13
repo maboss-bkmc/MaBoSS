@@ -837,6 +837,32 @@ public:
   NetworkState() : state(0ULL) { }
 #endif
 
+  void set() {
+#ifdef USE_STATIC_BITSET
+    state.set();
+#elif defined(USE_BOOST_BITSET) || defined(USE_DYNAMIC_BITSET)
+    // EV: 2020-10-23
+    //output_mask.resize(MAXNODES);
+    state.resize(Network::getMaxNodeSize());
+    state.set();
+#else
+    state = ~0ULL;
+#endif
+  }
+
+  void reset() {
+#ifdef USE_STATIC_BITSET
+    state.reset();
+#elif defined(USE_BOOST_BITSET) || defined(USE_DYNAMIC_BITSET)
+    // EV: 2020-10-23
+    //output_mask.resize(MAXNODES);
+    state.resize(Network::getMaxNodeSize());
+    state.reset();
+#else
+    state = 0ULL;
+#endif
+  }
+
   NodeState getNodeState(const Node* node) const {
 #if defined(USE_STATIC_BITSET) || defined(USE_BOOST_BITSET) || defined(USE_DYNAMIC_BITSET)
     return state.test(node->getIndex());

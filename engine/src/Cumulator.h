@@ -432,12 +432,12 @@ class Cumulator {
   unsigned int maxcols;
   int max_size;
   int max_tick_index;
-  NetworkState_Impl output_mask;
+  NetworkState output_mask;
   std::vector<CumulMap> cumul_map_v;
   std::vector<HDCumulMap> hd_cumul_map_v;
   unsigned int statdist_trajcount;
   unsigned int refnode_count;
-  NetworkState_Impl refnode_mask;
+  NetworkState refnode_mask;
   std::vector<ProbaDist<S> > proba_dist_v;
   ProbaDist<S> curtraj_proba_dist;
   STATE_MAP<S, LastTickValue> last_tick_map;
@@ -559,25 +559,12 @@ public:
 
   Cumulator(RunConfig* runconfig, double time_tick, double max_time, unsigned int sample_count, unsigned int statdist_trajcount) :
     runconfig(runconfig), time_tick(time_tick), sample_count(sample_count), sample_num(0), last_tm(0.), tick_index(0), statdist_trajcount(statdist_trajcount) {
-#ifdef USE_STATIC_BITSET
     output_mask.set();
     refnode_mask.reset();
-#elif defined(USE_BOOST_BITSET) || defined(USE_DYNAMIC_BITSET)
-    // EV: 2020-10-23
-    //output_mask.resize(MAXNODES);
-    output_mask.resize(Network::getMaxNodeSize());
-    output_mask.set();
-    refnode_mask.resize(Network::getMaxNodeSize());
-    refnode_mask.reset();
-#else
-    output_mask = ~0ULL;
-    refnode_mask = 0ULL;
-#endif
     max_size = (int)(max_time/time_tick)+2;
     max_tick_index = max_size;
     cumul_map_v.resize(max_size);
     hd_cumul_map_v.resize(max_size);
-
     if (COMPUTE_ERRORS) {
       TH_square_v.resize(max_size);
       for (int nn = 0; nn < max_size; ++nn) {
@@ -846,7 +833,6 @@ public:
     }
 
     os_asymptprob << '\t';
-    // NetworkState network_state(state);
     state.displayOneLine(os_asymptprob, network);
 
     os_asymptprob << '\n';
