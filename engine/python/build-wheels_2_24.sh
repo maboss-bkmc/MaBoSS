@@ -4,7 +4,7 @@ set -e -x
 # Install a system package required by our library
 # yum install -y atlas-devel
 apt-get update
-apt-get install -y wget libxml2-dev
+apt-get install -y wget libxml2-dev libbz2-dev
 wget https://sourceforge.net/projects/sbml/files/libsbml/5.19.0/stable/libSBML-5.19.0-core-plus-packages-src.tar.gz
 tar -zxf libSBML-5.19.0-core-plus-packages-src.tar.gz
 cd libSBML-5.19.0-Source
