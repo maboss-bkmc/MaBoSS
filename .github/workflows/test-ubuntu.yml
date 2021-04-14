@@ -217,34 +217,6 @@ jobs:
       run: |
         anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/share/miniconda/conda-bld/linux-64/*.tar.bz2 --force;
         
-  cmaboss_manylinux1:
-    name: cMaBoSS manylinux1 wheel
-    runs-on: ubuntu-18.04
-    needs: cmaboss
-
-    steps:
-    - uses: actions/checkout@v2
-    
-    - name: Compile MaBoSS
-      run: |
-        cd engine/src; make
-        cd ../python; cp -r ../src .
-        cd ../..
-        pip install twine
-        
-    - name: Build cMaBoSS manylinux1_x86_64
-      run: |
-        cd engine/python
-        docker run --rm -e PLAT=manylinux1_x86_64 -v `pwd`:/io quay.io/pypa/manylinux1_x86_64 /io/build-wheels.sh
-        
-    - name: Upload cMaBoSS Ananconda package
-      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'sysbio-curie/MaBoSS-env-2.0'
-      env:
-        TWINE_USERNAME: __token__
-        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-      run: |
-        python -m twine upload --skip-existing wheelhouse/cmaboss*
-        
   cmaboss_manylinux2010:
     name: cMaBoSS manylinux2010 wheel
     runs-on: ubuntu-18.04
@@ -292,6 +264,34 @@ jobs:
       run: |
         cd engine/python
         docker run --rm -e PLAT=manylinux2014_x86_64 -v `pwd`:/io quay.io/pypa/manylinux2014_x86_64 /io/build-wheels.sh
+        
+    - name: Upload cMaBoSS Ananconda package
+      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'sysbio-curie/MaBoSS-env-2.0'
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+      run: |
+        python -m twine upload --skip-existing wheelhouse/cmaboss*
+        
+  cmaboss_manylinux_2_24:
+    name: cMaBoSS manylinux_2_24 wheel
+    runs-on: ubuntu-18.04
+    needs: cmaboss
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Compile MaBoSS
+      run: |
+        cd engine/src; make
+        cd ../python; cp -r ../src .
+        cd ../..
+        pip install twine
+        
+    - name: Build cMaBoSS manylinux_2_24_x86_64
+      run: |
+        cd engine/python
+        docker run --rm -e PLAT=manylinux_2_24_x86_64 -v `pwd`:/io quay.io/pypa/manylinux_2_24_x86_64 /io/build-wheels_2_24.sh
         
     - name: Upload cMaBoSS Ananconda package
       if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'sysbio-curie/MaBoSS-env-2.0'
