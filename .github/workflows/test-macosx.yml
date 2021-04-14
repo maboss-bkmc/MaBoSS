@@ -50,8 +50,8 @@ jobs:
       run: |
         cd engine/src
         make clean
-        export CXXFLAGS="${CXXFLAGS} -I${PREFIX}/include -I${PREFIX}/include/libxml2"
-        export LDFLAGS="${LDFLAGS} -L${PREFIX}/lib -lxml2"
+        export CXXFLAGS="${CXXFLAGS} -I/usr/local/include -I/usr/local/include/libxml2"
+        export LDFLAGS="${LDFLAGS} -L/usr/local/lib -lxml2"
         make CXX=g++-10 install SBML_COMPAT=1
         make CXX=g++-10 MAXNODES=128 install SBML_COMPAT=1
         
