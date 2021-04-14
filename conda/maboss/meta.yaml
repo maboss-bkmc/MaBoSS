@@ -1,5 +1,5 @@
 {% set name = "MaBoSS" %}
-{% set version = "2.3.4" %}
+{% set version = "2.3.5" %}
 
 package:
   name: '{{ name|lower }}'
@@ -7,7 +7,7 @@ package:
 
 source:
   path: ../..
-
+    
 build:
   number: 0
   binary_relocation: False
@@ -18,7 +18,13 @@ requirements:
     - flex
     - bison
     - make
-
+    - libsbml-plus-packages
+    - libxml2
+        
+  host:
+    - libsbml-plus-packages
+    - libxml2
+      
 about:
   home:  https://maboss.curie.fr
 

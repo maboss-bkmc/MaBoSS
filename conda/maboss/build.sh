@@ -1,9 +1,13 @@
 cd engine/src
-make install
-make MAXNODES=128 install
-make MAXNODES=256 install
-make MAXNODES=512 install
-make MAXNODES=1024 install
+
+export CXXFLAGS="${CXXFLAGS} -I${PREFIX}/include -I${PREFIX}/include/libxml2"
+export LDFLAGS="${LDFLAGS} -L${PREFIX}/lib -lxml2"
+
+make SBML_COMPAT=1 install
+make SBML_COMPAT=1 MAXNODES=128 install
+make SBML_COMPAT=1 MAXNODES=256 install
+make SBML_COMPAT=1 MAXNODES=512 install
+make SBML_COMPAT=1 MAXNODES=1024 install
 mkdir -p ${PREFIX}/bin
 mv ../pub/MaBoSS  ../pub/MaBoSS_*n ${PREFIX}/bin
 mv ../pub/MaBoSS-server  ../pub/MaBoSS_*n-server ${PREFIX}/bin

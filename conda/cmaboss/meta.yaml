@@ -22,16 +22,22 @@ requirements:
     - python {{ python }}
     - numpy {{ numpy }}
     - setuptools
-
+    - libsbml-plus-packages
+    - libxml2
+    
   host: 
     - python {{ python }}
     - numpy {{ numpy }}
     - setuptools
+    - libsbml-plus-packages
+    - libxml2
   
   run: 
     - python {{ python }}
     - numpy {{ numpy }}
     - setuptools
+    - libsbml-plus-packages
+    - libxml2
 
 about:
   home:  https://maboss.curie.fr

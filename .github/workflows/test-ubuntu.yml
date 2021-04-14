@@ -76,13 +76,31 @@ jobs:
       
     - name: Build Anaconda package
       run: |
-        conda build -c vincent-noel conda/maboss-sbml
+        conda build -c vincent-noel conda/maboss
         
     - name: Upload cMaBoSS Ananconda package
-      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'sysbio-curie/MaBoSS-env-2.0'
+      if: github.repository == 'vincent-noel/MaBoSS-env-2.0'
       run: |
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/share/miniconda/conda-bld/linux-64/*.tar.bz2 --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/share/miniconda/conda-bld/linux-64/*.tar.bz2 --force;
     
+  maboss_conda_test:
+    name: MaBoSS Anaconda package test
+    runs-on: ubuntu-18.04
+    needs: maboss_conda
+     
+    steps:
+    - uses: actions/checkout@v2
+    - uses: s-weigand/setup-conda@v1
+     
+    - name: Install package
+      run: conda install -c vincent-noel maboss
+       
+    - name: Test package
+      run: |
+        MaBoSS --version
+        MaBoSS_128n --version
+         
+        
   test_docker:
     name: Docker MaBoSS Server
     runs-on: ubuntu-18.04
@@ -210,12 +228,12 @@ jobs:
       
     - name: Build cMaBoSS Anaconda package
       run: |
-        conda build -c vincent-noel conda/cmaboss-sbml;
+        conda build -c vincent-noel conda/cmaboss;
         
     - name: Upload cMaBoSS Ananconda package
-      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'sysbio-curie/MaBoSS-env-2.0'
+      if: github.repository == 'vincent-noel/MaBoSS-env-2.0'
       run: |
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/share/miniconda/conda-bld/linux-64/*.tar.bz2 --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/share/miniconda/conda-bld/linux-64/*.tar.bz2 --force;
         
   cmaboss_manylinux2010:
     name: cMaBoSS manylinux2010 wheel
