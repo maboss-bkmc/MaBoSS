@@ -56,12 +56,14 @@ ifeq ($(shell grep @HAS_UNORDERED_MAP maboss-config.h > /dev/null 2> /dev/null &
 EXTRA_FLAGS = -std=c++11 -Wpedantic
 endif
 
+ifndef GCC
 GCC = gcc
+endif
 ifndef CXX
 CXX = g++
 endif
-CXXOPT = -O2
-CXXFLAGS = $(CXXOPT) -Wall -DMAXNODES=$(MAXNODES) $(BITSET_FLAG) $(EXTRA_FLAGS) $(BOOST_INCL_PATH) -fpic -DNDEBUG
+EXTRA_CXXOPT = -O2
+EXTRA_CXXFLAGS = $(EXTRA_CXXOPT) -Wall -DMAXNODES=$(MAXNODES) $(BITSET_FLAG) $(EXTRA_FLAGS) $(BOOST_INCL_PATH) -fpic -DNDEBUG 
 
 MAKEDEPEND = $(GCC) -M $(EXTRA_FLAGS) $(BOOST_INCL_PATH)
 
@@ -130,10 +132,10 @@ init:
 	@CXX=$(CXX) bash init-config.sh
 
 %$(INFIX).o: %.cc
-	$(CXX) $(CXXFLAGS) $(WINDOWS_FLAG) $(SBML_FLAG) -c $*.cc -o $*$(INFIX).o
+	$(CXX) $(CXXFLAGS) $(EXTRA_CXXFLAGS) $(WINDOWS_FLAG) $(SBML_FLAG) -c $*.cc -o $*$(INFIX).o
 
 %$(INFIX)-server.o: %-server.cc
-	$(CXX) $(CXXFLAGS) $(SBML_FLAG) -c $*-server.cc -o $*$(INFIX)-server.o
+	$(CXX) $(CXXFLAGS) $(EXTRA_CXXFLAGS) $(SBML_FLAG) -c $*-server.cc -o $*$(INFIX)-server.o
 
 force-init:
 	@CXX=$(CXX) sh init-config.sh force
