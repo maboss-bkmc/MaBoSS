@@ -155,7 +155,7 @@ jobs:
         sudo apt-get install -yq python3-pip python3-setuptools
         sudo pip3 install numpy
         $CONDA/bin/conda install conda-build
-                wget https://sourceforge.net/projects/sbml/files/libsbml/5.19.0/stable/libSBML-5.19.0-core-plus-packages-src.tar.gz
+        wget https://sourceforge.net/projects/sbml/files/libsbml/5.19.0/stable/libSBML-5.19.0-core-plus-packages-src.tar.gz
         tar -zxf libSBML-5.19.0-core-plus-packages-src.tar.gz
         cd libSBML-5.19.0-Source
         mkdir build
