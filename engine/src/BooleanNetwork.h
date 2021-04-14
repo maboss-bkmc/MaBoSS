@@ -794,9 +794,9 @@ class DivisionRule {
   public:
 
   //During a division, you remove the cell and create two new cells
-  static const int DAUGHTER_1 = 1;
+  static const int DAUGHTER_1;
   // and 
-  static const int DAUGHTER_2 = 2;
+  static const int DAUGHTER_2;
   
   // Each one has it's own map which will change a node value according to an expression
   std::map<Node*, Expression*> daughter1;
