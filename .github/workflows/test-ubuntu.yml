@@ -121,23 +121,25 @@ jobs:
     name: MaBoSS Anaconda package
     runs-on: ubuntu-18.04
     needs: maboss
-
+    
     steps:
     - uses: actions/checkout@v2
     - uses: s-weigand/setup-conda@v1
-
+    
     - name: Install conda-build
       run: conda install conda-build anaconda-client
       
     - name: Build Anaconda package
       run: |
         conda build -c vincent-noel conda/maboss
-        
-    - name: Upload cMaBoSS Ananconda package
-      if: github.repository == 'vincent-noel/MaBoSS-env-2.0'
-      run: |
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/share/miniconda/conda-bld/linux-64/*.tar.bz2 --force;
-    
+
+    - name: Caching produced conda package
+      uses: actions/cache@v2
+      with:
+        path: |
+          /usr/share/miniconda/conda-bld/linux-64/*
+        key: ${{ runner.os }}-maboss-conda
+      
   maboss_conda_test:
     name: MaBoSS Anaconda package test
     runs-on: ubuntu-18.04
@@ -146,16 +148,35 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: s-weigand/setup-conda@v1
+    
+    - name: Caching produced conda package
+      uses: actions/cache@v2
+      with:
+        path: |
+          /usr/share/miniconda/conda-bld/linux-64/*
+        key: ${{ runner.os }}-maboss-conda
+        
+    - name: Install conda-build
+      run: conda install conda-build
      
     - name: Install package
-      run: conda install -c vincent-noel maboss
+      run: |
+        conda index /usr/share/miniconda/conda-bld
+        conda install --use-local -c vincent-noel maboss
        
     - name: Test package
       run: |
         MaBoSS --version
         MaBoSS_128n --version
-         
-        
+           
+    - name: Install anaconda-client
+      run: conda install anaconda-client
+    
+    - name: Upload cMaBoSS Ananconda package
+      if: github.repository == 'vincent-noel/MaBoSS-env-2.0'
+      run: |
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/share/miniconda/conda-bld/linux-64/*.tar.bz2 --force;
+    
   test_docker:
     name: Docker MaBoSS Server
     runs-on: ubuntu-18.04
@@ -285,11 +306,13 @@ jobs:
       run: |
         conda build -c vincent-noel conda/cmaboss;
         
-    - name: Upload cMaBoSS Ananconda package
-      if: github.repository == 'vincent-noel/MaBoSS-env-2.0'
-      run: |
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/share/miniconda/conda-bld/linux-64/*.tar.bz2 --force;
-
+    - name: Caching produced conda package
+      uses: actions/cache@v2
+      with:
+        path: |
+          /usr/share/miniconda/conda-bld/linux-64/*
+        key: ${{ runner.os }}-cmaboss-conda
+      
   cmaboss_conda_test:
     name: cMaBoSS Anaconda package test
     runs-on: ubuntu-18.04
@@ -299,12 +322,32 @@ jobs:
     - uses: actions/checkout@v2
     - uses: s-weigand/setup-conda@v1
     
+    - name: Caching produced conda package
+      uses: actions/cache@v2
+      with:
+        path: |
+          /usr/share/miniconda/conda-bld/linux-64/*
+        key: ${{ runner.os }}-cmaboss-conda
+        
+    - name: Install conda-build
+      run: conda install conda-build
+     
     - name: Install package
-      run: conda install -c vincent-noel cmaboss
-      
+      run: |
+        conda index /usr/share/miniconda/conda-bld
+        conda install --use-local -c vincent-noel cmaboss
+        
     - name: Test package
       run: python -c "import cmaboss" 
-      
+            
+    - name: Install anaconda-client
+      run: conda install anaconda-client
+     
+    - name: Upload cMaBoSS Ananconda package
+      if: github.repository == 'vincent-noel/MaBoSS-env-2.0'
+      run: |
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/share/miniconda/conda-bld/linux-64/*.tar.bz2 --force;
+
   cmaboss_manylinux2010:
     name: cMaBoSS manylinux2010 wheel
     runs-on: ubuntu-18.04
