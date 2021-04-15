@@ -140,7 +140,7 @@ jobs:
     
     - name: Build MaBoSS Anaconda package
       run: |
-        conda build -c vincent-noel conda/maboss-sbml
+        conda build -c vincent-noel conda/maboss
               
     - name: Upload MaBoSS to Anaconda cloud
       if: github.repository == 'vincent-noel/MaBoSS-env-2.0'
@@ -237,7 +237,7 @@ jobs:
     
     - name: Build cMaBoSS Anaconda package
       run: |
-        conda build -c vincent-noel conda/cmaboss-sbml;   
+        conda build -c vincent-noel conda/cmaboss;   
         
     - name: Upload cMaBoSS to Anaconda cloud
       if: github.repository == 'vincent-noel/MaBoSS-env-2.0'
