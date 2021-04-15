@@ -244,7 +244,21 @@ jobs:
       run: |   
         anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/local/miniconda/conda-bld/osx-64/*.tar.bz2 --force;
  
-              
+  cmaboss_conda_test:
+    name: cMaBoSS Anaconda package test
+    runs-on: macos-latest
+    needs: conda_cmaboss
+    
+    steps:
+    - uses: actions/checkout@v2
+    - uses: s-weigand/setup-conda@v1
+    
+    - name: Install package
+      run: conda install -c vincent-noel cmaboss
+      
+    - name: Test package
+      run: python -c "import cmaboss"
+             
   cmaboss_pypi:
     name: cMaBoSS PyPi package
     runs-on: macos-latest
