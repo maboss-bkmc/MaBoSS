@@ -56,7 +56,7 @@
 #include "Utils.h"
 #include <iomanip>
 
-template <class S>
+template <typename S>
 class ProbTrajDisplayer {
 
 public:
@@ -138,7 +138,7 @@ public:
 };
 
 
-template <class S>
+template <typename S>
 class CSVProbTrajDisplayer : public ProbTrajDisplayer<S> {
 
   std::ostream& os_probtraj;
@@ -187,8 +187,6 @@ public:
 
     for (const typename ProbTrajDisplayer<S>::Proba &proba : this->proba_v) {
       os_probtraj << '\t';
-      // NetworkState network_state(proba.state, 1);
-      // network_state.displayOneLine(os_probtraj, network);
       proba.state.displayOneLine(os_probtraj, this->network);
       if (this->hexfloat) {
         os_probtraj << '\t' << fmthexdouble(proba.proba);
@@ -203,7 +201,7 @@ public:
   virtual void endDisplay() {}
 };
 
-template <class S>
+template <typename S>
 class JSONProbTrajDisplayer : public ProbTrajDisplayer<S> {
 
   std::ostream& os_probtraj;
@@ -251,7 +249,6 @@ public:
     os_probtraj << "\"probas\":[";
     unsigned int idx = 0;
     for (const typename ProbTrajDisplayer<S>::Proba &proba : this->proba_v) {
-      // NetworkState network_state(proba.state, 1);
       os_probtraj << "{\"state\":\"";
       proba.state.displayJSON(os_probtraj, this->network);
       os_probtraj << "\",";
