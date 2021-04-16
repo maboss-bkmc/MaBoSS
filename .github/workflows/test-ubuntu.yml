@@ -571,8 +571,8 @@ jobs:
      
     - name: Test package
       run: |
-        python -m unittest test
-        python -m unittest test_128n
+        python3 -m unittest test
+        python3 -m unittest test_128n
     
     - name: Caching produced wheels
       uses: actions/cache@v2
@@ -629,8 +629,8 @@ jobs:
      
     - name: Test package
       run: |
-        python -m unittest test
-        python -m unittest test_128n
+        python3 -m unittest test
+        python3 -m unittest test_128n
     
       
   cmaboss_deploy:
