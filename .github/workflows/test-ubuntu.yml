@@ -300,7 +300,7 @@ jobs:
         key: ${{ runner.os }}-libSBML-5.19-gcc
 
     - name: Compiling libSBML
-      if: steps.cache-libsbml-clang.outputs.cache-hit != 'true'
+      if: steps.cache-libsbml-gcc.outputs.cache-hit != 'true'
       run: |
         wget https://sourceforge.net/projects/sbml/files/libsbml/5.19.0/stable/libSBML-5.19.0-core-plus-packages-src.tar.gz
         tar -zxf libSBML-5.19.0-core-plus-packages-src.tar.gz
