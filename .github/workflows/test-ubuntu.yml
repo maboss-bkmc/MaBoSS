@@ -197,6 +197,11 @@ jobs:
        
     - name: Test package
       run: |
+        MaBoSS --version
+        MaBoSS_128n --version
+        MaBoSS-server --version
+        MaBoSS_128n-server --version
+        MaBoSS-client --version
         export MABOSS=MaBoSS
         export MABOSS_128n=MaBoSS_128n
         export MABOSS_CLIENT=MaBoSS-client
@@ -398,6 +403,7 @@ jobs:
         
     - name: Test package
       run: |
+        cd engine/python
         python -m unittest test
         python -m unittest test_128n
             
