@@ -204,11 +204,11 @@ jobs:
         MaBoSS-client --version
         which MaBoSS
         ls -al `which MaBoSS`
-        export MABOSS=MaBoSS
-        export MABOSS_128n=MaBoSS_128n
-        export MABOSS_CLIENT=MaBoSS-client
-        export MABOSS_SERVER=MaBoSS-server
-        export MABOSS_SERVER_128n=MaBoSS_128n-server
+        export MABOSS=/usr/share/miniconda/bin/MaBoSS
+        export MABOSS_128n=/usr/share/miniconda/bin/MaBoSS_128n
+        export MABOSS_CLIENT=/usr/share/miniconda/bin/MaBoSS-client
+        export MABOSS_SERVER=/usr/share/miniconda/bin/MaBoSS-server
+        export MABOSS_SERVER_128n=/usr/share/miniconda/bin/MaBoSS_128n-server
         bash -c "cd engine/tests; bash ./test-cellcycle.sh"
         bash -c "cd engine/tests; bash ./test-ensemble.sh"
         bash -c "cd engine/tests; bash ./test-ewing.sh"
@@ -228,7 +228,7 @@ jobs:
   test_docker:
     name: Docker MaBoSS Server
     runs-on: ubuntu-18.04
-    needs: maboss
+    needs: [maboss, maboss_llvm]
     
     steps:
     - uses: actions/checkout@v2
@@ -261,7 +261,7 @@ jobs:
   test_singularity:
     name: Singularity MaBoSS Server
     runs-on: ubuntu-18.04
-    needs: maboss
+    needs: [maboss, maboss_llvm]
     
     steps:
     - uses: actions/checkout@v2
