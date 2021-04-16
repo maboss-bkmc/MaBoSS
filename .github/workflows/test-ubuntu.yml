@@ -197,13 +197,7 @@ jobs:
        
     - name: Test package
       run: |
-        MaBoSS --version
-        MaBoSS_128n --version
-        MaBoSS-server --version
-        MaBoSS_128n-server --version
-        MaBoSS-client --version
-        which MaBoSS
-        ls -al `which MaBoSS`
+        pip install numpy
         export MABOSS=/usr/share/miniconda/bin/MaBoSS
         export MABOSS_128n=/usr/share/miniconda/bin/MaBoSS_128n
         export MABOSS_CLIENT=/usr/share/miniconda/bin/MaBoSS-client
