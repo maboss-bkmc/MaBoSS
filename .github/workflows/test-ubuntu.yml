@@ -202,6 +202,8 @@ jobs:
         MaBoSS-server --version
         MaBoSS_128n-server --version
         MaBoSS-client --version
+        which MaBoSS
+        ls -al `which MaBoSS`
         export MABOSS=MaBoSS
         export MABOSS_128n=MaBoSS_128n
         export MABOSS_CLIENT=MaBoSS-client

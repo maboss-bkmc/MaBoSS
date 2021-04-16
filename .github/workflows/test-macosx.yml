@@ -345,6 +345,17 @@ jobs:
       run: |
         brew install flex bison gcc@10 python3 libxml2 cmake
         pip3 install numpy
+    
+    - name: Cache compiled libSBML
+      id: cache-libsbml-gcc
+      uses: actions/cache@v2
+      with:
+        path: /home/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
+        key: ${{ runner.os }}-libSBML-5.19-gcc
+
+    - name: Compiling libSBML
+      if: steps.cache-libsbml-gcc.outputs.cache-hit != 'true'
+      run: |
         wget https://sourceforge.net/projects/sbml/files/libsbml/5.19.0/stable/libSBML-5.19.0-core-plus-packages-src.tar.gz
         tar -zxf libSBML-5.19.0-core-plus-packages-src.tar.gz
         cd libSBML-5.19.0-Source
@@ -368,8 +379,13 @@ jobs:
         -DENABLE_DISTRIB=ON \
         .. 
         make 
-        sudo make install
+        cd ../..
         
+    - name: Install libSBML
+      run: |
+        cd libSBML-5.19.0-Source/build
+        sudo make install
+    
     - name: Compile MaBoSS
       run: |
         cd engine/src; make
