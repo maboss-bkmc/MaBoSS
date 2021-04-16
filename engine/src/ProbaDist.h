@@ -64,7 +64,7 @@
 #define CLUSTER_OPTIM
 
 
-template <class S>
+template <typename S>
 class ProbaDist {
   STATE_MAP<S, double> mp;
 
@@ -153,7 +153,6 @@ class ProbaDist {
         S state;
         double proba;
         proba_dist_iter.next(state, proba);
-        // NetworkState network_state(state);
         os << '\t';
         state.displayOneLine(os, network);
         if (hexfloat) {
