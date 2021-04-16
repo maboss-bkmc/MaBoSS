@@ -78,7 +78,7 @@ const int DivisionRule::DAUGHTER_2 = 2;
 
 Node::Node(const std::string& label, const std::string& description, NodeIndex index) : label(label), description(description), istate_set(false), is_internal(false), is_reference(false), referenceState(false), logicalInputExpr(NULL), rateUpExpr(NULL), rateDownExpr(NULL), index(index)
 {
-#if !defined(USE_STATIC_BITSET) && !defined(USE_BOOST_BITSET) && !defined(USE_DYNAMIC_BITSET)
+#if !defined(USE_STATIC_BITSET) && !defined(USE_DYNAMIC_BITSET)
   node_bit = NetworkState::nodeBit(index);
 #endif
 }
@@ -624,7 +624,7 @@ void NetworkState::display(std::ostream& os, Network* network) const
 }
 
 std::string NetworkState::getName(Network* network, const std::string& sep) const {
-#if defined(USE_STATIC_BITSET) || defined(USE_BOOST_BITSET) || defined(USE_DYNAMIC_BITSET)
+#if defined(USE_STATIC_BITSET) || defined(USE_DYNAMIC_BITSET)
   if (state.none()) {
     return "<nil>";
   }
