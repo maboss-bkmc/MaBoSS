@@ -27,7 +27,7 @@ jobs:
       id: cache-libsbml-gcc
       uses: actions/cache@v2
       with:
-        path: /home/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
+        path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
         key: ${{ runner.os }}-libSBML-5.19-gcc
 
     - name: Compiling libSBML
@@ -98,7 +98,7 @@ jobs:
       id: cache-libsbml-clang
       uses: actions/cache@v2
       with:
-        path: /home/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
+        path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
         key: ${{ runner.os }}-libSBML-5.19-clang
 
     - name: Compiling libSBML
@@ -225,7 +225,7 @@ jobs:
       id: cache-libsbml-gcc
       uses: actions/cache@v2
       with:
-        path: /home/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
+        path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
         key: ${{ runner.os }}-libSBML-5.19-gcc
 
     - name: Compiling libSBML
@@ -350,7 +350,7 @@ jobs:
       id: cache-libsbml-gcc
       uses: actions/cache@v2
       with:
-        path: /home/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
+        path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
         key: ${{ runner.os }}-libSBML-5.19-gcc
 
     - name: Compiling libSBML
