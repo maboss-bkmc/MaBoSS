@@ -8,7 +8,7 @@ on:
 
 jobs:
   maboss:
-    name: MaBoSS
+    name: MaBoSS (gcc)
     runs-on: ubuntu-18.04
 
     steps:
@@ -118,9 +118,9 @@ jobs:
         bash -c "cd engine/tests; bash ./test-user_func.sh"
         
   maboss_conda:
-    name: MaBoSS Anaconda package
+    name: Anaconda package
     runs-on: ubuntu-18.04
-    needs: maboss
+    needs: [maboss, maboss_llvm]
     
     steps:
     - uses: actions/checkout@v2
@@ -141,7 +141,7 @@ jobs:
         key: ${{ runner.os }}-maboss-conda
       
   maboss_conda_test:
-    name: MaBoSS Anaconda package test
+    name: Test Anaconda package
     runs-on: ubuntu-18.04
     needs: maboss_conda
      
@@ -166,9 +166,19 @@ jobs:
        
     - name: Test package
       run: |
-        MaBoSS --version
-        MaBoSS_128n --version
-           
+        export MABOSS=MaBoSS
+        export MABOSS_128n=MaBoSS_128n
+        export MABOSS_CLIENT=MaBoSS-client
+        export MABOSS_SERVER=MaBoSS-server
+        export MABOSS_SERVER_128n=MaBoSS_128n-server
+        bash -c "cd engine/tests; bash ./test-cellcycle.sh"
+        bash -c "cd engine/tests; bash ./test-ensemble.sh"
+        bash -c "cd engine/tests; bash ./test-ewing.sh"
+        bash -c "cd engine/tests; bash ./test-server.sh"
+        bash -c "cd engine/tests; bash ./test-prngs.sh"
+        bash -c "cd engine/tests; bash ./test-rngs.sh"
+        bash -c "cd engine/tests; bash ./test-sbml.sh"
+        
     - name: Install anaconda-client
       run: conda install anaconda-client
     
@@ -291,7 +301,7 @@ jobs:
    
 
   cmaboss_conda:
-    name: cMaBoSS Anaconda package
+    name: Anaconda package
     runs-on: ubuntu-18.04
     needs: cmaboss
 
@@ -314,7 +324,7 @@ jobs:
         key: ${{ runner.os }}-cmaboss-conda
       
   cmaboss_conda_test:
-    name: cMaBoSS Anaconda package test
+    name: Test Anaconda package
     runs-on: ubuntu-18.04
     needs: cmaboss_conda
     
@@ -338,7 +348,9 @@ jobs:
         conda install --use-local -c vincent-noel cmaboss
         
     - name: Test package
-      run: python -c "import cmaboss" 
+      run: |
+        python -m unittest test
+        python -m unittest test_128n
             
     - name: Install anaconda-client
       run: conda install anaconda-client
@@ -349,7 +361,7 @@ jobs:
         anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/share/miniconda/conda-bld/linux-64/*.tar.bz2 --force;
 
   cmaboss_manylinux_2010:
-    name: cMaBoSS manylinux2010 wheel
+    name: manylinux2010 wheel
     runs-on: ubuntu-18.04
     needs: cmaboss
     
@@ -377,7 +389,7 @@ jobs:
         key: ${{ runner.os }}-cmaboss-manylinux2010-${{ github.run_id }}
         
   cmaboss_manylinux_1:
-    name: cMaBoSS manylinux1 wheel
+    name: manylinux1 wheel
     runs-on: ubuntu-18.04
     needs: cmaboss
     
@@ -405,7 +417,7 @@ jobs:
         key: ${{ runner.os }}-cmaboss-manylinux1-${{ github.run_id }}
         
   cmaboss_manylinux_2014:
-    name: cMaBoSS manylinux2014 wheel
+    name: manylinux2014 wheel
     runs-on: ubuntu-18.04
     needs: cmaboss
     
@@ -433,7 +445,7 @@ jobs:
         key: ${{ runner.os }}-cmaboss-manylinux2014-${{ github.run_id }}
         
   cmaboss_manylinux_2_24:
-    name: cMaBoSS manylinux_2_24 wheel
+    name: manylinux_2_24 wheel
     runs-on: ubuntu-18.04
     needs: cmaboss
     
@@ -461,7 +473,7 @@ jobs:
         key: ${{ runner.os }}-cmaboss-manylinux224-${{ github.run_id }}
      
   cmaboss_manylinux_ubuntu18_test:
-    name: cMaBoSS manylinux ubuntu18 wheel test
+    name: Ubuntu 18 wheels test
     runs-on: ubuntu-18.04
     needs: [cmaboss_manylinux_1, cmaboss_manylinux_2010, cmaboss_manylinux_2014, cmaboss_manylinux_2_24]
     
@@ -507,7 +519,9 @@ jobs:
         pip3 install -f manylinuxes --no-index cmaboss
      
     - name: Test package
-      run: python3 -c "import cmaboss" 
+      run: |
+        python -m unittest test
+        python -m unittest test_128n
     
     - name: Caching produced wheels
       uses: actions/cache@v2
@@ -517,7 +531,7 @@ jobs:
         key: ${{ runner.os }}-cmaboss-manylinuxes-${{ github.run_id }}  
     
   cmaboss_manylinux_ubuntu20_test:
-    name: cMaBoSS manylinux ubuntu20 wheel test
+    name: Ubuntu 20 wheels test
     runs-on: ubuntu-20.04
     needs: [cmaboss_manylinux_1, cmaboss_manylinux_2010, cmaboss_manylinux_2014, cmaboss_manylinux_2_24]
     
@@ -563,10 +577,13 @@ jobs:
         pip3 install -f manylinuxes --no-index cmaboss
      
     - name: Test package
-      run: python3 -c "import cmaboss" 
+      run: |
+        python -m unittest test
+        python -m unittest test_128n
+    
       
   cmaboss_deploy:
-    name: cMaBoSS pypi deploy
+    name: PyPi deploy
     runs-on: ubuntu-18.04
     needs: [cmaboss_manylinux_ubuntu18_test, cmaboss_manylinux_ubuntu20_test]
     steps:
