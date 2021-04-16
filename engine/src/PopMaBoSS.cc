@@ -142,9 +142,7 @@ int main(int argc, char* argv[])
 
   // for debug
   if (getenv("MABOSS_VERBOSE") != NULL) {
-#ifdef USE_BOOST_BITSET
-    std::cerr << "PopMaBoSS use boost dynamic_bitset\n";
-#elif USE_DYNAMIC_BITSET_STD_ALLOC
+#if USE_DYNAMIC_BITSET_STD_ALLOC
     std::cerr << "PopMaBoSS use dynamic_bitset [std allocator]\n";
 #elif defined(USE_DYNAMIC_BITSET)
     std::cerr << "PopMaBoSS use MaBoSS dynamic bitset [experimental allocator]\n";
@@ -153,9 +151,7 @@ int main(int argc, char* argv[])
 #else
     std::cerr << "PopMaBoSS use long long mask\n";
 #endif
-#ifdef HAS_BOOST_UNORDERED_MAP
-    std::cerr << "MaBoSS use boost::unordered_map\n";
-#elif defined(HAS_UNORDERED_MAP)
+#ifdef HAS_UNORDERED_MAP
     std::cerr << "PopMaBoSS use std::unordered_map\n";
 #else
     std::cerr << "PopMaBoSS use standard std::map\n";
