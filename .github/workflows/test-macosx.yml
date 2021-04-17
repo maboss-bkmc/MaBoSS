@@ -193,11 +193,12 @@ jobs:
       
     - name: Test package
       run: |
-        export MABOSS=MaBoSS
-        export MABOSS_128n=MaBoSS_128n
-        export MABOSS_CLIENT=MaBoSS-client
-        export MABOSS_SERVER=MaBoSS-server
-        export MABOSS_SERVER_128n=MaBoSS_128n-server
+        pip install numpy
+        export MABOSS=/usr/local/miniconda/bin/MaBoSS
+        export MABOSS_128n=/usr/local/miniconda/bin/MaBoSS_128n
+        export MABOSS_CLIENT=/usr/local/miniconda/bin/MaBoSS-client
+        export MABOSS_SERVER=/usr/local/miniconda/bin/MaBoSS-server
+        export MABOSS_SERVER_128n=/usr/local/miniconda/bin/MaBoSS_128n-server
         bash -c "cd engine/tests; bash ./test-cellcycle.sh"
         bash -c "cd engine/tests; bash ./test-ensemble.sh"
         bash -c "cd engine/tests; bash ./test-ewing.sh"

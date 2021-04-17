@@ -571,7 +571,6 @@ jobs:
      
     - name: Test package
       run: |
-        ls -al
         cd engine/python
         python3 -m unittest test
         python3 -m unittest test_128n
@@ -631,7 +630,6 @@ jobs:
      
     - name: Test package
       run: |
-        ls -al
         cd engine/python
         python3 -m unittest test
         python3 -m unittest test_128n
