@@ -317,11 +317,11 @@ jobs:
       
     - name: Test package
       run: python -c "import cmaboss"
-             
+            
   cmaboss_pypi:
     name: cMaBoSS PyPi package
     runs-on: macos-latest
-    needs: cmaboss
+
     strategy:
       matrix:
         python:
@@ -345,7 +345,7 @@ jobs:
     - name: Install libSBML
       run: |
         brew install flex bison gcc@10 python3 libxml2 cmake
-        pip3 install numpy
+        pip3 install numpy delocate
     
     - name: Cache compiled libSBML
       id: cache-libsbml-clang
@@ -390,20 +390,75 @@ jobs:
     - name: Compile MaBoSS
       run: |
         cd engine/src; make
-        cd ../python; cp -r ../src .
+        cd ../python; cp -r ../src cmaboss/
         cd ../..
-        
+    
+    - name: Cache wheel
+      uses: actions/cache@v2
+      with:
+        path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/engine/python/fixed_wheels/*
+        key: ${{ runner.os }}-wheel-${{ matrix.python }}-${{ github.run_id }}
+
     - name: Build cMaBoSS
       run: |
         cd engine/python
-        pip wheel . -w wheelhouse
+        pip wheel -w wheelhouse .
         
+    - name: Fix wheel dependencies
+      run: |
+        cd engine/python
+        cp /usr/local/lib/libsbml*.dylib .
+        delocate-wheel -w fixed_wheels -v `ls wheelhouse/cmaboss*.whl`
+        ls -al fixed_wheels
+
+  cmaboss_wheel_test:
+    name: cMaBoSS Wheel test
+    runs-on: macos-latest
+    needs: cmaboss_pypi
+    strategy:
+      matrix:
+        python:
+          - 3.5.10
+          - 3.6.12
+          - 3.7.9
+          - 3.8.6
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Setup python env
+      uses: gabrielfalcao/pyenv-action@v7
+      with:
+        default: "${{ matrix.python }}"
+        command: |
+          pip install -U pip  # upgrade pip after installing python
+          
+    - name: Install python dependencies
+      run: pip install twine wheel numpy pandas
+
+    - name: Cache wheel
+      uses: actions/cache@v2
+      with:
+        path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/engine/python/fixed_wheels/*
+        key: ${{ runner.os }}-wheel-${{ matrix.python }}-${{ github.run_id }}
+
+    - name: Install wheel
+      run: |
+        cd engine/python
+        ls -al fixed_wheels
+        unzip -l fixed_wheels/*.whl
+        pip install -f fixed_wheels --no-index cmaboss
+        
+    - name: Test wheel
+      run: |
+        cd engine/python
+        rm -fr cmaboss cmaboss_128n cmaboss_256n cmaboss_512n cmaboss_1024n
+        python -m unittest test
+        python -m unittest test_128n
+                
     - name: Upload cMaBoSS to Pypi
       if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'sysbio-curie/MaBoSS-env-2.0'
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
       run: |
-        python -m twine upload --skip-existing wheelhouse/cmaboss*
-
-        
+        python -m twine upload --skip-existing fixed_wheels/cmaboss*

@@ -1,6 +1,6 @@
-from setuptools import setup, Extension
+from setuptools import setup, Extension, find_packages
 from sys import executable, argv
-from os.path import join, dirname
+from os.path import join, dirname, abspath
 
 maboss_version = '1.0.0-beta-6'
 
@@ -11,15 +11,15 @@ maboss_sources = [
 ]
 
 maboss_module_sources = [
-   'maboss_module.cpp', 
+   'cmaboss/maboss_module.cpp', 
 ]
 extra_compile_args = ['-std=c++11', '-DPYTHON_API', '-DSBML_COMPAT']
 
 def getExtensionByMaxnodes(maxnodes=64):
    import numpy
    return Extension(
-      "cmaboss" if maxnodes <= 64 else "cmaboss_%dn" % maxnodes, 
-      sources=maboss_module_sources + ["src/%s" % source for source in maboss_sources], 
+      "cmaboss.cmaboss" if maxnodes <= 64 else "cmaboss_%dn.cmaboss_%dn" % (maxnodes, maxnodes), 
+      sources=maboss_module_sources + ["cmaboss/src/%s" % source for source in maboss_sources], 
       include_dirs=[numpy.get_include()],
       extra_compile_args=(extra_compile_args + (['-DMAXNODES=%d' % max(maxnodes, 64)])),
       libraries=["sbml"],
@@ -37,5 +37,6 @@ setup (name = 'cmaboss',
       getExtensionByMaxnodes(512),
       getExtensionByMaxnodes(1024)
    ],
-   install_requires = ["numpy"]
+   install_requires = ["numpy"],
+   packages=find_packages()
 )
