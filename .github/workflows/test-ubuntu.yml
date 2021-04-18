@@ -634,6 +634,7 @@ jobs:
     - name: Test package
       run: |
         cd engine/python
+        rm -fr cmaboss cmaboss_128n cmaboss_256n cmaboss_512n cmaboss_1024n
         python3 -m unittest test
         python3 -m unittest test_128n
     
@@ -660,4 +661,5 @@ jobs:
         cd engine/python
         ls -al manylinuxes
         python -m twine upload --skip-existing manylinuxes/cmaboss*
+        
         
