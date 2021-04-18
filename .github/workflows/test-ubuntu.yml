@@ -339,13 +339,14 @@ jobs:
         cd engine/src
         make
         cd ../python
-        cp -r ../src .
+        cp -r ../src cmaboss
         python3 setup.py build_ext --inplace
         cd ../..
     
     - name: Test cMaBoSS
       run: |
         cd engine/python
+        rm -fr cmaboss cmaboss_128n cmaboss_256n cmaboss_512n cmaboss_1024n
         python3 -m unittest test
         python3 -m unittest test_128n
    
@@ -400,6 +401,7 @@ jobs:
     - name: Test package
       run: |
         cd engine/python
+        rm -fr cmaboss cmaboss_128n cmaboss_256n cmaboss_512n cmaboss_1024n
         python -m unittest test
         python -m unittest test_128n
             
@@ -422,7 +424,7 @@ jobs:
     - name: Compile MaBoSS
       run: |
         cd engine/src; make
-        cd ../python; cp -r ../src .
+        cd ../python; cp -r ../src cmaboss
         cd ../..
         
     - name: Build cMaBoSS manylinux2010_x86_64
@@ -450,7 +452,7 @@ jobs:
     - name: Compile MaBoSS
       run: |
         cd engine/src; make
-        cd ../python; cp -r ../src .
+        cd ../python; cp -r ../src cmaboss
         cd ../..
         
     - name: Build cMaBoSS manylinux1_x86_64
@@ -478,7 +480,7 @@ jobs:
     - name: Compile MaBoSS
       run: |
         cd engine/src; make
-        cd ../python; cp -r ../src .
+        cd ../python; cp -r ../src cmaboss
         cd ../..
         
     - name: Build cMaBoSS manylinux2014_x86_64
@@ -506,7 +508,7 @@ jobs:
     - name: Compile MaBoSS
       run: |
         cd engine/src; make
-        cd ../python; cp -r ../src .
+        cd ../python; cp -r ../src cmaboss
         cd ../..
         
     - name: Build cMaBoSS manylinux_2_24_x86_64
@@ -572,6 +574,7 @@ jobs:
     - name: Test package
       run: |
         cd engine/python
+        rm -fr cmaboss cmaboss_128n cmaboss_256n cmaboss_512n cmaboss_1024n
         python3 -m unittest test
         python3 -m unittest test_128n
     
