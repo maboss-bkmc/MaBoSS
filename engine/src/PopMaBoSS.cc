@@ -53,6 +53,7 @@
 #include "Utils.h"
 #include "RandomGenerator.h"
 #include "ProbTrajDisplayer.h"
+#include "PopProbTrajDisplayer.h"
 
 const char* prog = "PopMaBoSS";
 
@@ -271,6 +272,7 @@ int main(int argc, char* argv[])
   
   std::ostream* output_fp = NULL;
   std::ostream* output_pop_probtraj = NULL;
+  std::ostream* output_simple_pop_probtraj = NULL;
   
 #ifdef USE_DYNAMIC_BITSET
   MBDynBitset::init_pthread();
@@ -337,6 +339,7 @@ int main(int argc, char* argv[])
     output_run = new std::ofstream((std::string(output) + "_run.txt").c_str());
     output_fp = new std::ofstream((std::string(output) + "_fp" + format_extension(format)).c_str());
     output_pop_probtraj = new std::ofstream((std::string(output) + "_pop_probtraj" + format_extension(format)).c_str());
+    output_simple_pop_probtraj = new std::ofstream((std::string(output) + "_simple_pop_probtraj" + format_extension(format)).c_str());
     
     time(&start_time);
     PopMaBEstEngine mabest(pop_network, runconfig);
@@ -346,10 +349,10 @@ int main(int argc, char* argv[])
     FixedPointDisplayer* fp_displayer;
     
     if (format == CSV_FORMAT) {
-      pop_probtraj_displayer = new CSVProbTrajDisplayer<PopNetworkState>(pop_network, *output_pop_probtraj, hexfloat);
+      pop_probtraj_displayer = new CSVSimplePopProbTrajDisplayer(pop_network, *output_pop_probtraj, *output_simple_pop_probtraj, hexfloat);
       fp_displayer = new CSVFixedPointDisplayer(pop_network, *output_fp, hexfloat);
     } else if (format == JSON_FORMAT) {
-      pop_probtraj_displayer = new JSONProbTrajDisplayer<PopNetworkState>(pop_network, *output_pop_probtraj, hexfloat);
+      pop_probtraj_displayer = new JSONSimpleProbTrajDisplayer(pop_network, *output_pop_probtraj, *output_simple_pop_probtraj, hexfloat);
       // Use CSV displayer for fixed points as the Json one is not fully implemented
       fp_displayer = new CSVFixedPointDisplayer(pop_network, *output_fp, hexfloat);
     } else {
@@ -375,7 +378,10 @@ int main(int argc, char* argv[])
     
     ((std::ofstream*)output_fp)->close();
     delete output_fp;
-  
+      
+    ((std::ofstream*)output_simple_pop_probtraj)->close();
+    delete output_simple_pop_probtraj;
+    
     delete runconfig;
     delete pop_network;
 
