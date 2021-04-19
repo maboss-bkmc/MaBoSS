@@ -152,6 +152,7 @@ jobs:
     name: Anaconda package
     runs-on: ubuntu-18.04
     needs: [maboss, maboss_llvm]
+    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
     
     steps:
     - uses: actions/checkout@v2
@@ -223,6 +224,7 @@ jobs:
     name: Docker MaBoSS Server
     runs-on: ubuntu-18.04
     needs: [maboss, maboss_llvm]
+    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
     
     steps:
     - uses: actions/checkout@v2
@@ -256,7 +258,8 @@ jobs:
     name: Singularity MaBoSS Server
     runs-on: ubuntu-18.04
     needs: [maboss, maboss_llvm]
-    
+    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
+   
     steps:
     - uses: actions/checkout@v2
     
@@ -355,6 +358,7 @@ jobs:
     name: Anaconda package
     runs-on: ubuntu-18.04
     needs: cmaboss
+    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
 
     steps:
     - uses: actions/checkout@v2
@@ -378,6 +382,7 @@ jobs:
     name: Test Anaconda package
     runs-on: ubuntu-18.04
     needs: cmaboss_conda
+    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
     
     steps:
     - uses: actions/checkout@v2
@@ -417,6 +422,7 @@ jobs:
     name: manylinux2010 wheel
     runs-on: ubuntu-18.04
     needs: cmaboss
+    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
     
     steps:
     - uses: actions/checkout@v2
@@ -445,7 +451,8 @@ jobs:
     name: manylinux1 wheel
     runs-on: ubuntu-18.04
     needs: cmaboss
-    
+    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
+
     steps:
     - uses: actions/checkout@v2
     
@@ -473,7 +480,8 @@ jobs:
     name: manylinux2014 wheel
     runs-on: ubuntu-18.04
     needs: cmaboss
-    
+    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
+
     steps:
     - uses: actions/checkout@v2
     
@@ -501,7 +509,8 @@ jobs:
     name: manylinux_2_24 wheel
     runs-on: ubuntu-18.04
     needs: cmaboss
-    
+    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
+  
     steps:
     - uses: actions/checkout@v2
     
@@ -529,7 +538,8 @@ jobs:
     name: Ubuntu 18 wheels test
     runs-on: ubuntu-18.04
     needs: [cmaboss_manylinux_1, cmaboss_manylinux_2010, cmaboss_manylinux_2014, cmaboss_manylinux_2_24]
-    
+    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
+   
     steps:
     - uses: actions/checkout@v2
     
@@ -589,7 +599,8 @@ jobs:
     name: Ubuntu 20 wheels test
     runs-on: ubuntu-20.04
     needs: [cmaboss_manylinux_1, cmaboss_manylinux_2010, cmaboss_manylinux_2014, cmaboss_manylinux_2_24]
-    
+    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
+ 
     steps:
     - uses: actions/checkout@v2
     
@@ -643,6 +654,8 @@ jobs:
     name: PyPi deploy
     runs-on: ubuntu-18.04
     needs: [cmaboss_manylinux_ubuntu18_test, cmaboss_manylinux_ubuntu20_test]
+    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
+
     steps:
     - name: Caching produced wheels
       uses: actions/cache@v2
