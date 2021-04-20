@@ -97,7 +97,9 @@ class SBMLParser
     while(i_fun_term < ((int) transition->getNumFunctionTerms())) {
 
         if (i_fun_term == -1) {
-            def_term = transition->getDefaultTerm();
+            if (transition->getDefaultTerm()->getResultLevel() == 1) {
+                def_term = transition->getDefaultTerm();
+            }
             
         } else {
             fun_terms[transition->getFunctionTerm(i_fun_term)->getResultLevel()-1] = transition->getFunctionTerm(i_fun_term);
