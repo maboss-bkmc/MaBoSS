@@ -34,23 +34,16 @@ class SBMLParser
     for (unsigned int i=0; i < qual_model->getNumQualitativeSpecies(); i++) {
         QualitativeSpecies* specie = qual_model->getQualitativeSpecies(i);
         this->maxLevels[specie->getId()] = specie->getMaxLevel();
-        // if (specie->getMaxLevel() > 1) {
-        // std::cout << specie->getId() << " has a max level of " << specie->getMaxLevel() << std::endl;
-        // }
     }
-  
-  
   }
   
   void build() {
       
     
     for (unsigned int i=0; i < qual_model->getNumTransitions(); i++) {
-        // std::cout << "> Reading transition #" << i << std::endl;
         Transition* transition = qual_model->getTransition(i);
         parseTransition(transition);
     }
-    // std::cout << " Finished parsing transitions" << std::endl;
     
     for (unsigned int i=0; i < qual_model->getNumQualitativeSpecies(); i++) {
         QualitativeSpecies* specie = qual_model->getQualitativeSpecies(i);
@@ -97,9 +90,7 @@ class SBMLParser
     while(i_fun_term < ((int) transition->getNumFunctionTerms())) {
 
         if (i_fun_term == -1) {
-            if (transition->getDefaultTerm()->getResultLevel() == 1) {
-                def_term = transition->getDefaultTerm();
-            }
+            def_term = transition->getDefaultTerm();
             
         } else {
             fun_terms[transition->getFunctionTerm(i_fun_term)->getResultLevel()-1] = transition->getFunctionTerm(i_fun_term);
@@ -115,10 +106,8 @@ class SBMLParser
     
     Expression* exp = NULL;
     
-    if (def_term != NULL){
+    if (def_term != NULL && (def_term->getResultLevel() > 1 || nb_fun_term == 0)){
         createNodes(t_outputs, new ConstantExpression((double) def_term->getResultLevel()));
-    } else if (nb_fun_term == 0) {
-        createNodes(t_outputs, new ConstantExpression(1.0));
     }
     else {
         for (int j=0; j < max_level; j++) {
@@ -130,6 +119,25 @@ class SBMLParser
                     std::vector<std::string> new_outputs;
                     for (auto new_output: t_outputs) {
                         new_outputs.push_back(new_output + "_" + std::to_string(j+1));
+                    }
+                    
+                    for(int k=1; k <= j; k++) {
+                        Expression* lower_outputs = new NodeExpression(
+                            this->network->getOrMakeNode(k==1?t_outputs[0]:(t_outputs[0] + "_" + std::to_string(k)))
+                        );
+                        for (size_t l=1; l < t_outputs.size(); l++) {
+                            lower_outputs = new AndLogicalExpression(
+                                lower_outputs,
+                                new NodeExpression(
+                                    this->network->getOrMakeNode(k==1?t_outputs[l]:(t_outputs[l] + "_" + std::to_string(k)))
+                                )
+                            );
+                        }
+                        
+                        exp = new AndLogicalExpression(
+                            exp,
+                            lower_outputs
+                        );
                     }
                     
                     createNodes(new_outputs, exp);
@@ -149,60 +157,61 @@ class SBMLParser
     switch(tree->getType()) {
         case AST_LOGICAL_AND:
         {
-        AndLogicalExpression* children = new AndLogicalExpression(
-            parseASTNode(tree->getChild(0)),
-            parseASTNode(tree->getChild(1))
-        );
-        
-        for (unsigned int n = 2; n < tree->getNumChildren(); n++) {
-            children = new AndLogicalExpression(
-            children, 
-            parseASTNode(tree->getChild(n))
+            AndLogicalExpression* children = new AndLogicalExpression(
+                parseASTNode(tree->getChild(0)),
+                parseASTNode(tree->getChild(1))
             );
-        }
-        
-        return children;
+            
+            for (unsigned int n = 2; n < tree->getNumChildren(); n++) {
+                children = new AndLogicalExpression(
+                children, 
+                parseASTNode(tree->getChild(n))
+                );
+            }
+            
+            return children;
         }
         
         case AST_LOGICAL_OR:
         {  
-        OrLogicalExpression* children = new OrLogicalExpression(
-            parseASTNode(tree->getChild(0)),
-            parseASTNode(tree->getChild(1))
-        );
-        
-        for (unsigned int n = 2; n < tree->getNumChildren(); n++) {
-            children = new OrLogicalExpression(
-            children, 
-            parseASTNode(tree->getChild(n))
+            OrLogicalExpression* children = new OrLogicalExpression(
+                parseASTNode(tree->getChild(0)),
+                parseASTNode(tree->getChild(1))
             );
-        }
-        
-        return children;
+            
+            for (unsigned int n = 2; n < tree->getNumChildren(); n++) {
+                children = new OrLogicalExpression(
+                children, 
+                parseASTNode(tree->getChild(n))
+                );
+            }
+            
+            return children;
         }
         
         case AST_LOGICAL_XOR:
         {
-        XorLogicalExpression* children = new XorLogicalExpression(
-            parseASTNode(tree->getChild(0)),
-            parseASTNode(tree->getChild(1))
-        );
-        
-        for (unsigned int n = 2; n < tree->getNumChildren(); n++) {
-            children = new XorLogicalExpression(
-            children, 
-            parseASTNode(tree->getChild(n))
+            XorLogicalExpression* children = new XorLogicalExpression(
+                parseASTNode(tree->getChild(0)),
+                parseASTNode(tree->getChild(1))
             );
-        }
-        
-        return children;
+            
+            for (unsigned int n = 2; n < tree->getNumChildren(); n++) {
+                children = new XorLogicalExpression(
+                children, 
+                parseASTNode(tree->getChild(n))
+                );
+            }
+            
+            return children;
         }
         
 
         case AST_LOGICAL_NOT:
-        return new NotLogicalExpression(parseASTNode(tree->getChild(0)));
+            return new NotLogicalExpression(parseASTNode(tree->getChild(0)));
 
         case AST_RELATIONAL_EQ:
+        {
         // This seems to be the standard pattern of GINsim ??
             
             if (tree->getChild(0)->getType() == AST_NAME && tree->getChild(1)->getType() == AST_INTEGER) {
@@ -220,9 +229,20 @@ class SBMLParser
                     )
                 );
             } else if (value == 1) {
-                return new NodeExpression(
+                Expression* ret = new NodeExpression(
                     this->network->getOrMakeNode(name)
                 );  
+                for (int i=2; i <= this->maxLevels[name]; i++) {
+                    ret = new AndLogicalExpression(
+                        ret,
+                        new NotLogicalExpression(
+                            new NodeExpression(
+                                this->network->getOrMakeNode(name + "_" + std::to_string(i))
+                            )
+                        )
+                    );
+                }
+                return ret;
             
             } else {
                 Expression* ret = new AndLogicalExpression(
@@ -238,17 +258,18 @@ class SBMLParser
                     ret = new AndLogicalExpression(
                         ret,
                         new NodeExpression(
-                            this->network->getOrMakeNode(name + "_" + std::to_string(i))
+                            this->network->getOrMakeNode(name + "_" + std::to_string(i+1))
                         )
                     ); 
                 }
                 return ret;
             }
        
+        }
         case AST_RELATIONAL_LEQ:
         // Here we have a multivalued model. The idea is to modify the formula, to replace it by a pure boolean one
         // Ex: Suppose we have A <= 1 , with max(A) = 1. It means that we can change it to : A | !A
-        
+        {
             if (tree->getChild(0)->getType() == AST_NAME && tree->getChild(1)->getType() == AST_INTEGER) {
                 name = tree->getChild(0)->getName();
                 value = tree->getChild(1)->getValue();
@@ -258,25 +279,45 @@ class SBMLParser
             } else throw BNException("Bad children for operator LEQ");
             
             if (value == 0) {
-            // So equal to zero
-            return new NotLogicalExpression(
-                new NodeExpression(
-                this->network->getOrMakeNode(name)
-                )
-            );
+                // So equal to zero
+                return new NotLogicalExpression(
+                    new NodeExpression(
+                    this->network->getOrMakeNode(name)
+                    )
+                );
             } else if (value == 1) {
-            // So A | !A
-            return new OrLogicalExpression(
-                new NodeExpression(
+                // // So A | !A
+                // return new OrLogicalExpression(
+                //     new NodeExpression(
+                //         this->network->getOrMakeNode(name)
+                //     ),
+                //     new NotLogicalExpression(
+                //     new NodeExpression(
+                //         this->network->getOrMakeNode(name)
+                //     )
+                //     )
+                // );
+                // Actually, !A | A&!A_2
+                Expression* part_1 = new NotLogicalExpression(
+                    new NodeExpression(
+                        this->network->getOrMakeNode(name)
+                    )
+                );
+                Expression* part_2 = new NodeExpression(
                     this->network->getOrMakeNode(name)
-                ),
-                new NotLogicalExpression(
-                new NodeExpression(
-                    this->network->getOrMakeNode(name)
-                )
-                )
-            );
-            
+                );
+                for (int i=2; i <= this->maxLevels[name];i++) {
+                    part_2 = new AndLogicalExpression(
+                        part_2,
+                        new NotLogicalExpression(
+                            new NodeExpression(
+                                this->network->getOrMakeNode(name + "_" + std::to_string(i))
+                            )
+                        )
+                    );
+                }
+                return new OrLogicalExpression(part_1, part_2);
+                
             } else {
                 // Here we really are multi valued, but we just need to start from zero and go to the value
                 // Ex : A <= 2 : !A | A | A_2
@@ -301,13 +342,12 @@ class SBMLParser
                 return ret;
             }
            
-        
+        }
         
         case AST_RELATIONAL_GEQ:
-    
         // Here we have a multivalued model. The idea is to modify the formula, to replace it by a pure boolean one
         // Ex: Suppose we have A >= 1 , with max(A) = 2. It means that we can change it to : A | A_2
-        
+        {
             if (tree->getChild(0)->getType() == AST_NAME && tree->getChild(1)->getType() == AST_INTEGER) {
                 name = tree->getChild(0)->getName();
                 value = tree->getChild(1)->getValue();
@@ -325,37 +365,42 @@ class SBMLParser
                 );
             } else {
             
-                if (maxLevels[name] <= 1) {
+                if (value == 1 || maxLevels[name] <= 1) {
                     // Then it's just A
                     return new NodeExpression(
                         this->network->getOrMakeNode(name)
                     );
                     
                 } else {
-                    // So A | A_2 | ... | A_n
-                    Expression* ret = new OrLogicalExpression(
-                        new NodeExpression(
-                            this->network->getOrMakeNode(name)
-                        ),
-                        new NodeExpression(
-                            this->network->getOrMakeNode(name + "_2")
-                        )
-                    );
+                    // // So A | A_2 | ... | A_n
+                    // Expression* ret = new OrLogicalExpression(
+                    //     new NodeExpression(
+                    //         this->network->getOrMakeNode(name)
+                    //     ),
+                    //     new NodeExpression(
+                    //         this->network->getOrMakeNode(name + "_2")
+                    //     )
+                    // );
                     
-                    for (int i=2; i < maxLevels[name]; i++) {
-                        ret = new OrLogicalExpression(
-                            ret, new NodeExpression(
-                            this->network->getOrMakeNode(name + "_" + std::to_string(i))
-                            )
-                        );
-                    }
-                    return ret;       
+                    // for (int i=2; i < maxLevels[name]; i++) {
+                    //     ret = new OrLogicalExpression(
+                    //         ret, new NodeExpression(
+                    //         this->network->getOrMakeNode(name + "_" + std::to_string(i))
+                    //         )
+                    //     );
+                    // }
+                    // return ret;   
+                    
+                    // Or actually, since you need A to have A_n, then for A > i you just need to have A_i    
+                    return new NodeExpression(
+                        this->network->getOrMakeNode(name + "_" + std::to_string(value))
+                    );
                 }
             }
-    
+        }
         default:
-        std::cerr << "Unknown tag " << tree->getName() << std::endl;
-        return NULL;
+            std::cerr << "Unknown tag " << tree->getName() << std::endl;
+            return NULL;
     }
   }
   
