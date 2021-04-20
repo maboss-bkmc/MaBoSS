@@ -71,9 +71,9 @@
 #endif
 
 
-#ifdef SBML_COMPAT
-#include <sbml/SBMLTypes.h>
-#endif
+// #ifdef SBML_COMPAT
+// #include <sbml/SBMLTypes.h>
+// #endif
 
 
 #define MAP std::map
@@ -587,7 +587,6 @@ public:
   int parseExpression(const char* content = NULL, std::map<std::string, NodeIndex>* nodes_indexes = NULL);
   
   #ifdef SBML_COMPAT
-  Expression* parseASTNode(const ASTNode* tree);
   int parseSBML(const char* file, std::map<std::string, NodeIndex>* nodes_indexes = NULL);
   #endif
   

@@ -55,7 +55,7 @@
 #include <iostream>
 
 #ifdef SBML_COMPAT
-#include <sbml/packages/qual/extension/QualModelPlugin.h>
+#include "SBMLParser.h"
 #endif
 
 
@@ -200,182 +200,17 @@ int Network::parse(const char* file, std::map<std::string, NodeIndex>* nodes_ind
   }
 
 }
-
 #ifdef SBML_COMPAT
 
-Expression* Network::parseASTNode(const ASTNode* tree) {
+int Network::parseSBML(const char* file, std::map<std::string, NodeIndex>* nodes_indexes) 
+{  
+  SBMLParser* parser = new SBMLParser(this, file);
   
-  switch(tree->getType()) {
-    case AST_LOGICAL_AND:
-    {
-      AndLogicalExpression* children = new AndLogicalExpression(
-        parseASTNode(tree->getChild(0)),
-        parseASTNode(tree->getChild(1))
-      );
-      
-      for (unsigned int n = 2; n < tree->getNumChildren(); n++) {
-        children = new AndLogicalExpression(
-          children, 
-          parseASTNode(tree->getChild(n))
-        );
-      }
-      
-      return children;
-    }
-    
-    case AST_LOGICAL_OR:
-    {  
-      OrLogicalExpression* children = new OrLogicalExpression(
-        parseASTNode(tree->getChild(0)),
-        parseASTNode(tree->getChild(1))
-      );
-      
-      for (unsigned int n = 2; n < tree->getNumChildren(); n++) {
-        children = new OrLogicalExpression(
-          children, 
-          parseASTNode(tree->getChild(n))
-        );
-      }
-      
-      return children;
-    }
-    
-    case AST_LOGICAL_XOR:
-    {
-      XorLogicalExpression* children = new XorLogicalExpression(
-        parseASTNode(tree->getChild(0)),
-        parseASTNode(tree->getChild(1))
-      );
-      
-      for (unsigned int n = 2; n < tree->getNumChildren(); n++) {
-        children = new XorLogicalExpression(
-          children, 
-          parseASTNode(tree->getChild(n))
-        );
-      }
-      
-      return children;
-    }
-      
-
-    case AST_LOGICAL_NOT:
-      return new NotLogicalExpression(parseASTNode(tree->getChild(0)));
-
-    case AST_RELATIONAL_EQ:
-      // This seems to be the standard pattern of GINsim ??
-      if (tree->getChild(0)->getType() == AST_NAME && tree->getChild(1)->getType() == AST_INTEGER) {
-        if (tree->getChild(1)->getInteger() == 1) {
-          return new NodeExpression(
-            this->getOrMakeNode(tree->getChild(0)->getName())
-          );  
-          
-        } else {
-          return new NotLogicalExpression(
-            new NodeExpression(
-                this->getOrMakeNode(tree->getChild(0)->getName())
-            )
-          );
-        }
-      }
-   
-    default:
-      std::cerr << "Unknown tag " << tree->getName() << std::endl;
-      return NULL;
-  }
-}
-
-int Network::parseSBML(const char* file, std::map<std::string, NodeIndex>* nodes_indexes) {
-  SBMLDocument* document;
-  SBMLReader reader;
-  
-  document = reader.readSBML(file);
-  unsigned int errors = document->getNumErrors();
-  
-  if (errors > 0) {
-    std::cerr << "There are errors in the sbml file" << std::endl;  
+  try{
+    parser->build();
+  } catch (BNException e) {
+    std::cerr << "ERROR : " << e.getMessage() << std::endl;
     return 1;
-  }
-  
-  SBasePlugin* qual = document->getPlugin("qual");
-  if (qual == NULL) {
-    std::cerr << "This SBML model is not a qualitative sbml" << std::endl;
-    return 1;
-  }
-  
-  Model* model = document->getModel();
-  QualModelPlugin* qual_model = static_cast<QualModelPlugin*>(model->getPlugin("qual"));
-  
-  for (unsigned int i=0; i < qual_model->getNumTransitions(); i++) {
-    Transition* transition = qual_model->getTransition(i);
-    
-    FunctionTerm* fun_term = NULL;
-    DefaultTerm* def_term = NULL;
-    int i_fun_term = -1;
-    
-    while(fun_term == NULL && def_term == NULL && i_fun_term < ((int) transition->getNumFunctionTerms())) {
-      
-      if (i_fun_term == -1) {
-        if (transition->getDefaultTerm()->getResultLevel() == 1) {
-          def_term = transition->getDefaultTerm();
-        }
-      
-      } else if (transition->getFunctionTerm(i_fun_term)->getResultLevel() == 1) {
-        fun_term = transition->getFunctionTerm(i_fun_term);
-      }
-      
-      i_fun_term++;
-    }
-    
-    if (fun_term == NULL && def_term == NULL) {
-      std::cerr << "Could not find the activating expression" << std::endl;
-      return 1;
-    }
-    
-    Expression* exp;
-    
-    if (def_term != NULL){
-      exp = (Expression*) new ConstantExpression((double) def_term->getResultLevel());
-      
-    } else if (fun_term != NULL && fun_term->getMath() != NULL){
-      exp = parseASTNode(fun_term->getMath());
-      if (exp == NULL) return 1;
-    
-    } else {
-      exp = (Expression*) new ConstantExpression(1.0);
- 
-    }
-    
-    NodeDeclItem* decl_item = new NodeDeclItem("logic", exp);
-    std::vector<NodeDeclItem*>* decl_item_v = new std::vector<NodeDeclItem*>();
-    decl_item_v->push_back(decl_item);
-
-    NodeDecl* truc = new NodeDecl(transition->getOutput(0)->getQualitativeSpecies(), decl_item_v, this);
-
-    for (std::vector<NodeDeclItem*>::iterator it = decl_item_v->begin(); it != decl_item_v->end(); ++it) {
-      delete *it;
-    }
-    delete decl_item_v;
-    delete truc;
-  }
-  
-  for (unsigned int i=0; i < qual_model->getNumQualitativeSpecies(); i++) {
-    QualitativeSpecies* specie = qual_model->getQualitativeSpecies(i);
-    if (!this->isNodeDefined(specie->getId())) {
-      
-      NodeExpression* input_node = new NodeExpression(this->getOrMakeNode(specie->getId()));
-      NodeDeclItem* decl_item = new NodeDeclItem("logic", input_node);
-      std::vector<NodeDeclItem*>* decl_item_v = new std::vector<NodeDeclItem*>();
-      decl_item_v->push_back(decl_item);
-
-      NodeDecl* truc = new NodeDecl(specie->getId(), decl_item_v, this);
-
-      for (std::vector<NodeDeclItem*>::iterator it = decl_item_v->begin(); it != decl_item_v->end(); ++it) {
-        delete *it;
-      }
-      
-      delete decl_item_v;
-      delete truc;
-    }
   }
   compile(nodes_indexes);
 
