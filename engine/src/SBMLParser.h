@@ -10,7 +10,8 @@ class SBMLParser
   Model* model;
   QualModelPlugin* qual_model;
   std::map<std::string, int> maxLevels;
-
+  std::map<std::string, std::vector<std::string> > fixedNames;
+  
   SBMLParser(Network* network, const char* file) : network(network) {
     
     SBMLDocument* document;
@@ -34,7 +35,19 @@ class SBMLParser
     for (unsigned int i=0; i < qual_model->getNumQualitativeSpecies(); i++) {
         QualitativeSpecies* specie = qual_model->getQualitativeSpecies(i);
         this->maxLevels[specie->getId()] = specie->getMaxLevel();
+        std::vector<std::string> t_fixed_names;
+        if (specie->getMaxLevel() > 1) {
+            for (int j=1; j <= specie->getMaxLevel(); j++) {
+                t_fixed_names.push_back(specie->getId() + "_b" + std::to_string(j));
+            }
+        } else t_fixed_names.push_back(specie->getId());
+        
+        this->fixedNames[specie->getId()] = t_fixed_names;
     }
+  }
+  
+  std::string getName(std::string id, int level) {
+      return this->fixedNames[id][level-1];
   }
   
   void build() {
@@ -47,21 +60,23 @@ class SBMLParser
     
     for (unsigned int i=0; i < qual_model->getNumQualitativeSpecies(); i++) {
         QualitativeSpecies* specie = qual_model->getQualitativeSpecies(i);
-        if (!this->network->isNodeDefined(specie->getId())) {
-        
-            NodeExpression* input_node = new NodeExpression(this->network->getOrMakeNode(specie->getId()));
-            NodeDeclItem* decl_item = new NodeDeclItem("logic", input_node);
-            std::vector<NodeDeclItem*>* decl_item_v = new std::vector<NodeDeclItem*>();
-            decl_item_v->push_back(decl_item);
-
-            NodeDecl* truc = new NodeDecl(specie->getId(), decl_item_v, this->network);
-
-            for (std::vector<NodeDeclItem*>::iterator it = decl_item_v->begin(); it != decl_item_v->end(); ++it) {
-                delete *it;
-            }
+        for (int j=0; j < specie->getMaxLevel(); j++){
+            if (!this->network->isNodeDefined(getName(specie->getId(), j+1))) {
             
-            delete decl_item_v;
-            delete truc;
+                NodeExpression* input_node = new NodeExpression(this->network->getOrMakeNode(getName(specie->getId(), j+1)));
+                NodeDeclItem* decl_item = new NodeDeclItem("logic", input_node);
+                std::vector<NodeDeclItem*>* decl_item_v = new std::vector<NodeDeclItem*>();
+                decl_item_v->push_back(decl_item);
+
+                NodeDecl* truc = new NodeDecl(getName(specie->getId(), j+1), decl_item_v, this->network);
+
+                for (std::vector<NodeDeclItem*>::iterator it = decl_item_v->begin(); it != decl_item_v->end(); ++it) {
+                    delete *it;
+                }
+                
+                delete decl_item_v;
+                delete truc;
+            }
         }
     }
   } 
@@ -113,23 +128,26 @@ class SBMLParser
         for (int j=0; j < max_level; j++) {
             if (fun_terms[j] != NULL && fun_terms[j]->getMath() != NULL) {
                 exp = parseASTNode(fun_terms[j]->getMath());
+                
+                std::vector<std::string> new_outputs;
+                for (auto new_output: t_outputs) {
+                    new_outputs.push_back(getName(new_output, j+1));
+                }
+                
                 if (j == 0) {
-                    createNodes(t_outputs, exp);
+                    createNodes(new_outputs, exp);
+                    
                 } else {
-                    std::vector<std::string> new_outputs;
-                    for (auto new_output: t_outputs) {
-                        new_outputs.push_back(new_output + "_" + std::to_string(j+1));
-                    }
                     
                     for(int k=1; k <= j; k++) {
                         Expression* lower_outputs = new NodeExpression(
-                            this->network->getOrMakeNode(k==1?t_outputs[0]:(t_outputs[0] + "_" + std::to_string(k)))
+                            this->network->getOrMakeNode(getName(t_outputs[0], k))
                         );
                         for (size_t l=1; l < t_outputs.size(); l++) {
                             lower_outputs = new AndLogicalExpression(
                                 lower_outputs,
                                 new NodeExpression(
-                                    this->network->getOrMakeNode(k==1?t_outputs[l]:(t_outputs[l] + "_" + std::to_string(k)))
+                                    this->network->getOrMakeNode(getName(t_outputs[l], k))
                                 )
                             );
                         }
@@ -225,19 +243,19 @@ class SBMLParser
             if (value == 0) {
                 return new NotLogicalExpression(
                     new NodeExpression(
-                        this->network->getOrMakeNode(name)
+                        this->network->getOrMakeNode(getName(name, value+1))
                     )
                 );
             } else if (value == 1) {
                 Expression* ret = new NodeExpression(
-                    this->network->getOrMakeNode(name)
+                    this->network->getOrMakeNode(getName(name, 1))
                 );  
                 for (int i=2; i <= this->maxLevels[name]; i++) {
                     ret = new AndLogicalExpression(
                         ret,
                         new NotLogicalExpression(
                             new NodeExpression(
-                                this->network->getOrMakeNode(name + "_" + std::to_string(i))
+                                this->network->getOrMakeNode(getName(name, i))
                             )
                         )
                     );
@@ -247,10 +265,10 @@ class SBMLParser
             } else {
                 Expression* ret = new AndLogicalExpression(
                     new NodeExpression(
-                        this->network->getOrMakeNode(name)
+                        this->network->getOrMakeNode(getName(name, 1))
                     ),
                     new NodeExpression(
-                        this->network->getOrMakeNode(name + "_2")
+                        this->network->getOrMakeNode(getName(name, 2))
                     )
                 );
                 
@@ -258,7 +276,7 @@ class SBMLParser
                     ret = new AndLogicalExpression(
                         ret,
                         new NodeExpression(
-                            this->network->getOrMakeNode(name + "_" + std::to_string(i+1))
+                            this->network->getOrMakeNode(getName(name, i+1))
                         )
                     ); 
                 }
@@ -282,36 +300,25 @@ class SBMLParser
                 // So equal to zero
                 return new NotLogicalExpression(
                     new NodeExpression(
-                    this->network->getOrMakeNode(name)
+                    this->network->getOrMakeNode(getName(name, 1))
                     )
                 );
             } else if (value == 1) {
-                // // So A | !A
-                // return new OrLogicalExpression(
-                //     new NodeExpression(
-                //         this->network->getOrMakeNode(name)
-                //     ),
-                //     new NotLogicalExpression(
-                //     new NodeExpression(
-                //         this->network->getOrMakeNode(name)
-                //     )
-                //     )
-                // );
                 // Actually, !A | A&!A_2
                 Expression* part_1 = new NotLogicalExpression(
                     new NodeExpression(
-                        this->network->getOrMakeNode(name)
+                        this->network->getOrMakeNode(getName(name, 1))
                     )
                 );
                 Expression* part_2 = new NodeExpression(
-                    this->network->getOrMakeNode(name)
+                    this->network->getOrMakeNode(getName(name, 1))
                 );
                 for (int i=2; i <= this->maxLevels[name];i++) {
                     part_2 = new AndLogicalExpression(
                         part_2,
                         new NotLogicalExpression(
                             new NodeExpression(
-                                this->network->getOrMakeNode(name + "_" + std::to_string(i))
+                                this->network->getOrMakeNode(getName(name, i))
                             )
                         )
                     );
@@ -323,11 +330,11 @@ class SBMLParser
                 // Ex : A <= 2 : !A | A | A_2
                 Expression* ret = new OrLogicalExpression(
                     new NodeExpression(
-                        this->network->getOrMakeNode(name)
+                        this->network->getOrMakeNode(getName(name, 1))
                     ),
                     new NotLogicalExpression(
                         new NodeExpression(
-                            this->network->getOrMakeNode(name)
+                            this->network->getOrMakeNode(getName(name, 1))
                         )
                     )
                 );
@@ -335,7 +342,7 @@ class SBMLParser
                 for (int i=2; i <= value; i++) {
                     ret = new OrLogicalExpression(
                         ret, new NodeExpression(
-                            this->network->getOrMakeNode(name + "_" + std::to_string(i))
+                            this->network->getOrMakeNode(getName(name, i))
                         )
                     );
                 }
@@ -360,7 +367,7 @@ class SBMLParser
             // So equal to zero
                 return new NotLogicalExpression(
                     new NodeExpression(
-                    this->network->getOrMakeNode(name)
+                    this->network->getOrMakeNode(getName(name, 1))
                     )
                 );
             } else {
@@ -368,32 +375,13 @@ class SBMLParser
                 if (value == 1 || maxLevels[name] <= 1) {
                     // Then it's just A
                     return new NodeExpression(
-                        this->network->getOrMakeNode(name)
+                        this->network->getOrMakeNode(getName(name, 1))
                     );
                     
                 } else {
-                    // // So A | A_2 | ... | A_n
-                    // Expression* ret = new OrLogicalExpression(
-                    //     new NodeExpression(
-                    //         this->network->getOrMakeNode(name)
-                    //     ),
-                    //     new NodeExpression(
-                    //         this->network->getOrMakeNode(name + "_2")
-                    //     )
-                    // );
-                    
-                    // for (int i=2; i < maxLevels[name]; i++) {
-                    //     ret = new OrLogicalExpression(
-                    //         ret, new NodeExpression(
-                    //         this->network->getOrMakeNode(name + "_" + std::to_string(i))
-                    //         )
-                    //     );
-                    // }
-                    // return ret;   
-                    
                     // Or actually, since you need A to have A_n, then for A > i you just need to have A_i    
                     return new NodeExpression(
-                        this->network->getOrMakeNode(name + "_" + std::to_string(value))
+                        this->network->getOrMakeNode(getName(name, value))
                     );
                 }
             }
