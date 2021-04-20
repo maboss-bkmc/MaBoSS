@@ -121,9 +121,26 @@ class SBMLParser
     
     Expression* exp = NULL;
     
-    if (def_term != NULL && (def_term->getResultLevel() > 1 || nb_fun_term == 0)){
-        createNodes(t_outputs, new ConstantExpression((double) def_term->getResultLevel()));
+    if (def_term != NULL && nb_fun_term == 0){
+        
+        // Here what we miss is where nb_fun_term > 0 and def_term != null
+        // In this case, for now, def_term is ignored. Which is ok, since most of the time def_term.resultLevel is 0
+        // But if it's not, then we fail...
+        
+        if (def_term->getResultLevel() <= 1) {
+            createNodes(t_outputs, new ConstantExpression((double) def_term->getResultLevel()));
+        } else {
+            std::vector<std::string> new_outputs;
+            for (auto t_output: t_outputs) {
+                for (int i=0; i < def_term->getResultLevel(); i++)
+                {
+                    new_outputs.push_back(getName(t_output, i+1));
+                }
+            }
+            createNodes(t_outputs, new ConstantExpression(1.0));
+        }
     }
+    
     else {
         for (int j=0; j < max_level; j++) {
             if (fun_terms[j] != NULL && fun_terms[j]->getMath() != NULL) {
@@ -134,32 +151,51 @@ class SBMLParser
                     new_outputs.push_back(getName(new_output, j+1));
                 }
                 
-                if (j == 0) {
-                    createNodes(new_outputs, exp);
-                    
-                } else {
-                    
-                    for(int k=1; k <= j; k++) {
-                        Expression* lower_outputs = new NodeExpression(
-                            this->network->getOrMakeNode(getName(t_outputs[0], k))
-                        );
-                        for (size_t l=1; l < t_outputs.size(); l++) {
-                            lower_outputs = new AndLogicalExpression(
-                                lower_outputs,
-                                new NodeExpression(
-                                    this->network->getOrMakeNode(getName(t_outputs[l], k))
-                                )
-                            );
-                        }
-                        
-                        exp = new AndLogicalExpression(
-                            exp,
-                            lower_outputs
+                // Here we add terms to enforce : 
+                // - To activate one level, the lower one needs to be active : exp & level(i-1)
+                for(int k=1; k <= j; k++) {
+                    Expression* lower_outputs = new NodeExpression(
+                        this->network->getOrMakeNode(getName(t_outputs[0], k))
+                    );
+                    for (size_t l=1; l < t_outputs.size(); l++) {
+                        lower_outputs = new AndLogicalExpression(
+                            lower_outputs,
+                            new NodeExpression(
+                                this->network->getOrMakeNode(getName(t_outputs[l], k))
+                            )
                         );
                     }
                     
-                    createNodes(new_outputs, exp);
+                    exp = new AndLogicalExpression(
+                        exp,
+                        lower_outputs
+                    );
                 }
+            
+                // - To inactivate one level, the upper one needs to be inactive. so we add | level(i)&level(i+1)
+                // This is only if j+1 < max_level
+                for (int k=j+1; k < max_level; k++) {
+                    Expression* higher_outputs = new AndLogicalExpression(
+                        new NodeExpression(this->network->getOrMakeNode(getName(t_outputs[0], k))),
+                        new NodeExpression(this->network->getOrMakeNode(getName(t_outputs[0], k+1)))
+                    );
+                    for (size_t l=1; l < t_outputs.size(); l++) {
+                        higher_outputs = new AndLogicalExpression(
+                            higher_outputs,
+                            new AndLogicalExpression(
+                                new NodeExpression(this->network->getOrMakeNode(getName(t_outputs[l], k))),
+                                new NodeExpression(this->network->getOrMakeNode(getName(t_outputs[l], k+1)))
+                            )
+                        );
+                    }
+                    
+                    exp = new OrLogicalExpression(
+                        exp,
+                        higher_outputs
+                    );
+                }
+                
+                createNodes(new_outputs, exp);
             }  
         }
     
@@ -171,7 +207,8 @@ class SBMLParser
   {
     std::string name;
     int value;
-    
+    Expression* ret = NULL;
+ 
     switch(tree->getType()) {
         case AST_LOGICAL_AND:
         {
@@ -230,7 +267,6 @@ class SBMLParser
 
         case AST_RELATIONAL_EQ:
         {
-        // This seems to be the standard pattern of GINsim ??
             
             if (tree->getChild(0)->getType() == AST_NAME && tree->getChild(1)->getType() == AST_INTEGER) {
                 name = tree->getChild(0)->getName();
@@ -240,53 +276,39 @@ class SBMLParser
                 value = tree->getChild(0)->getValue();
             } else throw BNException("Bad children for operator EQ");
             
-            if (value == 0) {
-                return new NotLogicalExpression(
-                    new NodeExpression(
-                        this->network->getOrMakeNode(getName(name, value+1))
-                    )
-                );
-            } else if (value == 1) {
-                Expression* ret = new NodeExpression(
-                    this->network->getOrMakeNode(getName(name, 1))
-                );  
-                for (int i=2; i <= this->maxLevels[name]; i++) {
+            // Here when we ask for a specific level i, what we mean in boolean is A_b1 & A_b2 & ... & A_bi & !A_b(i+1) We don't need the following ones, 
+            // because they already are forbidden if A_b(i+1) is false.
+            
+            // All those up to the value
+            for (int i=0; i < value; i++) {
+                if (i == 0) {
+                    ret = new NodeExpression(this->network->getOrMakeNode(getName(name, 1)));
+                } else {
                     ret = new AndLogicalExpression(
-                        ret,
-                        new NotLogicalExpression(
-                            new NodeExpression(
-                                this->network->getOrMakeNode(getName(name, i))
-                            )
-                        )
+                        ret, 
+                        new NodeExpression(this->network->getOrMakeNode(getName(name, i+1)))
                     );
                 }
-                return ret;
-            
-            } else {
-                Expression* ret = new AndLogicalExpression(
-                    new NodeExpression(
-                        this->network->getOrMakeNode(getName(name, 1))
-                    ),
-                    new NodeExpression(
-                        this->network->getOrMakeNode(getName(name, 2))
-                    )
-                );
-                
-                for (int i=2; i < value; i++) {
-                    ret = new AndLogicalExpression(
-                        ret,
-                        new NodeExpression(
-                            this->network->getOrMakeNode(getName(name, i+1))
-                        )
-                    ); 
-                }
-                return ret;
             }
+            
+            // And none of the next ones
+            for (int i=value; i < std::min(this->maxLevels[name], value+1); i++) {
+                if (i == 0) {
+                    ret = new NotLogicalExpression(new NodeExpression(this->network->getOrMakeNode(getName(name, i+1))));
+                } else {
+                    ret = new AndLogicalExpression(
+                        ret, 
+                        new NotLogicalExpression(new NodeExpression(this->network->getOrMakeNode(getName(name, i+1))))
+                    );
+                }
+            }
+                    
+            return ret;
        
         }
         case AST_RELATIONAL_LEQ:
         // Here we have a multivalued model. The idea is to modify the formula, to replace it by a pure boolean one
-        // Ex: Suppose we have A <= 1 , with max(A) = 1. It means that we can change it to : A | !A
+        // Ex: Suppose we have A <= i , with max(A) = n. It means that we can change it to : !A_p1 | (A_p1 | ... | A_pi & !A_pi+1)
         {
             if (tree->getChild(0)->getType() == AST_NAME && tree->getChild(1)->getType() == AST_INTEGER) {
                 name = tree->getChild(0)->getName();
@@ -296,64 +318,37 @@ class SBMLParser
                 value = tree->getChild(0)->getValue();
             } else throw BNException("Bad children for operator LEQ");
             
-            if (value == 0) {
-                // So equal to zero
-                return new NotLogicalExpression(
-                    new NodeExpression(
-                    this->network->getOrMakeNode(getName(name, 1))
-                    )
-                );
-            } else if (value == 1) {
-                // Actually, !A | A&!A_2
-                Expression* part_1 = new NotLogicalExpression(
-                    new NodeExpression(
-                        this->network->getOrMakeNode(getName(name, 1))
-                    )
-                );
-                Expression* part_2 = new NodeExpression(
-                    this->network->getOrMakeNode(getName(name, 1))
-                );
-                for (int i=2; i <= this->maxLevels[name];i++) {
-                    part_2 = new AndLogicalExpression(
-                        part_2,
-                        new NotLogicalExpression(
-                            new NodeExpression(
-                                this->network->getOrMakeNode(getName(name, i))
-                            )
-                        )
-                    );
-                }
-                return new OrLogicalExpression(part_1, part_2);
-                
-            } else {
-                // Here we really are multi valued, but we just need to start from zero and go to the value
-                // Ex : A <= 2 : !A | A | A_2
-                Expression* ret = new OrLogicalExpression(
-                    new NodeExpression(
-                        this->network->getOrMakeNode(getName(name, 1))
-                    ),
-                    new NotLogicalExpression(
-                        new NodeExpression(
-                            this->network->getOrMakeNode(getName(name, 1))
-                        )
-                    )
-                );
-                
-                for (int i=2; i <= value; i++) {
+            // First one :
+            Expression* first = new NotLogicalExpression(new NodeExpression(this->network->getOrMakeNode(getName(name, 1))));
+            
+            // All those up to the value
+            for (int i=1; i <= value; i++) {
+                if (i == 1) {
+                    ret = new NodeExpression(this->network->getOrMakeNode(getName(name, 1)));
+                } else {
                     ret = new OrLogicalExpression(
-                        ret, new NodeExpression(
-                            this->network->getOrMakeNode(getName(name, i))
-                        )
+                        ret, 
+                        new NodeExpression(this->network->getOrMakeNode(getName(name, i)))
                     );
                 }
-                return ret;
             }
-           
+            
+            // And none of the next ones
+            for (int i=value; i < std::min(this->maxLevels[name], value+1); i++) {
+                ret = new AndLogicalExpression(
+                    ret, 
+                    new NotLogicalExpression(new NodeExpression(this->network->getOrMakeNode(getName(name, i+1))))
+                );
+            
+            }
+                    
+            return new OrLogicalExpression(first, ret);
         }
         
         case AST_RELATIONAL_GEQ:
         // Here we have a multivalued model. The idea is to modify the formula, to replace it by a pure boolean one
-        // Ex: Suppose we have A >= 1 , with max(A) = 2. It means that we can change it to : A | A_2
+        // Ex: Suppose we have A >= i, with max(A) = n. It means that we can change it to : A_i
+        
         {
             if (tree->getChild(0)->getType() == AST_NAME && tree->getChild(1)->getType() == AST_INTEGER) {
                 name = tree->getChild(0)->getName();
@@ -364,26 +359,13 @@ class SBMLParser
             } else throw BNException("Bad children for operator GEQ");
             
             if (value == 0) {
-            // So equal to zero
-                return new NotLogicalExpression(
-                    new NodeExpression(
-                    this->network->getOrMakeNode(getName(name, 1))
-                    )
+                // This one is always true
+                return new ConstantExpression(1.0);
+                 
+            } else {             
+                return new NodeExpression(
+                    this->network->getOrMakeNode(getName(name, value))
                 );
-            } else {
-            
-                if (value == 1 || maxLevels[name] <= 1) {
-                    // Then it's just A
-                    return new NodeExpression(
-                        this->network->getOrMakeNode(getName(name, 1))
-                    );
-                    
-                } else {
-                    // Or actually, since you need A to have A_n, then for A > i you just need to have A_i    
-                    return new NodeExpression(
-                        this->network->getOrMakeNode(getName(name, value))
-                    );
-                }
             }
         }
         default:
