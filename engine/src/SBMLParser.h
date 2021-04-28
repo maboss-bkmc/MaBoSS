@@ -18,11 +18,14 @@ class SBMLParser
     SBMLReader reader;
     
     document = reader.readSBML(file);
-    unsigned int errors = document->getNumErrors();
+    // unsigned int errors = document->getNumErrors();
     
-    if (errors > 0) {
-        throw BNException("There are errors in the sbml file");  
-    }
+    // if (errors > 0) {
+    //     for (int i=0; i < document->getNumErrors(); i++) {
+    //         std::cout << "Error #" << i << " : " << document->getError(i)->getMessage() << std::endl;
+    //     }
+    //     throw BNException("There are errors in the sbml file");  
+    // }
     
     SBasePlugin* qual = document->getPlugin("qual");
     if (qual == NULL) {
@@ -31,13 +34,14 @@ class SBMLParser
     
     this->model = document->getModel();
     this->qual_model = static_cast<QualModelPlugin*>(model->getPlugin("qual"));
-  
+
     for (unsigned int i=0; i < qual_model->getNumQualitativeSpecies(); i++) {
         QualitativeSpecies* specie = qual_model->getQualitativeSpecies(i);
-        this->maxLevels[specie->getId()] = specie->getMaxLevel();
+        
+        this->maxLevels[specie->getId()] = specie->isSetMaxLevel() ? specie->getMaxLevel() : 1;
         std::vector<std::string> t_fixed_names;
-        if (specie->getMaxLevel() > 1) {
-            for (int j=1; j <= specie->getMaxLevel(); j++) {
+        if (this->maxLevels[specie->getId()] > 1) {
+            for (int j=1; j <= this->maxLevels[specie->getId()]; j++) {
                 t_fixed_names.push_back(specie->getId() + "_b" + std::to_string(j));
             }
         } else t_fixed_names.push_back(specie->getId());
@@ -45,14 +49,12 @@ class SBMLParser
         this->fixedNames[specie->getId()] = t_fixed_names;
     }
   }
-  
   std::string getName(std::string id, int level) {
       return this->fixedNames[id][level-1];
   }
   
   void build() {
       
-    
     for (unsigned int i=0; i < qual_model->getNumTransitions(); i++) {
         Transition* transition = qual_model->getTransition(i);
         parseTransition(transition);
@@ -60,7 +62,8 @@ class SBMLParser
     
     for (unsigned int i=0; i < qual_model->getNumQualitativeSpecies(); i++) {
         QualitativeSpecies* specie = qual_model->getQualitativeSpecies(i);
-        for (int j=0; j < specie->getMaxLevel(); j++){
+       
+        for (int j=0; j < this->maxLevels[specie->getId()]; j++){
             if (!this->network->isNodeDefined(getName(specie->getId(), j+1))) {
             
                 NodeExpression* input_node = new NodeExpression(this->network->getOrMakeNode(getName(specie->getId(), j+1)));
@@ -101,9 +104,7 @@ class SBMLParser
     DefaultTerm* def_term = NULL;
     int i_fun_term = -1;
     int nb_fun_term = 0;
-
     while(i_fun_term < ((int) transition->getNumFunctionTerms())) {
-
         if (i_fun_term == -1) {
             def_term = transition->getDefaultTerm();
             
@@ -261,7 +262,6 @@ class SBMLParser
             return children;
         }
         
-
         case AST_LOGICAL_NOT:
             return new NotLogicalExpression(parseASTNode(tree->getChild(0)));
 
