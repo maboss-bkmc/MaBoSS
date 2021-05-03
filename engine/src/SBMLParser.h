@@ -50,7 +50,7 @@ class SBMLParser
     }
   }
   std::string getName(std::string id, int level) {
-      return this->fixedNames[id][level-1];
+    return this->fixedNames[id][level-1];
   }
   
   void build() {
@@ -150,6 +150,43 @@ class SBMLParser
                 std::vector<std::string> new_outputs;
                 for (auto new_output: t_outputs) {
                     new_outputs.push_back(getName(new_output, j+1));
+                }
+                
+                // Here we need to modify lower terms, because exp(level_i) = exp(level_i) | exp(level_i+1) | ... | exp(level_n)
+                for(int k=j+1; k < max_level; k++) {
+                    if (fun_terms[k] != NULL && fun_terms[k]->getMath() != NULL) {
+                        exp = new OrLogicalExpression(
+                            exp,
+                            parseASTNode(fun_terms[k]->getMath())
+                        );
+                    }
+                }
+                
+                // And here we also need &(!lvl_i | lvl_i&!lvl_i+1)
+                if ((j+1) < max_level) {
+                    Node* node_i = this->network->getOrMakeNode(getName(t_outputs[0], fun_terms[j]->getResultLevel()));
+                    Node* node_ip1 = this->network->getOrMakeNode(getName(t_outputs[0], fun_terms[j]->getResultLevel()+1));
+                    exp = new AndLogicalExpression(
+                        exp,
+                        new OrLogicalExpression(
+                            new NotLogicalExpression(
+                                new NodeExpression(
+                                    node_i
+                                )
+                            ),
+                            new AndLogicalExpression(
+                                new NodeExpression(
+                                    node_i
+                                ),
+                                new NotLogicalExpression(
+                                    new NodeExpression(
+                                        node_ip1
+                                    )
+                                )
+                                
+                            )
+                        )
+                    );
                 }
                 
                 // Here we add terms to enforce : 
