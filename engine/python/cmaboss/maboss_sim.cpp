@@ -57,7 +57,7 @@
 #include "maboss_commons.h"
 #include "maboss_net.cpp"
 #include "maboss_cfg.cpp"
-
+#include <sstream>
 typedef struct {
   PyObject_HEAD
   Network* network;
@@ -119,6 +119,7 @@ static PyObject * cMaBoSSSim_new(PyTypeObject* type, PyObject *args, PyObject* k
     }
     
     if (network != nullptr && runconfig != nullptr) {
+
       // Error checking
       IStateGroup::checkAndComplete(network);
       
@@ -182,8 +183,25 @@ static PyObject* cMaBoSSSim_run(cMaBoSSSimObject* self, PyObject *args, PyObject
   }
 }
 
+
+static PyObject* cMaBoSSSim_check(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs) {
+
+  IStateGroup::checkAndComplete(self->network);
+  self->network->getSymbolTable()->checkSymbols();
+  return Py_None;
+}
+
+static PyObject* cMaBoSSSim_get_logical_rules(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs) {
+  
+  std::ostringstream ss;
+  self->network->generateLogicalExpressions(ss);
+  return PyUnicode_FromString(ss.str().c_str());
+}
+
 static PyMethodDef cMaBoSSSim_methods[] = {
     {"run", (PyCFunction) cMaBoSSSim_run, METH_VARARGS | METH_KEYWORDS, "runs the simulation"},
+    {"check", (PyCFunction) cMaBoSSSim_check, METH_VARARGS | METH_KEYWORDS, "checks the model"},
+    {"get_logical_rules", (PyCFunction) cMaBoSSSim_get_logical_rules, METH_VARARGS | METH_KEYWORDS, "returns logical formulas"},
     {NULL}  /* Sentinel */
 };
 

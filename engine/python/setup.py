@@ -2,7 +2,7 @@ from setuptools import setup, Extension, find_packages
 from sys import executable, argv
 from os.path import join, dirname, abspath
 
-maboss_version = '1.0.0-beta-6'
+maboss_version = '1.0.0b7'
 
 maboss_sources = [
    "FinalStateSimulationEngine.cc", "MetaEngine.cc", "MaBEstEngine.cc", "EnsembleEngine.cc", 
