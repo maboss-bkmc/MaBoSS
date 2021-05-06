@@ -169,7 +169,6 @@ jobs:
     name: Build Conda MaBoSS package
     runs-on: macos-latest
     needs: [maboss, maboss_llvm]
-    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
   
     steps:
     - uses: actions/checkout@v2
@@ -196,7 +195,6 @@ jobs:
     name: MaBoSS Anaconda package test
     runs-on: macos-latest
     needs: conda_maboss
-    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
     
     steps:
     - uses: actions/checkout@v2
@@ -302,7 +300,6 @@ jobs:
     name: cMaBoSS Conda package
     runs-on: macos-latest
     needs: cmaboss
-    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
 
     steps:
     - uses: actions/checkout@v2
@@ -329,7 +326,6 @@ jobs:
     name: cMaBoSS Anaconda package test
     runs-on: macos-latest
     needs: conda_cmaboss
-    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
     
     steps:
     - uses: actions/checkout@v2
@@ -350,7 +346,6 @@ jobs:
     name: cMaBoSS PyPi package
     runs-on: macos-latest
     needs: cmaboss
-    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
 
     strategy:
       matrix:
@@ -452,7 +447,6 @@ jobs:
     name: cMaBoSS Wheel test
     runs-on: macos-latest
     needs: cmaboss_pypi
-    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
     strategy:
       matrix:
         python:
@@ -495,7 +489,6 @@ jobs:
         python -m unittest test_128n
                 
     - name: Upload cMaBoSS to Pypi
-      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'sysbio-curie/MaBoSS-env-2.0'
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
