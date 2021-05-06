@@ -88,7 +88,7 @@ static PyObject * cMaBoSSSim_new(PyTypeObject* type, PyObject *args, PyObject* k
       
     Network* network = nullptr;
     RunConfig* runconfig = nullptr;
-    if (network_file != NULL && config_file != NULL) {
+    if (network_file != NULL) {
       // Loading bnd file
       std::string nf(network_file);
       network = new Network();
@@ -100,8 +100,9 @@ static PyObject * cMaBoSSSim_new(PyTypeObject* type, PyObject *args, PyObject* k
       // Loading cfg file
       runconfig = new RunConfig();
       IStateGroup::reset(network);
-      runconfig->parse(network, config_file);
-
+      if (config_file != NULL) {
+        runconfig->parse(network, config_file);
+      }
     } 
     else if (network_str != NULL && config_str != NULL) {
       // Loading bnd file
