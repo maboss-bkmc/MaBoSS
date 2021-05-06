@@ -199,9 +199,24 @@ static PyObject* cMaBoSSSim_get_logical_rules(cMaBoSSSimObject* self, PyObject *
   return PyUnicode_FromString(ss.str().c_str());
 }
 
+static PyObject* cMaBoSSSim_bnd_str(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs) {
+  std::ostringstream bnd;
+  self->network->display(bnd);
+  return PyUnicode_FromString(bnd.str().c_str());
+}
+
+
+static PyObject* cMaBoSSSim_cfg_str(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs) {
+  std::ostringstream cfg;
+  self->runconfig->dump(self->network, cfg);
+  return PyUnicode_FromString(cfg.str().c_str());
+}
+
 static PyMethodDef cMaBoSSSim_methods[] = {
     {"run", (PyCFunction) cMaBoSSSim_run, METH_VARARGS | METH_KEYWORDS, "runs the simulation"},
     {"check", (PyCFunction) cMaBoSSSim_check, METH_VARARGS | METH_KEYWORDS, "checks the model"},
+    {"str_bnd", (PyCFunction) cMaBoSSSim_bnd_str, METH_VARARGS | METH_KEYWORDS, "returns the contents of the bnd file"},
+    {"str_cfg", (PyCFunction) cMaBoSSSim_cfg_str, METH_VARARGS | METH_KEYWORDS, "checks the contents of the cfg file"},
     {"get_logical_rules", (PyCFunction) cMaBoSSSim_get_logical_rules, METH_VARARGS | METH_KEYWORDS, "returns logical formulas"},
     {NULL}  /* Sentinel */
 };

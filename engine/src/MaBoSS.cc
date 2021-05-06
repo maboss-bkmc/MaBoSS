@@ -157,6 +157,7 @@ int main(int argc, char* argv[])
   std::vector<char *> ctbndl_files;
   bool dump_config = false;
   bool generate_config_template = false;
+  bool generate_bnd_file = false;
   bool generate_logical_expressions = false;
   bool hexfloat = false;
   bool check = false;
@@ -202,6 +203,8 @@ int main(int argc, char* argv[])
 	runconfig_file_or_expr_v.push_back(ConfigOpt(argv[++nn], true));
       } else if (!strcmp(s, "--dump-config") || !strcmp(s, "-d")) {
 	dump_config = true;
+      } else if (!strcmp(s, "--generate-bnd-file") || !strcmp(s, "-g")) {
+	generate_bnd_file = true;
       } else if (!strcmp(s, "--generate-config-template") || !strcmp(s, "-t")) {
 	generate_config_template = true;
       } else if (!strcmp(s, "--generate-logical-expressions") || !strcmp(s, "-l")) {
@@ -299,7 +302,7 @@ int main(int argc, char* argv[])
     return usage();
   }
     
-  if (!dump_config && !generate_config_template && !generate_logical_expressions && !check && output == NULL) {
+  if (!dump_config && !generate_config_template && !generate_logical_expressions && !check && !generate_bnd_file && output == NULL) {
     std::cerr << '\n' << prog << ": ouput option is not set\n";
     return usage();
   }
@@ -659,6 +662,12 @@ int main(int argc, char* argv[])
         network->generateLogicalExpressions(std::cout);
         return 0;
       }
+
+      if (generate_bnd_file) {
+        network->display(std::cout);
+        return 0;
+      }
+
 
       if (dump_config) {
         runconfig->dump(network, std::cout);

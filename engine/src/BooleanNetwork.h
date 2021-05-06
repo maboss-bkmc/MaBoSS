@@ -878,9 +878,11 @@ public:
   }
 
   void display(std::ostream& os) const {
+    os <<  "(";
     left->display(os);
     os <<  " * ";
     right->display(os);
+    os <<  ")";
   }
 
   void generateLogicalExpression(LogicalExprGenContext& genctx) const;
@@ -898,9 +900,11 @@ public:
   }
 
   void display(std::ostream& os) const {
+    os <<  "(";
     left->display(os);
     os <<  " / ";
     right->display(os);
+    os << ")";
   }
 
   void generateLogicalExpression(LogicalExprGenContext& genctx) const;
@@ -918,9 +922,11 @@ public:
   }
 
   void display(std::ostream& os) const {
+    os <<  "(";
     left->display(os);
     os <<  " + ";
     right->display(os);
+    os << ")";
   }
 
   void generateLogicalExpression(LogicalExprGenContext& genctx) const;
@@ -938,9 +944,11 @@ public:
   }
 
   void display(std::ostream& os) const {
+    os <<  "(";
     left->display(os);
     os <<  " - ";
     right->display(os);
+    os << ")";
   }
 
   void generateLogicalExpression(LogicalExprGenContext& genctx) const;
@@ -958,9 +966,11 @@ public:
   }
 
   void display(std::ostream& os) const {
+    os <<  "(";
     left->display(os);
     os <<  " == ";
     right->display(os);
+    os << ")";
   }
 
   virtual bool isLogicalExpression() const {return true;}
@@ -980,9 +990,11 @@ public:
   }
 
   void display(std::ostream& os) const {
+    os <<  "(";
     left->display(os);
     os <<  " != ";
     right->display(os);
+    os << ")";
   }
 
   virtual bool isLogicalExpression() const {return true;}
@@ -1002,9 +1014,11 @@ public:
   }
 
   void display(std::ostream& os) const {
+    os <<  "(";
     left->display(os);
     os <<  " < ";
     right->display(os);
+    os << ")";
   }
 
   virtual bool isLogicalExpression() const {return true;}
@@ -1024,9 +1038,11 @@ public:
   }
 
   void display(std::ostream& os) const {
+    os <<  "(";
     left->display(os);
     os <<  " <= ";
     right->display(os);
+    os << ")";
   }
 
   virtual bool isLogicalExpression() const {return true;}
@@ -1046,9 +1062,11 @@ public:
   }
 
   void display(std::ostream& os) const {
+    os <<  "(";
     left->display(os);
     os <<  " > ";
     right->display(os);
+    os << ")";
   }
 
   virtual bool isLogicalExpression() const {return true;}
@@ -1068,9 +1086,11 @@ public:
   }
 
   void display(std::ostream& os) const {
+    os <<  "(";
     left->display(os);
     os <<  " >= ";
     right->display(os);
+    os << ")";
   }
 
   virtual bool isLogicalExpression() const {return true;}
@@ -1104,11 +1124,13 @@ public:
   }
 
   void display(std::ostream& os) const {
+    os <<  "(";
     cond_expr->display(os);
     os <<  " ? ";
     true_expr->display(os);
     os <<  " : ";
     false_expr->display(os);
+    os << ")";
   }
 
   bool isConstantExpression() const {
@@ -1250,9 +1272,11 @@ public:
   }
 
   void display(std::ostream& os) const {
+    os <<  "(";
     left->display(os);
     os <<  " OR ";
     right->display(os);
+    os << ")";
   }
 
   virtual bool isLogicalExpression() const {return true;}
@@ -1275,9 +1299,11 @@ public:
   bool generationWillAddParenthesis() const {return true;}
 
   void display(std::ostream& os) const {
+    os <<  "(";
     left->display(os);
     os <<  " AND ";
     right->display(os);
+    os << ")";
   }
 
   bool isLogicalExpression() const {return true;}
@@ -1299,9 +1325,11 @@ public:
   }
 
   void display(std::ostream& os) const {
+    os <<  "(";
     left->display(os);
     os <<  " XOR ";
     right->display(os);
+    os << ")";
   }
 
   bool isLogicalExpression() const {return true;}
