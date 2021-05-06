@@ -23,12 +23,18 @@ jobs:
         pip install numpy
         pwd
         
+    - name: Get cmake version
+      id: get-cmake-version
+      run: |
+        echo "::set-output name=version::$(cmake --version | head -n 1 | cut -d' ' -f 3)"
+      shell: bash
+
     - name: Cache compiled libSBML
       id: cache-libsbml-gcc
       uses: actions/cache@v2
       with:
         path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
-        key: ${{ runner.os }}-libSBML-5.19-g++
+        key: ${{ runner.os }}-libSBML-5.19-g++-${{ steps.get-cmake-version.outputs.version }}
 
     - name: Compiling libSBML
       if: steps.cache-libsbml-gcc.outputs.cache-hit != 'true'
@@ -94,12 +100,18 @@ jobs:
         brew install flex bison libxml2 cmake
         pip install numpy
     
+    - name: Get cmake version
+      id: get-cmake-version
+      run: |
+        echo "::set-output name=version::$(cmake --version | head -n 1 | cut -d' ' -f 3)"
+      shell: bash
+
     - name: Cache compiled libSBML
       id: cache-libsbml-clang
       uses: actions/cache@v2
       with:
         path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
-        key: ${{ runner.os }}-libSBML-5.19-clang++
+        key: ${{ runner.os }}-libSBML-5.19-clang++-${{ steps.get-cmake-version.outputs.version }}
 
     - name: Compiling libSBML
       if: steps.cache-libsbml-clang.outputs.cache-hit != 'true'
@@ -224,12 +236,18 @@ jobs:
         brew install flex bison gcc@10 python3 libxml2 cmake
         pip3 install numpy
         
+    - name: Get cmake version
+      id: get-cmake-version
+      run: |
+        echo "::set-output name=version::$(cmake --version | head -n 1 | cut -d' ' -f 3)"
+      shell: bash
+
     - name: Cache compiled libSBML
       id: cache-libsbml-clang
       uses: actions/cache@v2
       with:
         path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
-        key: ${{ runner.os }}-libSBML-5.19-clang++
+        key: ${{ runner.os }}-libSBML-5.19-clang++-${{ steps.get-cmake-version.outputs.version }}
 
     - name: Compiling libSBML
       if: steps.cache-libsbml-clang.outputs.cache-hit != 'true'
@@ -341,6 +359,7 @@ jobs:
           - 3.6.12
           - 3.7.9
           - 3.8.6
+          - 3.9.0
     steps:
     - uses: actions/checkout@v2
     
@@ -359,12 +378,18 @@ jobs:
         brew install flex bison gcc@10 python3 libxml2 cmake
         pip3 install numpy delocate
     
+    - name: Get cmake version
+      id: get-cmake-version
+      run: |
+        echo "::set-output name=version::$(cmake --version | head -n 1 | cut -d' ' -f 3)"
+      shell: bash
+
     - name: Cache compiled libSBML
       id: cache-libsbml-clang
       uses: actions/cache@v2
       with:
         path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
-        key: ${{ runner.os }}-libSBML-5.19-clang++
+        key: ${{ runner.os }}-libSBML-5.19-clang++-${{ steps.get-cmake-version.outputs.version }}
 
     - name: Compiling libSBML
       if: steps.cache-libsbml-clang.outputs.cache-hit != 'true'
@@ -435,6 +460,7 @@ jobs:
           - 3.6.12
           - 3.7.9
           - 3.8.6
+          - 3.9.0
     steps:
     - uses: actions/checkout@v2
     
