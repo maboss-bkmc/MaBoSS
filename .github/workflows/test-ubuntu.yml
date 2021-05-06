@@ -572,6 +572,7 @@ jobs:
         cp manylinux_2010/* manylinuxes
         cp manylinux_2014/* manylinuxes
         cp manylinux_2_24/* manylinuxes
+        pip3 install numpy
         pip3 install -f manylinuxes --no-index cmaboss
      
     - name: Test package
@@ -632,6 +633,7 @@ jobs:
         cp manylinux_2010/* manylinuxes
         cp manylinux_2014/* manylinuxes
         cp manylinux_2_24/* manylinuxes
+        pip3 install numpy
         pip3 install -f manylinuxes --no-index cmaboss
      
     - name: Test package
