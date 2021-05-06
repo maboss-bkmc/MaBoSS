@@ -493,4 +493,5 @@ jobs:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
       run: |
+        cd engine/python
         python -m twine upload --skip-existing fixed_wheels/cmaboss*
