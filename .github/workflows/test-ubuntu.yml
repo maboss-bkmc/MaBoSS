@@ -574,7 +574,7 @@ jobs:
         cp manylinux_2_24/* manylinuxes
         pip3 install numpy
         ls -al manylinuxes
-        pip3 install -f manylinuxes --no-index cmaboss -vvv
+        pip3 install -f manylinuxes cmaboss -vvv
      
     - name: Test package
       run: |
@@ -636,7 +636,7 @@ jobs:
         cp manylinux_2_24/* manylinuxes
         pip3 install numpy
         ls -al manylinuxes
-        pip3 install -f manylinuxes --no-index cmaboss -vvv
+        pip3 install -f manylinuxes cmaboss -vvv
      
     - name: Test package
       run: |
