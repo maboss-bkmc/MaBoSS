@@ -311,7 +311,7 @@ class SBMLParser
             } else if (tree->getChild(1)->getType() == AST_NAME && tree->getChild(0)->getType() == AST_INTEGER) {
                 name = tree->getChild(1)->getName();
                 value = tree->getChild(0)->getValue();
-            } else throw BNException("Bad children for operator EQ");
+            } else throw BNException("Not Implemented : SBML qual multivalued formulas nodeA == nodeB");
             
             // Here when we ask for a specific level i, what we mean in boolean is A_b1 & A_b2 & ... & A_bi & !A_b(i+1) We don't need the following ones, 
             // because they already are forbidden if A_b(i+1) is false.
@@ -353,7 +353,7 @@ class SBMLParser
             } else if (tree->getChild(1)->getType() == AST_NAME && tree->getChild(0)->getType() == AST_INTEGER) {
                 name = tree->getChild(1)->getName();
                 value = tree->getChild(0)->getValue();
-            } else throw BNException("Bad children for operator LEQ");
+            } else throw BNException("Not Implemented : SBML qual multivalued formulas nodeA <= nodeB");
             
             // First one :
             Expression* first = new NotLogicalExpression(new NodeExpression(this->network->getOrMakeNode(getName(name, 1))));
@@ -393,7 +393,7 @@ class SBMLParser
             } else if (tree->getChild(1)->getType() == AST_NAME && tree->getChild(0)->getType() == AST_INTEGER) {
                 name = tree->getChild(1)->getName();
                 value = tree->getChild(0)->getValue();
-            } else throw BNException("Bad children for operator GEQ");
+            } else throw BNException("Not Implemented : SBML qual multivalued formulas nodeA >= nodeB");
             
             if (value == 0) {
                 // This one is always true
@@ -406,8 +406,7 @@ class SBMLParser
             }
         }
         default:
-            std::cerr << "Unknown tag " << tree->getName() << std::endl;
-            return NULL;
+            throw BNException("Not Implemented : Unknown sbml operator : " + std::string(tree->getName()));
     }
   }
   
