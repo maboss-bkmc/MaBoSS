@@ -61,7 +61,12 @@
 static const char *MABOSS_USER_FUNC_INIT = "maboss_user_func_init";
 
 const std::string PopMaBEstEngine::VERSION = "0.0.1";
+int PopMaBEstEngine::verbose = 0;
 // extern size_t RandomGenerator::generated_number_count;
+
+void PopMaBEstEngine::setVerbose(int level) {
+  PopMaBEstEngine::verbose = level;
+}
 
 PopMaBEstEngine::PopMaBEstEngine(PopNetwork *pop_network, RunConfig *runconfig) : pop_network(pop_network), runconfig(runconfig),
                                                                            time_tick(runconfig->getTimeTick()),
@@ -234,9 +239,17 @@ void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, unsigned 
   {
     random_generator->setSeed(seed + start_count_thread + nn);
     cumulator->rewind();
-    // std::cout << std::endl << "> New simulation" << std::endl;
+    if (verbose > 1) 
+      std::cout << "> New simulation" << std::endl;
   
     pop_network->initPopStates(pop_network_state, random_generator, runconfig->getInitPop());
+    
+    if (verbose > 1) {
+      std::cout << ">> Initial state : ";
+      pop_network_state.displayOneLine(std::cout, pop_network);
+      std::cout << std::endl;
+    }
+      
     double tm = 0.;
     unsigned int step = 0;
     if (NULL != output_traj) {
@@ -248,11 +261,7 @@ void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, unsigned 
     while (tm < max_time)
     {
       double total_rate = 0.;
-
-      // std::cout << ">> Present state : ";
-      // pop_network_state.displayOneLine(std::cout, pop_network);
-      // std::cout << std::endl;
-
+      
       STATE_MAP<PopNetworkState, double> popNodeTransitionRates;
       // forall S ∈ Σ such that ψ(S) > 0 do
       for (auto pop : pop_network_state.getMap())
@@ -367,14 +376,16 @@ void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, unsigned 
           }
         }
       }
-
-      // for (const auto &transition : popNodeTransitionRates)
-      // {
-      //   std::cout << " >>> Transition : ";
-      //   PopNetworkState t_state(transition.first);
-      //   t_state.displayOneLine(std::cout, pop_network);
-      //   std::cout << ", proba=" << (int)(100*transition.second/total_rate) << std::endl;
-      // }
+      
+      if (verbose > 2) {
+        for (const auto &transition : popNodeTransitionRates)
+        {
+          std::cout << ">>> Transition : ";
+          PopNetworkState t_state(transition.first);
+          t_state.displayOneLine(std::cout, pop_network);
+          std::cout << ", proba=" << (int)(100*transition.second/total_rate) << std::endl;
+        }
+      }
       double TH;
       if (total_rate == 0)
       {
@@ -416,7 +427,19 @@ void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, unsigned 
       pop_network_state = getTargetNode(random_generator, popNodeTransitionRates, total_rate);
 
       step++;
+      if (verbose > 0) 
+        std::cout << "> time = " << tm << std::endl;
+        
+      if (verbose > 1) {
+        std::cout << ">> Present state : ";
+        pop_network_state.displayOneLine(std::cout, pop_network);
+        std::cout << std::endl;
+      }
+      
     }
+    if (verbose > 0)
+      std::cout << std::endl;
+      
     cumulator->trajectoryEpilogue();
   }
   delete random_generator;

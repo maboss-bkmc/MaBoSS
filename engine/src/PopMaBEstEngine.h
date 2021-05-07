@@ -95,6 +95,8 @@ public:
 
 public:
   static const std::string VERSION;
+  static int verbose;
+  static void setVerbose(int level);
   
   PopMaBEstEngine(PopNetwork* pop_network, RunConfig* runconfig);
 
