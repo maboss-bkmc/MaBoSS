@@ -291,8 +291,7 @@ jobs:
     
     - name: Test cMaBoSS
       run: |
-        cd engine/python
-        rm -fr cmaboss cmaboss_128n cmaboss_256n cmaboss_512n cmaboss_1024n
+        cd engine/tests
         python3 -m unittest test
         python3 -m unittest test_128n
   
@@ -336,8 +335,7 @@ jobs:
       
     - name: Test package
       run: |
-        cd engine/python
-        rm -fr cmaboss cmaboss_128n cmaboss_256n cmaboss_512n cmaboss_1024n
+        cd engine/tests
         python -m unittest test
         python -m unittest test_128n
   
@@ -483,8 +481,7 @@ jobs:
         
     - name: Test wheel
       run: |
-        cd engine/python
-        rm -fr cmaboss cmaboss_128n cmaboss_256n cmaboss_512n cmaboss_1024n
+        cd engine/tests
         python -m unittest test
         python -m unittest test_128n
                 

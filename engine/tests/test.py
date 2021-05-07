@@ -79,3 +79,7 @@ class TestCMaBoSS(TestCase):
     def test_load_sbml(self):
         sim = cmaboss.MaBoSSSim("../tests/sbml/cell_fate.sbml", "../tests/sbml/cell_fate.cfg")
         res = sim.run()
+
+    def test_load_sbml_error(self):
+        with self.assertRaises(cmaboss.BNException):
+            sim = cmaboss.MaBoSSSim("../examples/sbml/BIOMD0000000562_url.xml")
