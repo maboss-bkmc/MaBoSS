@@ -79,10 +79,11 @@ static PyObject * cMaBoSSSim_new(PyTypeObject* type, PyObject *args, PyObject* k
     char * config_file = NULL;
     char * network_str = NULL;
     char * config_str = NULL;
-    static const char *kwargs_list[] = {"network", "config", "network_str", "config_str", "net", "cfg", NULL};
+    bool use_sbml_names = false;
+    static const char *kwargs_list[] = {"network", "config", "network_str", "config_str", "net", "cfg", "use_sbml_names", NULL};
     if (!PyArg_ParseTupleAndKeywords(
-      args, kwargs, "|ssssOO", const_cast<char **>(kwargs_list), 
-      &network_file, &config_file, &network_str, &config_str, &net, &cfg
+      args, kwargs, "|ssssOOp", const_cast<char **>(kwargs_list), 
+      &network_file, &config_file, &network_str, &config_str, &net, &cfg, &use_sbml_names
     ))
       return NULL;
       
@@ -93,7 +94,7 @@ static PyObject * cMaBoSSSim_new(PyTypeObject* type, PyObject *args, PyObject* k
       std::string nf(network_file);
       network = new Network();
       if (nf.substr(nf.find_last_of(".") + 1) == "sbml" || nf.substr(nf.find_last_of(".") + 1) == "xml" ) {
-        network->parseSBML(network_file); 
+        network->parseSBML(network_file, NULL, use_sbml_names); 
       } else {
         network->parse(network_file);
       }

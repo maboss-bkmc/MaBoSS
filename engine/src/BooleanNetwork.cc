@@ -202,9 +202,9 @@ int Network::parse(const char* file, std::map<std::string, NodeIndex>* nodes_ind
 }
 #ifdef SBML_COMPAT
 
-int Network::parseSBML(const char* file, std::map<std::string, NodeIndex>* nodes_indexes) 
+int Network::parseSBML(const char* file, std::map<std::string, NodeIndex>* nodes_indexes, bool useSBMLNames) 
 {  
-  SBMLParser* parser = new SBMLParser(this, file);
+  SBMLParser* parser = new SBMLParser(this, file, useSBMLNames);
   
   // try{
     parser->build();

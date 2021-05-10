@@ -587,7 +587,7 @@ public:
   int parseExpression(const char* content = NULL, std::map<std::string, NodeIndex>* nodes_indexes = NULL);
   
   #ifdef SBML_COMPAT
-  int parseSBML(const char* file, std::map<std::string, NodeIndex>* nodes_indexes = NULL);
+  int parseSBML(const char* file, std::map<std::string, NodeIndex>* nodes_indexes = NULL, bool useSBMLNames = false);
   #endif
   
   std::vector<IStateGroup*>* getIStateGroup() {

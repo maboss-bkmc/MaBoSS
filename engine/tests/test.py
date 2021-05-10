@@ -83,3 +83,9 @@ class TestCMaBoSS(TestCase):
     def test_load_sbml_error(self):
         with self.assertRaises(cmaboss.BNException):
             sim = cmaboss.MaBoSSSim("../examples/sbml/BIOMD0000000562_url.xml")
+            
+    def test_use_sbml_names(self):
+        sim = cmaboss.MaBoSSSim("../examples/sbml/Cohen.sbml")
+        self.assertEqual(sim.str_bnd().split("{")[0].split("node ")[1].strip(), "S_26")
+        sim = cmaboss.MaBoSSSim("../examples/sbml/Cohen.sbml", use_sbml_names=True)
+        self.assertEqual(sim.str_bnd().split("{")[0].split("node ")[1].strip(), "CTNNB1")
