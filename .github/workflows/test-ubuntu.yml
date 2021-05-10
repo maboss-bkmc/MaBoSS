@@ -170,7 +170,7 @@ jobs:
       with:
         path: |
           /usr/share/miniconda/conda-bld/linux-64/*
-        key: ${{ runner.os }}-maboss-conda
+        key: ${{ runner.os }}-maboss-conda-${{ github.run_id }}
       
   maboss_conda_test:
     name: Test Anaconda package
@@ -186,7 +186,7 @@ jobs:
       with:
         path: |
           /usr/share/miniconda/conda-bld/linux-64/*
-        key: ${{ runner.os }}-maboss-conda
+        key: ${{ runner.os }}-maboss-conda-${{ github.run_id }}
         
     - name: Install conda-build
       run: conda install conda-build
@@ -374,7 +374,7 @@ jobs:
       with:
         path: |
           /usr/share/miniconda/conda-bld/linux-64/*
-        key: ${{ runner.os }}-cmaboss-conda
+        key: ${{ runner.os }}-cmaboss-conda-${{ github.run_id }}
       
   cmaboss_conda_test:
     name: Test Anaconda package
@@ -390,7 +390,7 @@ jobs:
       with:
         path: |
           /usr/share/miniconda/conda-bld/linux-64/*
-        key: ${{ runner.os }}-cmaboss-conda
+        key: ${{ runner.os }}-cmaboss-conda-${{ github.run_id }}
         
     - name: Install conda-build
       run: conda install conda-build
