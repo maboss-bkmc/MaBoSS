@@ -147,11 +147,11 @@ int Network::parseExpression(const char* content, std::map<std::string, NodeInde
 }
 
 
-int Network::parse(const char* file, std::map<std::string, NodeIndex>* nodes_indexes, bool is_temp_file)
+int Network::parse(const char* file, std::map<std::string, NodeIndex>* nodes_indexes, bool is_temp_file, bool useSBMLNames)
 {
 #ifdef SBML_COMPAT
   if (hasEnding(std::string(file), ".xml") || hasEnding(std::string(file), ".sbml")) {
-    return this->parseSBML(file, nodes_indexes);
+    return this->parseSBML(file, nodes_indexes, useSBMLNames);
   }
 #endif
 

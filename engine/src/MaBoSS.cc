@@ -79,6 +79,7 @@ static int usage(std::ostream& os = std::cerr)
   os << "  " << prog << " [--ensemble [--save-individual] [--random-sampling] [--ensemble-istates]]\n";
   os << "  " << prog << " [--export-asymptotic]\n";
   os << "  " << prog << " [--counts]\n";
+  os << "  " << prog << " [--use-sbml-names]\n";
   return 1;
 }
 
@@ -105,6 +106,7 @@ static int help()
   std::cout << "  --hexfloat                              : displays double in hexadecimal format\n";
   std::cout << "  --export-asymptotic                     : create a special file for asymptotic probabilities\n";
   std::cout << "  --counts                                : exports counts instead of probabilities (only works with asymptotic states)\n";
+  std::cout << "  --use-sbml-names                        : use the names of the species when importing sbml\n";
   std::cout << "  -h --help                               : displays this message\n";
   std::cout << "\nEnsembles:\n";
   std::cout << "  --ensemble                             : simulate ensembles\n";
@@ -164,6 +166,7 @@ int main(int argc, char* argv[])
   dont_shrink_logical_expressions = false; // global flag
   bool export_asymptotic = false;
   bool counts = false;
+  bool use_sbml_names = false;
   OutputFormat format = CSV_FORMAT;
   MaBEstEngine::init();
 
@@ -249,6 +252,8 @@ int main(int argc, char* argv[])
         export_asymptotic = true;
       } else if (!strcmp(s, "--counts")) {
         counts = true;
+      } else if (!strcmp(s, "--use-sbml-names")) {
+        use_sbml_names = true;
       } else if (!strcmp(s, "--load-user-functions")) {
 	if (nn == argc-1) {std::cerr << '\n' << prog << ": missing value after option " << s << '\n'; return usage();}
 	MaBEstEngine::loadUserFuncs(argv[++nn]);
@@ -362,7 +367,7 @@ int main(int argc, char* argv[])
         RunConfig* runconfig = new RunConfig();      
 
         Network* first_network = new Network();
-        first_network->parse(ctbndl_files[0]);
+        first_network->parse(ctbndl_files[0], NULL, false, use_sbml_names);
         networks.push_back(first_network);
 
         // std::vector<ConfigOpt>::const_iterator begin = runconfig_file_or_expr_v.begin();
@@ -392,7 +397,7 @@ int main(int argc, char* argv[])
         for (unsigned int i=1; i < ctbndl_files.size(); i++) {
           
           Network* network = new Network();
-          network->parse(ctbndl_files[i], &nodes_indexes);
+          network->parse(ctbndl_files[i], &nodes_indexes, false, use_sbml_names);
           networks.push_back(network);
 
           const ConfigOpt& cfg = runconfig_file_or_expr_v[i];
@@ -464,7 +469,7 @@ int main(int argc, char* argv[])
         RunConfig* runconfig = new RunConfig();      
 
         Network* first_network = new Network();
-        first_network->parse(ctbndl_files[0]);
+        first_network->parse(ctbndl_files[0], NULL, false, use_sbml_names);
         networks.push_back(first_network);
 
         std::vector<ConfigOpt>::const_iterator begin = runconfig_file_or_expr_v.begin();
@@ -494,7 +499,7 @@ int main(int argc, char* argv[])
         for (unsigned int i=1; i < ctbndl_files.size(); i++) {
           
           Network* network = new Network();
-          network->parse(ctbndl_files[i], &nodes_indexes);
+          network->parse(ctbndl_files[i], &nodes_indexes, false, use_sbml_names);
           networks.push_back(network);
 
           
@@ -573,7 +578,7 @@ int main(int argc, char* argv[])
 
       Network* network = new Network();
 
-      network->parse(ctbndl_file);
+      network->parse(ctbndl_file, NULL, false, use_sbml_names);
 
       RunConfig* runconfig = new RunConfig();
 
@@ -624,7 +629,7 @@ int main(int argc, char* argv[])
         
       Network* network = new Network();
 
-      network->parse(ctbndl_file);
+      network->parse(ctbndl_file, NULL, false, use_sbml_names);
 
       RunConfig* runconfig = new RunConfig();
 
