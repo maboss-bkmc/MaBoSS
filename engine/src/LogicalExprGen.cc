@@ -245,7 +245,9 @@ Expression* NotLogicalExpression::cloneAndShrink(bool& shrinked) const
   bool b_expr;
   if (expr->evalIfConstant(b_expr)) {
     shrinked = true;
-    return new ConstantExpression(b_expr);
+    // Here we were returning b_expr, thus ignoring the negation
+    // Which is weird... so let's test this 
+    return new ConstantExpression(!b_expr);
   }
   return new NotLogicalExpression(expr->cloneAndShrink(shrinked));
 }
