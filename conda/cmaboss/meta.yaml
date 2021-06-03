@@ -20,21 +20,21 @@ requirements:
     - bison
     - make
     - python {{ python }}
-    - numpy {{ numpy }}
+    - numpy
     - setuptools
     - libsbml-plus-packages
     - libxml2
     
   host: 
     - python {{ python }}
-    - numpy {{ numpy }}
+    - numpy
     - setuptools
     - libsbml-plus-packages
     - libxml2
   
   run: 
     - python {{ python }}
-    - numpy {{ numpy }}
+    - numpy
     - setuptools
     - libsbml-plus-packages
     - libxml2
