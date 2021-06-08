@@ -481,3 +481,8 @@ void GreaterOrEqualExpression::generateLogicalExpression(LogicalExprGenContext& 
 {
   throw BNException(LOGICAL_EXPR_MSG + "GreaterOrEqualExpression is not yet implemented");
 }
+
+void FuncCallExpression::generateLogicalExpression(LogicalExprGenContext& genctx) const
+{
+  throw BNException(LOGICAL_EXPR_MSG + "FuncCallExpression is not yet implemented");
+}

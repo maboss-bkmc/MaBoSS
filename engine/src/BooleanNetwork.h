@@ -1421,7 +1421,7 @@ public:
   ArgumentList* clone() const {
     ArgumentList* arg_list_cloned = new ArgumentList();
     for (std::vector<Expression*>::const_iterator iter = expr_v.begin(); iter != expr_v.end(); ++iter) {
-      arg_list_cloned->push_back(*iter);
+      arg_list_cloned->push_back((*iter)->clone());
     }
     return arg_list_cloned;
   }
@@ -1454,7 +1454,7 @@ public:
   }
 
   const std::vector<Expression*>& getExpressionList() const { return expr_v; }
-  size_t getExpressionListCount() { return expr_v.size(); }
+  size_t getExpressionListCount() const { return expr_v.size(); }
 
   ~ArgumentList() {
     for (std::vector<Expression*>::iterator iter = expr_v.begin(); iter != expr_v.end(); ++iter) {
@@ -1509,9 +1509,7 @@ public:
 
   bool isConstantExpression() const {return arg_list->isConstantExpression();}
 
-  void generateLogicalExpression(LogicalExprGenContext& genctx) const {
-    // for now
-  }
+  void generateLogicalExpression(LogicalExprGenContext& genctx) const;
 
   virtual ~FuncCallExpression() {
     delete arg_list;
