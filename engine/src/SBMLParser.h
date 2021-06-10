@@ -129,7 +129,22 @@ class SBMLParser
         for (int j=0; j < this->maxLevels[specie->getId()]; j++){
             if (!this->network->isNodeDefined(getName(specie->getId(), j+1))) {
             
-                NodeExpression* input_node = new NodeExpression(this->network->getOrMakeNode(getName(specie->getId(), j+1)));
+                Expression* input_node = new NodeExpression(this->network->getOrMakeNode(getName(specie->getId(), j+1)));
+                // Here we also need to declare lower nodes if lvl > 1
+                
+                // Here we add terms to enforce : 
+                // - To activate one level, the lower one needs to be active : exp & level(i-1)
+                for(int k=1; k <= j; k++) {
+                    Expression* lower_outputs = new NodeExpression(
+                        this->network->getOrMakeNode(getName(specie->getId(), k))
+                    );
+                    
+                    input_node = new AndLogicalExpression(
+                        input_node,
+                        lower_outputs
+                    );
+                }
+                
                 NodeDeclItem* decl_item = new NodeDeclItem("logic", input_node);
                 std::vector<NodeDeclItem*>* decl_item_v = new std::vector<NodeDeclItem*>();
                 decl_item_v->push_back(decl_item);
