@@ -24,7 +24,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: /home/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
-        key: ${{ runner.os }}-libSBML-5.19-gcc
+        key: ${{ runner.os }}-libSBML-5.19-gcc-namespace
 
     - name: Compiling libSBML
       if: steps.cache-libsbml-gcc.outputs.cache-hit != 'true'
@@ -50,6 +50,7 @@ jobs:
         -DENABLE_QUAL=ON \
         -DENABLE_RENDER=ON \
         -DENABLE_DISTRIB=ON \
+        -DWITH_CPP_NAMESPACE=ON \
         ..
         make
         cd ../..
@@ -94,7 +95,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: /home/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
-        key: ${{ runner.os }}-libSBML-5.19-clang
+        key: ${{ runner.os }}-libSBML-5.19-clang-namespace
 
     - name: Compiling libSBML
       if: steps.cache-libsbml-clang.outputs.cache-hit != 'true'
@@ -120,6 +121,7 @@ jobs:
         -DENABLE_QUAL=ON \
         -DENABLE_RENDER=ON \
         -DENABLE_DISTRIB=ON \
+        -DWITH_CPP_NAMESPACE=ON \
         ..
         make
         cd ../..
@@ -301,7 +303,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: /home/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
-        key: ${{ runner.os }}-libSBML-5.19-gcc
+        key: ${{ runner.os }}-libSBML-5.19-gcc-namespace
 
     - name: Compiling libSBML
       if: steps.cache-libsbml-gcc.outputs.cache-hit != 'true'
@@ -327,6 +329,7 @@ jobs:
         -DENABLE_QUAL=ON \
         -DENABLE_RENDER=ON \
         -DENABLE_DISTRIB=ON \
+        -DWITH_CPP_NAMESPACE=ON \
         ..
         make
         cd ../..

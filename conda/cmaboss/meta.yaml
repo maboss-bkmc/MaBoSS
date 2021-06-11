@@ -22,21 +22,21 @@ requirements:
     - python {{ python }}
     - numpy
     - setuptools
-    - libsbml-plus-packages
+    - libsbml-plus-packages-namespace
     - libxml2
     
   host: 
     - python {{ python }}
     - numpy
     - setuptools
-    - libsbml-plus-packages
+    - libsbml-plus-packages-namespace
     - libxml2
   
   run: 
     - python {{ python }}
     - numpy
     - setuptools
-    - libsbml-plus-packages
+    - libsbml-plus-packages-namespace
     - libxml2
 
 about:

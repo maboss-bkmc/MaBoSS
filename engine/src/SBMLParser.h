@@ -53,6 +53,8 @@
 #include <sbml/packages/qual/extension/QualModelPlugin.h>
 #include <sbml/SBMLTypes.h>
 
+LIBSBML_CPP_NAMESPACE_USE
+
 class SBMLParser
 {
   public:
