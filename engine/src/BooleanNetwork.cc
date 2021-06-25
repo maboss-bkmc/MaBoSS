@@ -663,7 +663,7 @@ void PopNetworkState::displayJSON(std::ostream &strm, Network* network, const st
   size_t i = mp.size();
   for (auto pop : mp) {
     NetworkState t_state(pop.first);
-    strm << "{\"" << t_state.getName(network) << "\":" << pop.second << "}";
+    strm << "{'" << t_state.getName(network) << "':" << pop.second << "}";
     if (--i > 0) {
       strm << ",";
     }
