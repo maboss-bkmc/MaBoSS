@@ -400,12 +400,13 @@ jobs:
         key: ${{ runner.os }}-cmaboss-conda-${{ github.run_id }}
         
     - name: Install conda-build
-      run: conda install conda-build
+      run: |
+        conda update conda --all
+        conda install conda-build
      
     - name: Install package
       run: |
         conda index /usr/share/miniconda/conda-bld
-        conda config --set channel_priority strict
         conda install --use-local -c vincent-noel cmaboss
         
     - name: Test package
