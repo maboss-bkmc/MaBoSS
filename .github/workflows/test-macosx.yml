@@ -337,7 +337,11 @@ jobs:
     
     - name: Build cMaBoSS Anaconda package
       run: |
-        conda build -c vincent-noel conda/cmaboss;   
+        conda build -c vincent-noel --variants "{\"python\": [\"3.6\", \"3.7\"], \"numpy\": \"1.16\"}" conda/cmaboss;
+        conda build -c vincent-noel --variants "{\"python\": [\"3.6\", \"3.7\", \"3.8\"], \"numpy\": \"1.17\"}" conda/cmaboss;
+        conda build -c vincent-noel --variants "{\"python\": [\"3.6\", \"3.7\", \"3.8\"], \"numpy\": \"1.18\"}" conda/cmaboss;
+        conda build -c vincent-noel --variants "{\"python\": [\"3.6\", \"3.7\", \"3.8\", \"3.9\"], \"numpy\": \"1.19\"}" conda/cmaboss;
+        conda build -c vincent-noel --variants "{\"python\": [\"3.7\", \"3.8\", \"3.9\"], \"numpy\": \"1.20\"}" conda/cmaboss;
         
     - name: Caching produced conda package
       uses: actions/cache@v2

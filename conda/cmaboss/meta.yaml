@@ -1,5 +1,5 @@
 {% set name = "cMaBoSS" %}
-{% set version = "1.0.0b11" %}
+{% set version = "1.0.0b12" %}
 
 package:
   name: '{{ name|lower }}'
@@ -11,7 +11,6 @@ source:
 
 build:
   number: 0
-  string: py{{CONDA_PY}}
 
 requirements:
   build:
@@ -20,21 +19,21 @@ requirements:
     - bison
     - make
     - python {{ python }}
-    - numpy
+    - numpy {{ numpy }}
     - setuptools
     - libsbml-plus-packages-namespace
     - libxml2
     
   host: 
     - python {{ python }}
-    - numpy
+    - numpy {{ numpy }}
     - setuptools
     - libsbml-plus-packages-namespace
     - libxml2
   
   run: 
     - python {{ python }}
-    - numpy
+    - numpy {{ numpy }}
     - setuptools
     - libsbml-plus-packages-namespace
     - libxml2
