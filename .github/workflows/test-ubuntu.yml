@@ -151,7 +151,7 @@ jobs:
         bash -c "cd engine/tests; bash ./test-user_func.sh"
         
   maboss_conda:
-    name: Anaconda package
+    name: Build MaBoSS Anaconda package
     runs-on: ubuntu-18.04
     needs: [maboss, maboss_llvm]
     if: github.ref == 'refs/heads/master' || github.event_name == 'release'
@@ -177,7 +177,7 @@ jobs:
         key: ${{ runner.os }}-maboss-conda-${{ github.run_id }}
       
   maboss_conda_test:
-    name: Test Anaconda package
+    name: Test MaBoSS Anaconda package
     runs-on: ubuntu-18.04
     needs: maboss_conda
      
@@ -217,14 +217,35 @@ jobs:
         bash -c "cd engine/tests; bash ./test-prngs.sh"
         bash -c "cd engine/tests; bash ./test-rngs.sh"
         bash -c "cd engine/tests; bash ./test-sbml.sh"
-        
+  
+  maboss_conda_publish:
+    name: Publish MaBoSS Anaconda package
+    runs-on: ubuntu-18.04
+    needs: maboss_conda_test
+     
+    steps:
+    - uses: actions/checkout@v2
+    - uses: s-weigand/setup-conda@v1
+    
+    - name: Restoring cached conda package
+      uses: actions/cache@v2
+      with:
+        path: |
+          /usr/share/miniconda/conda-bld/linux-64/*
+        key: ${{ runner.os }}-maboss-conda-${{ github.run_id }}
+    
     - name: Install anaconda-client
       run: conda install anaconda-client
     
-    - name: Upload cMaBoSS Ananconda package
-      if: github.repository == 'vincent-noel/MaBoSS-env-2.0'
+    - name: Upload MaBoSS Ananconda package on vincent-noel
+      if: github.repository == 'vincent-noel/MaBoSS-env-2.0' && github.ref == 'refs/heads/master'
       run: |
         anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/share/miniconda/conda-bld/linux-64/*.tar.bz2 --force;
+    
+    - name: Upload MaBoSS Ananconda package on colomoto
+      if: github.repository == 'sysbio-curie/MaBoSS-env-2.0' && github.event_name == 'release'
+      run: |
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/share/miniconda/conda-bld/linux-64/*.tar.bz2 --force;
     
   test_docker:
     name: Docker MaBoSS Server
@@ -361,9 +382,10 @@ jobs:
    
 
   cmaboss_conda:
-    name: Anaconda package
+    name: Build cMaBoSS Anaconda package
     runs-on: ubuntu-18.04
     needs: cmaboss
+    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
 
     steps:
     - uses: actions/checkout@v2
@@ -390,7 +412,7 @@ jobs:
         key: ${{ runner.os }}-cmaboss-conda-${{ github.run_id }}
       
   cmaboss_conda_test:
-    name: Test Anaconda package
+    name: Test cMaBoSS Anaconda package
     runs-on: ubuntu-18.04
     needs: cmaboss_conda
     
@@ -420,19 +442,42 @@ jobs:
         cd engine/tests
         python -m unittest test
         python -m unittest test_128n
-            
+  
+  cmaboss_conda_publish:
+    name: Publish cMaBoSS Anaconda package
+    runs-on: ubuntu-18.04
+    needs: cmaboss_conda_test
+    
+    steps:
+    - uses: actions/checkout@v2
+    - uses: s-weigand/setup-conda@v1
+    
+    - name: Caching produced conda package
+      uses: actions/cache@v2
+      with:
+        path: |
+          /usr/share/miniconda/conda-bld/linux-64/*
+        key: ${{ runner.os }}-cmaboss-conda-${{ github.run_id }}
+              
     - name: Install anaconda-client
       run: conda install anaconda-client
      
-    - name: Upload cMaBoSS Ananconda package
-      if: github.repository == 'vincent-noel/MaBoSS-env-2.0'
+    - name: Upload cMaBoSS Ananconda package on vincent-noel
+      if: github.repository == 'vincent-noel/MaBoSS-env-2.0' && github.ref == 'refs/heads/master'
       run: |
         anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/share/miniconda/conda-bld/linux-64/*.tar.bz2 --force;
+
+    - name: Upload cMaBoSS Ananconda package on colomoto
+      if: github.repository == 'sysbio-curie/MaBoSS-env-2.0' && github.event_name == 'release'
+      run: |
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/share/miniconda/conda-bld/linux-64/*.tar.bz2 --force;
 
   cmaboss_manylinux_2010:
     name: manylinux2010 wheel
     runs-on: ubuntu-18.04
     needs: cmaboss
+    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
+
     
     steps:
     - uses: actions/checkout@v2
@@ -461,6 +506,7 @@ jobs:
     name: manylinux1 wheel
     runs-on: ubuntu-18.04
     needs: cmaboss
+    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
 
     steps:
     - uses: actions/checkout@v2
@@ -489,6 +535,7 @@ jobs:
     name: manylinux2014 wheel
     runs-on: ubuntu-18.04
     needs: cmaboss
+    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
 
     steps:
     - uses: actions/checkout@v2
@@ -517,7 +564,8 @@ jobs:
     name: manylinux_2_24 wheel
     runs-on: ubuntu-18.04
     needs: cmaboss
-  
+    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
+
     steps:
     - uses: actions/checkout@v2
     
@@ -670,7 +718,7 @@ jobs:
           /home/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/engine/python/manylinuxes
         key: ${{ runner.os }}-cmaboss-manylinuxes-${{ github.run_id }}  
      
-    - name: Upload cMaBoSS Ananconda package
+    - name: Upload cMaBoSS Pypi package
       if: github.repository == 'vincent-noel/MaBoSS-env-2.0'
       env:
         TWINE_USERNAME: __token__

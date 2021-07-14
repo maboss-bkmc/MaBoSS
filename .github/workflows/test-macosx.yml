@@ -171,7 +171,8 @@ jobs:
     name: Build Conda MaBoSS package
     runs-on: macos-latest
     needs: [maboss, maboss_llvm]
-  
+    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
+
     steps:
     - uses: actions/checkout@v2
     - uses: s-weigand/setup-conda@v1
@@ -239,12 +240,39 @@ jobs:
         bash -c "cd engine/tests; bash ./test-rngs.sh"
         bash -c "cd engine/tests; bash ./test-sbml.sh"
     
-    - name: Upload MaBoSS to Anaconda cloud
-      if: github.repository == 'vincent-noel/MaBoSS-env-2.0'
+  maboss_conda_publish:
+    name: MaBoSS Anaconda package publication
+    runs-on: macos-latest
+    needs: maboss_conda_test
+    
+    steps:
+    - uses: actions/checkout@v2
+    - uses: s-weigand/setup-conda@v1
+    
+    - name: Install conda-build
+      run: |
+        conda update conda --all
+        conda install conda-build anaconda-client
+      
+    - name: Caching produced conda package
+      uses: actions/cache@v2
+      with:
+        path: |
+          /usr/local/miniconda/conda-bld/osx-64/*
+        key: ${{ runner.os }}-maboss-conda-${{ github.run_id }}
+        
+    
+    - name: Upload MaBoSS to Anaconda cloud on vincent-noel
+      if: github.repository == 'vincent-noel/MaBoSS-env-2.0' && github.ref == 'refs/heads/master'
       run: |   
         anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/local/miniconda/conda-bld/osx-64/*.tar.bz2 --force;
  
-        
+    
+    - name: Upload MaBoSS to Anaconda cloud on colomoto
+      if: github.repository == 'sysbio-curie/MaBoSS-env-2.0' && github.event_name == 'release'
+      run: |   
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/local/miniconda/conda-bld/osx-64/*.tar.bz2 --force;
+ 
 ###################################################################################################
 # cMaBoSS                                                                                         #
 ###################################################################################################                        
@@ -326,6 +354,7 @@ jobs:
     name: cMaBoSS Conda package
     runs-on: macos-latest
     needs: cmaboss
+    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
 
     steps:
     - uses: actions/checkout@v2
@@ -389,17 +418,44 @@ jobs:
         python -m unittest test
         python -m unittest test_128n
   
-    - name: Upload cMaBoSS to Anaconda cloud
-      if: github.repository == 'vincent-noel/MaBoSS-env-2.0'
+  cmaboss_conda_publish:
+    name: cMaBoSS Anaconda package publication
+    runs-on: macos-latest
+    needs: cmaboss_conda_test
+    
+    steps:
+    - uses: actions/checkout@v2
+    - uses: s-weigand/setup-conda@v1
+    
+    - name: Install conda-build
+      run: |
+        conda update conda --all
+        conda install conda-build anaconda-client
+      
+    - name: Caching produced conda package
+      uses: actions/cache@v2
+      with:
+        path: |
+          /usr/local/miniconda/conda-bld/osx-64/*
+        key: ${{ runner.os }}-cmaboss-conda-${{ github.run_id }}
+    
+    - name: Upload MaBoSS to Anaconda cloud on vincent-noel
+      if: github.repository == 'vincent-noel/MaBoSS-env-2.0' && github.ref == 'refs/heads/master'
       run: |   
         anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/local/miniconda/conda-bld/osx-64/*.tar.bz2 --force;
  
     
+    - name: Upload MaBoSS to Anaconda cloud on colomoto
+      if: github.repository == 'sysbio-curie/MaBoSS-env-2.0' && github.event_name == 'release'
+      run: |   
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/local/miniconda/conda-bld/osx-64/*.tar.bz2 --force;
+ 
             
   cmaboss_pypi:
     name: cMaBoSS PyPi package
     runs-on: macos-latest
     needs: cmaboss
+    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
 
     strategy:
       matrix:
