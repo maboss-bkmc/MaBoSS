@@ -18,15 +18,15 @@ requirements:
     - flex
     - bison
     - make
-    - libsbml-plus-packages-namespace
+    - libsbml-plus-packages
     - libxml2
         
   host:
-    - libsbml-plus-packages-namespace
+    - libsbml-plus-packages
     - libxml2
     
   run:
-    - libsbml-plus-packages-namespace
+    - libsbml-plus-packages
     - libxml2
       
 about:

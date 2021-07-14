@@ -1,5 +1,5 @@
 {% set name = "cMaBoSS" %}
-{% set version = "1.0.0b12" %}
+{% set version = "1.0.0b13" %}
 
 package:
   name: '{{ name|lower }}'
@@ -21,21 +21,21 @@ requirements:
     - python {{ python }}
     - numpy {{ numpy }}
     - setuptools
-    - libsbml-plus-packages-namespace
+    - libsbml-plus-packages
     - libxml2
     
   host: 
     - python {{ python }}
     - numpy {{ numpy }}
     - setuptools
-    - libsbml-plus-packages-namespace
+    - libsbml-plus-packages
     - libxml2
   
   run: 
     - python {{ python }}
     - numpy {{ numpy }}
     - setuptools
-    - libsbml-plus-packages-namespace
+    - libsbml-plus-packages
     - libxml2
 
 about:
