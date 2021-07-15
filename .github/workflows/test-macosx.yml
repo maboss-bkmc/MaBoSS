@@ -179,6 +179,9 @@ jobs:
 
     - name: Installing conda-build      
       run: |
+        conda update conda
+        conda config --add channels conda-forge
+        conda config --set channel_priority strict
         conda update conda --all
         conda install conda-build
 
@@ -209,6 +212,9 @@ jobs:
     
     - name: Install conda-build
       run: |
+        conda update conda
+        conda config --add channels conda-forge
+        conda config --set channel_priority strict
         conda update conda --all
         conda install conda-build anaconda-client
       
@@ -251,6 +257,9 @@ jobs:
     
     - name: Install conda-build
       run: |
+        conda update conda
+        conda config --add channels conda-forge
+        conda config --set channel_priority strict
         conda update conda --all
         conda install conda-build anaconda-client
       
@@ -362,7 +371,10 @@ jobs:
     
     - name: Install conda-build
       run: |
-        conda update conda --all
+        conda update conda
+        conda config --add channels conda-forge
+        conda config --set channel_priority strict
+        conda update --all
         conda install conda-build
       
     - name: Downgrading XCode to 11.7
@@ -397,6 +409,9 @@ jobs:
     
     - name: Install conda-build
       run: |
+        conda update conda
+        conda config --add channels conda-forge
+        conda config --set channel_priority strict
         conda update conda --all
         conda install conda-build anaconda-client
       
@@ -429,6 +444,9 @@ jobs:
     
     - name: Install conda-build
       run: |
+        conda update conda
+        conda config --add channels conda-forge
+        conda config --set channel_priority strict
         conda update conda --all
         conda install conda-build anaconda-client
       
