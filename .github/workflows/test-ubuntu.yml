@@ -162,6 +162,9 @@ jobs:
     
     - name: Install conda-build
       run: |
+        conda update conda
+        conda config --add channels conda-forge
+        conda config --set channel_priority strict
         conda update conda --all
         conda install conda-build anaconda-client
       
@@ -194,6 +197,9 @@ jobs:
         
     - name: Install conda-build
       run: |
+        conda update conda
+        conda config --add channels conda-forge
+        conda config --set channel_priority strict
         conda update conda --all
         conda install conda-build
      
@@ -235,7 +241,12 @@ jobs:
         key: ${{ runner.os }}-maboss-conda-${{ github.run_id }}
     
     - name: Install anaconda-client
-      run: conda install anaconda-client
+      run: |
+        conda update conda
+        conda config --add channels conda-forge
+        conda config --set channel_priority strict
+        conda update --all
+        conda install anaconda-client
     
     - name: Upload MaBoSS Ananconda package on vincent-noel
       if: github.repository == 'vincent-noel/MaBoSS-env-2.0' && github.ref == 'refs/heads/master'
@@ -393,6 +404,9 @@ jobs:
  
     - name: Install conda-build
       run: |
+        conda update conda
+        conda config --add channels conda-forge
+        conda config --set channel_priority strict
         conda update conda --all
         conda install conda-build anaconda-client
       
@@ -429,6 +443,9 @@ jobs:
         
     - name: Install conda-build
       run: |
+        conda update conda
+        conda config --add channels conda-forge
+        conda config --set channel_priority strict
         conda update conda --all
         conda install conda-build
      
@@ -460,7 +477,12 @@ jobs:
         key: ${{ runner.os }}-cmaboss-conda-${{ github.run_id }}
               
     - name: Install anaconda-client
-      run: conda install anaconda-client
+      run: |
+        conda update conda
+        conda config --add channels conda-forge
+        conda config --set channel_priority strict
+        conda update --all
+        conda install anaconda-client
      
     - name: Upload cMaBoSS Ananconda package on vincent-noel
       if: github.repository == 'vincent-noel/MaBoSS-env-2.0' && github.ref == 'refs/heads/master'
