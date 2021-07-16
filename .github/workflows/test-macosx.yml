@@ -615,8 +615,49 @@ jobs:
         cd engine/tests
         python -m unittest test
         python -m unittest test_128n
-                
+       
+  cmaboss_wheel_publish:
+    name: cMaBoSS Wheel publish
+    runs-on: macos-latest
+    needs: cmaboss_wheel_test
+    strategy:
+      matrix:
+        python:
+          - 3.5.10
+          - 3.6.12
+          - 3.7.9
+          - 3.8.6
+          - 3.9.0
+    
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup python env
+      uses: gabrielfalcao/pyenv-action@v7
+      with:
+        default: "${{ matrix.python }}"
+        command: |
+          pip install -U pip  # upgrade pip after installing python
+    
+    - name: Install python dependencies
+      run: pip install twine 
+
+    - name: Cache wheel
+      uses: actions/cache@v2
+      with:
+        path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/engine/python/fixed_wheels/*
+        key: ${{ runner.os }}-wheel-${{ matrix.python }}-${{ github.run_id }}
+        
+    - name: Upload cMaBoSS to test Pypi
+      if: github.repository == 'vincent-noel/MaBoSS-env-2.0' && github.ref == 'refs/heads/master'
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_TEST_TOKEN }}
+      run: |
+        cd engine/python
+        python -m twine upload --repository testpypi --skip-existing fixed_wheels/cmaboss*
+        
     - name: Upload cMaBoSS to Pypi
+      if: github.repository == 'sysbio-curie/MaBoSS-env-2.0' && github.event_name == 'release'
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}

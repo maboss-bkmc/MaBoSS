@@ -740,8 +740,19 @@ jobs:
           /home/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/engine/python/manylinuxes
         key: ${{ runner.os }}-cmaboss-manylinuxes-${{ github.run_id }}  
      
+    - name: Upload cMaBoSS package to testPypi 
+      if: github.repository == 'vincent-noel/MaBoSS-env-2.0' && github.ref == 'refs/heads/master'
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_TEST_TOKEN }}
+      run: |
+        pip install twine
+        cd engine/python
+        ls -al manylinuxes
+        python -m twine upload --repository testpypi --skip-existing manylinuxes/cmaboss*
+        
     - name: Upload cMaBoSS Pypi package
-      if: github.repository == 'vincent-noel/MaBoSS-env-2.0'
+      if: github.repository == 'sysbio-curie/MaBoSS-env-2.0' && github.event_name == 'release'
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
@@ -750,5 +761,7 @@ jobs:
         cd engine/python
         ls -al manylinuxes
         python -m twine upload --skip-existing manylinuxes/cmaboss*
+        
+        
         
         
