@@ -14,9 +14,9 @@
 
 MAKEFILE = Makefile.maboss
 
-maboss:
-popmaboss:
-%:
+.PHONY: maboss popmaboss
+
+maboss popmaboss %:
 	@rm -f depend.mk
 	@touch depend.mk
 	@$(MAKE) -f $(MAKEFILE) init
