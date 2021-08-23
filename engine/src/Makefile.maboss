@@ -193,7 +193,7 @@ force-init:
 	@CXX=$(CXX) sh init-config.sh force
 
 depend: $(CORE_LIB_SRC)
-	$(MAKEDEPEND) -DMAXNODES=$(MAXNODES) $(WINDOWS_FLAG) $(CORE_LIB_SRC) $(POP_LIB_SRC) $(LIB_SRC) > depend_tmp.mk
+	@$(MAKEDEPEND) $(BITSET_FLAG) -DMAXNODES=$(MAXNODES) $(WINDOWS_FLAG) $(CORE_LIB_SRC) $(POP_LIB_SRC) $(LIB_SRC) MaBoSS.cc > depend_tmp.mk
 	@sed -e "s/\.o:/$(INFIX).o:/g" depend_tmp.mk > depend.mk
 	@rm -f depend_tmp.mk
 

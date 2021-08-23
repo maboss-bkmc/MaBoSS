@@ -5,6 +5,8 @@
 #include <cstdint>
 #include "maboss-config.h"
 
+#include <assert.h>
+
 //#define USE_MB_SHIFT
 //#define MB_COUNT
 
@@ -51,6 +53,8 @@ public:
  }
 
   MBDynBitset(size_t nbits) {
+    data = 0;
+    num_bits = 0;
     num_bytes = 0;
     num_64 = 0;
     resize(nbits);
@@ -119,6 +123,10 @@ public:
 #endif
 
   void resize(size_t nbits) {
+    if (num_bits == nbits) {
+      memset(data, 0, num_bytes);
+      return;
+    }
     num_bits = nbits;
     if (num_bytes == 0) {
       num_64 = getNum64(num_bits);
