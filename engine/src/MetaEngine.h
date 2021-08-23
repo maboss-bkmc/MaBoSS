@@ -119,7 +119,9 @@ public:
     statdist_trajcount(runconfig->getStatDistTrajCount()),
     discrete_time(runconfig->isDiscreteTime()), 
     thread_count(runconfig->getThreadCount()) {
-
+      
+  elapsed_core_runtime = user_core_runtime = elapsed_statdist_runtime = user_statdist_runtime = elapsed_epilogue_runtime = user_epilogue_runtime = 0;
+    
 #ifdef MPI_COMPAT
 
   MPI_Init(NULL, NULL);
