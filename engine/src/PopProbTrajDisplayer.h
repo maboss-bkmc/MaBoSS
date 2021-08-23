@@ -131,7 +131,7 @@ public:
     for (const typename ProbTrajDisplayer<PopNetworkState>::Proba &proba : this->proba_v)
     {
       pop += proba.proba * proba.state.count(NULL);
-      for (const auto network_state : proba.state.getMap())
+      for (const auto& network_state : proba.state.getMap())
       {
         if (network_state_probas.find(network_state.first) != network_state_probas.end())
         {
@@ -148,7 +148,7 @@ public:
 
     // Computing
 
-    for (auto network_state_proba : network_state_probas)
+    for (auto &network_state_proba : network_state_probas)
     {
       os_simple_probtraj << '\t';
       network_state_proba.first.displayOneLine(os_simple_probtraj, this->network);
@@ -223,7 +223,7 @@ public:
     for (const typename ProbTrajDisplayer<PopNetworkState>::Proba &proba : this->proba_v)
     {
       pop += proba.proba * proba.state.count(NULL);
-      for (const auto network_state : proba.state.getMap())
+      for (const auto &network_state : proba.state.getMap())
       {
         if (network_state_probas.find(network_state.first) != network_state_probas.end())
         {
@@ -244,7 +244,7 @@ public:
 
     os_simple_probtraj << "\"probas\":[";
     unsigned int idx = 0;
-    for (auto network_state_proba : network_state_probas) {
+    for (auto &network_state_proba : network_state_probas) {
       os_simple_probtraj << "{\"state\":\"";
       network_state_proba.first.displayJSON(os_simple_probtraj, this->network);
       os_simple_probtraj << "\",";
