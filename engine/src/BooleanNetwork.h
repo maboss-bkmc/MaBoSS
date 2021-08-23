@@ -884,27 +884,31 @@ namespace std {
 // global state of the population boolean network
 class PopNetworkState {
   
-  
   std::map<NetworkState_Impl, unsigned int> mp;
   mutable size_t hash;
+  mutable bool hash_init;
 
 public:
 
   const std::map<NetworkState_Impl, unsigned int>& getMap() const {
     return mp;
   }
+
   size_t getHash() const { 
-    if (hash == 0) {
+    // EV 2021-08-23: invalid comparison as hash == 0 can be a valid computed hash; replaced by hash_init
+    //if (hash == 0) {
+    if (!hash_init) {
       hash = compute_hash();
+      hash_init = true;
     }
     return hash; 
   }
+
+ PopNetworkState() : mp(std::map<NetworkState_Impl, unsigned int>()), hash(0) , hash_init(false) { }
+ PopNetworkState(const PopNetworkState &p ) : hash(0), hash_init(false) { *this = p; }
+ PopNetworkState(const PopNetworkState &p , int copy) : hash(0), hash_init(false) { *this = p; }
   
-  PopNetworkState() : mp(std::map<NetworkState_Impl, unsigned int>()), hash(0) { }
-  PopNetworkState(const PopNetworkState &p ) { *this = p; }
-  PopNetworkState(const PopNetworkState &p , int copy) { *this = p; }
-  
-  PopNetworkState(NetworkState_Impl state, unsigned int value) : mp(std::map<NetworkState_Impl, unsigned int>()), hash(0) {
+ PopNetworkState(NetworkState_Impl state, unsigned int value) : mp(std::map<NetworkState_Impl, unsigned int>()), hash(0) , hash_init(false) {
     mp[state] = value;
   }
   
@@ -927,8 +931,9 @@ public:
   // & operator for applying the mask
   PopNetworkState operator&(const NetworkState_Impl& mask) { 
     
-    PopNetworkState masked_pop_state = PopNetworkState();
-    for (auto network_state_pop : mp) {
+    //PopNetworkState masked_pop_state = PopNetworkState();
+    PopNetworkState masked_pop_state;
+    for (auto &network_state_pop : mp) {
       NetworkState_Impl masked_network_state = network_state_pop.first & mask;
       masked_pop_state.addStatePop(masked_network_state, network_state_pop.second);
     }
@@ -939,8 +944,9 @@ public:
   // & operator for applying the mask
   PopNetworkState operator&(const NetworkState& mask) { 
     
-    PopNetworkState masked_pop_state = PopNetworkState();
-    for (auto network_state_pop : mp) {
+    //PopNetworkState masked_pop_state = PopNetworkState();
+    PopNetworkState masked_pop_state;
+    for (auto &network_state_pop : mp) {
       NetworkState_Impl masked_network_state = network_state_pop.first & mask.getState();
       masked_pop_state.addStatePop(masked_network_state, network_state_pop.second);
     }
@@ -957,7 +963,7 @@ public:
     }
     
     // If it's identical, we need to look further, so we look at each state
-    for (auto network_state: other_mp) {
+    for (auto &network_state: other_mp) {
       
         auto t_state = mp.find(network_state.first);
         // Is this state also present ?
@@ -1006,6 +1012,7 @@ public:
     else
       mp[t_state] = 1;
     hash = 0;
+    hash_init = false;
   }
 
   // Decreases the population of the state
@@ -1016,6 +1023,7 @@ public:
     else
       mp.erase(t_state);
     hash = 0;
+    hash_init = false;
   }
   
   // Returns if the state exists
@@ -1023,10 +1031,13 @@ public:
     return mp.find(net_state.getState()) != mp.end();
   }
   
+  /*
   bool operator<(const PopNetworkState& pop_state) const {
+  // EV: 2021-08-22:  wrong implementation as identical hashes do not mean instance equality (anyhow, this method is useless => disconnected)
     return getHash() < pop_state.getHash();
   }
-  
+  */
+
   size_t compute_hash() const {
     
     // return mp.size(); //dans un premier temps ? un peu exagere, mais why not
@@ -1034,11 +1045,11 @@ public:
     // Expensive, but should be a good one ?
     
     size_t result = 0;
-    for (auto network_state_pop: mp) {
+    for (auto &network_state_pop: mp) {
       NetworkState_Impl t_state = network_state_pop.first;
-      
 #if defined(USE_STATIC_BITSET)
-      result += t_state.to_ulong() * network_state_pop.second;
+      t_state &= ~0ULL; // EV: 2021-08-23: added this line to avoid overflows in t_state.tu_ullong() by keeping only the last 64 bits
+      result += t_state.to_ullong() * network_state_pop.second;
 #elif defined(USE_DYNAMIC_BITSET)
       result += t_state.to_ulong() * network_state_pop.second;
 #else

@@ -80,6 +80,9 @@ public:
     true_copy_cnt++;
 #endif
     data = 0;
+    num_bits = 0;
+    num_bytes = 0;
+    num_64 = 0;
     *this = bitset;
   }
 

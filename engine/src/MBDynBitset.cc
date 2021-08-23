@@ -153,7 +153,7 @@ public:
 
   uint8_t* alloc(size_t num_bytes) {
     int which = init(num_bytes);
-    int cell_num = cellnum_v[which];
+    unsigned int cell_num = cellnum_v[which];
     uint8_t* buffer = buffer_v[which];
     BucketHeader* bh = (BucketHeader*)buffer;
     uint8_t* alloc_buffer = buffer+sizeof(BucketHeader);

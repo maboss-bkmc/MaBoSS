@@ -86,7 +86,9 @@ public:
     max_time(runconfig->getMaxTime()), 
     sample_count(runconfig->getSampleCount()), 
     discrete_time(runconfig->isDiscreteTime()), 
-    thread_count(runconfig->getThreadCount()) {}
+    thread_count(runconfig->getThreadCount()) {
+      elapsed_core_runtime = user_core_runtime = elapsed_statdist_runtime = user_statdist_runtime = elapsed_epilogue_runtime = user_epilogue_runtime = 0;
+    }
 
   static void init();
   static void loadUserFuncs(const char* module);

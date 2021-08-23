@@ -75,6 +75,7 @@ PopMaBEstEngine::PopMaBEstEngine(PopNetwork *pop_network, RunConfig *runconfig) 
                                                                            discrete_time(runconfig->isDiscreteTime()),
                                                                            thread_count(runconfig->getThreadCount())
 {
+  elapsed_core_runtime = user_core_runtime = elapsed_statdist_runtime = user_statdist_runtime = elapsed_epilogue_runtime = user_epilogue_runtime = 0;
 
   if (thread_count > sample_count)
   {
@@ -135,7 +136,8 @@ PopNetworkState PopMaBEstEngine::getTargetNode(RandomGenerator *random_generator
   auto begin = popNodeTransitionRates.begin();
   auto end = popNodeTransitionRates.end();
 
-  PopNetworkState result = PopNetworkState();
+  //PopNetworkState result = PopNetworkState();
+  PopNetworkState result;
   while (begin != end && random_rate > 0.)
   {
     double rate = begin->second;
