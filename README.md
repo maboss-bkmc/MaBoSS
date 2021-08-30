@@ -27,12 +27,16 @@ MaBoSS-env-2.0 is composed of:
 - Windows with cygwin
 
 ### Requirements
-##### MaBoSS engine 2.0:
+##### MaBoSS engine 2.0 and higher:
 
 - gcc: version 4.0.1 or higher
 - bison: version 2.3 or higher
 - flex: version 2.5.35 or higher
 - cygwin is needed on Windows
+
+##### MaBoSS engine 2.4.0 and SBML-qual compatibility
+
+- libsbml 5.19.0, with sbml-qual package. 
 
 ##### MaBoSS tools:
 
@@ -107,6 +111,9 @@ The executable file will also be located in engine/pub and will be named MaBoSS_
 Notes:
 - if you manage only networks with up to 64 nodes, we recommend you to use the default compiled version as for networks with more than 64 nodes, the implementation is very different and will be slower.
 - generally speaking, a version compiled with a given number of nodes will be slower and will use more memory than a version compiled with a lesser number of nodes.
+- to compile MaBoSS with SBML-qual compatibility, use 
+make install SBML_COMPAT=1 
+
 
 ### MaBoSS Engine Usage
 
