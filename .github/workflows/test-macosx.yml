@@ -180,8 +180,6 @@ jobs:
     - name: Installing conda-build      
       run: |
         conda update conda
-        conda config --add channels conda-forge
-        conda config --set channel_priority strict
         conda update conda --all
         conda install conda-build
 
@@ -200,11 +198,88 @@ jobs:
         path: |
           /usr/local/miniconda/conda-bld/osx-64/*
         key: ${{ runner.os }}-maboss-conda-${{ github.run_id }}
+        
+  conda_maboss_conda_forge:
+    name: Build Conda MaBoSS package (conda-forge)
+    runs-on: macos-latest
+    needs: [maboss, maboss_llvm]
+    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: s-weigand/setup-conda@v1
+
+    - name: Installing conda-build      
+      run: |
+        conda update conda
+        conda config --add channels conda-forge
+        conda config --set channel_priority strict
+        conda update conda --all
+        conda install conda-build
+
+    - name: Downgrading XCode to 11.7
+      run: |
+        sudo xcode-select -s /Applications/Xcode_11.7.app/Contents/Developer
+        brew reinstall llvm    
+    
+    - name: Build MaBoSS Anaconda package
+      run: |
+        CUSTOM_BUILD_NUMBER=1 conda build -c colomoto conda/maboss
+          
+    - name: Caching produced conda package
+      uses: actions/cache@v2
+      with:
+        path: |
+          /usr/local/miniconda/conda-bld/osx-64/*
+        key: ${{ runner.os }}-maboss-conda-forge-${{ github.run_id }}
    
   maboss_conda_test:
     name: MaBoSS Anaconda package test
     runs-on: macos-latest
     needs: conda_maboss
+    
+    steps:
+    - uses: actions/checkout@v2
+    - uses: s-weigand/setup-conda@v1
+    
+    - name: Install conda-build
+      run: |
+        conda update conda
+        conda update conda --all
+        conda install conda-build anaconda-client
+      
+    - name: Caching produced conda package
+      uses: actions/cache@v2
+      with:
+        path: |
+          /usr/local/miniconda/conda-bld/osx-64/*
+        key: ${{ runner.os }}-maboss-conda-${{ github.run_id }}
+        
+    - name: Install package
+      run: |
+        conda index /usr/local/miniconda/conda-bld
+        conda install -c colomoto maboss --use-local
+      
+    - name: Test package
+      run: |
+        pip install numpy
+        export MABOSS=/usr/local/miniconda/bin/MaBoSS
+        export MABOSS_128n=/usr/local/miniconda/bin/MaBoSS_128n
+        export MABOSS_CLIENT=/usr/local/miniconda/bin/MaBoSS-client
+        export MABOSS_SERVER=/usr/local/miniconda/bin/MaBoSS-server
+        export MABOSS_SERVER_128n=/usr/local/miniconda/bin/MaBoSS_128n-server
+        bash -c "cd engine/tests; bash ./test-cellcycle.sh"
+        bash -c "cd engine/tests; bash ./test-ensemble.sh"
+        bash -c "cd engine/tests; bash ./test-ewing.sh"
+        bash -c "cd engine/tests; bash ./test-server.sh"
+        bash -c "cd engine/tests; bash ./test-prngs.sh"
+        bash -c "cd engine/tests; bash ./test-rngs.sh"
+        bash -c "cd engine/tests; bash ./test-sbml.sh"
+  
+  maboss_conda_test_conda_forge:
+    name: MaBoSS Anaconda package test (conda-forge)
+    runs-on: macos-latest
+    needs: conda_maboss_conda_forge
     
     steps:
     - uses: actions/checkout@v2
@@ -223,7 +298,7 @@ jobs:
       with:
         path: |
           /usr/local/miniconda/conda-bld/osx-64/*
-        key: ${{ runner.os }}-maboss-conda-${{ github.run_id }}
+        key: ${{ runner.os }}-maboss-conda-forge-${{ github.run_id }}
         
     - name: Install package
       run: |
@@ -258,6 +333,40 @@ jobs:
     - name: Install conda-build
       run: |
         conda update conda
+        conda update conda --all
+        conda install conda-build anaconda-client
+      
+    - name: Caching produced conda package
+      uses: actions/cache@v2
+      with:
+        path: |
+          /usr/local/miniconda/conda-bld/osx-64/*
+        key: ${{ runner.os }}-maboss-conda-${{ github.run_id }}
+        
+    
+    - name: Upload MaBoSS to Anaconda cloud on vincent-noel
+      if: github.repository == 'vincent-noel/MaBoSS-env-2.0' && github.ref == 'refs/heads/master'
+      run: |   
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/local/miniconda/conda-bld/osx-64/*.tar.bz2 --force;
+ 
+    
+    - name: Upload MaBoSS to Anaconda cloud on colomoto
+      if: github.repository == 'sysbio-curie/MaBoSS-env-2.0' && github.event_name == 'release'
+      run: |   
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/local/miniconda/conda-bld/osx-64/*.tar.bz2 --force;
+ 
+  maboss_conda_publish_conda_forge:
+    name: MaBoSS Anaconda package publication (conda-forge)
+    runs-on: macos-latest
+    needs: maboss_conda_test_conda_forge
+    
+    steps:
+    - uses: actions/checkout@v2
+    - uses: s-weigand/setup-conda@v1
+    
+    - name: Install conda-build
+      run: |
+        conda update conda
         conda config --add channels conda-forge
         conda config --set channel_priority strict
         conda update conda --all
@@ -268,7 +377,7 @@ jobs:
       with:
         path: |
           /usr/local/miniconda/conda-bld/osx-64/*
-        key: ${{ runner.os }}-maboss-conda-${{ github.run_id }}
+        key: ${{ runner.os }}-maboss-conda-forge-${{ github.run_id }}
         
     
     - name: Upload MaBoSS to Anaconda cloud on vincent-noel
@@ -372,8 +481,6 @@ jobs:
     - name: Install conda-build
       run: |
         conda update conda
-        conda config --add channels conda-forge
-        conda config --set channel_priority strict
         conda update --all
         conda install conda-build
       
@@ -397,11 +504,82 @@ jobs:
           /usr/local/miniconda/conda-bld/osx-64/*
         key: ${{ runner.os }}-cmaboss-conda-${{ github.run_id }}
     
+  conda_cmaboss_conda_forge:
+    name: cMaBoSS Conda package (conda-forge)
+    runs-on: macos-latest
+    needs: cmaboss
+    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: s-weigand/setup-conda@v1
+    
+    - name: Install conda-build
+      run: |
+        conda update conda
+        conda config --add channels conda-forge
+        conda config --set channel_priority strict
+        conda update --all
+        conda install conda-build
+      
+    - name: Downgrading XCode to 11.7
+      run: |
+        sudo xcode-select -s /Applications/Xcode_11.7.app/Contents/Developer
+        brew reinstall llvm    
+    
+    - name: Build cMaBoSS Anaconda package
+      run: |
+        CUSTOM_BUILD_NUMBER=1 conda build -c colomoto --variants "{\"python\": [\"3.6\", \"3.7\"], \"numpy\": \"1.16\"}" conda/cmaboss;
+        CUSTOM_BUILD_NUMBER=1 conda build -c colomoto --variants "{\"python\": [\"3.6\", \"3.7\", \"3.8\"], \"numpy\": \"1.17\"}" conda/cmaboss;
+        CUSTOM_BUILD_NUMBER=1 conda build -c colomoto --variants "{\"python\": [\"3.6\", \"3.7\", \"3.8\"], \"numpy\": \"1.18\"}" conda/cmaboss;
+        CUSTOM_BUILD_NUMBER=1 conda build -c colomoto --variants "{\"python\": [\"3.6\", \"3.7\", \"3.8\", \"3.9\"], \"numpy\": \"1.19\"}" conda/cmaboss;
+        CUSTOM_BUILD_NUMBER=1 conda build -c colomoto --variants "{\"python\": [\"3.7\", \"3.8\", \"3.9\"], \"numpy\": \"1.20\"}" conda/cmaboss;
+        
+    - name: Caching produced conda package
+      uses: actions/cache@v2
+      with:
+        path: |
+          /usr/local/miniconda/conda-bld/osx-64/*
+        key: ${{ runner.os }}-cmaboss-conda-forge-${{ github.run_id }}
+    
     
   cmaboss_conda_test:
     name: cMaBoSS Anaconda package test
     runs-on: macos-latest
     needs: conda_cmaboss
+    
+    steps:
+    - uses: actions/checkout@v2
+    - uses: s-weigand/setup-conda@v1
+    
+    - name: Install conda-build
+      run: |
+        conda update conda
+        conda update conda --all
+        conda install conda-build anaconda-client
+      
+    - name: Caching produced conda package
+      uses: actions/cache@v2
+      with:
+        path: |
+          /usr/local/miniconda/conda-bld/osx-64/*
+        key: ${{ runner.os }}-cmaboss-conda-${{ github.run_id }}
+    
+    - name: Install package
+      run: |
+        conda index /usr/local/miniconda/conda-bld
+        conda install -c colomoto cmaboss --use-local
+      
+    - name: Test package
+      run: |
+        cd engine/tests
+        python -m unittest test
+        python -m unittest test_128n
+        
+  cmaboss_conda_test_conda_forge:
+    name: cMaBoSS Anaconda package test (conda-forge)
+    runs-on: macos-latest
+    needs: conda_cmaboss_conda_forge
     
     steps:
     - uses: actions/checkout@v2
@@ -420,7 +598,7 @@ jobs:
       with:
         path: |
           /usr/local/miniconda/conda-bld/osx-64/*
-        key: ${{ runner.os }}-cmaboss-conda-${{ github.run_id }}
+        key: ${{ runner.os }}-cmaboss-conda-forge-${{ github.run_id }}
     
     - name: Install package
       run: |
@@ -445,8 +623,6 @@ jobs:
     - name: Install conda-build
       run: |
         conda update conda
-        conda config --add channels conda-forge
-        conda config --set channel_priority strict
         conda update conda --all
         conda install conda-build anaconda-client
       
@@ -468,6 +644,40 @@ jobs:
       run: |   
         anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/local/miniconda/conda-bld/osx-64/*.tar.bz2 --force;
  
+  cmaboss_conda_publish_conda_forge:
+    name: cMaBoSS Anaconda package publication (conda-forge)
+    runs-on: macos-latest
+    needs: cmaboss_conda_test_conda_forge
+    
+    steps:
+    - uses: actions/checkout@v2
+    - uses: s-weigand/setup-conda@v1
+    
+    - name: Install conda-build
+      run: |
+        conda update conda
+        conda config --add channels conda-forge
+        conda config --set channel_priority strict
+        conda update conda --all
+        conda install conda-build anaconda-client
+      
+    - name: Caching produced conda package
+      uses: actions/cache@v2
+      with:
+        path: |
+          /usr/local/miniconda/conda-bld/osx-64/*
+        key: ${{ runner.os }}-cmaboss-conda-forge-${{ github.run_id }}
+    
+    - name: Upload MaBoSS to Anaconda cloud on vincent-noel
+      if: github.repository == 'vincent-noel/MaBoSS-env-2.0' && github.ref == 'refs/heads/master'
+      run: |   
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/local/miniconda/conda-bld/osx-64/*.tar.bz2 --force;
+ 
+    
+    - name: Upload MaBoSS to Anaconda cloud on colomoto
+      if: github.repository == 'sysbio-curie/MaBoSS-env-2.0' && github.event_name == 'release'
+      run: |   
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/local/miniconda/conda-bld/osx-64/*.tar.bz2 --force;
             
   cmaboss_pypi:
     name: cMaBoSS PyPi package

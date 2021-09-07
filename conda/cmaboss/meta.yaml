@@ -10,7 +10,11 @@ source:
 
 
 build:
-  number: 0
+  {% if CUSTOM_BUILD_NUMBER is defined %}
+    number: {{ CUSTOM_BUILD_NUMBER }}
+  {% else %}
+    number: 0
+  {% endif %}
 
 requirements:
   build:

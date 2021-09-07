@@ -9,8 +9,13 @@ source:
   path: ../..
     
 build:
-  number: 0
-  binary_relocation: False
+  {% if CUSTOM_BUILD_NUMBER is defined %}
+    number: {{ CUSTOM_BUILD_NUMBER }}
+    binary_relocation: False
+  {% else %}
+    number: 0
+    binary_relocation: False
+  {% endif %}
 
 requirements:
   build:
