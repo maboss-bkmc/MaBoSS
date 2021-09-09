@@ -150,6 +150,88 @@ jobs:
         bash -c "cd engine/tests; bash ./test-sbml.sh"
         bash -c "cd engine/tests; bash ./test-user_func.sh"
    
+  maboss_binary:
+    name: Building MaBoSS linux64 binary
+    runs-on: ubuntu-18.04
+    needs: [maboss, maboss_llvm]
+    if: github.event_name == 'release'
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get install flex bison
+        pip install numpy
+    
+    - name: Cache compiled libSBML
+      id: cache-libsbml-gcc
+      uses: actions/cache@v2
+      with:
+        path: /home/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
+        key: ${{ runner.os }}-libSBML-5.19-gcc-namespace
+
+    - name: Compiling libSBML
+      if: steps.cache-libsbml-gcc.outputs.cache-hit != 'true'
+      run: |
+        wget https://sourceforge.net/projects/sbml/files/libsbml/5.19.0/stable/libSBML-5.19.0-core-plus-packages-src.tar.gz
+        tar -zxf libSBML-5.19.0-core-plus-packages-src.tar.gz
+        cd libSBML-5.19.0-Source
+        mkdir build
+        cd build
+        cmake -DCMAKE_INSTALL_PREFIX=/usr \
+        -DCMAKE_INSTALL_LIBDIR=/usr/lib \
+        -DCMAKE_CXX_COMPILER=g++ \
+        -DCMAKE_C_COMPILER=gcc \
+        -DCMAKE_CXX_STANDARD_LIBRARIES=-lxml2 \
+        -DWITH_SWIG=OFF \
+        -DLIBXML_LIBRARY=/usr/lib \
+        -DLIBXML_INCLUDE_DIR=/usr/include/libxml2 \
+        -DENABLE_COMP=ON \
+        -DENABLE_FBC=ON \
+        -DENABLE_GROUPS=ON \
+        -DENABLE_LAYOUT=ON \
+        -DENABLE_MULTI=ON \
+        -DENABLE_QUAL=ON \
+        -DENABLE_RENDER=ON \
+        -DENABLE_DISTRIB=ON \
+        -DWITH_CPP_NAMESPACE=ON \
+        ..
+        make
+        cd ../..
+
+    - name: Install libSBML
+      run: |
+        cd libSBML-5.19.0-Source/build
+        sudo make install
+          
+    - name: Build binary
+      run: |
+        rm -fr engine/pub/*
+        cd engine/src
+        make clean
+        make install_static SBML_COMPAT=1
+        make install_static MAXNODES=128 SBML_COMPAT=1
+        make install_static MAXNODES=256 SBML_COMPAT=1
+        make install_static MAXNODES=512 SBML_COMPAT=1
+        make install_static MAXNODES=1024 SBML_COMPAT=1
+        cd ../pub
+        zip MaBoSS-linux64.zip *
+        
+    - uses: actions/upload-artifact@v2
+      with:
+        name: MaBoSS-2.4.0-linux64
+        path: /home/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/engine/pub/*
+        
+    - uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_name: MaBoSS-linux64.zip
+        asset_path: /home/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/engine/pub/MaBoSS-linux64.zip
+        asset_content_type: application/zip
+  
   maboss_conda_defaults:
     name: Build MaBoSS Anaconda package
     runs-on: ubuntu-18.04

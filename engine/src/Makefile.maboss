@@ -31,18 +31,31 @@ else
 MAXNODES = 64
 #MABOSS := MaBoSS
 endif
+UNAME_S := $(shell uname -s)
 
 ifeq ($(OS),Windows_NT)
        WINDOWS_FLAG := -DWINDOWS
        MABOSS := MaBoSS$(INFIX).exe
+	   STATIC_LIBS := -lz -lbz2 -llzma -liconv -lws2_32
 else
-       LDL_FLAG := -ldl
-       MABOSS := MaBoSS$(INFIX)
+	LDL_FLAG := -ldl
+	MABOSS := MaBoSS$(INFIX)
+	
+	ifeq ($(UNAME_S),Darwin)
+	   STATIC_LIBS := -lz -lbz2
+	else
+       STATIC_LIBS := -lz -lbz2 -llzma -licuuc -licudata
+	endif
 endif
 
 ifdef SBML_COMPAT
 SBML_FLAG = -DSBML_COMPAT
 SBML_LIB = -lsbml
+ifeq ($(UNAME_S),Darwin)
+SBML_LIB_STATIC = -lsbml-static -lxml2
+else
+SBML_LIB_STATIC = -static -lsbml-static -lxml2
+endif
 endif
 
 MABOSS_SERVER := MaBoSS$(INFIX)-server
@@ -204,7 +217,12 @@ install_alib: $(MABOSS_ALIB)
 	cp $(MABOSS_ALIB) ../lib
 	mkdir -p ../include/
 	cp *.h ../include/
-
+	
+install_static: MaBoSS$(INFIX).o $(MABOSS_OBJS)
+	$(CXX) -o $(MABOSS) MaBoSS$(INFIX).o $(MABOSS_OBJS) $(SBML_LIB_STATIC) $(STATIC_LIBS) -lpthread $(LDL_FLAG) -L.  $(LDFLAGS) $(EXTRA_LDFLAGS)
+	mkdir -p ../pub
+	cp $(MABOSS) ../pub
+	
 #test_dynbitset: test_dynbitset.o
 #	g++ -o $@ $+ $(EXTRA_FLAGS)
 

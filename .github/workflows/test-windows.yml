@@ -3,6 +3,8 @@ name: Tests Windows
 on:
   push:
   pull_request:
+  release:
+    types: [created]
     
 jobs:
   build:
@@ -80,8 +82,89 @@ jobs:
         bash -c "cd engine/tests; bash ./test-prngs.sh"
         bash -c "cd engine/tests; bash ./test-user_func.sh"
         
+  maboss_binary:
+    runs-on: windows-latest
+    name: Building MaBoSS Windows 64bits binary
+    needs: build
+    if: github.event_name == 'release'
 
+    defaults:
+      run:
+        shell: msys2 {0}
         
+    steps:
+    - uses: actions/checkout@v2
+    
+    - uses: msys2/setup-msys2@v2
+      with:
+        update: true
+        install: flex bison make gcc diffutils mingw-w64-x86_64-toolchain mingw-w64-x86_64-python-pip mingw-w64-x86_64-python-numpy mingw-w64-x86_64-lapack mingw-w64-x86_64-openblas mingw-w64-x86_64-libxml2 mingw-w64-x86_64-cmake zip
+        
+    - name: Cache compiled libSBML
+      id: cache-libsbml-gcc
+      uses: actions/cache@v2
+      with:
+        path: D:/a/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
+        key: ${{ runner.os }}-libSBML-5.19-namespace
+        
+    - name: Compiling libSBML
+      if: steps.cache-libsbml-gcc.outputs.cache-hit != 'true'
+      run: |
+        pwd
+        wget https://sourceforge.net/projects/sbml/files/libsbml/5.19.0/stable/libSBML-5.19.0-core-plus-packages-src.tar.gz
+        tar -zxf libSBML-5.19.0-core-plus-packages-src.tar.gz
+        cd libSBML-5.19.0-Source
+        mkdir build
+        cd build
+        cmake  -G"MSYS Makefiles" \
+          -DCMAKE_INSTALL_PREFIX=/mingw64/ \
+          -DCMAKE_INSTALL_LIBDIR=/mingw64/lib \
+          -DCMAKE_CXX_COMPILER=g++ \
+          -DCMAKE_C_COMPILER=gcc \
+          -DCMAKE_CXX_STANDARD_LIBRARIES=-lxml2 \
+          -DWITH_SWIG=OFF \
+          -DLIBXML_LIBRARY=/mingw64/lib \
+          -DLIBXML_INCLUDE_DIR=/mingw64/include/libxml2 \
+          -DENABLE_COMP=ON \
+          -DENABLE_FBC=ON \
+          -DENABLE_GROUPS=ON \
+          -DENABLE_LAYOUT=ON \
+          -DENABLE_MULTI=ON \
+          -DENABLE_QUAL=ON \
+          -DENABLE_RENDER=ON \
+          -DENABLE_DISTRIB=ON \
+          -DWITH_CPP_NAMESPACE=ON \
+          ..
+        make 
+        pwd
+        cd ../..
+    
+    - name: Install libSBML
+      run: |
+        cd libSBML-5.19.0-Source/build
+        make install
+        
+    - name: Build binary
+      run: |
+        rm -fr engine/pub/*
+        cd engine/src
+        make clean
+        make install_static SBML_COMPAT=1
+        make install_static MAXNODES=128 SBML_COMPAT=1
+        make install_static MAXNODES=256 SBML_COMPAT=1
+        make install_static MAXNODES=512 SBML_COMPAT=1
+        make install_static MAXNODES=1024 SBML_COMPAT=1
+        cd ../pub
+        zip MaBoSS-win64.zip *
+      
+    - uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_name: MaBoSS-win64.zip
+        asset_path: D:\a\MaBoSS-env-2.0/MaBoSS-env-2.0/engine/pub/MaBoSS-win64.zip
+        asset_content_type: application/zip
         
         
       

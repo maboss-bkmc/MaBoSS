@@ -167,6 +167,88 @@ jobs:
         bash -c "cd engine/tests; bash ./test-rngs.sh"
         bash -c "cd engine/tests; bash ./test-user_func.sh"
   
+  maboss_binary:
+    name: MaBoSS MacOSX 64 bits binary
+    runs-on: macos-latest
+    needs: [maboss, maboss_llvm]
+    if: github.event_name == 'release'
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run : |
+        brew install flex bison gcc@10 libxml2 cmake
+        
+    - name: Get cmake version
+      id: get-cmake-version
+      run: |
+        echo "::set-output name=version::$(cmake --version | head -n 1 | cut -d' ' -f 3)"
+      shell: bash
+
+    - name: Cache compiled libSBML
+      id: cache-libsbml-clang
+      uses: actions/cache@v2
+      with:
+        path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
+        key: ${{ runner.os }}-libSBML-5.19-clang++-namespace-${{ steps.get-cmake-version.outputs.version }}
+
+    - name: Compiling libSBML
+      if: steps.cache-libsbml-clang.outputs.cache-hit != 'true'
+      run: |
+        wget https://sourceforge.net/projects/sbml/files/libsbml/5.19.0/stable/libSBML-5.19.0-core-plus-packages-src.tar.gz
+        tar -zxf libSBML-5.19.0-core-plus-packages-src.tar.gz
+        cd libSBML-5.19.0-Source
+        mkdir -p build
+        cd build
+        rm -fr *
+        cmake -DCMAKE_INSTALL_PREFIX=/usr/local \
+        -DCMAKE_INSTALL_LIBDIR=/usr/local/lib \
+        -DCMAKE_CXX_COMPILER=g++ \
+        -DCMAKE_C_COMPILER=gcc \
+        -DCMAKE_CXX_STANDARD_LIBRARIES=-lxml2 \
+        -DWITH_SWIG=OFF \
+        -DLIBXML_LIBRARY=/usr/local/opt/libxml2/lib \
+        -DLIBXML_INCLUDE_DIR=/usr/local/opt/libxml2/include/libxml2 \
+        -DENABLE_COMP=ON \
+        -DENABLE_FBC=ON \
+        -DENABLE_GROUPS=ON \
+        -DENABLE_LAYOUT=ON \
+        -DENABLE_MULTI=ON \
+        -DENABLE_QUAL=ON \
+        -DENABLE_RENDER=ON \
+        -DENABLE_DISTRIB=ON \
+        -DWITH_CPP_NAMESPACE=ON \
+        ..
+        make
+        cd ../..
+        
+    - name: Install libSBML
+      run: |
+        cd libSBML-5.19.0-Source/build
+        sudo make install
+          
+    - name: Build binary
+      run: |
+        rm -fr engine/pub/*
+        cd engine/src
+        make clean
+        make install_static CXX=g++ SBML_COMPAT=1
+        make install_static CXX=g++ MAXNODES=128 SBML_COMPAT=1
+        make install_static CXX=g++ MAXNODES=256 SBML_COMPAT=1
+        make install_static CXX=g++ MAXNODES=512 SBML_COMPAT=1
+        make install_static CXX=g++ MAXNODES=1024 SBML_COMPAT=1
+        cd ../pub
+        zip MaBoSS-osx64.zip *
+            
+    - uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_name: MaBoSS-osx64.zip
+        asset_path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/engine/pub/MaBoSS-osx64.zip
+        asset_content_type: application/zip
+        
   conda_maboss:
     name: Build Conda MaBoSS package
     runs-on: macos-latest
