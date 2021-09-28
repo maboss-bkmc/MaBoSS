@@ -96,6 +96,29 @@
 #endif
 #include "Function.h"
 
+#ifdef MPI_COMPAT
+#include <mpi.h>
+
+#include <stdint.h>
+#include <limits.h>
+
+#if SIZE_MAX == UCHAR_MAX
+   #define my_MPI_SIZE_T MPI_UNSIGNED_CHAR
+#elif SIZE_MAX == USHRT_MAX
+   #define my_MPI_SIZE_T MPI_UNSIGNED_SHORT
+#elif SIZE_MAX == UINT_MAX
+   #define my_MPI_SIZE_T MPI_UNSIGNED
+#elif SIZE_MAX == ULONG_MAX
+   #define my_MPI_SIZE_T MPI_UNSIGNED_LONG
+#elif SIZE_MAX == ULLONG_MAX
+   #define my_MPI_SIZE_T MPI_UNSIGNED_LONG_LONG
+#else
+   #error "what is happening here?"
+#endif
+
+#endif
+
+
 const std::string LOGICAL_AND_SYMBOL = " & ";
 const std::string LOGICAL_OR_SYMBOL = " | ";
 const std::string LOGICAL_NOT_SYMBOL = "!";
@@ -767,6 +790,50 @@ public:
 #endif
   unsigned int hamming(Network* network, const NetworkState_Impl& state) const;
 
+
+#ifdef MPI_COMPAT
+  void my_MPI_Recv(int source) 
+  {
+#ifdef USE_STATIC_BITSET
+    std::vector<unsigned long long> v;
+    size_t nb_ullongs;
+    MPI_Recv(&nb_ullongs, 1, my_MPI_SIZE_T, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    
+    for (size_t i = 0; i < nb_ullongs; i++) {
+      unsigned long long t_ullong;
+      MPI_Recv(&t_ullong, 1, MPI_UNSIGNED_LONG_LONG, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      v.push_back(t_ullong);
+    }
+    
+    state = to_bitset(v);
+    
+#elif defined(USE_DYNAMIC_BITSET)
+    
+#else
+    MPI_Recv(&state, 1, MPI_UNSIGNED_LONG_LONG, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+#endif
+  }
+  
+  void my_MPI_Send(int dest) 
+  {
+#ifdef USE_STATIC_BITSET
+    std::vector<unsigned long long> arr = to_ullongs(state);
+    size_t nb_ullongs = arr.size();
+    MPI_Send(&nb_ullongs, 1, my_MPI_SIZE_T, dest, 0, MPI_COMM_WORLD);
+    
+    for (size_t i = 0; i < arr.size(); i++) {
+      MPI_Send(&(arr[i]), 1, MPI_UNSIGNED_LONG_LONG, dest, 0, MPI_COMM_WORLD);
+    }
+    
+#elif defined(USE_DYNAMIC_BITSET)
+
+#else
+    MPI_Send(&state, 1, MPI_UNSIGNED_LONG_LONG, dest, 0, MPI_COMM_WORLD);
+
+#endif
+  }
+#endif
+
   static NodeState getState(Node* node, const NetworkState_Impl &state) {
 #if defined(USE_STATIC_BITSET) || defined(USE_BOOST_BITSET) || defined(USE_DYNAMIC_BITSET)
     return state.test(node->getIndex());
@@ -774,8 +841,40 @@ public:
     return state & nodeBit(node);
 #endif
   }
-};
 
+#ifdef USE_STATIC_BITSET
+  
+  static std::vector<unsigned long long> to_ullongs(std::bitset<MAXNODES> bs) {
+    std::vector<unsigned long long> ret;
+    ret.clear();
+
+    unsigned int nb_arrays = MAXNODES/64 + (MAXNODES%64 > 0 ? 1 : 0);
+    for (unsigned int i=0; i < nb_arrays; i++) {
+        ret.push_back(((bs<<(i*64))>>(MAXNODES-64)).to_ullong());   
+    }
+  
+    return ret;
+  }
+
+  static std::bitset<MAXNODES> to_bitset(std::vector<unsigned long long> arr) {
+    std::bitset<MAXNODES> ret;
+    
+    for (unsigned int i=0; i < (arr.size()-1); i++) 
+    {
+        ret |= arr[i];
+    
+        if (i < (arr.size()-2)) {
+            ret = ret << 64;
+        } else {
+            ret = ret << (MAXNODES-((i+1)*64));        
+            ret |= (arr[i+1] >> (MAXNODES-((i+1)*64)));
+        } 
+    } 
+    return ret;
+  }
+#endif
+
+};
 // abstract base class used for expression evaluation
 class Expression {
 

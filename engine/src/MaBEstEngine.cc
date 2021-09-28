@@ -358,15 +358,17 @@ STATE_MAP<NetworkState_Impl, unsigned int>* MaBEstEngine::mergeMPIFixpointMaps(S
         // std::cout << "We received the number of fixpoints from node " << i << " : " << nb_fixpoints << std::endl;
         
         for (int j = 0; j < nb_fixpoints; j++) {
-          NetworkState_Impl state;
-          MPI_Recv(&state, 1, MPI_UNSIGNED_LONG_LONG, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+          NetworkState state;
+          state.my_MPI_Recv(i);
+          
+          // MPI_Recv(&state, 1, MPI_UNSIGNED_LONG_LONG, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
           unsigned int count = -1;
           MPI_Recv(&count, 1, MPI_UNSIGNED, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
           
-          if (t_fixpoint_map->find(state) == t_fixpoint_map->end()) {
-            (*t_fixpoint_map)[state] = count;
+          if (t_fixpoint_map->find(state.getState()) == t_fixpoint_map->end()) {
+            (*t_fixpoint_map)[state.getState()] = count;
           } else {
-            (*t_fixpoint_map)[state] += count;
+            (*t_fixpoint_map)[state.getState()] += count;
           }
         }
          
@@ -381,10 +383,11 @@ STATE_MAP<NetworkState_Impl, unsigned int>* MaBEstEngine::mergeMPIFixpointMaps(S
         // std::cout << "We send the number of fixpoints to node 0 : " << t_fixpoint_map->size() << std::endl;
         
         for (auto& fixpoint: *t_fixpoint_map) {
-          NetworkState_Impl state = fixpoint.first;
+          NetworkState state(fixpoint.first);
           unsigned int count = fixpoint.second;
           
-          MPI_Send(&state, 1, MPI_UNSIGNED_LONG_LONG, 0, 0, MPI_COMM_WORLD);
+          // MPI_Send(&state, 1, MPI_UNSIGNED_LONG_LONG, 0, 0, MPI_COMM_WORLD);
+          state.my_MPI_Send(0);
           MPI_Send(&count, 1, MPI_UNSIGNED, 0, 0, MPI_COMM_WORLD);
           
         } 

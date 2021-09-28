@@ -159,8 +159,9 @@ class Cumulator {
 
       for (size_t j=0; j < s_cumulMap; j++) {
         
-        NetworkState_Impl t_state;
-        MPI_Recv(&t_state, 1, MPI_UNSIGNED_LONG_LONG, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        NetworkState t_state;
+        t_state.my_MPI_Recv(source);
+        // MPI_Recv(&t_state, 1, MPI_UNSIGNED_LONG_LONG, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
         double t_tm_slice;
         double t_TH;
@@ -168,7 +169,7 @@ class Cumulator {
         MPI_Recv(&t_TH, 1, MPI_DOUBLE, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         
         TickValue t_tick_value(t_tm_slice, t_TH);
-        add(t_state, t_tick_value); 
+        add(t_state.getState(), t_tick_value); 
       }
     }
     
@@ -184,10 +185,12 @@ class Cumulator {
       TickValue t_tick_value;
       while ( t_iterator.hasNext()) {
 
-        const NetworkState_Impl& t_state = t_iterator.next2(t_tick_value);
+        const NetworkState_Impl& state = t_iterator.next2(t_tick_value);
         
-        // NetworkState t_state = entry.first;
-        MPI_Send(&t_state, 1, MPI_UNSIGNED_LONG_LONG, dest, 0, MPI_COMM_WORLD);
+        NetworkState t_state(state);
+        t_state.my_MPI_Send(dest);
+        
+        // MPI_Send(&t_state, 1, MPI_UNSIGNED_LONG_LONG, dest, 0, MPI_COMM_WORLD);
       
         // TickValue t_tick_value = entry.second;
         MPI_Send(&(t_tick_value.tm_slice), 1, MPI_DOUBLE, dest, 0, MPI_COMM_WORLD);
@@ -271,13 +274,14 @@ class Cumulator {
 
       for (size_t j=0; j < s_HDCumulMap; j++) {
         
-        NetworkState_Impl t_state;
-        MPI_Recv(&t_state, 1, MPI_UNSIGNED_LONG_LONG, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        NetworkState t_state;
+        t_state.my_MPI_Recv(source);
+        // MPI_Recv(&t_state, 1, MPI_UNSIGNED_LONG_LONG, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
         double t_tm_slice;
         MPI_Recv(&t_tm_slice, 1, MPI_DOUBLE, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         
-        add(t_state, t_tm_slice);  
+        add(t_state.getState(), t_tm_slice);  
       }
     }
     
@@ -293,8 +297,9 @@ class Cumulator {
 
         const NetworkState_Impl& state = t_hd_iterator.next2(tm_slice);
         
-        // NetworkState t_state = entry.first;
-        MPI_Send(&state, 1, MPI_UNSIGNED_LONG_LONG, dest, 0, MPI_COMM_WORLD);
+        NetworkState t_state(state);
+        t_state.my_MPI_Send(dest);
+        // MPI_Send(&state, 1, MPI_UNSIGNED_LONG_LONG, dest, 0, MPI_COMM_WORLD);
       
         // TickValue t_tick_value = entry.second;
         MPI_Send(&tm_slice, 1, MPI_DOUBLE, dest, 0, MPI_COMM_WORLD);

@@ -125,13 +125,14 @@ class ProbaDist {
 
     for (size_t iii = 0; iii < t_proba_dist_map_size; iii++) {
       
-      NetworkState_Impl state;
+      NetworkState state;
       double value;
       
-      MPI_Recv(&state, 1, MPI_UNSIGNED_LONG_LONG, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      // MPI_Recv(&state, 1, MPI_UNSIGNED_LONG_LONG, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      state.my_MPI_Recv(source);
       MPI_Recv(&value, 1, MPI_DOUBLE, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       
-      set(state, value);      
+      set(state.getState(), value);      
     }
   }
   void my_MPI_Send(int dest) 
@@ -148,7 +149,9 @@ class ProbaDist {
       NetworkState_Impl state;
       t_proba_dist1_iter.next(state, proba);
 #endif
-      MPI_Send(&state, 1, MPI_UNSIGNED_LONG_LONG, dest, 0, MPI_COMM_WORLD);
+      NetworkState t_state(state);
+      t_state.my_MPI_Send(dest);
+      // MPI_Send(&state, 1, MPI_UNSIGNED_LONG_LONG, dest, 0, MPI_COMM_WORLD);
       MPI_Send(&proba, 1, MPI_DOUBLE, dest, 0, MPI_COMM_WORLD);  
     } 
   }
