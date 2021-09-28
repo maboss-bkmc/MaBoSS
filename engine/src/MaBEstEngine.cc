@@ -153,8 +153,19 @@ void MaBEstEngine::runThread(Cumulator* cumulator, unsigned int start_count_thre
   unsigned int stable_cnt = 0;
   NetworkState network_state; 
 
+#ifdef MPI_COMPAT
+  // std::cout << "Running samples " << start_count_thread << " to " << (start_count_thread + sample_count_thread-1) << " on node " << world_rank << std::endl;
+#else
+  // std::cout << "Running samples " << start_count_thread << " to " << (start_count_thread + sample_count_thread-1) << std::endl;
+#endif
+  
   RandomGenerator* random_generator = randgen_factory->generateRandomGenerator(seed);
   for (unsigned int nn = 0; nn < sample_count_thread; ++nn) {
+#ifdef MPI_COMPAT
+    // std::cout << "Running thread with seed " << seed+start_count_thread+nn  << " on node " << world_rank << std::endl;
+#else 
+    // std::cout << "Running thread with seed " << seed+start_count_thread+nn << std::endl;
+#endif
     random_generator->setSeed(seed+start_count_thread+nn);
     cumulator->rewind();
     network->initStates(network_state, random_generator);
@@ -256,6 +267,14 @@ void MaBEstEngine::run(std::ostream* output_traj)
   pthread_t* tid = new pthread_t[thread_count];
   RandomGeneratorFactory* randgen_factory = runconfig->getRandomGeneratorFactory();
   int seed = runconfig->getSeedPseudoRandom();
+#ifdef MPI_COMPAT
+  
+  int world_rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+
+  seed += sample_count*world_rank;
+  
+#endif
   unsigned int start_sample_count = 0;
   Probe probe;
   for (unsigned int nn = 0; nn < thread_count; ++nn) {
@@ -268,53 +287,135 @@ void MaBEstEngine::run(std::ostream* output_traj)
     start_sample_count += cumulator_v[nn]->getSampleCount();
   }
   for (unsigned int nn = 0; nn < thread_count; ++nn) {
+    // std::cout << "Lauching thread " << nn << ", seed = " << seed << std::endl;
     pthread_join(tid[nn], NULL);
   }
   probe.stop();
   elapsed_core_runtime = probe.elapsed_msecs();
   user_core_runtime = probe.user_msecs();
+  // std::cout << "Trajectories computed, running epilogue" << std::endl;
   probe.start();
   epilogue();
   probe.stop();
   elapsed_epilogue_runtime = probe.elapsed_msecs();
   user_epilogue_runtime = probe.user_msecs();
+  // std::cout << "Epilogue done, quitting run()" << std::endl;
   delete [] tid;
 }  
 
 STATE_MAP<NetworkState_Impl, unsigned int>* MaBEstEngine::mergeFixpointMaps()
 {
+  STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map;
+  // First, each node do its thing
   if (1 == fixpoint_map_v.size()) {
-    return new STATE_MAP<NetworkState_Impl, unsigned int>(*fixpoint_map_v[0]);
-  }
+    fixpoint_map = new STATE_MAP<NetworkState_Impl, unsigned int>(*fixpoint_map_v[0]);
+  } else {
 
-  STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map = new STATE_MAP<NetworkState_Impl, unsigned int>();
-  std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*>::iterator begin = fixpoint_map_v.begin();
-  std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*>::iterator end = fixpoint_map_v.end();
-  while (begin != end) {
-    STATE_MAP<NetworkState_Impl, unsigned int>* fp_map = *begin;
-    STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator b = fp_map->begin();
-    STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator e = fp_map->end();
-    while (b != e) {
-      //NetworkState_Impl state = (*b).first;
-      const NetworkState_Impl& state = b->first;
-      if (fixpoint_map->find(state) == fixpoint_map->end()) {
-	(*fixpoint_map)[state] = (*b).second;
-      } else {
-	(*fixpoint_map)[state] += (*b).second;
+    fixpoint_map = new STATE_MAP<NetworkState_Impl, unsigned int>();
+    std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*>::iterator begin = fixpoint_map_v.begin();
+    std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*>::iterator end = fixpoint_map_v.end();
+    while (begin != end) {
+      STATE_MAP<NetworkState_Impl, unsigned int>* fp_map = *begin;
+      STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator b = fp_map->begin();
+      STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator e = fp_map->end();
+      while (b != e) {
+        //NetworkState_Impl state = (*b).first;
+        const NetworkState_Impl& state = b->first;
+        if (fixpoint_map->find(state) == fixpoint_map->end()) {
+    (*fixpoint_map)[state] = (*b).second;
+        } else {
+    (*fixpoint_map)[state] += (*b).second;
+        }
+        ++b;
       }
-      ++b;
+      ++begin;
     }
-    ++begin;
   }
+  
   return fixpoint_map;
 }
+
+
+#ifdef MPI_COMPAT
+STATE_MAP<NetworkState_Impl, unsigned int>* MaBEstEngine::mergeMPIFixpointMaps(STATE_MAP<NetworkState_Impl, unsigned int>* t_fixpoint_map)
+{
+  // If we are, but only on one node, we don't need to do anything
+  if (world_size == 1) {
+    // std::cout << "Single node simulation. Returning fixpoints" << std::endl;
+    return t_fixpoint_map;
+  } else {
+    
+    for (int i = 1; i < world_size; i++) {
+      
+      if (world_rank == 0) {
+        
+        // std::cout << "Here in rank zero we wait for result of rank " << i << std::endl;
+        
+        // First we want to know the number of fixpoints we're going to receive   
+        int nb_fixpoints = -1;
+        MPI_Recv(&nb_fixpoints, 1, MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        
+        // std::cout << "We received the number of fixpoints from node " << i << " : " << nb_fixpoints << std::endl;
+        
+        for (int j = 0; j < nb_fixpoints; j++) {
+          NetworkState_Impl state;
+          MPI_Recv(&state, 1, MPI_UNSIGNED_LONG_LONG, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+          unsigned int count = -1;
+          MPI_Recv(&count, 1, MPI_UNSIGNED, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+          
+          if (t_fixpoint_map->find(state) == t_fixpoint_map->end()) {
+            (*t_fixpoint_map)[state] = count;
+          } else {
+            (*t_fixpoint_map)[state] += count;
+          }
+        }
+         
+      } else {
+        
+        // std::cout << "Here in rank " << i << " we send the result to rank 0" << std::endl;
+        
+        int nb_fixpoints = t_fixpoint_map->size();
+        // First we send the number of fixpoints we have
+        MPI_Send(&nb_fixpoints, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+        
+        // std::cout << "We send the number of fixpoints to node 0 : " << t_fixpoint_map->size() << std::endl;
+        
+        for (auto& fixpoint: *t_fixpoint_map) {
+          NetworkState_Impl state = fixpoint.first;
+          unsigned int count = fixpoint.second;
+          
+          MPI_Send(&state, 1, MPI_UNSIGNED_LONG_LONG, 0, 0, MPI_COMM_WORLD);
+          MPI_Send(&count, 1, MPI_UNSIGNED, 0, 0, MPI_COMM_WORLD);
+          
+        } 
+      }      
+    }
+
+    return t_fixpoint_map; 
+  }
+}
+#endif
 
 void MaBEstEngine::epilogue()
 {
   merged_cumulator = Cumulator::mergeCumulatorsParallel(runconfig, cumulator_v);
+  
+#ifdef MPI_COMPAT
+  merged_cumulator = Cumulator::mergeMPICumulators(runconfig, merged_cumulator, world_size, world_rank);
+
+  if (world_rank == 0)
+  {
+#endif
   merged_cumulator->epilogue(network, reference_state);
+#ifdef MPI_COMPAT
+  }
+#endif 
 
   STATE_MAP<NetworkState_Impl, unsigned int>* merged_fixpoint_map = mergeFixpointMaps();
+
+#ifdef MPI_COMPAT
+  merged_fixpoint_map = mergeMPIFixpointMaps(merged_fixpoint_map);
+#endif
 
   STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator b = merged_fixpoint_map->begin();
   STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator e = merged_fixpoint_map->end();
@@ -328,7 +429,11 @@ void MaBEstEngine::epilogue()
 
 MaBEstEngine::~MaBEstEngine()
 {
-    for (auto t_fixpoint_map: fixpoint_map_v)
+#ifdef MPI_COMPAT
+  MPI_Finalize();
+#endif
+  
+  for (auto t_fixpoint_map: fixpoint_map_v)
     delete t_fixpoint_map;
   
   for (auto t_arg_wrapper: arg_wrapper_v)

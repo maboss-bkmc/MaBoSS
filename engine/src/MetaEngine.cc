@@ -380,29 +380,58 @@ const double MetaEngine::getFinalTime() const {
 }
 
 void MetaEngine::displayFixpoints(FixedPointDisplayer* displayer) const 
-{
+{  
+#ifdef MPI_COMPAT
+  if (world_rank == 0) {
+#endif
+
   displayer->begin(fixpoints.size());
   STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator begin = fixpoints.begin();
   STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator end = fixpoints.end();
   
   for (unsigned int nn = 0; begin != end; ++nn) {
     const NetworkState& network_state = begin->first;
+#ifdef MPI_COMPAT
+    displayer->displayFixedPoint(nn+1, network_state, begin->second, global_sample_count);
+#else
     displayer->displayFixedPoint(nn+1, network_state, begin->second, sample_count);
+#endif
     ++begin;
   }
   displayer->end();
+  
+#ifdef MPI_COMPAT
+  }
+#endif
 }
 
 void MetaEngine::displayProbTraj(ProbTrajDisplayer* displayer) const {
+#ifdef MPI_COMPAT
+  if (world_rank == 0) {
+#endif
+
   merged_cumulator->displayProbTraj(network, refnode_count, displayer);
+
+#ifdef MPI_COMPAT
+  }
+#endif
 }
 
 void MetaEngine::displayStatDist(StatDistDisplayer* statdist_displayer) const {
+#ifdef MPI_COMPAT
+  if (world_rank == 0) {
+#endif
+
   Probe probe;
   merged_cumulator->displayStatDist(network, refnode_count, statdist_displayer);
   probe.stop();
   elapsed_statdist_runtime = probe.elapsed_msecs();
   user_statdist_runtime = probe.user_msecs();
+
+#ifdef MPI_COMPAT
+  }
+#endif
+
 }
 
 void MetaEngine::display(ProbTrajDisplayer* probtraj_displayer, StatDistDisplayer* statdist_displayer, FixedPointDisplayer* fp_displayer) const
@@ -414,5 +443,11 @@ void MetaEngine::display(ProbTrajDisplayer* probtraj_displayer, StatDistDisplaye
 
 void MetaEngine::displayAsymptotic(std::ostream& output_asymptprob, bool hexfloat, bool proba) const
 {
+#ifdef MPI_COMPAT
+  if (world_rank == 0) {
+#endif
   merged_cumulator->displayAsymptoticCSV(network, refnode_count, output_asymptprob, hexfloat, proba);
+#ifdef MPI_COMPAT
+  }
+#endif
 }

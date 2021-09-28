@@ -65,6 +65,28 @@
 #include <numpy/arrayobject.h>
 #endif
 
+#ifdef MPI_COMPAT
+#include <mpi.h>
+
+#include <stdint.h>
+#include <limits.h>
+
+#if SIZE_MAX == UCHAR_MAX
+   #define my_MPI_SIZE_T MPI_UNSIGNED_CHAR
+#elif SIZE_MAX == USHRT_MAX
+   #define my_MPI_SIZE_T MPI_UNSIGNED_SHORT
+#elif SIZE_MAX == UINT_MAX
+   #define my_MPI_SIZE_T MPI_UNSIGNED
+#elif SIZE_MAX == ULONG_MAX
+   #define my_MPI_SIZE_T MPI_UNSIGNED_LONG
+#elif SIZE_MAX == ULLONG_MAX
+   #define my_MPI_SIZE_T MPI_UNSIGNED_LONG_LONG
+#else
+   #error "what is happening here?"
+#endif
+
+#endif
+
 static bool COMPUTE_ERRORS = true;
 
 #include "ProbaDist.h"
@@ -172,6 +194,10 @@ class Cumulator {
     STATE_MAP<NetworkState_Impl, double> mp;
 
   public:
+    size_t size() const {
+      return mp.size();
+    }
+
     void incr(const NetworkState_Impl& fullstate, double tm_slice) {
       STATE_MAP<NetworkState_Impl, double>::iterator iter = mp.find(fullstate);
       if (iter == mp.end()) {
@@ -465,6 +491,11 @@ public:
   static Cumulator* mergeCumulatorsParallel(RunConfig* runconfig, std::vector<Cumulator*>& cumulator_v);
   static void mergePairOfCumulators(Cumulator* cumulator_1, Cumulator* cumulator_2);
   static void* threadMergeCumulatorWrapper(void *arg);
+
+#ifdef MPI_COMPAT
+  static Cumulator* mergeMPICumulators(RunConfig* runconfig, Cumulator* ret_cumul, int world_size, int world_rank);
+#endif
+
 };
 
 #endif

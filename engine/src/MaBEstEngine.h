@@ -71,6 +71,10 @@ class MaBEstEngine : public MetaEngine {
   void runThread(Cumulator* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj);
   STATE_MAP<NetworkState_Impl, unsigned int>* mergeFixpointMaps();
 
+#ifdef MPI_COMPAT
+  STATE_MAP<NetworkState_Impl, unsigned int>* mergeMPIFixpointMaps(STATE_MAP<NetworkState_Impl, unsigned int>*);
+#endif
+  
 public:
   static const std::string VERSION;
   

@@ -564,7 +564,11 @@ void EnsembleEngine::mergeEnsembleFixpointMaps()
 void EnsembleEngine::epilogue()
 {
   merged_cumulator = Cumulator::mergeCumulatorsParallel(runconfig, cumulator_v);
-  merged_cumulator->epilogue(network, reference_state);
+  
+#ifdef MPI_COMPAT
+  merged_cumulator = Cumulator::mergeMPICumulators(runconfig, merged_cumulator, world_size, world_rank);
+#endif
+  merged_cumulator->epilogue(networks[0], reference_state);
 
   if (save_individual_result) {
 
@@ -579,6 +583,10 @@ void EnsembleEngine::epilogue()
           cumulators_per_model[i]->epilogue(networks[i], reference_state);
         } else {
           Cumulator* t_cumulator = Cumulator::mergeCumulatorsParallel(runconfig, model_cumulator);
+          #ifdef MPI_COMPAT
+            t_cumulator = Cumulator::mergeMPICumulators(runconfig, t_cumulator, world_size, world_rank);
+          #endif
+
           t_cumulator->epilogue(networks[i], reference_state);
           cumulators_per_model[i] = t_cumulator;
         }

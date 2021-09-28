@@ -48,6 +48,11 @@
 #ifndef _METAENGINE_H_
 #define _METAENGINE_H_
 
+
+#ifdef MPI_COMPAT
+#include <mpi.h>
+#endif
+
 #include <string>
 #include <map>
 #include <vector>
@@ -89,6 +94,20 @@ protected:
   NodeIndex getTargetNode(Network* _network, RandomGenerator* random_generator, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
   double computeTH(Network* _network, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
   
+  
+#ifdef MPI_COMPAT
+
+  // Number of processes
+  int world_size;
+  
+  // Rank of the process
+  int world_rank;
+  
+  // Global sample count          
+  unsigned int global_sample_count;
+
+#endif
+
 public:
 
   MetaEngine(Network* network, RunConfig* runconfig) : 
@@ -98,7 +117,34 @@ public:
     sample_count(runconfig->getSampleCount()), 
     statdist_trajcount(runconfig->getStatDistTrajCount()),
     discrete_time(runconfig->isDiscreteTime()), 
-    thread_count(runconfig->getThreadCount()) {}
+    thread_count(runconfig->getThreadCount()) {
+
+#ifdef MPI_COMPAT
+
+  MPI_Init(NULL, NULL);
+  // Get the number of processes
+  MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+  // Get the rank of the process
+  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+
+  // Get the name of the processor
+  char processor_name[MPI_MAX_PROCESSOR_NAME];
+  int name_len;
+  MPI_Get_processor_name(processor_name, &name_len);
+
+  // Print off a hello world message
+  // printf("Hello world from processor %s, rank %d out of %d processors\n",
+  //         processor_name, world_rank, world_size);
+          
+  global_sample_count = sample_count;
+  sample_count /= world_size;
+  // printf("Global sample count : %d, local to this node : %d\n", global_sample_count, sample_count);
+  
+    
+#endif
+      
+    }
 
   static void init();
   static void loadUserFuncs(const char* module);
