@@ -948,72 +948,23 @@ Cumulator* Cumulator::mergeMPICumulators(RunConfig* runconfig, Cumulator* ret_cu
         MPI_Recv(&t_cumul_size, 1, my_MPI_SIZE_T, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
         for (size_t nn = 0; nn < t_cumul_size; ++nn) {
-          // std::cout << "nn : " << nn << std::endl;
+
           // Here we need to get various data structures : 
           // a CumulMap : a <NetworkState_Impl, TickValue> map
           // a HDCumulMap : a <NetworkState_Impl, double> map
           // A vector of doubles
           
           CumulMap t_cumulMap;
-          
-          // First we need the size
-          size_t s_cumulMap;
-          MPI_Recv(&s_cumulMap, 1, my_MPI_SIZE_T, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
-          for (size_t j=0; j < s_cumulMap; j++) {
-            
-            NetworkState_Impl t_state;
-            MPI_Recv(&t_state, 1, MPI_UNSIGNED_LONG_LONG, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
-            // A TickValue is 3 doubles
-            // struct TickValue {
-            //   double tm_slice;
-            //   double TH;
-            //   double tm_slice_square;
-            //   tm_slice_square will be computer when added, so no need to get it
-            double t_tm_slice;
-            double t_TH;
-            MPI_Recv(&t_tm_slice, 1, MPI_DOUBLE, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            MPI_Recv(&t_TH, 1, MPI_DOUBLE, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            TickValue t_tick_value(t_tm_slice, t_TH);
-            
-            t_cumulMap.add(t_state, t_tick_value);
-              
-          }
-          
+          t_cumulMap.my_MPI_Recv(i);  
           mpi_ret_cumul->add(nn, t_cumulMap);
-      
-      
-      
-          //       ret_cumul->add(nn, cumulator->hd_cumul_map_v[nn]);
-          HDCumulMap t_HDCumulMap;
           
-          // First we need the size
-          size_t s_HDCumulMap;
-          MPI_Recv(&s_HDCumulMap, 1, my_MPI_SIZE_T, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
-          for (size_t j=0; j < s_HDCumulMap; j++) {
-            
-            NetworkState_Impl t_state;
-            MPI_Recv(&t_state, 1, MPI_UNSIGNED_LONG_LONG, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
-            double t_tm_slice;
-            MPI_Recv(&t_tm_slice, 1, MPI_DOUBLE, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            
-            t_HDCumulMap.add(t_state, t_tm_slice);
-              
-          }
-      
+          HDCumulMap t_HDCumulMap;
+          t_HDCumulMap.my_MPI_Recv(i);
           mpi_ret_cumul->add(nn, t_HDCumulMap);
-                
-          // And finally TH_square
-          //       ret_cumul->TH_square_v[nn] += cumulator->TH_square_v[nn];
           
           double t_th_square = ret_cumul->TH_square_v[nn];
           MPI_Recv(&t_th_square, 1, MPI_DOUBLE, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
           mpi_ret_cumul->TH_square_v.push_back(t_th_square);
-          
         }
         
         size_t t_proba_dist_size;
@@ -1021,82 +972,22 @@ Cumulator* Cumulator::mergeMPICumulators(RunConfig* runconfig, Cumulator* ret_cu
 
         for (size_t ii = 0; ii < t_proba_dist_size; ii++) {
           // Here we are receiving the proba_dist, which is a map of <state, double>
-          size_t t_proba_dist_map_size;
-          MPI_Recv(&t_proba_dist_map_size, 1, my_MPI_SIZE_T, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
           ProbaDist t_proba_dist;
-          for (size_t iii = 0; iii < t_proba_dist_map_size; iii++) {
-            
-            NetworkState_Impl state;
-            double value;
-            
-            MPI_Recv(&state, 1, MPI_UNSIGNED_LONG_LONG, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            MPI_Recv(&value, 1, MPI_DOUBLE, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            t_proba_dist.set(state, value);
-            
-            
-          }          
-          mpi_ret_cumul->proba_dist_v.push_back(t_proba_dist);
-          
+          t_proba_dist.my_MPI_Recv(i);
+          mpi_ret_cumul->proba_dist_v.push_back(t_proba_dist);          
         }
         
       } else {
+        
         size_t t_cumul_size = ret_cumul->cumul_map_v.size();
         MPI_Send(&t_cumul_size, 1, my_MPI_SIZE_T, 0, 0, MPI_COMM_WORLD);
 
         for (size_t nn = 0; nn < t_cumul_size; ++nn) {
           
-          // First, the cumulMap
-          // and first, it's size
-          size_t s_cumulMap = ret_cumul->get_map(nn).size();
-          MPI_Send(&s_cumulMap, 1, my_MPI_SIZE_T, 0, 0, MPI_COMM_WORLD);
-
-          CumulMap t_cumulMap = ret_cumul->get_map(nn);
-          CumulMap::Iterator t_iterator = t_cumulMap.iterator();
-          
-          // NetworkState t_state;
-          TickValue t_tick_value;
-          while ( t_iterator.hasNext()) {
-
-            const NetworkState_Impl& t_state = t_iterator.next2(t_tick_value);
+          ret_cumul->get_map(nn).my_MPI_Send(0);
+ 
+          ret_cumul->get_hd_map(nn).my_MPI_Send(0);
             
-            // NetworkState t_state = entry.first;
-            MPI_Send(&t_state, 1, MPI_UNSIGNED_LONG_LONG, 0, 0, MPI_COMM_WORLD);
-          
-            // TickValue t_tick_value = entry.second;
-            MPI_Send(&(t_tick_value.tm_slice), 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
-            MPI_Send(&(t_tick_value.TH), 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
-
-          }
-          
-          #ifdef HD_BUG
-          //       ret_cumul->add(nn, cumulator->hd_cumul_map_v[nn]);
-          
-          // Then, the HDCumulMap
-          // and first, it's size
-          size_t s_HDCumulMap = ret_cumul->get_hd_map(nn).size();
-          MPI_Send(&s_HDCumulMap, 1, my_MPI_SIZE_T, 0, 0, MPI_COMM_WORLD);
-
-          HDCumulMap t_HDCumulMap = ret_cumul->get_hd_map(nn);
-          HDCumulMap::Iterator t_hd_iterator = t_HDCumulMap.iterator();
-          
-          // NetworkState t_state;
-          double tm_slice;
-          while ( t_hd_iterator.hasNext()) {
-
-            const NetworkState_Impl& state = t_hd_iterator.next2(tm_slice);
-            
-            // NetworkState t_state = entry.first;
-            MPI_Send(&state, 1, MPI_UNSIGNED_LONG_LONG, 0, 0, MPI_COMM_WORLD);
-          
-            // TickValue t_tick_value = entry.second;
-            MPI_Send(&tm_slice, 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
-
-          }
-          #endif
-            
-          // //Then the TH_square_vector
-          // //       ret_cumul->TH_square_v[nn] += cumulator->TH_square_v[nn];
           double t_th_square = ret_cumul->TH_square_v[nn];
           MPI_Send(&t_th_square, 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
         }
@@ -1105,23 +996,8 @@ Cumulator* Cumulator::mergeMPICumulators(RunConfig* runconfig, Cumulator* ret_cu
         MPI_Send(&t_proba_dist_size, 1, my_MPI_SIZE_T, 0, 0, MPI_COMM_WORLD);
         
         for (size_t ii = 0; ii < t_proba_dist_size; ii++) {
-          
-          size_t t_proba_dist_map_size = ret_cumul->proba_dist_v[ii].size();
-          MPI_Send(&t_proba_dist_map_size, 1, my_MPI_SIZE_T, 0, 0, MPI_COMM_WORLD);
-
-          ProbaDist::Iterator t_proba_dist1_iter = ret_cumul->proba_dist_v[ii].iterator();
-          while (t_proba_dist1_iter.hasNext()) {
-            double proba;
-            const NetworkState_Impl& state = t_proba_dist1_iter.next2(proba);
-  
-            MPI_Send(&state, 1, MPI_UNSIGNED_LONG_LONG, 0, 0, MPI_COMM_WORLD);
-            MPI_Send(&proba, 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
-            
-          }
-
-
+          ret_cumul->proba_dist_v[ii].my_MPI_Send(0);
         }
-
       }
     }
     

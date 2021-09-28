@@ -56,6 +56,28 @@
 #include <vector>
 #include <iostream>
 
+#ifdef MPI_COMPAT
+#include <mpi.h>
+
+#include <stdint.h>
+#include <limits.h>
+
+#if SIZE_MAX == UCHAR_MAX
+   #define my_MPI_SIZE_T MPI_UNSIGNED_CHAR
+#elif SIZE_MAX == USHRT_MAX
+   #define my_MPI_SIZE_T MPI_UNSIGNED_SHORT
+#elif SIZE_MAX == UINT_MAX
+   #define my_MPI_SIZE_T MPI_UNSIGNED
+#elif SIZE_MAX == ULONG_MAX
+   #define my_MPI_SIZE_T MPI_UNSIGNED_LONG
+#elif SIZE_MAX == ULLONG_MAX
+   #define my_MPI_SIZE_T MPI_UNSIGNED_LONG_LONG
+#else
+   #error "what is happening here?"
+#endif
+
+#endif
+
 #include "BooleanNetwork.h"
 class StatDistDisplayer;
 
@@ -95,6 +117,42 @@ class ProbaDist {
     return false;
   }
 
+#ifdef MPI_COMPAT
+  void my_MPI_Recv(int source)
+  {
+    size_t t_proba_dist_map_size;
+    MPI_Recv(&t_proba_dist_map_size, 1, my_MPI_SIZE_T, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+    for (size_t iii = 0; iii < t_proba_dist_map_size; iii++) {
+      
+      NetworkState_Impl state;
+      double value;
+      
+      MPI_Recv(&state, 1, MPI_UNSIGNED_LONG_LONG, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      MPI_Recv(&value, 1, MPI_DOUBLE, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      
+      set(state, value);      
+    }
+  }
+  void my_MPI_Send(int dest) 
+  {
+    size_t t_proba_dist_map_size = size();
+    MPI_Send(&t_proba_dist_map_size, 1, my_MPI_SIZE_T, dest, 0, MPI_COMM_WORLD);
+
+    ProbaDist::Iterator t_proba_dist1_iter = iterator();
+    while (t_proba_dist1_iter.hasNext()) {
+      double proba;
+#if 1
+      const NetworkState_Impl& state = t_proba_dist1_iter.next2(proba);
+#else
+      NetworkState_Impl state;
+      t_proba_dist1_iter.next(state, proba);
+#endif
+      MPI_Send(&state, 1, MPI_UNSIGNED_LONG_LONG, dest, 0, MPI_COMM_WORLD);
+      MPI_Send(&proba, 1, MPI_DOUBLE, dest, 0, MPI_COMM_WORLD);  
+    } 
+  }
+#endif
   class Iterator {
     
     const ProbaDist& proba_dist_map;

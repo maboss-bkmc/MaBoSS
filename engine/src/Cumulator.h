@@ -150,6 +150,52 @@ class Cumulator {
 	to_tick_value.TH += tick_value.TH;
       }
     }
+    
+#ifdef MPI_COMPAT
+    void my_MPI_Recv(int source) {
+      
+      size_t s_cumulMap;
+      MPI_Recv(&s_cumulMap, 1, my_MPI_SIZE_T, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+      for (size_t j=0; j < s_cumulMap; j++) {
+        
+        NetworkState_Impl t_state;
+        MPI_Recv(&t_state, 1, MPI_UNSIGNED_LONG_LONG, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+        double t_tm_slice;
+        double t_TH;
+        MPI_Recv(&t_tm_slice, 1, MPI_DOUBLE, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(&t_TH, 1, MPI_DOUBLE, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        
+        TickValue t_tick_value(t_tm_slice, t_TH);
+        add(t_state, t_tick_value); 
+      }
+    }
+    
+    void my_MPI_Send(int dest) {
+      // First, the cumulMap
+      // and first, it's size
+      size_t s_cumulMap = size();
+      MPI_Send(&s_cumulMap, 1, my_MPI_SIZE_T, dest, 0, MPI_COMM_WORLD);
+
+      CumulMap::Iterator t_iterator = iterator();
+      
+      // NetworkState t_state;
+      TickValue t_tick_value;
+      while ( t_iterator.hasNext()) {
+
+        const NetworkState_Impl& t_state = t_iterator.next2(t_tick_value);
+        
+        // NetworkState t_state = entry.first;
+        MPI_Send(&t_state, 1, MPI_UNSIGNED_LONG_LONG, dest, 0, MPI_COMM_WORLD);
+      
+        // TickValue t_tick_value = entry.second;
+        MPI_Send(&(t_tick_value.tm_slice), 1, MPI_DOUBLE, dest, 0, MPI_COMM_WORLD);
+        MPI_Send(&(t_tick_value.TH), 1, MPI_DOUBLE, dest, 0, MPI_COMM_WORLD);
+
+      }   
+    }
+#endif
 
     class Iterator {
     
@@ -215,6 +261,48 @@ class Cumulator {
 	(*iter).second += tm_slice;
       }
     }
+
+#ifdef MPI_COMPAT
+
+    void my_MPI_Recv(int source) {
+      // First we need the size
+      size_t s_HDCumulMap;
+      MPI_Recv(&s_HDCumulMap, 1, my_MPI_SIZE_T, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+      for (size_t j=0; j < s_HDCumulMap; j++) {
+        
+        NetworkState_Impl t_state;
+        MPI_Recv(&t_state, 1, MPI_UNSIGNED_LONG_LONG, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+        double t_tm_slice;
+        MPI_Recv(&t_tm_slice, 1, MPI_DOUBLE, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        
+        add(t_state, t_tm_slice);  
+      }
+    }
+    
+    void my_MPI_Send(int dest) {
+      size_t s_HDCumulMap = size();
+      MPI_Send(&s_HDCumulMap, 1, my_MPI_SIZE_T, dest, 0, MPI_COMM_WORLD);
+
+      HDCumulMap::Iterator t_hd_iterator = iterator();
+      
+      // NetworkState t_state;
+      double tm_slice;
+      while ( t_hd_iterator.hasNext()) {
+
+        const NetworkState_Impl& state = t_hd_iterator.next2(tm_slice);
+        
+        // NetworkState t_state = entry.first;
+        MPI_Send(&state, 1, MPI_UNSIGNED_LONG_LONG, dest, 0, MPI_COMM_WORLD);
+      
+        // TickValue t_tick_value = entry.second;
+        MPI_Send(&tm_slice, 1, MPI_DOUBLE, dest, 0, MPI_COMM_WORLD);
+
+      }
+    }
+    
+#endif
 
     class Iterator {
     
