@@ -173,6 +173,27 @@ jobs:
         bash -c "cd engine/tests; bash ./test-rngs.sh"
         bash -c "cd engine/tests; bash ./test-user_func.sh"
   
+  maboss_mpi:
+    name: MaBoSS MPI
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run : |
+        brew install flex bison gcc@10 libxml2 cmake openmpi
+        pip install numpy
+        
+    - name: Build MaBoSS
+      run: |
+        cd engine/src
+        make clean
+        make CXX=mpic++ install MPI_COMPAT=1
+        
+    - name: Test MaBoSS
+      run: |
+        bash -c "cd engine/tests; bash ./test-mpi-cellcycle.sh"
+        
   maboss_binary:
     name: MaBoSS MacOSX 64 bits binary
     runs-on: macos-10.15

@@ -149,7 +149,29 @@ jobs:
         bash -c "cd engine/tests; bash ./test-rngs.sh"
         bash -c "cd engine/tests; bash ./test-sbml.sh"
         bash -c "cd engine/tests; bash ./test-user_func.sh"
-   
+  
+  maboss_mpi:
+    name: MaBoSS MPI
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get install flex bison libopenmpi-dev
+        pip install numpy
+    
+    - name: Build MaBoSS
+      run: |
+        cd engine/src
+        make clean
+        make install CXX=mpic++ MPI_COMPAT=1
+       
+    - name: Test MaBoSS
+      run: |
+        bash -c "cd engine/tests; bash ./test-mpi-cellcycle.sh"
+         
   maboss_binary:
     name: Building MaBoSS linux64 binary
     runs-on: ubuntu-18.04
