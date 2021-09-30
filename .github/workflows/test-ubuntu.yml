@@ -171,7 +171,8 @@ jobs:
        
     - name: Test MaBoSS
       run: |
-        bash -c "cd engine/tests; bash ./test-mpi-cellcycle.sh"
+        bash -c "cd engine/tests; bash ./test-mpi-cellcycle.sh 2"
+        bash -c "cd engine/tests; bash ./test-mpi-cellcycle.sh 4"
         bash -c "cd engine/tests; bash ./test-mpi-ewing.sh"
          
   maboss_binary:
