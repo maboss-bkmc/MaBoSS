@@ -156,7 +156,7 @@ class Cumulator {
       
       size_t s_cumulMap;
       MPI_Recv(&s_cumulMap, 1, my_MPI_SIZE_T, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
+      // std::cout << "Will receive a cumul map of size " << s_cumulMap << std::endl;
       for (size_t j=0; j < s_cumulMap; j++) {
         
         NetworkState t_state;
@@ -171,12 +171,14 @@ class Cumulator {
         TickValue t_tick_value(t_tm_slice, t_TH);
         add(t_state.getState(), t_tick_value); 
       }
+      // std::cout << "Finished receiving cumulMap" << std::endl;
     }
     
     void my_MPI_Send(int dest) {
       // First, the cumulMap
       // and first, it's size
       size_t s_cumulMap = size();
+      // std::cout << "Will send a cumul map of size " << s_cumulMap << std::endl;
       MPI_Send(&s_cumulMap, 1, my_MPI_SIZE_T, dest, 0, MPI_COMM_WORLD);
 
       CumulMap::Iterator t_iterator = iterator();
@@ -197,6 +199,7 @@ class Cumulator {
         MPI_Send(&(t_tick_value.TH), 1, MPI_DOUBLE, dest, 0, MPI_COMM_WORLD);
 
       }   
+      // std::cout << "Finished sending cumulMap" << std::endl;
     }
 #endif
 
@@ -271,7 +274,6 @@ class Cumulator {
       // First we need the size
       size_t s_HDCumulMap;
       MPI_Recv(&s_HDCumulMap, 1, my_MPI_SIZE_T, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
       for (size_t j=0; j < s_HDCumulMap; j++) {
         
         NetworkState t_state;

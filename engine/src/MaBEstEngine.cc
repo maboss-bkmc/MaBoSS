@@ -259,6 +259,14 @@ void MaBEstEngine::runThread(Cumulator* cumulator, unsigned int start_count_thre
     }
     cumulator->trajectoryEpilogue();
   }
+  
+  
+#ifdef MPI_COMPAT
+  // std::cout << "Finished samples " << start_count_thread << " to " << (start_count_thread + sample_count_thread-1) << " on node " << world_rank << std::endl;
+#else
+  // std::cout << "Finished samples " << start_count_thread << " to " << (start_count_thread + sample_count_thread-1) << std::endl;
+#endif
+  
   delete random_generator;
 }
 
@@ -268,14 +276,12 @@ void MaBEstEngine::run(std::ostream* output_traj)
   RandomGeneratorFactory* randgen_factory = runconfig->getRandomGeneratorFactory();
   int seed = runconfig->getSeedPseudoRandom();
 #ifdef MPI_COMPAT
-  
-  int world_rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-
-  seed += sample_count*world_rank;
-  
-#endif
+  unsigned int start_sample_count = sample_count * world_rank;
+#else
   unsigned int start_sample_count = 0;
+    // start_sample_count += sample_count; 
+#endif
+
   Probe probe;
   for (unsigned int nn = 0; nn < thread_count; ++nn) {
     STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map = new STATE_MAP<NetworkState_Impl, unsigned int>();
@@ -293,13 +299,21 @@ void MaBEstEngine::run(std::ostream* output_traj)
   probe.stop();
   elapsed_core_runtime = probe.elapsed_msecs();
   user_core_runtime = probe.user_msecs();
+#ifdef MPI_COMPAT
+  // std::cout << "Trajectories computed, running epilogue on node " << world_rank << std::endl;
+#else
   // std::cout << "Trajectories computed, running epilogue" << std::endl;
+#endif
   probe.start();
   epilogue();
   probe.stop();
   elapsed_epilogue_runtime = probe.elapsed_msecs();
   user_epilogue_runtime = probe.user_msecs();
+#ifdef MPI_COMPAT  
+  // std::cout << "Epilogue done, quitting run() on node " << world_rank <<  std::endl;
+#else
   // std::cout << "Epilogue done, quitting run()" << std::endl;
+#endif
   delete [] tid;
 }  
 
@@ -349,6 +363,9 @@ STATE_MAP<NetworkState_Impl, unsigned int>* MaBEstEngine::mergeMPIFixpointMaps(S
       
       if (world_rank == 0) {
         
+        int rank = i;
+        MPI_Bcast(&rank, 1, MPI_INT, 0, MPI_COMM_WORLD);
+        
         // std::cout << "Here in rank zero we wait for result of rank " << i << std::endl;
         
         // First we want to know the number of fixpoints we're going to receive   
@@ -374,23 +391,25 @@ STATE_MAP<NetworkState_Impl, unsigned int>* MaBEstEngine::mergeMPIFixpointMaps(S
          
       } else {
         
-        // std::cout << "Here in rank " << i << " we send the result to rank 0" << std::endl;
+        int rank;
+        MPI_Bcast(&rank, 1, MPI_INT, 0, MPI_COMM_WORLD);
         
-        int nb_fixpoints = t_fixpoint_map->size();
-        // First we send the number of fixpoints we have
-        MPI_Send(&nb_fixpoints, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
-        
-        // std::cout << "We send the number of fixpoints to node 0 : " << t_fixpoint_map->size() << std::endl;
-        
-        for (auto& fixpoint: *t_fixpoint_map) {
-          NetworkState state(fixpoint.first);
-          unsigned int count = fixpoint.second;
+        if (rank == world_rank) {
           
-          // MPI_Send(&state, 1, MPI_UNSIGNED_LONG_LONG, 0, 0, MPI_COMM_WORLD);
-          state.my_MPI_Send(0);
-          MPI_Send(&count, 1, MPI_UNSIGNED, 0, 0, MPI_COMM_WORLD);
+          int nb_fixpoints = t_fixpoint_map->size();
+          // First we send the number of fixpoints we have
+          MPI_Send(&nb_fixpoints, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
           
-        } 
+          
+          for (auto& fixpoint: *t_fixpoint_map) {
+            NetworkState state(fixpoint.first);
+            unsigned int count = fixpoint.second;
+            
+            state.my_MPI_Send(0);
+            MPI_Send(&count, 1, MPI_UNSIGNED, 0, 0, MPI_COMM_WORLD);
+            
+          } 
+        }
       }      
     }
 
@@ -412,12 +431,14 @@ void MaBEstEngine::epilogue()
   merged_cumulator->epilogue(network, reference_state);
 #ifdef MPI_COMPAT
   }
+  // std::cout << "Finished merging cumulators on node " << world_rank << std::endl;
 #endif 
 
   STATE_MAP<NetworkState_Impl, unsigned int>* merged_fixpoint_map = mergeFixpointMaps();
 
 #ifdef MPI_COMPAT
   merged_fixpoint_map = mergeMPIFixpointMaps(merged_fixpoint_map);
+  // std::cout << "Finished merging fixpoints on node " << world_rank << std::endl;
 #endif
 
   STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator b = merged_fixpoint_map->begin();
