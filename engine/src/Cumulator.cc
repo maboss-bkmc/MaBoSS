@@ -148,6 +148,7 @@ void Cumulator::epilogue(Network* network, const NetworkState& reference_state)
   maxcols = 0;
   double ratio = time_tick * sample_count;
   for (int nn = 0; nn < max_tick_index; ++nn) { // time tick
+  // std::cout << "Getting map #" << nn << std::endl;
     const CumulMap& mp = get_map(nn);
     CumulMap::Iterator iter = mp.iterator();
     H_v[nn] = 0.;
@@ -810,136 +811,155 @@ void Cumulator::mergePairOfCumulators(Cumulator* cumulator_1, Cumulator* cumulat
 }
 
 #ifdef MPI_COMPAT
+void Cumulator::MPI_Send_Cumulator(Cumulator* ret_cumul, int dest) 
+{
+  size_t t_cumul_size = ret_cumul != NULL ? ret_cumul->cumul_map_v.size() : 0;
+  MPI_Send(&t_cumul_size, 1, my_MPI_SIZE_T, dest, 0, MPI_COMM_WORLD);
+
+  for (size_t nn = 0; nn < t_cumul_size; ++nn) {
+    
+    ret_cumul->get_map(nn).my_MPI_Send(dest);
+    ret_cumul->get_hd_map(nn).my_MPI_Send(dest);
+      
+    double t_th_square = ret_cumul->TH_square_v[nn];
+    MPI_Send(&t_th_square, 1, MPI_DOUBLE, dest, 0, MPI_COMM_WORLD);
+  }
+  
+  size_t t_proba_dist_size = ret_cumul != NULL ? ret_cumul->proba_dist_v.size() : 0;
+  MPI_Send(&t_proba_dist_size, 1, my_MPI_SIZE_T, dest, 0, MPI_COMM_WORLD);
+  
+  for (size_t ii = 0; ii < t_proba_dist_size; ii++) {
+    ret_cumul->proba_dist_v[ii].my_MPI_Send(dest);
+  }          
+}
+
+void Cumulator::MPI_Recv_Cumulator(Cumulator* mpi_ret_cumul, int origin) 
+{
+  size_t t_cumul_size;
+  MPI_Recv(&t_cumul_size, 1, my_MPI_SIZE_T, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+  for (size_t nn = 0; nn < t_cumul_size; ++nn) {
+
+    // Here we need to get various data structures : 
+    // a CumulMap : a <NetworkState_Impl, TickValue> map
+    // a HDCumulMap : a <NetworkState_Impl, double> map
+    // A vector of doubles
+    
+    CumulMap t_cumulMap;
+    t_cumulMap.my_MPI_Recv(origin);  
+    mpi_ret_cumul->add(nn, t_cumulMap);
+
+    HDCumulMap t_HDCumulMap;
+    t_HDCumulMap.my_MPI_Recv(origin);
+    mpi_ret_cumul->add(nn, t_HDCumulMap);
+  
+    double t_th_square;
+    MPI_Recv(&t_th_square, 1, MPI_DOUBLE, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    mpi_ret_cumul->TH_square_v.push_back(t_th_square);
+  }
+  
+  size_t t_proba_dist_size;
+  MPI_Recv(&t_proba_dist_size, 1, my_MPI_SIZE_T, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+  for (size_t ii = 0; ii < t_proba_dist_size; ii++) {
+    // Here we are receiving the proba_dist, which is a map of <state, double>
+    ProbaDist t_proba_dist;
+    t_proba_dist.my_MPI_Recv(origin);
+    mpi_ret_cumul->proba_dist_v.push_back(t_proba_dist);          
+  }   
+}
+
+Cumulator* Cumulator::initializeMPICumulator(Cumulator* ret_cumul, RunConfig* runconfig, int world_rank) 
+{
+  // First we want to know the sample count
+  // Here we should use a reduce, with a sum... or just use the value we already know !!!
+  
+  // Reduce all of the local sums into the global sum
+  unsigned int local_cumulator_size = ret_cumul != NULL ? ret_cumul->sample_count : 0;
+  unsigned int global_cumulator_size;
+  MPI_Reduce(&local_cumulator_size, &global_cumulator_size, 1, MPI_UNSIGNED, MPI_SUM, 0, MPI_COMM_WORLD);
+
+  unsigned int t_statdist_trajcount;
+  MPI_Reduce(&(ret_cumul->statdist_trajcount), &t_statdist_trajcount, 1, MPI_UNSIGNED, MPI_SUM, 0, MPI_COMM_WORLD);
+
+    
+  // Now we can build the MPI version of ret_cumul on node 0
+  // Unallocated on nodes > 1, we should be careful nobody uses it later !
+  // it means nothing can touch the cumulator after return if not rank 0. No epilogue, no displayer, no data extraction !!!
+  Cumulator* mpi_ret_cumul = NULL;
+  if (world_rank == 0) {
+    mpi_ret_cumul = new Cumulator(runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), global_cumulator_size, t_statdist_trajcount);      
+  }
+  
+  // Then we want to know the minimum number of ticks in all cumulators... 
+  // Here we should use a reduce, with a min operation
+  
+  if (ret_cumul != NULL )
+    ret_cumul->computeMaxTickIndex();
+
+  size_t local_cumul_size = ret_cumul != NULL ? ret_cumul->cumul_map_v.size() : SIZE_MAX;
+  int local_max_tick_index = ret_cumul != NULL ? ret_cumul->max_tick_index : INT_MAX;
+  size_t mpi_min_cumul_size;
+  int mpi_min_tick_index;
+
+  MPI_Reduce(&(local_cumul_size), &mpi_min_cumul_size, 1, my_MPI_SIZE_T, MPI_MIN, 0, MPI_COMM_WORLD);
+  MPI_Reduce(&(local_max_tick_index), &mpi_min_tick_index, 1, MPI_INT, MPI_MIN, 0, MPI_COMM_WORLD);
+  
+  // Once we have the minimal sizes, we initialize the cumul maps and the max tick index on rank 0
+  unsigned int rr = 0;
+
+  if (world_rank == 0) {
+    
+    mpi_ret_cumul->cumul_map_v.resize(mpi_min_cumul_size);
+    mpi_ret_cumul->hd_cumul_map_v.resize(mpi_min_cumul_size);
+    mpi_ret_cumul->max_tick_index = mpi_ret_cumul->tick_index = mpi_min_tick_index;
+  }
+  return mpi_ret_cumul;
+}
+
 Cumulator* Cumulator::mergeMPICumulators(RunConfig* runconfig, Cumulator* ret_cumul, int world_size, int world_rank) 
 {
   if (world_size == 1) {
     return ret_cumul;
   } else {
-    // First we want to know the sample count
     
-    // Reduce all of the local sums into the global sum
-    unsigned int t_cumulator_size;
-    MPI_Reduce(&(ret_cumul->sample_count), &t_cumulator_size, 1, MPI_UNSIGNED, MPI_SUM, 0, MPI_COMM_WORLD);
-
-    unsigned int t_statdist_trajcount;
-    MPI_Reduce(&(ret_cumul->statdist_trajcount), &t_statdist_trajcount, 1, MPI_UNSIGNED, MPI_SUM, 0, MPI_COMM_WORLD);
-
-    // Now we can build the MPI version of ret_cumul on node 0
-    // Unallocated on nodes > 1, we should be careful nobody uses it later !
-    // it means nothing can touch the cumulator after return if not rank 0. No epilogue, no displayer, no data extraction !!!
-    Cumulator* mpi_ret_cumul = NULL;
-    if (world_rank == 0) {
-      mpi_ret_cumul = new Cumulator(runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), t_cumulator_size, t_statdist_trajcount);      
-    }
-    
-    // Then we want to know the minimum number of ticks in all cumulators... 
-    // Here we should use a reduce, with a min operation
-    ret_cumul->computeMaxTickIndex();
-
-    size_t local_cumul_size = ret_cumul->cumul_map_v.size();
-    size_t mpi_min_cumul_size;
-    int mpi_min_tick_index;
-
-    MPI_Reduce(&(local_cumul_size), &mpi_min_cumul_size, 1, my_MPI_SIZE_T, MPI_MIN, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&(ret_cumul->max_tick_index), &mpi_min_tick_index, 1, MPI_INT, MPI_MIN, 0, MPI_COMM_WORLD);
-    
-    // Once we have the minimal sizes, we initialize the cumul maps and the max tick index on rank 0
+    Cumulator* mpi_ret_cumul = initializeMPICumulator(ret_cumul, runconfig, world_rank);
+  
     unsigned int rr = 0;
-
     if (world_rank == 0) {
-      mpi_ret_cumul->cumul_map_v.resize(mpi_min_cumul_size);
-  
-      mpi_ret_cumul->hd_cumul_map_v.resize(mpi_min_cumul_size);
-  
-      mpi_ret_cumul->max_tick_index = mpi_ret_cumul->tick_index = mpi_min_tick_index;
-      
       // Now that the cumulator is initialized, we add values from node 0
-      for (unsigned int nn = 0; nn < ret_cumul->cumul_map_v.size(); ++nn) {
-        mpi_ret_cumul->add(nn, ret_cumul->cumul_map_v[nn]);
-  
-        mpi_ret_cumul->add(nn, ret_cumul->hd_cumul_map_v[nn]);
-  
-        mpi_ret_cumul->TH_square_v[nn] += ret_cumul->TH_square_v[nn];
-      }
-      unsigned int proba_dist_size = ret_cumul->proba_dist_v.size();
-      for (unsigned int ii = 0; ii < proba_dist_size; ++ii) {
-        assert(mpi_ret_cumul->proba_dist_v.size() > rr);
-        mpi_ret_cumul->proba_dist_v[rr++] = ret_cumul->proba_dist_v[ii];
+      if (ret_cumul != NULL) {
+        for (unsigned int nn = 0; nn < ret_cumul->cumul_map_v.size(); ++nn) {
+          mpi_ret_cumul->add(nn, ret_cumul->cumul_map_v[nn]);
+          mpi_ret_cumul->add(nn, ret_cumul->hd_cumul_map_v[nn]);
+          mpi_ret_cumul->TH_square_v[nn] += ret_cumul->TH_square_v[nn];
+        }
+        unsigned int proba_dist_size = ret_cumul->proba_dist_v.size();
+        for (unsigned int ii = 0; ii < proba_dist_size; ++ii) {
+          assert(mpi_ret_cumul->proba_dist_v.size() > rr);
+          mpi_ret_cumul->proba_dist_v[rr++] = ret_cumul->proba_dist_v[ii];
+        }
       }
     }
-    
+
     for (int i = 1; i < world_size; i++) {
       if (world_rank == 0) {
         
         int rank = i;
         MPI_Bcast(&rank, 1, MPI_INT, 0, MPI_COMM_WORLD);
+        MPI_Recv_Cumulator(mpi_ret_cumul, i);
         
-        size_t t_cumul_size;
-        MPI_Recv(&t_cumul_size, 1, my_MPI_SIZE_T, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
-        for (size_t nn = 0; nn < t_cumul_size; ++nn) {
-
-          // Here we need to get various data structures : 
-          // a CumulMap : a <NetworkState_Impl, TickValue> map
-          // a HDCumulMap : a <NetworkState_Impl, double> map
-          // A vector of doubles
-          
-          CumulMap t_cumulMap;
-          t_cumulMap.my_MPI_Recv(i);  
-          mpi_ret_cumul->add(nn, t_cumulMap);
-          
-          HDCumulMap t_HDCumulMap;
-          t_HDCumulMap.my_MPI_Recv(i);
-          mpi_ret_cumul->add(nn, t_HDCumulMap);
-          
-          double t_th_square = ret_cumul->TH_square_v[nn];
-          MPI_Recv(&t_th_square, 1, MPI_DOUBLE, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-          mpi_ret_cumul->TH_square_v.push_back(t_th_square);
-        }
-        
-        size_t t_proba_dist_size;
-        MPI_Recv(&t_proba_dist_size, 1, my_MPI_SIZE_T, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
-        for (size_t ii = 0; ii < t_proba_dist_size; ii++) {
-          // Here we are receiving the proba_dist, which is a map of <state, double>
-          ProbaDist t_proba_dist;
-          t_proba_dist.my_MPI_Recv(i);
-          mpi_ret_cumul->proba_dist_v.push_back(t_proba_dist);          
-        } 
       } else {
 
         int rank;
         MPI_Bcast(&rank, 1, MPI_INT, 0, MPI_COMM_WORLD);
         
         if (rank == world_rank) {
-        
-          size_t t_cumul_size = ret_cumul->cumul_map_v.size();
-          MPI_Send(&t_cumul_size, 1, my_MPI_SIZE_T, 0, 0, MPI_COMM_WORLD);
-
-          for (size_t nn = 0; nn < t_cumul_size; ++nn) {
-            
-            ret_cumul->get_map(nn).my_MPI_Send(0);
-
-            ret_cumul->get_hd_map(nn).my_MPI_Send(0);
-              
-            double t_th_square = ret_cumul->TH_square_v[nn];
-            MPI_Send(&t_th_square, 1, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
-          }
-          
-          size_t t_proba_dist_size = ret_cumul->proba_dist_v.size();
-          MPI_Send(&t_proba_dist_size, 1, my_MPI_SIZE_T, 0, 0, MPI_COMM_WORLD);
-          
-          for (size_t ii = 0; ii < t_proba_dist_size; ii++) {
-            ret_cumul->proba_dist_v[ii].my_MPI_Send(0);
-          }
-          
-          // Here we delete the old cumulator, because nobody will
+          MPI_Send_Cumulator(ret_cumul, 0);
           delete ret_cumul;
         } 
       }
     }
-    
-    
     return mpi_ret_cumul;
   }  
   

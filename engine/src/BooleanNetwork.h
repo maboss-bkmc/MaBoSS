@@ -792,6 +792,46 @@ public:
 
 
 #ifdef MPI_COMPAT
+  static size_t my_MPI_Pack_Size() {
+#ifdef USE_STATIC_BITSET
+    return MAXNODES/64 + (MAXNODES%64 > 0 ? 1 : 0) * sizeof(unsigned long long) + sizeof(unsigned int);
+
+#elif defined(USE_DYNAMIC_BITSET)
+    return 0;
+    
+#else
+    return sizeof(unsigned long long);
+    
+#endif
+    
+  }
+
+  void my_MPI_Pack(void* buff, unsigned int size_pack, int* position) {
+#ifdef USE_STATIC_BITSET
+    
+
+#elif defined(USE_DYNAMIC_BITSET)
+    
+    
+#else
+    MPI_Pack(&state, 1, MPI_UNSIGNED_LONG_LONG, buff, size_pack, position, MPI_COMM_WORLD);
+    
+#endif
+  }
+  
+  void my_MPI_Unpack(void* buff, unsigned int buff_size, int* position) {
+#ifdef USE_STATIC_BITSET
+    
+
+#elif defined(USE_DYNAMIC_BITSET)
+    
+    
+#else
+    MPI_Unpack(buff, buff_size, position, &state, 1, MPI_UNSIGNED_LONG_LONG, MPI_COMM_WORLD);
+    
+#endif
+    
+  }
   void my_MPI_Recv(int source) 
   {
 #ifdef USE_STATIC_BITSET

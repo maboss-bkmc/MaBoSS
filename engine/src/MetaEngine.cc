@@ -451,3 +451,175 @@ void MetaEngine::displayAsymptotic(std::ostream& output_asymptprob, bool hexfloa
   }
 #endif
 }
+
+STATE_MAP<NetworkState_Impl, unsigned int>* MetaEngine::mergeFixpointMaps()
+{
+  if (1 == fixpoint_map_v.size()) {
+    return new STATE_MAP<NetworkState_Impl, unsigned int>(*fixpoint_map_v[0]);
+  }
+
+  STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map = new STATE_MAP<NetworkState_Impl, unsigned int>();
+  std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*>::iterator begin = fixpoint_map_v.begin();
+  std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*>::iterator end = fixpoint_map_v.end();
+  while (begin != end) {
+    STATE_MAP<NetworkState_Impl, unsigned int>* fp_map = *begin;
+    STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator b = fp_map->begin();
+    STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator e = fp_map->end();
+    while (b != e) {
+      //NetworkState_Impl state = (*b).first;
+      const NetworkState_Impl& state = (*b).first;
+      if (fixpoint_map->find(state) == fixpoint_map->end()) {
+	(*fixpoint_map)[state] = (*b).second;
+      } else {
+	(*fixpoint_map)[state] += (*b).second;
+      }
+      ++b;
+    }
+    ++begin;
+  }
+  return fixpoint_map;
+}
+
+
+#ifdef MPI_COMPAT
+STATE_MAP<NetworkState_Impl, unsigned int>* MetaEngine::MPI_Unpack_Fixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, char* buff, unsigned int buff_size)
+{
+        
+  int position = 0;
+  unsigned int nb_fixpoints;
+  MPI_Unpack(buff, buff_size, &position, &nb_fixpoints, 1, MPI_UNSIGNED, MPI_COMM_WORLD);
+  
+  if (nb_fixpoints > 0) {
+    if (fp_map == NULL) {
+      fp_map = new STATE_MAP<NetworkState_Impl, unsigned int>();
+      // std::cout << "Creating new fp map for " << nb_fixpoints << " fixpoints" << std::endl;
+    }
+    for (unsigned int j=0; j < nb_fixpoints; j++) {
+      NetworkState state;
+      state.my_MPI_Unpack(buff, buff_size, &position);
+      unsigned int count = 0;
+      MPI_Unpack(buff, buff_size, &position, &count, 1, MPI_UNSIGNED, MPI_COMM_WORLD);
+      
+      if (fp_map->find(state.getState()) == fp_map->end()) {
+        (*fp_map)[state.getState()] = count;
+      } else {
+        (*fp_map)[state.getState()] += count;
+      }
+    }
+  }
+  // std::cout << "Added " << fp_map->size() <<  " fixpoints to the map" << std::endl;
+  return fp_map;
+}
+
+char* MetaEngine::MPI_Pack_Fixpoints(const STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, int dest, unsigned int * buff_size)
+{
+  unsigned int nb_fixpoints = fp_map == NULL ? 0 : fp_map->size();
+  *buff_size = sizeof(unsigned int) + (sizeof(unsigned int) + NetworkState::my_MPI_Pack_Size()) * nb_fixpoints;
+  char* buff = new char[*buff_size];
+  int position = 0;
+  
+  MPI_Pack(&nb_fixpoints, 1, MPI_UNSIGNED, buff, *buff_size, &position, MPI_COMM_WORLD);
+
+  if (nb_fixpoints > 0) {
+    for (auto& fixpoint: *fp_map) {  
+      NetworkState state(fixpoint.first);
+      unsigned int count = fixpoint.second;
+      state.my_MPI_Pack(buff, *buff_size, &position);
+      MPI_Pack(&count, 1, MPI_UNSIGNED, buff, *buff_size, &position, MPI_COMM_WORLD);
+    }
+  }
+  return buff;
+}
+
+void MetaEngine::MPI_Send_Fixpoints(const STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, int dest) 
+{
+  // MPI_Send version
+  // First we send the number of fixpoints we have
+  int nb_fixpoints = fp_map->size();
+  MPI_Send(&nb_fixpoints, 1, MPI_INT, dest, 0, MPI_COMM_WORLD);
+  
+  for (auto& fixpoint: *fp_map) {
+    NetworkState state(fixpoint.first);
+    unsigned int count = fixpoint.second;
+    
+    state.my_MPI_Send(dest);
+    MPI_Send(&count, 1, MPI_UNSIGNED, dest, 0, MPI_COMM_WORLD);
+    
+  } 
+}
+
+void MetaEngine::MPI_Recv_Fixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, int origin) 
+{
+  int nb_fixpoints = -1;
+  MPI_Recv(&nb_fixpoints, 1, MPI_INT, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+  
+  for (int j = 0; j < nb_fixpoints; j++) {
+    NetworkState state;
+    state.my_MPI_Recv(origin);
+    
+    unsigned int count = -1;
+    MPI_Recv(&count, 1, MPI_UNSIGNED, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    
+    if (fp_map->find(state.getState()) == fp_map->end()) {
+      (*fp_map)[state.getState()] = count;
+    } else {
+      (*fp_map)[state.getState()] += count;
+    }
+  }
+}
+
+STATE_MAP<NetworkState_Impl, unsigned int>* MetaEngine::mergeMPIFixpointMaps(STATE_MAP<NetworkState_Impl, unsigned int>* t_fixpoint_map, bool pack)
+{
+  // If we are, but only on one node, we don't need to do anything
+  if (world_size == 1) {
+    return t_fixpoint_map;
+  } else {
+    
+    for (int i = 1; i < world_size; i++) {
+      
+      if (world_rank == 0) {
+        
+        int rank = i;
+        MPI_Bcast(&rank, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+        if (pack) {
+          // MPI_Unpack version
+          unsigned int buff_size;
+          MPI_Recv( &buff_size, 1, MPI_UNSIGNED, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+          
+          char* buff = new char[buff_size];
+          MPI_Recv( buff, buff_size, MPI_PACKED, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
+          
+          MPI_Unpack_Fixpoints(t_fixpoint_map, buff, buff_size);
+          delete buff;
+          
+        } else {
+          MPI_Recv_Fixpoints(t_fixpoint_map, i);
+        }
+         
+      } else {
+        
+        int rank;
+        MPI_Bcast(&rank, 1, MPI_INT, 0, MPI_COMM_WORLD);
+        
+        if (rank == world_rank) {
+          
+          if (pack) {
+            unsigned int buff_size;
+            char* buff = MPI_Pack_Fixpoints(t_fixpoint_map, 0, &buff_size);
+
+            MPI_Send(&buff_size, 1, MPI_UNSIGNED, 0, 0, MPI_COMM_WORLD);
+            MPI_Send( buff, buff_size, MPI_PACKED, 0, 0, MPI_COMM_WORLD); 
+            delete buff;
+            
+          } else {
+            MPI_Send_Fixpoints(t_fixpoint_map, 0);
+          }
+        }
+      }      
+    }
+
+    return t_fixpoint_map; 
+  }
+}
+#endif

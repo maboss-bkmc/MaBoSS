@@ -404,6 +404,13 @@ class Cumulator {
     return hd_cumul_map_v[nn];
   }
 
+#ifdef MPI_COMPAT
+
+static void MPI_Send_Cumulator(Cumulator* ret_cumul, int dest);
+static void MPI_Recv_Cumulator(Cumulator* mpi_ret_cumul, int origin);
+static Cumulator* initializeMPICumulator(Cumulator* ret_cumul, RunConfig* runconfig, int world_rank);
+
+#endif
   double cumultime(int at_tick_index = -1) {
     if (at_tick_index < 0) {
       at_tick_index = tick_index;

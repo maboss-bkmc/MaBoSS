@@ -96,6 +96,11 @@ protected:
   
   
 #ifdef MPI_COMPAT
+  STATE_MAP<NetworkState_Impl, unsigned int>* mergeMPIFixpointMaps(STATE_MAP<NetworkState_Impl, unsigned int>*, bool pack=false);
+  STATE_MAP<NetworkState_Impl, unsigned int>* MPI_Unpack_Fixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, char* buff, unsigned int buff_size);
+  static char* MPI_Pack_Fixpoints(const STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, int dest, unsigned int * buff_size);
+  static void MPI_Send_Fixpoints(const STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, int dest);
+  static void MPI_Recv_Fixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, int origin);
 
   // Number of processes
   int world_size;
@@ -135,12 +140,26 @@ public:
   } else {
     sample_count = sample_count / world_size;
   }
-  printf("Global sample count : %d, local to node #%d : %d\n", global_sample_count, world_rank, sample_count);
+  
+  // Get the name of the processor
+  char processor_name[MPI_MAX_PROCESSOR_NAME];
+  int name_len;
+  MPI_Get_processor_name(processor_name, &name_len);
 
+  std::cout << "Hello world from processor " << processor_name 
+            << ", rank " << world_rank << " out of " << world_size << " processors. "
+            << "I will simulate " << sample_count << " out of " << global_sample_count << " simulations"
+            << std::endl;
 #endif
       
     }
-
+  ~MetaEngine() {
+    
+#ifdef MPI_COMPAT
+  MPI_Finalize();
+#endif
+  
+  }
   static void init();
   static void loadUserFuncs(const char* module);
 

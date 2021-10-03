@@ -173,8 +173,10 @@ jobs:
       run: |
         bash -c "cd engine/tests; bash ./test-mpi-cellcycle.sh 2"
         bash -c "cd engine/tests; bash ./test-mpi-cellcycle.sh 4"
-        bash -c "cd engine/tests; bash ./test-mpi-ewing.sh"
-         
+        bash -c "cd engine/tests; bash ./test-mpi-ewing.sh 2"
+        bash -c "cd engine/tests; bash ./test-mpi-ewing.sh 4"
+        bash -c "cd engine/tests; bash ./test-mpi-ensemble.sh 2"
+        bash -c "cd engine/tests; bash ./test-mpi-ensemble.sh 4"
   maboss_binary:
     name: Building MaBoSS linux64 binary
     runs-on: ubuntu-18.04

@@ -194,7 +194,8 @@ jobs:
     - name: Test MaBoSS
       run: |
         bash -c "cd engine/tests; bash ./test-mpi-cellcycle.sh 2"
-        bash -c "cd engine/tests; bash ./test-mpi-ewing.sh"
+        bash -c "cd engine/tests; bash ./test-mpi-ewing.sh 2"
+        bash -c "cd engine/tests; bash ./test-mpi-ensemble.sh 2"
         
   maboss_binary:
     name: MaBoSS MacOSX 64 bits binary

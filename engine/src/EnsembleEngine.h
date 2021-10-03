@@ -82,6 +82,12 @@ class EnsembleEngine : public MetaEngine {
   void runThread(Cumulator* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj, std::vector<unsigned int> simulation_ind, std::vector<Cumulator*> t_models_cumulators, std::vector<STATE_MAP<NetworkState_Impl, unsigned int>* > t_models_fixpoints);
   void mergeEnsembleFixpointMaps();
   void displayIndividualFixpoints(unsigned int model_id, FixedPointDisplayer* fp_displayer) const;
+  void mergeIndividual();
+
+#ifdef MPI_COMPAT
+  void mergeEnsembleMPIFixpointMaps(bool pack=true);
+  void mergeMPIIndividual();
+#endif
 
 public:
   static const std::string VERSION;

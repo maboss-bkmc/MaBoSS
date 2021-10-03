@@ -317,107 +317,6 @@ void MaBEstEngine::run(std::ostream* output_traj)
   delete [] tid;
 }  
 
-STATE_MAP<NetworkState_Impl, unsigned int>* MaBEstEngine::mergeFixpointMaps()
-{
-  STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map;
-  // First, each node do its thing
-  if (1 == fixpoint_map_v.size()) {
-    fixpoint_map = new STATE_MAP<NetworkState_Impl, unsigned int>(*fixpoint_map_v[0]);
-  } else {
-
-    fixpoint_map = new STATE_MAP<NetworkState_Impl, unsigned int>();
-    std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*>::iterator begin = fixpoint_map_v.begin();
-    std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*>::iterator end = fixpoint_map_v.end();
-    while (begin != end) {
-      STATE_MAP<NetworkState_Impl, unsigned int>* fp_map = *begin;
-      STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator b = fp_map->begin();
-      STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator e = fp_map->end();
-      while (b != e) {
-        //NetworkState_Impl state = (*b).first;
-        const NetworkState_Impl& state = b->first;
-        if (fixpoint_map->find(state) == fixpoint_map->end()) {
-    (*fixpoint_map)[state] = (*b).second;
-        } else {
-    (*fixpoint_map)[state] += (*b).second;
-        }
-        ++b;
-      }
-      ++begin;
-    }
-  }
-  
-  return fixpoint_map;
-}
-
-
-#ifdef MPI_COMPAT
-STATE_MAP<NetworkState_Impl, unsigned int>* MaBEstEngine::mergeMPIFixpointMaps(STATE_MAP<NetworkState_Impl, unsigned int>* t_fixpoint_map)
-{
-  // If we are, but only on one node, we don't need to do anything
-  if (world_size == 1) {
-    // std::cout << "Single node simulation. Returning fixpoints" << std::endl;
-    return t_fixpoint_map;
-  } else {
-    
-    for (int i = 1; i < world_size; i++) {
-      
-      if (world_rank == 0) {
-        
-        int rank = i;
-        MPI_Bcast(&rank, 1, MPI_INT, 0, MPI_COMM_WORLD);
-        
-        // std::cout << "Here in rank zero we wait for result of rank " << i << std::endl;
-        
-        // First we want to know the number of fixpoints we're going to receive   
-        int nb_fixpoints = -1;
-        MPI_Recv(&nb_fixpoints, 1, MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        
-        // std::cout << "We received the number of fixpoints from node " << i << " : " << nb_fixpoints << std::endl;
-        
-        for (int j = 0; j < nb_fixpoints; j++) {
-          NetworkState state;
-          state.my_MPI_Recv(i);
-          
-          // MPI_Recv(&state, 1, MPI_UNSIGNED_LONG_LONG, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-          unsigned int count = -1;
-          MPI_Recv(&count, 1, MPI_UNSIGNED, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-          
-          if (t_fixpoint_map->find(state.getState()) == t_fixpoint_map->end()) {
-            (*t_fixpoint_map)[state.getState()] = count;
-          } else {
-            (*t_fixpoint_map)[state.getState()] += count;
-          }
-        }
-         
-      } else {
-        
-        int rank;
-        MPI_Bcast(&rank, 1, MPI_INT, 0, MPI_COMM_WORLD);
-        
-        if (rank == world_rank) {
-          
-          int nb_fixpoints = t_fixpoint_map->size();
-          // First we send the number of fixpoints we have
-          MPI_Send(&nb_fixpoints, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
-          
-          
-          for (auto& fixpoint: *t_fixpoint_map) {
-            NetworkState state(fixpoint.first);
-            unsigned int count = fixpoint.second;
-            
-            state.my_MPI_Send(0);
-            MPI_Send(&count, 1, MPI_UNSIGNED, 0, 0, MPI_COMM_WORLD);
-            
-          } 
-        }
-      }      
-    }
-
-    return t_fixpoint_map; 
-  }
-}
-#endif
-
 void MaBEstEngine::epilogue()
 {
   merged_cumulator = Cumulator::mergeCumulatorsParallel(runconfig, cumulator_v);
@@ -453,10 +352,6 @@ void MaBEstEngine::epilogue()
 
 MaBEstEngine::~MaBEstEngine()
 {
-#ifdef MPI_COMPAT
-  MPI_Finalize();
-#endif
-  
   for (auto t_fixpoint_map: fixpoint_map_v)
     delete t_fixpoint_map;
   

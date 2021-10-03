@@ -96,31 +96,93 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
 
   // Here we write a dict with the number of simulation by model
   unsigned int network_index;
-  if (random_sampling){
+  if (random_sampling)
+  {
     // Here we need the random generator to compute the list of simulations
-    RandomGeneratorFactory* randgen_factory = runconfig->getRandomGeneratorFactory();
-    int seed = runconfig->getSeedPseudoRandom();
-    RandomGenerator* random_generator = randgen_factory->generateRandomGenerator(seed);
     
-    for (unsigned int nn = 0; nn < sample_count; nn++) {
-      // This will need sample_count random numbers... maybe there is another way ?
-      network_index = (unsigned int) floor(random_generator->generate()*networks.size());
-      simulations_per_model[network_index] += 1;
+#ifdef MPI_COMPAT
+    // If MPI, then we only do it in node 0, then we broadcast it
+    if (world_rank == 0)
+    {
+#endif
+    
+      RandomGeneratorFactory* randgen_factory = runconfig->getRandomGeneratorFactory();
+      int seed = runconfig->getSeedPseudoRandom();
+      RandomGenerator* random_generator = randgen_factory->generateRandomGenerator(seed);
+    
+#ifdef MPI_COMPAT
+      for (unsigned int nn = 0; nn < global_sample_count; nn++) {
+#else
+      for (unsigned int nn = 0; nn < sample_count; nn++) {
+#endif
+        // This will need sample_count random numbers... maybe there is another way ?
+        // TODO : Actually we can, by generating the number of simulation per model, 
+        // so only needing network.size() random numbers. 
+        // Should be generate()*2*(sample_count/networks.size()) (since expectancy of generate() is 0.5)
+        network_index = (unsigned int) floor(random_generator->generate()*networks.size());
+        simulations_per_model[network_index] += 1;
+      }
+      
+      delete random_generator;
+      
+#ifdef MPI_COMPAT
+      MPI_Bcast(simulations_per_model.data(), networks.size(), MPI_UNSIGNED, 0, MPI_COMM_WORLD);
+    
+    } else {
+      MPI_Bcast(simulations_per_model.data(), networks.size(), MPI_UNSIGNED, 0, MPI_COMM_WORLD);
     }
-    
-    delete random_generator;
-
+#endif
   } else{
-    
     for (unsigned int nn = 0; nn < networks.size(); ++nn) {
       if (nn == 0) {
+#ifdef MPI_COMPAT    
+        simulations_per_model[nn] = floor(global_sample_count/networks.size()) + (global_sample_count % networks.size());
+#else
         simulations_per_model[nn] = floor(sample_count/networks.size()) + (sample_count % networks.size());
+#endif
       } else {
+#ifdef MPI_COMPAT
+        simulations_per_model[nn] = floor(global_sample_count/networks.size());
+#else
         simulations_per_model[nn] = floor(sample_count/networks.size());
+#endif
       }
     }
   }
   
+  // std::cout << "Simulations per model : " << std::endl;
+  // for (int i=0; i < networks.size(); i++) {
+  //   std::cout << "Model #" << i << " : " << simulations_per_model[i] << std::endl;
+  // }
+  
+#ifdef MPI_COMPAT
+
+  std::vector<unsigned int> local_simulations_per_model(networks.size(), 0);
+  unsigned int start_model = 0;
+  unsigned int start_sim = world_rank * (global_sample_count / world_size) + (world_rank > 0 ? global_sample_count % world_size : 0);
+  unsigned int end_sim = start_sim + sample_count - 1;
+  
+  unsigned int i=0;
+  unsigned int local_sum = 0;
+  
+  
+  for (auto nb_sim: simulations_per_model) {
+    
+    unsigned int end_model = start_model + nb_sim - 1;
+    if (end_model >= start_sim && start_model <= end_sim) {
+    
+      unsigned int start = start_model < start_sim ? start_sim : start_model;
+      unsigned int end = end_model >= end_sim ? end_sim : end_model;
+      
+      local_simulations_per_model[i] += end - start + 1;
+      local_sum += end - start + 1;
+      
+    }
+    start_model += nb_sim;
+    i++;
+  }
+  
+#endif 
   cumulator_models_v.resize(thread_count); // Per thread
   fixpoints_models_v.resize(thread_count);
 
@@ -171,7 +233,11 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
     while(nnn < t_count) {
       assert(j <= networks.size());
       // If we assigned all the simulation of the model j
+#ifdef MPI_COMPAT
+      if (k == local_simulations_per_model[j])
+#else
       if (k == simulations_per_model[j])
+#endif
       {
         if (k > 0) { // If we indeed assigned something
 
@@ -223,7 +289,11 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
 
     // Here we update the position and offset for the next thread
     // If we just finished a model, the position will be set to the next model
+#ifdef MPI_COMPAT
+    if (k == local_simulations_per_model[j]) {
+#else
     if (k == simulations_per_model[j]) {
+#endif
       offset = 0;
       position = ++j;
 
@@ -332,9 +402,23 @@ void EnsembleEngine::runThread(Cumulator* cumulator, unsigned int start_count_th
   RandomGenerator* random_generator = randgen_factory->generateRandomGenerator(seed);
   for (unsigned int nn = 0; nn < sample_count_thread; ++nn) {
 
+#ifdef MPI_COMPAT
+    random_generator->setSeed(seed+(world_rank * (global_sample_count/world_size) + (world_rank > 0 ? global_sample_count % world_size : 0)) + start_count_thread+nn);
+#else
     random_generator->setSeed(seed+start_count_thread+nn);
+#endif
     unsigned int network_index = simulation_ind[nn];
-    
+
+// #ifdef MPI_COMPAT
+//     std::cout << "Running simulation #" << (world_rank * (global_sample_count/world_size) + (world_rank > 0 ? global_sample_count % world_size : 0)) + start_count_thread+nn 
+//               << " of model #" << network_index << " on node #" << world_rank 
+//               << " with seed " << seed+(world_rank * (global_sample_count/world_size) + (world_rank > 0 ? global_sample_count % world_size : 0))+start_count_thread+nn << std::endl;
+// #else
+//     std::cout << "Running simulation #" << start_count_thread+nn 
+//               << " of model #" << network_index 
+//               << " with seed " << seed+start_count_thread+nn << std::endl;
+// #endif
+
     if (nn > 0 && network_index != simulation_ind[nn-1]) {
       model_ind++;
     }
@@ -490,34 +574,6 @@ void EnsembleEngine::run(std::ostream* output_traj)
   delete [] tid;
 }  
 
-STATE_MAP<NetworkState_Impl, unsigned int>* MetaEngine::mergeFixpointMaps()
-{
-  if (1 == fixpoint_map_v.size()) {
-    return new STATE_MAP<NetworkState_Impl, unsigned int>(*fixpoint_map_v[0]);
-  }
-
-  STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map = new STATE_MAP<NetworkState_Impl, unsigned int>();
-  std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*>::iterator begin = fixpoint_map_v.begin();
-  std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*>::iterator end = fixpoint_map_v.end();
-  while (begin != end) {
-    STATE_MAP<NetworkState_Impl, unsigned int>* fp_map = *begin;
-    STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator b = fp_map->begin();
-    STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator e = fp_map->end();
-    while (b != e) {
-      //NetworkState_Impl state = (*b).first;
-      const NetworkState_Impl& state = (*b).first;
-      if (fixpoint_map->find(state) == fixpoint_map->end()) {
-	(*fixpoint_map)[state] = (*b).second;
-      } else {
-	(*fixpoint_map)[state] += (*b).second;
-      }
-      ++b;
-    }
-    ++begin;
-  }
-  return fixpoint_map;
-}
-
 void EnsembleEngine::mergeEnsembleFixpointMaps()
 {
   fixpoints_per_model.resize(networks.size(), NULL);
@@ -559,6 +615,80 @@ void EnsembleEngine::mergeEnsembleFixpointMaps()
     }
   }
 }
+#ifdef MPI_COMPAT
+
+void EnsembleEngine::mergeEnsembleMPIFixpointMaps(bool pack)
+{
+  if (world_size > 1) {
+
+    for (unsigned int model=0; model < networks.size(); model++) {
+      for (int rank = 1; rank < world_size; rank++) {
+
+        if (world_rank == 0) {
+          // std::cout << "Receiving from node " << rank << std::endl;
+          // Broadcasting which node will send
+          int t_rank = rank;
+          MPI_Bcast(&t_rank, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+          if (pack) {
+            // MPI_Unpack version
+            unsigned int buff_size;
+            MPI_Recv( &buff_size, 1, MPI_UNSIGNED, rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            
+            char* buff = new char[buff_size];
+            MPI_Recv( buff, buff_size, MPI_PACKED, rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
+            
+            // if (fixpoints_per_model[model] == NULL) {
+            //   std::cout << "Will create new cumulator for model #" << model << " to receive from node " << rank << std::endl;
+            // }
+            MPI_Unpack_Fixpoints(fixpoints_per_model[model], buff, buff_size);
+            // if (fixpoints_per_model[model] != NULL) {
+            //   std::cout << "created new cumulator for model #" << model << " to receive from node " << rank << std::endl;
+            // }
+            
+            delete buff;
+            
+          } else {
+            MPI_Recv_Fixpoints(fixpoints_per_model[model], rank);
+          }
+          
+        } else {
+          
+          int sender_rank;
+          MPI_Bcast(&sender_rank, 1, MPI_INT, 0, MPI_COMM_WORLD);
+          
+          if (sender_rank == world_rank) {
+            if (pack) {
+              unsigned int buff_size = 0;
+              char* buff = MPI_Pack_Fixpoints(fixpoints_per_model[model], 0, &buff_size);
+              MPI_Send(&buff_size, 1, MPI_UNSIGNED, 0, 0, MPI_COMM_WORLD);
+              MPI_Send( buff, buff_size, MPI_PACKED, 0, 0, MPI_COMM_WORLD); 
+              delete buff;
+              
+            } else {
+              MPI_Send_Fixpoints(fixpoints_per_model[model], 0);
+            }
+          }
+        }      
+      }
+    }
+  }
+}
+
+void EnsembleEngine::mergeMPIIndividual() 
+{
+  if (world_size > 1) {
+    for (unsigned int model=0; model < networks.size(); model++) {
+      
+      Cumulator* t_cumulator = Cumulator::mergeMPICumulators(runconfig, cumulators_per_model[model], world_size, world_rank);
+      if (world_rank == 0)
+        t_cumulator->epilogue(networks[model], reference_state);
+
+      cumulators_per_model[model] = t_cumulator;
+    }
+  }
+}
+#endif
 
 
 void EnsembleEngine::epilogue()
@@ -567,34 +697,25 @@ void EnsembleEngine::epilogue()
   
 #ifdef MPI_COMPAT
   merged_cumulator = Cumulator::mergeMPICumulators(runconfig, merged_cumulator, world_size, world_rank);
+
+  if (world_rank == 0){
+    merged_cumulator->epilogue(networks[0], reference_state);
+  }
 #endif
-  merged_cumulator->epilogue(networks[0], reference_state);
-
+  
+  
   if (save_individual_result) {
+    mergeIndividual();
+#ifdef MPI_COMPAT
+    mergeMPIIndividual();
+#endif    
 
-    cumulators_per_model.resize(networks.size(), NULL);
-
-    for (unsigned int i=0; i < networks.size(); i++) {
-      std::vector<Cumulator*> model_cumulator = cumulators_thread_v[i];
-      if (model_cumulator.size() > 0) {
-        
-        if (model_cumulator.size() == 1) {
-          cumulators_per_model[i] = model_cumulator[0];
-          cumulators_per_model[i]->epilogue(networks[i], reference_state);
-        } else {
-          Cumulator* t_cumulator = Cumulator::mergeCumulatorsParallel(runconfig, model_cumulator);
-          #ifdef MPI_COMPAT
-            t_cumulator = Cumulator::mergeMPICumulators(runconfig, t_cumulator, world_size, world_rank);
-          #endif
-
-          t_cumulator->epilogue(networks[i], reference_state);
-          cumulators_per_model[i] = t_cumulator;
-        }
-      }
-    }
   }
 
   STATE_MAP<NetworkState_Impl, unsigned int>* merged_fixpoint_map = mergeFixpointMaps();
+#ifdef MPI_COMPAT
+  mergeMPIFixpointMaps(merged_fixpoint_map);
+#endif 
 
   STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator b = merged_fixpoint_map->begin();
   STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator e = merged_fixpoint_map->end();
@@ -607,12 +728,45 @@ void EnsembleEngine::epilogue()
 
   if (save_individual_result) {
     mergeEnsembleFixpointMaps();
-  }
+    
+#ifdef MPI_COMPAT
+    mergeEnsembleMPIFixpointMaps();
+#endif
 
+  }
+}
+
+void EnsembleEngine::mergeIndividual() {
+  cumulators_per_model.resize(networks.size(), NULL);
+
+  for (unsigned int i=0; i < networks.size(); i++) {
+    std::vector<Cumulator*> model_cumulator = cumulators_thread_v[i];
+      
+    if (model_cumulator.size() == 0) {
+      cumulators_per_model[i] = NULL;
+    }
+    else if (model_cumulator.size() == 1) {
+      cumulators_per_model[i] = model_cumulator[0];
+      cumulators_per_model[i]->epilogue(networks[i], reference_state);
+
+    } else {
+      
+      Cumulator* t_cumulator = Cumulator::mergeCumulatorsParallel(runconfig, model_cumulator);
+      t_cumulator->epilogue(networks[i], reference_state);
+      cumulators_per_model[i] = t_cumulator;
+      
+      for (auto t_cumulator: model_cumulator) {
+        // delete t_cumulator;
+      }
+    }
+  }
 }
 
 void EnsembleEngine::displayIndividualFixpoints(unsigned int model_id, FixedPointDisplayer* displayer) const 
 {
+#ifdef MPI_COMPAT
+  if (world_rank == 0) {
+#endif
   displayer->begin(fixpoints_per_model[model_id]->size());
   
   STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator begin = fixpoints_per_model[model_id]->begin();
@@ -624,6 +778,9 @@ void EnsembleEngine::displayIndividualFixpoints(unsigned int model_id, FixedPoin
     ++begin;
   }
   displayer->end();
+#ifdef MPI_COMPAT
+  }
+#endif
 }
 
 void EnsembleEngine::displayIndividual(unsigned int model_id, ProbTrajDisplayer* probtraj_displayer, StatDistDisplayer* statdist_displayer, FixedPointDisplayer* fp_displayer) const
