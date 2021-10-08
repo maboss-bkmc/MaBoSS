@@ -142,6 +142,19 @@ node_attr_decl: SYMBOL '.' SYMBOL '=' expression ';'
 	new IStateGroup(network, node, $5);
       }
     }
+  } else if (!strcasecmp($3, "pop_istate")) {
+  //[A].ipop = 0.5 [1:1], 0.5[1:2] // Means we have a split population of size one, with A active and A inactive
+  // How to combine these declarations ? Should any line be equal to one ? Should we discard it if a later one look at the same node ?
+
+
+  // [A, B].ipop = 0.1[1,0:1], 0.2[1, 1:1], 0.3[1,1:2],0.4[1, 1:3] // Here we have four initial pop states : 
+  // {A,!B:1}=0.1
+  // {A,B:1}=0.2
+  // {A,B:2}=0.3
+  // {A,B:3}=0.4
+
+  
+  
   } else if (!strcasecmp($3, "is_internal")) {
     node->isInternal((bool)value);
   } else if (!strcasecmp($3, "refstate")) {
