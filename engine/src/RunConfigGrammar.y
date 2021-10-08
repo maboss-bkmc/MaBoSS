@@ -70,7 +70,9 @@ extern std::string yy_error_head();
   std::vector<const Node*>* node_list;
   std::vector<Expression*>* expr_list;
   IStateGroup::ProbaIState* istate_expr;
+  PopIStateGroup::PopProbaIState* pop_istate_expr;
   std::vector<IStateGroup::ProbaIState*>* istate_expr_list;
+  std::vector<PopIStateGroup::PopProbaIState*>* pop_istate_expr_list;
   ArgumentList* arg_list;
 
 }
@@ -92,6 +94,8 @@ extern std::string yy_error_head();
 %type<expr_list> expression_list
 %type<istate_expr> istate_expression
 %type<istate_expr_list> istate_expression_list
+%type<pop_istate_expr> pop_istate_expression
+%type<pop_istate_expr_list> pop_istate_expression_list
 %type<arg_list> argument_expression_list
 
 %token<str> VARIABLE
@@ -142,19 +146,6 @@ node_attr_decl: SYMBOL '.' SYMBOL '=' expression ';'
 	new IStateGroup(network, node, $5);
       }
     }
-  } else if (!strcasecmp($3, "pop_istate")) {
-  //[A].ipop = 0.5 [1:1], 0.5[1:2] // Means we have a split population of size one, with A active and A inactive
-  // How to combine these declarations ? Should any line be equal to one ? Should we discard it if a later one look at the same node ?
-
-
-  // [A, B].ipop = 0.1[1,0:1], 0.2[1, 1:1], 0.3[1,1:2],0.4[1, 1:3] // Here we have four initial pop states : 
-  // {A,!B:1}=0.1
-  // {A,B:1}=0.2
-  // {A,B:2}=0.3
-  // {A,B:3}=0.4
-
-  
-  
   } else if (!strcasecmp($3, "is_internal")) {
     node->isInternal((bool)value);
   } else if (!strcasecmp($3, "refstate")) {
@@ -178,6 +169,19 @@ node_attr_decl: SYMBOL '.' SYMBOL '=' expression ';'
   }
   std::string error_msg;
   new IStateGroup(network, $1, $5, error_msg);
+  if (error_msg.length() > 0) {
+    throw BNException(std::string(yy_error_head() + error_msg));
+  }
+  
+  free($3);
+}
+| symbol_istate_list '.' SYMBOL '=' pop_istate_expression_list ';'
+{
+  if (strcasecmp($3, "pop_istate")) {
+    throw BNException(std::string(yy_error_head() + "invalid node group attribute: ") + $3 + ", valid attribute is pop_istate");
+  }
+  std::string error_msg;
+  new PopIStateGroup(network, $1, $5, error_msg);
   if (error_msg.length() > 0) {
     throw BNException(std::string(yy_error_head() + error_msg));
   }
@@ -217,6 +221,18 @@ istate_expression_list: istate_expression
 }
 ;
 
+pop_istate_expression_list: pop_istate_expression
+{
+  $$ = new std::vector<PopIStateGroup::PopProbaIState*>();
+  $$->push_back($1);
+}
+| pop_istate_expression_list ',' pop_istate_expression
+{
+  $$ = $1;
+  $$->push_back($3);
+}
+;
+
 istate_expression: primary_expression '[' expression_list ']'
 {
   $$ = new IStateGroup::ProbaIState($1, $3);
@@ -228,6 +244,12 @@ istate_expression: primary_expression '[' expression_list ']'
 }
 ;
 
+pop_istate_expression: primary_expression '[' expression_list ']' '{' primary_expression '}'
+{
+  $$ = new PopIStateGroup::PopProbaIState($1, $3, $6);
+}
+;
+ 
 expression_list: primary_expression
 {
   $$ = new std::vector<Expression*>();
