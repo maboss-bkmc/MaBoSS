@@ -139,6 +139,7 @@ class Node;
 class RandomGenerator;
 class RunConfig;
 class IStateGroup;
+class PopIStateGroup;
 
 class LogicalExprGenContext {
 
@@ -681,7 +682,6 @@ public:
   }
   
   void initStates(NetworkState& initial_state, RandomGenerator* randgen);
-  void initPopStates(PopNetworkState& initial_pop_state, RandomGenerator* randgen, unsigned int pop);
 
   void displayHeader(std::ostream& os) const;
 
@@ -768,13 +768,17 @@ class PopNetwork : public Network {
   // Death rate
   Expression* deathRate;
   
-  PopNetwork();
+  std::vector<PopIStateGroup*>* pop_istate_group_list;
 
+  PopNetwork();
+  ~PopNetwork() { delete pop_istate_group_list; }
   PopNetwork(const PopNetwork& network);
   PopNetwork& operator=(const PopNetwork& network);
 
   int parse(const char* file = NULL, std::map<std::string, NodeIndex>* nodes_indexes = NULL, bool is_temp_file = false);
   int parseExpression(const char* content, std::map<std::string, NodeIndex>* nodes_indexes);
+
+  void initPopStates(PopNetworkState& initial_pop_state, RandomGenerator* randgen, unsigned int pop);
 
   void addDivisionRule(DivisionRule rule) { divisionRules.push_back(rule); }
   void setDeathRate(Expression* expr) { deathRate = expr; }
@@ -784,6 +788,8 @@ class PopNetwork : public Network {
   
   // Evaluation of the death rate according to the state
   double getDeathRate(const NetworkState& state, const PopNetworkState& pop) const;
+  
+  std::vector<PopIStateGroup*>* getPopIStateGroup() { return pop_istate_group_list; }
 };
 
 // global state of the boolean network
@@ -1255,7 +1261,7 @@ public:
   
   // Count the population satisfying an expression
   unsigned int count(Expression * expr) const;
-  
+  void clear() { mp.clear(); hash_init = false; }
   std::string getName(Network * network, const std::string& sep=" -- ") const;
   void displayOneLine(std::ostream& os, Network* network, const std::string& sep = " -- ") const;
   void displayJSON(std::ostream& os, Network* network, const std::string& sep = " -- ") const;
@@ -2154,6 +2160,57 @@ public:
   }
 };
 
+class PopIStateGroup {
+  
+public:
+  struct PopProbaIState {
+    double proba_value;
+    Expression* proba_expr;
+    std::vector<Expression*>* state_expr_list;
+    std::vector<double> state_value_list;
+    unsigned int pop_size;
+    
+    PopProbaIState(Expression* proba_expr, std::vector<Expression*>* state_expr_list, Expression* t_pop_size) 
+    {
+      proba_expr = proba_expr;
+      NetworkState network_state;
+      proba_value = proba_expr->eval(NULL, network_state);
+      
+      state_expr_list = state_expr_list;
+      for (auto state_expr: *state_expr_list) {
+        state_value_list.push_back(state_expr->eval(NULL, network_state));
+      }
+      
+      pop_size = (unsigned int) t_pop_size->eval(NULL, network_state);  
+    }
+    
+    std::vector<double> getStateValueList() { return state_value_list; }
+    unsigned int getPopSize() { return pop_size; }
+    double getProbaValue() { return proba_value; }
+    
+  };
+  
+  std::vector<const Node*>* nodes;
+  std::vector<PopProbaIState*>* proba_istates;
+  
+  PopIStateGroup(Network* network, std::vector<const Node*>* nodes, std::vector<PopProbaIState*>* proba_istates, std::string& error_msg) : nodes(nodes), proba_istates(proba_istates) 
+  {
+    epilogue(network); 
+  }
+    
+  void epilogue(Network* network) 
+  {
+    PopNetwork* pop_network = static_cast<PopNetwork*>(network);
+    pop_network->getPopIStateGroup()->push_back(this);
+  }
+  
+  std::vector<const Node*>* getNodes() { return nodes; }
+  std::vector<PopProbaIState*>* getPopProbaIStates() { return proba_istates; }
+  
+  static void initPopStates(PopNetwork* network, PopNetworkState& initial_state, RandomGenerator* randgen, unsigned int pop);
+
+};
+
 class IStateGroup {
 
 public:
@@ -2274,7 +2331,6 @@ public:
 
   static void checkAndComplete(Network* network);
   static void initStates(Network* network, NetworkState& initial_state, RandomGenerator * randgen);
-  static void initPopStates(Network* network, PopNetworkState& initial_state, RandomGenerator* randgen, unsigned int pop);
   static void display(Network* network, std::ostream& os);
   static void reset(Network* network);
   

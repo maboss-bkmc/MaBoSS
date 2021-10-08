@@ -127,7 +127,12 @@ Network::Network() : last_index(0U)
   set_pop_network(NULL);
 }
 
-PopNetwork::PopNetwork() : Network() { deathRate = NULL; divisionRules.clear();}
+PopNetwork::PopNetwork() : Network() 
+{ 
+  deathRate = NULL; 
+  divisionRules.clear();
+  pop_istate_group_list = new std::vector<PopIStateGroup*>();
+}
 
 int Network::parseExpression(const char* content, std::map<std::string, NodeIndex>* nodes_indexes){
   
@@ -393,8 +398,8 @@ void Network::initStates(NetworkState& initial_state, RandomGenerator * randgen)
   }
 }
 
-void Network::initPopStates(PopNetworkState& initial_pop_state, RandomGenerator* randgen, unsigned int pop) {
-  IStateGroup::initPopStates(this, initial_pop_state, randgen, pop);
+void PopNetwork::initPopStates(PopNetworkState& initial_pop_state, RandomGenerator* randgen, unsigned int pop) {
+  PopIStateGroup::initPopStates(this, initial_pop_state, randgen, pop);
 }
 
 
@@ -851,11 +856,63 @@ void IStateGroup::initStates(Network* network, NetworkState& initial_state, Rand
   }
 }
 
-void IStateGroup::initPopStates(Network* network, PopNetworkState& initial_state, RandomGenerator* randgen, unsigned int pop)
+void PopIStateGroup::initPopStates(PopNetwork* network, PopNetworkState& initial_state, RandomGenerator* randgen, unsigned int pop)
 {
-  NetworkState state;
-  initStates(network, state, randgen);
-  initial_state = PopNetworkState(state.getState(), pop);
+  PopNetwork* pop_network = static_cast<PopNetwork*>(network);
+  initial_state.clear();
+  if (pop_network->getPopIStateGroup()->size() > 0) 
+  {
+    // std::cout << "Creating a pop state from " << pop_network->getPopIStateGroup()->size() << " istate groups" << std::endl;
+    for (auto istate_group: *(pop_network->getPopIStateGroup())) 
+    {  
+      std::vector<const Node*>* nodes = istate_group->getNodes();
+      std::vector<PopProbaIState*>* proba_istates = istate_group->getPopProbaIStates();  
+    
+      if (proba_istates->size() == 1)
+      {
+        PopProbaIState* proba_istate = (*proba_istates)[0];
+        int i=0;
+        NetworkState network_state;
+        for (auto state_value_list: proba_istate->getStateValueList()) {
+          const Node* node = (*nodes)[i++];
+          network_state.setNodeState(node, state_value_list != 0. ? true : false);
+        }
+        
+        initial_state.addStatePop(network_state.getState(), proba_istate->getPopSize());
+      } else {
+        double rand = randgen->generate();
+        assert(rand >= 0. && rand <= 1.);
+        
+        NetworkState network_state;
+        double pop_size = 0;
+        double proba_sum = 0;
+        
+        // std::cout << "Creating a random initial state from " << proba_istates->size() << " possibilities " << std::endl;
+        for (auto proba_istate: *proba_istates) 
+        {
+          proba_sum += proba_istate->getProbaValue();
+          if (rand < proba_sum)
+          {
+            pop_size = proba_istate->getPopSize();
+            int i=0;
+            for (auto state_value_list: proba_istate->getStateValueList()) 
+            {
+              const Node* node = (*nodes)[i++];
+              network_state.setNodeState(node, state_value_list != 0. ? true : false);
+            }
+            break; 
+          }
+        }
+        initial_state.addStatePop(network_state.getState(), pop_size); 
+      }
+      
+      // std::cout << "State chosen : " << initial_state.getName(network) << std::endl << std::endl;
+    }
+  } else {
+    NetworkState state;
+    IStateGroup::initStates(network, state, randgen);
+    initial_state = PopNetworkState(state.getState(), pop);
+  }
 }
 
 
