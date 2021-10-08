@@ -16,7 +16,7 @@ MAKEFILE = Makefile.maboss
 
 .PHONY: maboss popmaboss
 
-maboss popmaboss %:
+maboss popmaboss:
 	@rm -f depend.mk
 	@touch depend.mk
 	@$(MAKE) -f $(MAKEFILE) init
@@ -32,4 +32,11 @@ clean:
 	$(MAKE) -f $(MAKEFILE) $@
 	$(MAKE) -f $(MAKEFILE) USE_DYNAMIC_BITSET=1 $@
 	rm -f *.o MaBoSS MaBoSS_dn MaBoSS_[0-9]*n MaBoSS_[0-9]*n-server MaBoSS_[0-9]*n-client
-	rm -f *.o PopMaBoSS PopMaBoSS_dn PopMaBoSS_[0-9]*n 
+	rm -f *.o PopMaBoSS PopMaBoSS_dn PopMaBoSS_[0-9]*n
+
+%:
+	@rm -f depend.mk
+	@touch depend.mk
+	@$(MAKE) -f $(MAKEFILE) init
+	@$(MAKE) -f $(MAKEFILE) depend
+	$(MAKE) -f $(MAKEFILE) $@
