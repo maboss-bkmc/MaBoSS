@@ -62,6 +62,7 @@ class CSVSimplePopProbTrajDisplayer : public CSVProbTrajDisplayer<PopNetworkStat
 
 public:
   std::ostream& os_simple_probtraj; 
+  std::map<NetworkState, std::map<unsigned int, double> > distribs;
 
   CSVSimplePopProbTrajDisplayer(Network* network, std::ostream& os_probtraj, std::ostream& os_simple_probtraj, bool hexfloat = false) : CSVProbTrajDisplayer<PopNetworkState>(network, os_probtraj, hexfloat), os_simple_probtraj(os_simple_probtraj) { }
   
@@ -75,7 +76,7 @@ public:
       os_simple_probtraj << "\tHD=" << jj;
     }
 
-    os_simple_probtraj << "\tPop";
+    os_simple_probtraj << "\tPop\tVar\tH";
 
     for (unsigned int nn = 0; nn < this->maxcols; ++nn)
     {
@@ -128,6 +129,7 @@ public:
     // Computing total population and state probabilities
     double pop = 0;
     std::map<NetworkState, double> network_state_probas;
+    std::map<unsigned int, double> pop_size_distrib;
     for (const typename ProbTrajDisplayer<PopNetworkState>::Proba &proba : this->proba_v)
     {
       pop += proba.proba * proba.state.count(NULL);
@@ -142,9 +144,30 @@ public:
           network_state_probas[network_state.first] = proba.proba * network_state.second;
         }
       }
+      
+      if (pop_size_distrib.find(proba.state.count(NULL)) != pop_size_distrib.end()) 
+      { 
+        pop_size_distrib[proba.state.count(NULL)] += proba.proba;
+      }
+      else 
+      {
+        pop_size_distrib[proba.state.count(NULL)] = proba.proba;
+      }
     }
 
+    double network_state_variance = - pop*pop;
+    double network_state_entropy = 0;
+    
+    for (const auto size_proba: pop_size_distrib) 
+    {
+      network_state_variance += size_proba.second * (size_proba.first * size_proba.first);
+      network_state_entropy -= log2(size_proba.second)*size_proba.second;
+    }
+    
+    // Total population
     os_simple_probtraj << '\t' << pop;
+    os_simple_probtraj << '\t' << network_state_variance;
+    os_simple_probtraj << '\t' << network_state_entropy;
 
     // Computing
 
@@ -220,6 +243,7 @@ public:
     // Computing total population and state probabilities
     double pop = 0;
     std::map<NetworkState, double> network_state_probas;
+    std::map<unsigned int, double> pop_size_distrib;
     for (const typename ProbTrajDisplayer<PopNetworkState>::Proba &proba : this->proba_v)
     {
       pop += proba.proba * proba.state.count(NULL);
@@ -234,13 +258,34 @@ public:
           network_state_probas[network_state.first] = proba.proba * network_state.second;
         }
       }
+      
+      if (pop_size_distrib.find(proba.state.count(NULL)) != pop_size_distrib.end()) 
+      { 
+        pop_size_distrib[proba.state.count(NULL)] += proba.proba;
+      }
+      else 
+      {
+        pop_size_distrib[proba.state.count(NULL)] = proba.proba;
+      }
     }
 
-    if (this->hexfloat)
+    double network_state_variance = - pop*pop;
+    double network_state_entropy = 0;
+    
+    for (const auto size_proba: pop_size_distrib) 
+    {
+      network_state_variance += size_proba.second * (size_proba.first * size_proba.first);
+      network_state_entropy -= log2(size_proba.second)*size_proba.second;
+    }
+    if (this->hexfloat){
       os_simple_probtraj << "\"pop\":" << fmthexdouble(pop, true) << ",";
-    else
+      os_simple_probtraj << "\"var\":" << fmthexdouble(network_state_variance, true) << ",";
+      os_simple_probtraj << "\"H\":" << fmthexdouble(network_state_entropy, true) << ",";
+    } else {
       os_simple_probtraj << "\"pop\":" << pop << ",";
-
+      os_simple_probtraj << "\"var\":" << network_state_variance << ",";
+      os_simple_probtraj << "\"H\":" << network_state_entropy << ",";
+    }
 
     os_simple_probtraj << "\"probas\":[";
     unsigned int idx = 0;
