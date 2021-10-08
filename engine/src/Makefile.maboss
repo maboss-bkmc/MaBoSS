@@ -162,9 +162,9 @@ endif
 
 $(POPMABOSS): PopMaBoSS$(INFIX).o $(POPMABOSS_OBJS)
 ifdef USE_LIB
-	$(CXX) -o $(POPMABOSS) PopMaBoSS$(INFIX).o -l$(POPMABOSS_LIBNAME) -lpthread -L. $(LDL_FLAG)
+	$(CXX) -o $(POPMABOSS) PopMaBoSS$(INFIX).o -l$(POPMABOSS_LIBNAME) -lpthread -L. $(LDL_FLAG) $(SBML_LIB) $(LDFLAGS) $(EXTRA_LDFLAGS)
 else
-	$(CXX) -o $(POPMABOSS) $+ -lpthread $(LDL_FLAG)
+	$(CXX) -o $(POPMABOSS) $+ -lpthread $(LDL_FLAG) $(SBML_LIB) $(LDFLAGS) $(EXTRA_LDFLAGS)
 endif
 
 $(MABOSS_SERVER): MaBoSS$(INFIX)-server.o $(MABOSS_OBJS) $(SERVER_OBJS)
