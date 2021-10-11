@@ -841,14 +841,20 @@ void PopIStateGroup::initPopStates(PopNetwork* network, PopNetworkState& initial
       if (proba_istates->size() == 1)
       {
         PopProbaIState* proba_istate = (*proba_istates)[0];
-        int i=0;
-        NetworkState network_state;
-        for (auto state_value_list: proba_istate->getStateValueList()) {
-          const Node* node = (*nodes)[i++];
-          network_state.setNodeState(node, state_value_list != 0. ? true : false);
-        }
         
-        initial_state.addStatePop(network_state.getState(), proba_istate->getPopSize());
+        std::vector<PopIStateGroup::PopProbaIState::PopIStateGroupIndividual*>* individual_list = proba_istate->getIndividualList();
+                
+        for (auto individual: *individual_list) 
+        {   
+          int i=0;
+          NetworkState network_state;
+          for (auto state_value_list: individual->getStateValueList()) {
+            const Node* node = (*nodes)[i++];
+            network_state.setNodeState(node, state_value_list != 0. ? true : false);
+          }
+          
+          initial_state.addStatePop(network_state.getState(), individual->getPopSize());
+        }
       } else {
         double rand = randgen->generate();
         assert(rand >= 0. && rand <= 1.);
@@ -863,25 +869,30 @@ void PopIStateGroup::initPopStates(PopNetwork* network, PopNetworkState& initial
           proba_sum += proba_istate->getProbaValue();
           if (rand < proba_sum)
           {
-            pop_size = proba_istate->getPopSize();
-            int i=0;
-            for (auto state_value_list: proba_istate->getStateValueList()) 
+            for (auto individual: *(proba_istate->getIndividualList())) 
             {
-              const Node* node = (*nodes)[i++];
-              network_state.setNodeState(node, state_value_list != 0. ? true : false);
+              pop_size = individual->getPopSize();
+              int i=0;
+              for (auto state_value_list: individual->getStateValueList()) 
+              {
+                const Node* node = (*nodes)[i++];
+                network_state.setNodeState(node, state_value_list != 0. ? true : false);
+              }
+              initial_state.addStatePop(network_state.getState(), pop_size); 
+
             }
+
             break; 
           }
         }
-        initial_state.addStatePop(network_state.getState(), pop_size); 
       }
-      
-      // std::cout << "State chosen : " << initial_state.getName(network) << std::endl << std::endl;
     }
   } else {
     NetworkState state;
     IStateGroup::initStates(network, state, randgen);
     initial_state = PopNetworkState(state.getState(), pop);
+          // std::cout << "State chosen : " << initial_state.getName(network) << std::endl << std::endl;
+
   }
 }
 

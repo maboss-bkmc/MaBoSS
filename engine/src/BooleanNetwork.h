@@ -1939,32 +1939,50 @@ public:
   }
 };
 
+
+
+
 class PopIStateGroup {
   
 public:
-  struct PopProbaIState {
+  class PopProbaIState {
+    public:
+
+    class PopIStateGroupIndividual {
+      public:
+      std::vector<double> state_value_list;
+      unsigned int pop_size;
+      
+      PopIStateGroupIndividual(std::vector<Expression*>* state_expr_list, Expression* t_pop_size) 
+      {
+        NetworkState network_state;
+
+        for (auto state_expr: *state_expr_list) {
+          state_value_list.push_back(state_expr->eval(NULL, network_state));
+        }
+        
+        pop_size = (unsigned int) t_pop_size->eval(NULL, network_state);  
+      }
+      
+      std::vector<double> getStateValueList() { return state_value_list; }
+      unsigned int getPopSize() { return pop_size; }  
+    };
+
+
+
     double proba_value;
     Expression* proba_expr;
-    std::vector<Expression*>* state_expr_list;
-    std::vector<double> state_value_list;
-    unsigned int pop_size;
+    std::vector<PopIStateGroupIndividual*>* individual_list;
     
-    PopProbaIState(Expression* proba_expr, std::vector<Expression*>* state_expr_list, Expression* t_pop_size) 
+    PopProbaIState(Expression* proba_expr, std::vector<PopIStateGroupIndividual*>* individual_list) 
     {
       proba_expr = proba_expr;
       NetworkState network_state;
       proba_value = proba_expr->eval(NULL, network_state);
       
-      state_expr_list = state_expr_list;
-      for (auto state_expr: *state_expr_list) {
-        state_value_list.push_back(state_expr->eval(NULL, network_state));
-      }
-      
-      pop_size = (unsigned int) t_pop_size->eval(NULL, network_state);  
+      this->individual_list = individual_list;
     }
-    
-    std::vector<double> getStateValueList() { return state_value_list; }
-    unsigned int getPopSize() { return pop_size; }
+    std::vector<PopIStateGroupIndividual*>* getIndividualList() { return individual_list; }
     double getProbaValue() { return proba_value; }
     
   };
