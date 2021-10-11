@@ -73,6 +73,8 @@ extern std::string yy_error_head();
   PopIStateGroup::PopProbaIState* pop_istate_expr;
   std::vector<IStateGroup::ProbaIState*>* istate_expr_list;
   std::vector<PopIStateGroup::PopProbaIState*>* pop_istate_expr_list;
+  std::vector<PopIStateGroup::PopProbaIState::PopIStateGroupIndividual*>* pop_istate_pop_list;
+  PopIStateGroup::PopProbaIState::PopIStateGroupIndividual* pop_istate_ind;
   ArgumentList* arg_list;
 
 }
@@ -96,6 +98,8 @@ extern std::string yy_error_head();
 %type<istate_expr_list> istate_expression_list
 %type<pop_istate_expr> pop_istate_expression
 %type<pop_istate_expr_list> pop_istate_expression_list
+%type<pop_istate_pop_list> pop_istate_population_list
+%type<pop_istate_ind> pop_istate_individual
 %type<arg_list> argument_expression_list
 
 %token<str> VARIABLE
@@ -186,7 +190,7 @@ node_attr_decl: SYMBOL '.' SYMBOL '=' expression ';'
     throw BNException(std::string(yy_error_head() + error_msg));
   }
   
-  free($3);
+  // free($3);
 }
 ;
 
@@ -221,6 +225,17 @@ istate_expression_list: istate_expression
 }
 ;
 
+istate_expression: primary_expression '[' expression_list ']'
+{
+  $$ = new IStateGroup::ProbaIState($1, $3);
+  delete $1;
+  for (std::vector<Expression*>::iterator it = $3->begin(); it != $3->end(); ++it) {
+    delete *it;
+  }
+  delete $3;
+}
+;
+
 pop_istate_expression_list: pop_istate_expression
 {
   $$ = new std::vector<PopIStateGroup::PopProbaIState*>();
@@ -233,23 +248,31 @@ pop_istate_expression_list: pop_istate_expression
 }
 ;
 
-istate_expression: primary_expression '[' expression_list ']'
+pop_istate_expression: primary_expression '[' pop_istate_population_list ']'
 {
-  $$ = new IStateGroup::ProbaIState($1, $3);
-  delete $1;
-  for (std::vector<Expression*>::iterator it = $3->begin(); it != $3->end(); ++it) {
-    delete *it;
-  }
-  delete $3;
-}
-;
-
-pop_istate_expression: primary_expression '[' expression_list ']' '{' primary_expression '}'
-{
-  $$ = new PopIStateGroup::PopProbaIState($1, $3, $6);
+  $$ = new PopIStateGroup::PopProbaIState($1, $3);
 }
 ;
  
+pop_istate_population_list: pop_istate_individual
+{
+  $$ = new std::vector<PopIStateGroup::PopProbaIState::PopIStateGroupIndividual*>();
+  $$->push_back($1);
+  
+} 
+| pop_istate_population_list ',' pop_istate_individual
+{
+  $$ = $1;
+  $$->push_back($3); 
+}
+;
+
+pop_istate_individual: '{' '[' expression_list ']' ':' primary_expression '}'
+{
+  $$ = new PopIStateGroup::PopProbaIState::PopIStateGroupIndividual($3, $6);
+}
+;
+
 expression_list: primary_expression
 {
   $$ = new std::vector<Expression*>();
