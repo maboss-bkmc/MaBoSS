@@ -118,6 +118,46 @@ class ProbaDist {
   }
 
 #ifdef MPI_COMPAT
+  size_t my_MPI_Size() {
+    return sizeof(size_t) + size() * (NetworkState::my_MPI_Pack_Size() + sizeof(double));
+  }
+    
+  void my_MPI_Pack(void* buff, unsigned int size_pack, int* position) 
+  {
+    size_t t_proba_dist_map_size = size();
+    MPI_Pack(&t_proba_dist_map_size, 1, my_MPI_SIZE_T, buff, size_pack, position, MPI_COMM_WORLD);
+
+    ProbaDist::Iterator t_proba_dist1_iter = iterator();
+    while (t_proba_dist1_iter.hasNext()) {
+      double proba;
+#if 1
+      const NetworkState_Impl& state = t_proba_dist1_iter.next2(proba);
+#else
+      NetworkState_Impl state;
+      t_proba_dist1_iter.next(state, proba);
+#endif
+      NetworkState t_state(state);
+      t_state.my_MPI_Pack(buff, size_pack, position);
+      MPI_Pack(&proba, 1, MPI_DOUBLE, buff, size_pack, position, MPI_COMM_WORLD);
+    } 
+  }
+  
+  void my_MPI_Unpack(void* buff, unsigned int buff_size, int* position) 
+  {
+    size_t t_proba_dist_map_size;
+    MPI_Unpack(buff, buff_size, position, &t_proba_dist_map_size, 1, my_MPI_SIZE_T, MPI_COMM_WORLD);
+
+    for (size_t iii = 0; iii < t_proba_dist_map_size; iii++) {
+      
+      NetworkState state;
+      double value = 0;
+      state.my_MPI_Unpack(buff, buff_size, position);
+      MPI_Unpack(buff, buff_size, position, &value, 1, MPI_DOUBLE, MPI_COMM_WORLD);
+
+      set(state.getState(), value);      
+    }
+  }
+
   void my_MPI_Recv(int source)
   {
     size_t t_proba_dist_map_size;

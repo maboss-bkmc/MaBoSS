@@ -152,17 +152,63 @@ class Cumulator {
     }
     
 #ifdef MPI_COMPAT
+    size_t my_MPI_Size() {
+      return sizeof(size_t) + size() * (sizeof(double)*2 + NetworkState::my_MPI_Pack_Size());
+    }
+
+    void my_MPI_Pack(void* buff, unsigned int size_pack, int* position) {
+       // First, the cumulMap
+      // and first, it's size
+      size_t s_cumulMap = size();
+      MPI_Pack(&s_cumulMap, 1, my_MPI_SIZE_T, buff, size_pack, position, MPI_COMM_WORLD);
+
+      CumulMap::Iterator t_iterator = iterator();
+      
+      TickValue t_tick_value;
+      while ( t_iterator.hasNext()) {
+
+        const NetworkState_Impl& state = t_iterator.next2(t_tick_value);        
+        NetworkState t_state(state);
+        
+        t_state.my_MPI_Pack(buff, size_pack, position);
+
+        MPI_Pack(&(t_tick_value.tm_slice), 1, MPI_DOUBLE, buff, size_pack, position, MPI_COMM_WORLD);
+        MPI_Pack(&(t_tick_value.TH), 1, MPI_DOUBLE, buff, size_pack, position, MPI_COMM_WORLD);
+
+      }   
+    }
+
+    void my_MPI_Unpack(void* buff, unsigned int buff_size, int* position) 
+    {
+      size_t s_cumulMap;
+      MPI_Unpack(buff, buff_size, position, &s_cumulMap, 1, my_MPI_SIZE_T, MPI_COMM_WORLD);
+
+      for (size_t j=0; j < s_cumulMap; j++) {
+        
+        NetworkState t_state;
+        t_state.my_MPI_Unpack(buff, buff_size, position);
+     
+        double t_tm_slice;
+        MPI_Unpack(buff, buff_size, position, &t_tm_slice, 1, MPI_DOUBLE, MPI_COMM_WORLD);
+     
+        double t_TH;
+        MPI_Unpack(buff, buff_size, position, &t_TH, 1, MPI_DOUBLE, MPI_COMM_WORLD);
+
+        TickValue t_tick_value(t_tm_slice, t_TH);
+        add(t_state.getState(), t_tick_value); 
+      }
+
+    }
+    
     void my_MPI_Recv(int source) {
       
       size_t s_cumulMap;
       MPI_Recv(&s_cumulMap, 1, my_MPI_SIZE_T, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-      // std::cout << "Will receive a cumul map of size " << s_cumulMap << std::endl;
       for (size_t j=0; j < s_cumulMap; j++) {
         
         NetworkState t_state;
         t_state.my_MPI_Recv(source);
-        // MPI_Recv(&t_state, 1, MPI_UNSIGNED_LONG_LONG, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
+     
         double t_tm_slice;
         double t_TH;
         MPI_Recv(&t_tm_slice, 1, MPI_DOUBLE, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
@@ -269,7 +315,46 @@ class Cumulator {
     }
 
 #ifdef MPI_COMPAT
+    size_t my_MPI_Size() {
+      return sizeof(size_t) + size() * (sizeof(double) + NetworkState::my_MPI_Pack_Size());
+    }
+    
+    void my_MPI_Pack(void* buff, unsigned int size_pack, int* position) 
+    {
+      size_t s_HDCumulMap = size();
+      MPI_Pack(&s_HDCumulMap, 1, my_MPI_SIZE_T, buff, size_pack, position, MPI_COMM_WORLD);
 
+      HDCumulMap::Iterator t_hd_iterator = iterator();
+      
+      double tm_slice;
+      while ( t_hd_iterator.hasNext()) {
+
+        const NetworkState_Impl& state = t_hd_iterator.next2(tm_slice);
+        NetworkState t_state(state);
+      
+        t_state.my_MPI_Pack(buff, size_pack, position);
+        MPI_Pack(&tm_slice, 1, MPI_DOUBLE, buff, size_pack, position, MPI_COMM_WORLD);
+      }
+    }
+    
+    void my_MPI_Unpack(void* buff, unsigned int buff_size, int* position) 
+    {
+      // First we need the size
+      size_t s_HDCumulMap;
+      MPI_Unpack(buff, buff_size, position, &s_HDCumulMap, 1, my_MPI_SIZE_T, MPI_COMM_WORLD);
+      
+      for (size_t j=0; j < s_HDCumulMap; j++) {
+        
+        NetworkState t_state;
+        t_state.my_MPI_Unpack(buff, buff_size, position);
+      
+        double t_tm_slice;
+        MPI_Unpack(buff, buff_size, position, &t_tm_slice, 1, MPI_DOUBLE, MPI_COMM_WORLD);
+      
+        add(t_state.getState(), t_tm_slice);  
+      }
+    }
+    
     void my_MPI_Recv(int source) {
       // First we need the size
       size_t s_HDCumulMap;
@@ -278,7 +363,6 @@ class Cumulator {
         
         NetworkState t_state;
         t_state.my_MPI_Recv(source);
-        // MPI_Recv(&t_state, 1, MPI_UNSIGNED_LONG_LONG, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
         double t_tm_slice;
         MPI_Recv(&t_tm_slice, 1, MPI_DOUBLE, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
@@ -301,9 +385,6 @@ class Cumulator {
         
         NetworkState t_state(state);
         t_state.my_MPI_Send(dest);
-        // MPI_Send(&state, 1, MPI_UNSIGNED_LONG_LONG, dest, 0, MPI_COMM_WORLD);
-      
-        // TickValue t_tick_value = entry.second;
         MPI_Send(&tm_slice, 1, MPI_DOUBLE, dest, 0, MPI_COMM_WORLD);
 
       }
@@ -595,7 +676,11 @@ public:
   static void* threadMergeCumulatorWrapper(void *arg);
 
 #ifdef MPI_COMPAT
-  static Cumulator* mergeMPICumulators(RunConfig* runconfig, Cumulator* ret_cumul, int world_size, int world_rank);
+  static Cumulator* mergeMPICumulators(RunConfig* runconfig, Cumulator* ret_cumul, int world_size, int world_rank, bool pack=true);
+  static size_t MPI_Size_Cumulator(Cumulator* ret_cumul);
+  static char* MPI_Pack_Cumulator(Cumulator* ret_cumul, int dest, unsigned int * buff_size);
+  static void MPI_Unpack_Cumulator(Cumulator* mpi_ret_cumul, char* buff, unsigned int buff_size);
+
 #endif
 
 };

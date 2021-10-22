@@ -675,12 +675,12 @@ void EnsembleEngine::mergeEnsembleMPIFixpointMaps(bool pack)
   }
 }
 
-void EnsembleEngine::mergeMPIIndividual() 
+void EnsembleEngine::mergeMPIIndividual(bool pack) 
 {
   if (world_size > 1) {
     for (unsigned int model=0; model < networks.size(); model++) {
       
-      Cumulator* t_cumulator = Cumulator::mergeMPICumulators(runconfig, cumulators_per_model[model], world_size, world_rank);
+      Cumulator* t_cumulator = Cumulator::mergeMPICumulators(runconfig, cumulators_per_model[model], world_size, world_rank, pack);
       if (world_rank == 0)
         t_cumulator->epilogue(networks[model], reference_state);
 

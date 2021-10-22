@@ -794,7 +794,7 @@ public:
 #ifdef MPI_COMPAT
   static size_t my_MPI_Pack_Size() {
 #ifdef USE_STATIC_BITSET
-    return MAXNODES/64 + (MAXNODES%64 > 0 ? 1 : 0) * sizeof(unsigned long long) + sizeof(unsigned int);
+    return (MAXNODES/64 + (MAXNODES%64 > 0 ? 1 : 0)) * sizeof(unsigned long long) + sizeof(size_t);
 
 #elif defined(USE_DYNAMIC_BITSET)
     return 0;
@@ -809,7 +809,14 @@ public:
   void my_MPI_Pack(void* buff, unsigned int size_pack, int* position) {
 #ifdef USE_STATIC_BITSET
     
-
+    std::vector<unsigned long long> arr = to_ullongs(state);
+    size_t nb_ullongs = arr.size();
+    MPI_Pack(&nb_ullongs, 1, my_MPI_SIZE_T, buff, size_pack, position, MPI_COMM_WORLD);
+    
+    for (size_t i = 0; i < arr.size(); i++) {
+      MPI_Pack(&(arr[i]), 1, MPI_UNSIGNED_LONG_LONG, buff, size_pack, position, MPI_COMM_WORLD);
+    }
+    
 #elif defined(USE_DYNAMIC_BITSET)
     
     
@@ -821,7 +828,17 @@ public:
   
   void my_MPI_Unpack(void* buff, unsigned int buff_size, int* position) {
 #ifdef USE_STATIC_BITSET
+    std::vector<unsigned long long> v;
+    size_t nb_ullongs;
+    MPI_Unpack(buff, buff_size, position, &nb_ullongs, 1, my_MPI_SIZE_T, MPI_COMM_WORLD);
     
+    for (size_t i = 0; i < nb_ullongs; i++) {
+      unsigned long long t_ullong;
+      MPI_Unpack(buff, buff_size, position, &t_ullong, 1, MPI_UNSIGNED_LONG_LONG, MPI_COMM_WORLD);
+      v.push_back(t_ullong);
+    }
+    
+    state = to_bitset(v);
 
 #elif defined(USE_DYNAMIC_BITSET)
     

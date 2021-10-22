@@ -811,6 +811,97 @@ void Cumulator::mergePairOfCumulators(Cumulator* cumulator_1, Cumulator* cumulat
 }
 
 #ifdef MPI_COMPAT
+size_t Cumulator::MPI_Size_Cumulator(Cumulator* ret_cumul)
+{
+  size_t total_size = sizeof(size_t);
+  size_t t_cumul_size = ret_cumul != NULL ? ret_cumul->cumul_map_v.size() : 0;
+  
+  
+  for (size_t nn = 0; nn < t_cumul_size; ++nn) {
+    
+    total_size += ret_cumul->get_map(nn).my_MPI_Size();
+
+    total_size += ret_cumul->get_hd_map(nn).my_MPI_Size();
+    
+    total_size += sizeof(double);  
+  }
+  
+  total_size += sizeof(size_t);
+  size_t t_proba_dist_size = ret_cumul != NULL ? ret_cumul->proba_dist_v.size() : 0;
+  
+  for (size_t ii = 0; ii < t_proba_dist_size; ii++) {
+    total_size += ret_cumul->proba_dist_v[ii].my_MPI_Size();
+  }
+  return total_size;
+}
+
+char* Cumulator::MPI_Pack_Cumulator(Cumulator* ret_cumul, int dest, unsigned int * buff_size) 
+{
+  *buff_size = MPI_Size_Cumulator(ret_cumul);
+  char* buff = new char[*buff_size];
+  int position = 0;
+  size_t t_cumul_size = ret_cumul != NULL ? ret_cumul->cumul_map_v.size() : 0;
+  MPI_Pack(&t_cumul_size, 1, my_MPI_SIZE_T, buff, *buff_size, &position, MPI_COMM_WORLD);
+  
+  for (size_t nn = 0; nn < t_cumul_size; ++nn) {
+    
+    ret_cumul->get_map(nn).my_MPI_Pack(buff, *buff_size, &position);
+
+    ret_cumul->get_hd_map(nn).my_MPI_Pack(buff, *buff_size, &position);
+      
+    double t_th_square = ret_cumul->TH_square_v[nn];
+    MPI_Pack(&t_th_square, 1, MPI_DOUBLE, buff, *buff_size, &position, MPI_COMM_WORLD);
+  }
+  
+  size_t t_proba_dist_size = ret_cumul != NULL ? ret_cumul->proba_dist_v.size() : 0;
+  MPI_Pack(&t_proba_dist_size, 1, my_MPI_SIZE_T, buff, *buff_size, &position, MPI_COMM_WORLD);
+
+  for (size_t ii = 0; ii < t_proba_dist_size; ii++) {
+    ret_cumul->proba_dist_v[ii].my_MPI_Pack(buff, *buff_size, &position);
+  }
+  
+  
+  return buff;
+}
+
+void Cumulator::MPI_Unpack_Cumulator(Cumulator* mpi_ret_cumul, char* buff, unsigned int buff_size )
+{
+  size_t t_cumul_size;
+  int position = 0;
+  MPI_Unpack(buff, buff_size, &position, &t_cumul_size, 1, my_MPI_SIZE_T, MPI_COMM_WORLD);
+
+  for (size_t nn = 0; nn < t_cumul_size; ++nn) {
+
+    // Here we need to get various data structures : 
+    // a CumulMap : a <NetworkState_Impl, TickValue> map
+    // a HDCumulMap : a <NetworkState_Impl, double> map
+    // A vector of doubles
+    
+    CumulMap t_cumulMap;
+    t_cumulMap.my_MPI_Unpack(buff, buff_size, &position);  
+    mpi_ret_cumul->add(nn, t_cumulMap);
+
+    HDCumulMap t_HDCumulMap;
+    t_HDCumulMap.my_MPI_Unpack(buff, buff_size, &position);
+    mpi_ret_cumul->add(nn, t_HDCumulMap);
+  
+    double t_th_square;
+    MPI_Unpack(buff, buff_size, &position, &t_th_square, 1, MPI_DOUBLE, MPI_COMM_WORLD);
+    mpi_ret_cumul->TH_square_v.push_back(t_th_square);
+  }
+  
+  size_t t_proba_dist_size;
+  MPI_Unpack(buff, buff_size, &position, &t_proba_dist_size, 1, my_MPI_SIZE_T, MPI_COMM_WORLD);
+
+  for (size_t ii = 0; ii < t_proba_dist_size; ii++) {
+    // Here we are receiving the proba_dist, which is a map of <state, double>
+    ProbaDist t_proba_dist;
+    t_proba_dist.my_MPI_Unpack(buff, buff_size, &position);
+    mpi_ret_cumul->proba_dist_v.push_back(t_proba_dist);          
+  }    
+}
+
+
 void Cumulator::MPI_Send_Cumulator(Cumulator* ret_cumul, int dest) 
 {
   size_t t_cumul_size = ret_cumul != NULL ? ret_cumul->cumul_map_v.size() : 0;
@@ -917,7 +1008,7 @@ Cumulator* Cumulator::initializeMPICumulator(Cumulator* ret_cumul, RunConfig* ru
   return mpi_ret_cumul;
 }
 
-Cumulator* Cumulator::mergeMPICumulators(RunConfig* runconfig, Cumulator* ret_cumul, int world_size, int world_rank) 
+Cumulator* Cumulator::mergeMPICumulators(RunConfig* runconfig, Cumulator* ret_cumul, int world_size, int world_rank, bool pack) 
 {
   if (world_size == 1) {
     return ret_cumul;
@@ -944,19 +1035,41 @@ Cumulator* Cumulator::mergeMPICumulators(RunConfig* runconfig, Cumulator* ret_cu
 
     for (int i = 1; i < world_size; i++) {
       if (world_rank == 0) {
-        
         int rank = i;
         MPI_Bcast(&rank, 1, MPI_INT, 0, MPI_COMM_WORLD);
-        MPI_Recv_Cumulator(mpi_ret_cumul, i);
-        
-      } else {
 
+        if (pack) 
+        {
+          // MPI_Unpack version
+          unsigned int buff_size;
+          MPI_Recv( &buff_size, 1, MPI_UNSIGNED, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+          char* buff = new char[buff_size];
+          MPI_Recv( buff, buff_size, MPI_PACKED, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
+          
+          MPI_Unpack_Cumulator(mpi_ret_cumul, buff, buff_size);
+          delete buff;
+        } else {
+          MPI_Recv_Cumulator(mpi_ret_cumul, i);
+        }
+      } else {
+        
         int rank;
         MPI_Bcast(&rank, 1, MPI_INT, 0, MPI_COMM_WORLD);
         
         if (rank == world_rank) {
-          MPI_Send_Cumulator(ret_cumul, 0);
-          delete ret_cumul;
+
+          if (pack) {
+            unsigned int buff_size;
+            char* buff = MPI_Pack_Cumulator(ret_cumul, 0, &buff_size);
+            MPI_Send(&buff_size, 1, MPI_UNSIGNED, 0, 0, MPI_COMM_WORLD);
+            MPI_Send( buff, buff_size, MPI_PACKED, 0, 0, MPI_COMM_WORLD); 
+            delete buff;
+            
+          } else {
+            MPI_Send_Cumulator(ret_cumul, 0);
+            delete ret_cumul;
+          }
+
         } 
       }
     }
