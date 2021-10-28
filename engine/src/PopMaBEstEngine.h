@@ -66,8 +66,6 @@ struct ArgWrapper;
 
 class PopMaBEstEngine {
 
-
-
   PopNetwork* pop_network;
   RunConfig* runconfig;
 
@@ -89,9 +87,6 @@ class PopMaBEstEngine {
   std::vector<Cumulator<PopNetworkState>* > cumulator_v;
 
   STATE_MAP<NetworkState_Impl, unsigned int>* mergeFixpointMaps();
-
-public:
-
 
 public:
   static const std::string VERSION;
@@ -129,12 +124,17 @@ public:
   void display(ProbTrajDisplayer<PopNetworkState>* pop_probtraj_displayer, FixedPointDisplayer* fp_displayer) const;
   
   std::vector<ArgWrapper*> arg_wrapper_v;
+#ifdef EV_OPTIM_2021_10
+  PopNetworkState getTargetNode(RandomGenerator* random_generator, const STATE_MAP<PopNetworkState, double>& popNodeTransitionRates, double total_rate) const;
+#else
   PopNetworkState getTargetNode(RandomGenerator* random_generator, const STATE_MAP<PopNetworkState, double> popNodeTransitionRates, double total_rate) const;
+#endif
   double computeTH(const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
   void epilogue();
   static void* threadWrapper(void *arg);
   void runThread(Cumulator<PopNetworkState>* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj);
   void displayRunStats(std::ostream& os, time_t start_time, time_t end_time) const;
+
   static void mergePairOfFixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_1, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_2);
   static void* threadMergeWrapper(void *arg);
   std::pair<Cumulator<PopNetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> mergeResults(std::vector<Cumulator<PopNetworkState>*> cumulator_v, std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*> fixpoint_map_v);

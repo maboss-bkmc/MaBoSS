@@ -245,7 +245,7 @@ int main(int argc, char* argv[])
   }
   
   if (!dump_config && !generate_config_template && !generate_logical_expressions && !check && output == NULL) {
-    std::cerr << '\n' << prog << ": ouput option is not set\n";
+    std::cerr << '\n' << prog << ": --output option is not set\n";
     return usage();
   }
 

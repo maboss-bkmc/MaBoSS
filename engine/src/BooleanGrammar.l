@@ -83,23 +83,26 @@ exppart		[eE](\-|\+)?[0-9]+
   if (!strcasecmp(yytext, "NODE")) {
      return NODE;
   }
-  if (!strcasecmp(yytext, "DIVISION")) {
-     return DIVISION;
-  }
-  if (!strcasecmp(yytext, "DEATH")) {
-     return DEATH;
-  }
-  if (!strcasecmp(yytext, "RATE")) {
-     return RATE;
-  }
-  if (!strcasecmp(yytext, "DAUGHTER1")) {
-     return DAUGHTER1;
-  }
-  if (!strcasecmp(yytext, "DAUGHTER2")) {
-     return DAUGHTER2;
-  }
-  if (!strcasecmp(yytext, "CELL")) {
-     return CELL_NUMBER;
+
+  if (current_pop_network != NULL)  {
+    if (!strcasecmp(yytext, "DIVISION")) {
+      return DIVISION;
+    }
+    if (!strcasecmp(yytext, "DEATH")) {
+       return DEATH;
+    }
+    if (!strcasecmp(yytext, "RATE")) {
+       return RATE;
+    }
+    if (!strcasecmp(yytext, "DAUGHTER1")) {
+       return DAUGHTER1;
+    }
+    if (!strcasecmp(yytext, "DAUGHTER2")) {
+       return DAUGHTER2;
+    }
+    if (!strcasecmp(yytext, "CELL")) {
+       return CELL_NUMBER;
+    }
   }
   yylval.str = strdup(yytext);
   return IDENTIFIER;

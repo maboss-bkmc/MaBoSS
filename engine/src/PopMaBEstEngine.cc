@@ -133,7 +133,11 @@ PopMaBEstEngine::PopMaBEstEngine(PopNetwork *pop_network, RunConfig *runconfig) 
   }
 }
 
+#ifdef EV_OPTIM_2021_10
+PopNetworkState PopMaBEstEngine::getTargetNode(RandomGenerator *random_generator, const STATE_MAP<PopNetworkState, double>& popNodeTransitionRates, double total_rate) const
+#else
 PopNetworkState PopMaBEstEngine::getTargetNode(RandomGenerator *random_generator, const STATE_MAP<PopNetworkState, double> popNodeTransitionRates, double total_rate) const
+#endif
 {
   double U_rand2 = random_generator->generate();
   double random_rate = U_rand2 * total_rate;

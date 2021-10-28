@@ -50,9 +50,10 @@
 #ifndef _BOOLEANNETWORK_H_
 #define _BOOLEANNETWORK_H_
 
+#define EV_OPTIM_2021_10
+
 // #include <iostream>
 // #include <functional>
-
 
 #include "maboss-config.h"
 
@@ -1115,16 +1116,35 @@ public:
   PopNetworkState& operator=(const PopNetworkState &p ) 
   {     
     mp = std::map<NetworkState_Impl, unsigned int>(p.getMap());
-    hash = p.getHash();
+    // EV 2021-10-28
+#ifdef EV_OPTIM_2021_10
+    hash = 0;
+    hash_init = false;
+#else
+    hash = p.getHash(); // wrong: this could lead to compute hash on p, which is not necessary, and hash_init is not set to true
+    hash_init = true; // EV 2021-10-28 added
+#endif
     return *this;
   }
 
   void addStatePop(const NetworkState_Impl& state, unsigned int pop) {
+#ifdef EV_OPTIM_2021_10
+    auto iter = mp.find(state);
+    if (iter == mp.end()) {
+      mp[state] = pop;
+    } else {
+      iter->second += pop;
+    }
+#else
     if (mp.find(state) != mp.end()) {
       mp[state] += pop;
     } else {
       mp[state] = pop;
     }
+#endif
+    // EV 2021-10: the following code was missing
+    hash = 0;
+    hash_init = false;
   }
   
   // & operator for applying the mask
@@ -1154,13 +1174,26 @@ public:
   }
   
   bool operator==(const PopNetworkState& pop_state) const {
+
     // So when are two PopNetworkState inequals ?
     // First, if they don't have the same length of states in the population
     const std::map<NetworkState_Impl, unsigned int>& other_mp = pop_state.getMap();
+
     if (mp.size() != other_mp.size()) {
       return false;
     }
     
+#ifdef EV_OPTIM_2021_10
+    // EV 2021-10-28: std::map are ordered, so it is just necessary to compare
+    std::map<NetworkState_Impl, unsigned int>::const_iterator iter = mp.begin();
+    std::map<NetworkState_Impl, unsigned int>::const_iterator other_iter = other_mp.begin();
+    for ( ; iter != mp.end(); ++iter, ++other_iter) {
+      if ((iter->first != other_iter->first) || (iter->second != other_iter->second)) {
+	return false;
+      }
+    }
+    return true;
+#else
     // If it's identical, we need to look further, so we look at each state
     for (auto &network_state: other_mp) {
       
@@ -1169,7 +1202,7 @@ public:
         if (t_state != mp.end()){
           
           // And if so, does it have the same population size
-          if(t_state->second != network_state.second) {
+          if (t_state->second != network_state.second) {
             return false;
           }
           
@@ -1179,6 +1212,7 @@ public:
         }
     }
     return true;
+#endif
   }
   
   // bool operator==(const PopNetworkState& pop_state) const {
@@ -1206,10 +1240,19 @@ public:
   // Increases the population of the state
   void incr(const NetworkState& net_state) {
     NetworkState_Impl t_state = net_state.getState();
+#ifdef EV_OPTIM_2021_10
+    auto iter = mp.find(t_state);
+    if (iter == mp.end()) {
+      mp[t_state] = 1;
+    } else {
+      iter->second++;
+    }
+#else
     if (mp.find(t_state) != mp.end())
       mp[t_state]++;
     else
       mp[t_state] = 1;
+#endif
     hash = 0;
     hash_init = false;
   }
@@ -1217,32 +1260,79 @@ public:
   // Decreases the population of the state
   void decr(const NetworkState& net_state) {
     NetworkState_Impl t_state = net_state.getState();
+#ifdef EV_OPTIM_2021_10
+    auto iter = mp.find(t_state);
+    assert(iter != mp.end());
+    if (iter->second > 1) {
+      iter->second--;
+    } else {
+      mp.erase(t_state);
+    }
+#else
     if (mp[t_state] > 1)
       mp[t_state]--;  
     else
       mp.erase(t_state);
+#endif
     hash = 0;
     hash_init = false;
   }
   
   // Returns if the state exists
-  bool exists(NetworkState net_state) {
+  bool exists(const NetworkState& net_state) const {
     return mp.find(net_state.getState()) != mp.end();
   }
   
-  /*
+  // EV 2021-10-28: useful in case of using std::map<PopNetworkState, ...>
   bool operator<(const PopNetworkState& pop_state) const {
-  // EV: 2021-08-22:  wrong implementation as identical hashes do not mean instance equality (anyhow, this method is useless => disconnected)
-    return getHash() < pop_state.getHash();
+
+    const std::map<NetworkState_Impl, unsigned int>& other_mp = pop_state.getMap();
+
+    if (mp.size() != other_mp.size()) {
+      return mp.size() < other_mp.size();
+    }
+    
+    // EV 2021-10-28: std::map are ordered => this code is ok
+    std::map<NetworkState_Impl, unsigned int>::const_iterator iter = mp.begin();
+    std::map<NetworkState_Impl, unsigned int>::const_iterator other_iter = other_mp.begin();
+    for ( ; iter != mp.end(); ++iter, ++other_iter) {
+      if (iter->first != other_iter->first) {
+	return iter->first < other_iter->first;
+      } else if (iter->second != other_iter->second) {
+	return iter->second < other_iter->second;
+      }
+    }
+    return false;
   }
-  */
 
   size_t compute_hash() const {
     
+    //return mp.size(); // for testing
+
     // return mp.size(); //dans un premier temps ? un peu exagere, mais why not
     // New one : for all state:pop, compute sum_i = state_i * pop_i;
     // Expensive, but should be a good one ?
     
+#ifdef EV_OPTIM_2021_10
+    size_t result = 1;
+    for (auto &network_state_pop: mp) {
+      NetworkState_Impl t_state = network_state_pop.first;
+      const unsigned char* p = (const unsigned char*)&t_state;
+      for (size_t nn = 0; nn < sizeof(t_state); nn++) {
+	unsigned char val = *p++;
+	if (val) {
+	  result *= val;
+	  result ^= result >> 8;
+	}
+      }
+      p = (const unsigned char*)&network_state_pop.second;
+      if (*p) {
+	result *= *p;
+	result ^= result >> 8;
+      }
+    }
+    return result;
+#else
     size_t result = 0;
     for (auto &network_state_pop: mp) {
       NetworkState_Impl t_state = network_state_pop.first;
@@ -1255,8 +1345,8 @@ public:
       result += t_state * network_state_pop.second;
 #endif
     }
-    
     return result;
+#endif
   }
   
   // Count the population satisfying an expression
