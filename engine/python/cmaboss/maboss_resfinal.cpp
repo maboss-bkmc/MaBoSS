@@ -48,11 +48,13 @@
 #define PY_SSIZE_T_CLEAN
 #ifdef PYTHON_API
 #include <Python.h>
+#include <structmember.h>
 #include <fstream>
 #include <stdlib.h>
 #include <set>
 #include "src/BooleanNetwork.h"
 #include "src/FinalStateSimulationEngine.h"
+#include "maboss_commons.h"
 
 typedef struct {
   PyObject_HEAD
@@ -122,6 +124,15 @@ static PyObject* cMaBoSSResultFinal_display_run(cMaBoSSResultFinalObject* self, 
   return Py_None;
 }
 
+static PyMemberDef cMaBoSSResultFinal_members[] = {
+    {"network", T_OBJECT_EX, offsetof(cMaBoSSResultFinalObject, network), 0, "network"},
+    {"runconfig", T_OBJECT_EX, offsetof(cMaBoSSResultFinalObject, runconfig), 0, "runconfig"},
+    {"engine", T_OBJECT_EX, offsetof(cMaBoSSResultFinalObject, engine), 0, "engine"},
+    {"start_time", T_LONG, offsetof(cMaBoSSResultFinalObject, start_time), 0, "start_time"},
+    {"end_time", T_LONG, offsetof(cMaBoSSResultFinalObject, end_time), 0, "end_time"},
+    {NULL}  /* Sentinel */
+};
+
 static PyMethodDef cMaBoSSResultFinal_methods[] = {
     {"get_final_time", (PyCFunction) cMaBoSSResultFinal_get_final_time, METH_NOARGS, "gets the final time of the simulation"},
     {"get_last_probtraj", (PyCFunction) cMaBoSSResultFinal_get_last_probtraj, METH_NOARGS, "gets the last probtraj of the simulation"},
@@ -131,17 +142,26 @@ static PyMethodDef cMaBoSSResultFinal_methods[] = {
     {NULL}  /* Sentinel */
 };
 
+#if ! defined (MAXNODES) || MAXNODES <= 64 
+    static char result_final_name[50] = "cmaboss";
+#else
+    static char result_final_name[50] = STR(MODULE_NAME);
+#endif
+
+
 static PyTypeObject cMaBoSSResultFinal = []{
   PyTypeObject res{PyVarObject_HEAD_INIT(NULL, 0)};
 
-  res.tp_name = "cmaboss.cMaBoSSResultFinalObject";
+  res.tp_name = strcat(result_final_name, ".cMaBoSSResultFinal");
   res.tp_basicsize = sizeof(cMaBoSSResultFinalObject);
   res.tp_itemsize = 0;
-  res.tp_flags = Py_TPFLAGS_DEFAULT;// | Py_TPFLAGS_BASETYPE;
-  res.tp_doc = "cMaBoSSResultFinalObject";
-  res.tp_new = cMaBoSSResultFinal_new;
   res.tp_dealloc = (destructor) cMaBoSSResultFinal_dealloc;
+  res.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
+  res.tp_doc = "cMaBoSSResultFinalObject";
   res.tp_methods = cMaBoSSResultFinal_methods;
+  res.tp_members = cMaBoSSResultFinal_members;
+  res.tp_new = cMaBoSSResultFinal_new;
+
   return res;
 }();
 

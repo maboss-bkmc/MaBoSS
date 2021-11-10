@@ -48,11 +48,13 @@
 #define PY_SSIZE_T_CLEAN
 #ifdef PYTHON_API
 #include <Python.h>
+#include <structmember.h>
 #include <fstream>
 #include <stdlib.h>
 #include <set>
 #include "src/BooleanNetwork.h"
 #include "src/MaBEstEngine.h"
+#include "maboss_commons.h"
 
 typedef struct {
   PyObject_HEAD
@@ -169,6 +171,15 @@ static PyObject* cMaBoSSResult_display_run(cMaBoSSResultObject* self, PyObject* 
   return Py_None;
 }
 
+static PyMemberDef cMaBoSSResult_members[] = {
+    {"network", T_OBJECT_EX, offsetof(cMaBoSSResultObject, network), 0, "network"},
+    {"runconfig", T_OBJECT_EX, offsetof(cMaBoSSResultObject, runconfig), 0, "runconfig"},
+    {"engine", T_OBJECT_EX, offsetof(cMaBoSSResultObject, engine), 0, "engine"},
+    {"start_time", T_LONG, offsetof(cMaBoSSResultObject, start_time), 0, "start_time"},
+    {"end_time", T_LONG, offsetof(cMaBoSSResultObject, end_time), 0, "end_time"},
+    {NULL}  /* Sentinel */
+};
+
 static PyMethodDef cMaBoSSResult_methods[] = {
     {"get_fp_table", (PyCFunction) cMaBoSSResult_get_fp_table, METH_NOARGS, "gets the fixpoints table"},
     {"get_probtraj", (PyCFunction) cMaBoSSResult_get_probtraj, METH_NOARGS, "gets the raw states probability trajectories of the simulation"},
@@ -182,17 +193,25 @@ static PyMethodDef cMaBoSSResult_methods[] = {
     {NULL}  /* Sentinel */
 };
 
+#if ! defined (MAXNODES) || MAXNODES <= 64 
+    static char result_name[50] = "cmaboss";
+#else
+    static char result_name[50] = STR(MODULE_NAME);
+#endif
+
 static PyTypeObject cMaBoSSResult = []{
   PyTypeObject res{PyVarObject_HEAD_INIT(NULL, 0)};
 
-  res.tp_name = "cmaboss.cMaBoSSResultObject";
+  res.tp_name = strcat(result_name, ".cMaBoSSResult");
   res.tp_basicsize = sizeof(cMaBoSSResultObject);
   res.tp_itemsize = 0;
-  res.tp_flags = Py_TPFLAGS_DEFAULT;// | Py_TPFLAGS_BASETYPE;
-  res.tp_doc = "cMaBoSSResultobject";
-  res.tp_new = cMaBoSSResult_new;
   res.tp_dealloc = (destructor) cMaBoSSResult_dealloc;
+  res.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
+  res.tp_doc = "cMaBoSSResultObject";
   res.tp_methods = cMaBoSSResult_methods;
+  res.tp_members = cMaBoSSResult_members;
+  res.tp_new = cMaBoSSResult_new;
+
   return res;
 }();
 

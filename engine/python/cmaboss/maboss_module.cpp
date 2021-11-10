@@ -52,14 +52,6 @@
 #include <numpy/arrayobject.h>
 #include "maboss_sim.cpp"
 
-// I use these to define the name of the library, and the init function
-// Not sure why we need this 2 level thingy... Came from https://stackoverflow.com/a/1489971/11713763
-#if defined (MAXNODES) && MAXNODES > 64 
-#define NAME2(fun,suffix) fun ## suffix
-#define NAME1(fun,suffix) NAME2(fun,suffix)
-#define STR_HELPER(x) #x
-#define STR(x) STR_HELPER(x)
-#endif
 /*  define functions in module */
 static PyMethodDef cMaBoSS[] =
 { 
@@ -74,8 +66,6 @@ static struct PyModuleDef cMaBoSSDef =
 #if ! defined (MAXNODES) || MAXNODES <= 64 
     "cmaboss", 
 #else
-#define MODULE_NODES NAME1(MAXNODES, n)
-#define MODULE_NAME NAME1(cmaboss_, MODULE_NODES)
     STR(MODULE_NAME),
 #endif
     "Some documentation",
@@ -87,8 +77,6 @@ PyMODINIT_FUNC
 #if ! defined (MAXNODES) || MAXNODES <= 64 
 PyInit_cmaboss(void)
 #else
-#define MODULE_NODES NAME1(MAXNODES, n)
-#define MODULE_NAME NAME1(cmaboss_, MODULE_NODES)
 #define MODULE_INIT_NAME NAME1(PyInit_, MODULE_NAME)
 MODULE_INIT_NAME(void)
 #endif
@@ -119,8 +107,6 @@ MODULE_INIT_NAME(void)
 #if ! defined (MAXNODES) || MAXNODES <= 64 
     char exception_name[50] = "cmaboss.BNException";
 #else
-#define MODULE_NODES NAME1(MAXNODES, n)
-#define MODULE_NAME NAME1(cmaboss_, MODULE_NODES)
     char exception_name[50] = STR(MODULE_NAME);
     strcat(exception_name, ".BNException");
 #endif
@@ -144,6 +130,20 @@ MODULE_INIT_NAME(void)
     Py_INCREF(&cMaBoSSConfig);
     if (PyModule_AddObject(m, "MaBoSSCfg", (PyObject *) &cMaBoSSConfig) < 0) {
         Py_DECREF(&cMaBoSSConfig);
+        Py_DECREF(m);
+        return NULL;
+    }
+
+    Py_INCREF(&cMaBoSSResult);
+    if (PyModule_AddObject(m, "cMaBoSSResult", (PyObject *) &cMaBoSSResult) < 0) {
+        Py_DECREF(&cMaBoSSResult);
+        Py_DECREF(m);
+        return NULL;
+    }
+    
+    Py_INCREF(&cMaBoSSResultFinal);
+    if (PyModule_AddObject(m, "cMaBoSSResultFinal", (PyObject *) &cMaBoSSResultFinal) < 0) {
+        Py_DECREF(&cMaBoSSResultFinal);
         Py_DECREF(m);
         return NULL;
     }

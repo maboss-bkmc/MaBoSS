@@ -57,4 +57,15 @@
 
 static PyObject *PyBNException = NULL;
 
+// I use these to define the name of the library, and the init function
+// Not sure why we need this 2 level thingy... Came from https://stackoverflow.com/a/1489971/11713763
+#if defined (MAXNODES) && MAXNODES > 64 
+#define NAME2(fun,suffix) fun ## suffix
+#define NAME1(fun,suffix) NAME2(fun,suffix)
+#define STR_HELPER(x) #x
+#define STR(x) STR_HELPER(x)
+#define MODULE_NODES NAME1(MAXNODES, n)
+#define MODULE_NAME NAME1(cmaboss_, MODULE_NODES)
+#endif
+
 #endif
