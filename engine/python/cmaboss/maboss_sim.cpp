@@ -165,7 +165,7 @@ static PyObject* cMaBoSSSim_run(cMaBoSSSimObject* self, PyObject *args, PyObject
     res->engine = simulation;
     res->start_time = start_time;
     res->end_time = end_time;
-    
+    res->last_probtraj = Py_None;
     return (PyObject*) res;
   } else {
 
@@ -180,7 +180,8 @@ static PyObject* cMaBoSSSim_run(cMaBoSSSimObject* self, PyObject *args, PyObject
     res->engine = simulation;
     res->start_time = start_time;
     res->end_time = end_time;
-    
+    res->probtraj = Py_None;
+    res->last_probtraj = Py_None;
     return (PyObject*) res;
   }
 }

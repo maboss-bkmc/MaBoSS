@@ -63,6 +63,8 @@ typedef struct {
   MaBEstEngine* engine;
   time_t start_time;
   time_t end_time;
+  PyObject* probtraj;
+  PyObject* last_probtraj;
 } cMaBoSSResultObject;
 
 static void cMaBoSSResult_dealloc(cMaBoSSResultObject *self)
@@ -75,7 +77,8 @@ static PyObject * cMaBoSSResult_new(PyTypeObject* type, PyObject *args, PyObject
 {
   cMaBoSSResultObject* res;
   res = (cMaBoSSResultObject *) type->tp_alloc(type, 0);
-
+  res->probtraj = Py_None;
+  res->last_probtraj = Py_None;
   return (PyObject*) res;
 }
 
@@ -96,11 +99,22 @@ static PyObject* cMaBoSSResult_get_fp_table(cMaBoSSResultObject* self) {
 }
 
 static PyObject* cMaBoSSResult_get_probtraj(cMaBoSSResultObject* self) {
-  return self->engine->getMergedCumulator()->getNumpyStatesDists(self->network);
+  if (self->probtraj == Py_None) {
+    self->probtraj = self->engine->getMergedCumulator()->getNumpyStatesDists(self->network);
+  }
+  
+  Py_INCREF(self->probtraj);
+
+  return self->probtraj;
 }
 
 static PyObject* cMaBoSSResult_get_last_probtraj(cMaBoSSResultObject* self) {
-  return self->engine->getMergedCumulator()->getNumpyLastStatesDists(self->network);
+  if (self->last_probtraj == Py_None) {
+    self->last_probtraj = self->engine->getMergedCumulator()->getNumpyLastStatesDists(self->network);
+  }
+  
+  Py_INCREF(self->last_probtraj);
+  return self->last_probtraj;
 }
 
 static PyObject* cMaBoSSResult_get_nodes_probtraj(cMaBoSSResultObject* self) {
@@ -177,6 +191,8 @@ static PyMemberDef cMaBoSSResult_members[] = {
     {"engine", T_OBJECT_EX, offsetof(cMaBoSSResultObject, engine), 0, "engine"},
     {"start_time", T_LONG, offsetof(cMaBoSSResultObject, start_time), 0, "start_time"},
     {"end_time", T_LONG, offsetof(cMaBoSSResultObject, end_time), 0, "end_time"},
+    {"probtraj", T_OBJECT_EX, offsetof(cMaBoSSResultObject, probtraj), 0, "probtraj"},
+    {"last_probtraj", T_OBJECT_EX, offsetof(cMaBoSSResultObject, last_probtraj), 0, "last_probtraj"},
     {NULL}  /* Sentinel */
 };
 

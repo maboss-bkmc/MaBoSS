@@ -63,6 +63,7 @@ typedef struct {
   FinalStateSimulationEngine* engine;
   time_t start_time;
   time_t end_time;
+  PyObject* last_probtraj;
 } cMaBoSSResultFinalObject;
 
 static void cMaBoSSResultFinal_dealloc(cMaBoSSResultFinalObject *self)
@@ -74,13 +75,19 @@ static void cMaBoSSResultFinal_dealloc(cMaBoSSResultFinalObject *self)
 static PyObject * cMaBoSSResultFinal_new(PyTypeObject* type, PyObject *args, PyObject* kwargs) 
 {
   cMaBoSSResultFinalObject* res;
-  res = (cMaBoSSResultFinalObject *) type->tp_alloc(type, 0);
-
+  res = (cMaBoSSResultFinalObject *) type->tp_alloc(type, 0);  
+  res->last_probtraj = Py_None;
   return (PyObject*) res;
 }
 
-static PyObject* cMaBoSSResultFinal_get_last_probtraj(cMaBoSSResultFinalObject* self) {
-  return self->engine->getNumpyLastStatesDists();
+static PyObject* cMaBoSSResultFinal_get_last_probtraj(cMaBoSSResultFinalObject* self) 
+{
+  if (self->last_probtraj == Py_None) {
+    self->last_probtraj = self->engine->getNumpyLastStatesDists();
+  }
+  Py_INCREF(self->last_probtraj);
+
+  return self->last_probtraj;
 }
 
 static PyObject* cMaBoSSResultFinal_get_last_nodes_probtraj(cMaBoSSResultFinalObject* self) {
@@ -130,6 +137,7 @@ static PyMemberDef cMaBoSSResultFinal_members[] = {
     {"engine", T_OBJECT_EX, offsetof(cMaBoSSResultFinalObject, engine), 0, "engine"},
     {"start_time", T_LONG, offsetof(cMaBoSSResultFinalObject, start_time), 0, "start_time"},
     {"end_time", T_LONG, offsetof(cMaBoSSResultFinalObject, end_time), 0, "end_time"},
+    {"last_probtraj", T_OBJECT_EX, offsetof(cMaBoSSResultFinalObject, last_probtraj), 0, "last_probtraj"},
     {NULL}  /* Sentinel */
 };
 
