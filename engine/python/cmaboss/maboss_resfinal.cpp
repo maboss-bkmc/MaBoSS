@@ -90,8 +90,28 @@ static PyObject* cMaBoSSResultFinal_get_last_probtraj(cMaBoSSResultFinalObject* 
   return self->last_probtraj;
 }
 
-static PyObject* cMaBoSSResultFinal_get_last_nodes_probtraj(cMaBoSSResultFinalObject* self) {
-  return self->engine->getNumpyLastNodesDists();
+static PyObject* cMaBoSSResultFinal_get_last_nodes_probtraj(cMaBoSSResultFinalObject* self, PyObject* args) {
+  
+  std::vector<Node*> list_nodes;
+  PyObject* pList = Py_None;
+  
+  if (!PyArg_ParseTuple(args, "|O", &pList)) {
+    PyErr_SetString(PyExc_TypeError, "Error parsing arguments");
+    return NULL;
+  }
+  
+  if (pList != Py_None) {
+  
+    PyObject* pItem;
+    int n = PyList_Size(pList);
+    
+    for (int i=0; i<n; i++) {
+        pItem = PyList_GetItem(pList, i);
+        list_nodes.push_back(self->network->getNode(std::string(PyUnicode_AsUTF8(pItem))));
+    }
+  }  
+  
+  return self->engine->getNumpyLastNodesDists(list_nodes);
 }
 
 static PyObject* cMaBoSSResultFinal_display_final_states(cMaBoSSResultFinalObject* self, PyObject* args) {
@@ -145,7 +165,7 @@ static PyMethodDef cMaBoSSResultFinal_methods[] = {
     {"get_final_time", (PyCFunction) cMaBoSSResultFinal_get_final_time, METH_NOARGS, "gets the final time of the simulation"},
     {"get_last_probtraj", (PyCFunction) cMaBoSSResultFinal_get_last_probtraj, METH_NOARGS, "gets the last probtraj of the simulation"},
     {"display_final_states", (PyCFunction) cMaBoSSResultFinal_display_final_states, METH_VARARGS, "display the final state"},
-    {"get_last_nodes_probtraj", (PyCFunction) cMaBoSSResultFinal_get_last_nodes_probtraj, METH_NOARGS, "gets the last nodes probtraj of the simulation"},
+    {"get_last_nodes_probtraj", (PyCFunction) cMaBoSSResultFinal_get_last_nodes_probtraj, METH_VARARGS, "gets the last nodes probtraj of the simulation"},
     {"display_run", (PyCFunction) cMaBoSSResultFinal_display_run, METH_VARARGS, "prints the run of the simulation to a file"},
     {NULL}  /* Sentinel */
 };

@@ -432,9 +432,11 @@ std::vector<Node*> FinalStateSimulationEngine::getNodes() const {
   return result_nodes;
 }
 
-PyObject* FinalStateSimulationEngine::getNumpyLastNodesDists() const 
+PyObject* FinalStateSimulationEngine::getNumpyLastNodesDists(std::vector<Node*> output_nodes) const 
 {
-  std::vector<Node*> output_nodes = getNodes();
+  if (output_nodes.size() == 0) {
+    output_nodes = getNodes();  
+  }
 
   npy_intp dims[2] = {(npy_intp) 1, (npy_intp) output_nodes.size()};
   PyArrayObject* result = (PyArrayObject *) PyArray_ZEROS(2,dims,NPY_DOUBLE, 0); 

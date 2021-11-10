@@ -591,9 +591,11 @@ std::vector<Node*> Cumulator::getNodes(Network* network) const {
   return result_nodes;
 }
 
-PyObject* Cumulator::getNumpyNodesDists(Network* network) const 
+PyObject* Cumulator::getNumpyNodesDists(Network* network, std::vector<Node*> output_nodes) const 
 {
-  std::vector<Node*> output_nodes = getNodes(network);
+  if (output_nodes.size() == 0){
+    output_nodes = getNodes(network);
+  }
   
   npy_intp dims[2] = {(npy_intp) getMaxTickIndex(), (npy_intp) output_nodes.size()};
   PyArrayObject* result = (PyArrayObject *) PyArray_ZEROS(2,dims,NPY_DOUBLE, 0); 
@@ -652,9 +654,11 @@ PyObject* Cumulator::getNumpyNodesDists(Network* network) const
 }
 
 
-PyObject* Cumulator::getNumpyLastNodesDists(Network* network) const 
+PyObject* Cumulator::getNumpyLastNodesDists(Network* network, std::vector<Node*> output_nodes) const 
 {
-  std::vector<Node*> output_nodes = getNodes(network);
+  if (output_nodes.size() == 0){
+    output_nodes = getNodes(network);
+  }
   
   npy_intp dims[2] = {(npy_intp) 1, (npy_intp) output_nodes.size()};
   PyArrayObject* result = (PyArrayObject *) PyArray_ZEROS(2,dims,NPY_DOUBLE, 0); 

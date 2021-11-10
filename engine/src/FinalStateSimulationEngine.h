@@ -107,7 +107,7 @@ public:
 #ifdef PYTHON_API
   PyObject* getNumpyLastStatesDists() const;
   std::vector<Node*> getNodes() const;
-  PyObject* getNumpyLastNodesDists() const;
+  PyObject* getNumpyLastNodesDists(std::vector<Node*> output_nodes) const;
 #endif
 
   void displayFinal(std::ostream& output_final, bool hexfloat=false) const;

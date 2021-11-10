@@ -453,8 +453,8 @@ public:
   PyObject* getNumpyLastStatesDists(Network* network) const;
   std::set<NetworkState_Impl> getStates() const;
   std::vector<NetworkState_Impl> getLastStates() const;
-  PyObject* getNumpyNodesDists(Network* network) const;
-  PyObject* getNumpyLastNodesDists(Network* network) const;
+  PyObject* getNumpyNodesDists(Network* network, std::vector<Node*> output_nodes) const;
+  PyObject* getNumpyLastNodesDists(Network* network, std::vector<Node*> output_nodes) const;
   std::vector<Node*> getNodes(Network* network) const;
   
 #endif
