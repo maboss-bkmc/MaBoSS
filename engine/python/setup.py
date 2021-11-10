@@ -11,7 +11,7 @@ except ImportError:
 
 
 
-maboss_version = '1.0.0b14'
+maboss_version = '1.0.0b15'
 
 maboss_sources = [
    "FinalStateSimulationEngine.cc", "MetaEngine.cc", "MaBEstEngine.cc", "EnsembleEngine.cc", 
