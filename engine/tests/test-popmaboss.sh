@@ -32,6 +32,8 @@ if [ $? != 0 ]; then exit 1; fi
 
 python compare_probtrajs.py popmaboss/refer/res_fork_pop_probtraj.csv tmp/res_fork_pop_probtraj.csv --exact
 check_file "pop_projtraj"
+python compare_probtrajs.py popmaboss/refer/res_fork_pop_probtraj_old.csv tmp/res_fork_pop_probtraj.csv --exact
+check_file "pop_projtraj_old"
 
 
 /usr/bin/time -p $LAUNCHER $POPMABOSS -c ../examples/popmaboss/Fork.pcfg -o tmp/res_fork ../examples/popmaboss/Fork.bnd > /dev/null
@@ -40,6 +42,8 @@ if [ $? != 0 ]; then exit 1; fi
 
 python compare_probtrajs.py popmaboss/refer/res_fork_pop_probtraj.csv tmp/res_fork_pop_probtraj.csv --exact
 check_file "pop_projtraj"
+python compare_probtrajs.py popmaboss/refer/res_fork_pop_probtraj_old.csv tmp/res_fork_pop_probtraj.csv --exact
+check_file "pop_projtraj_old"
 
 
 /usr/bin/time -p $LAUNCHER $POPMABOSS -c ../examples/popmaboss/Log_Growth.cfg -o tmp/res_log_growth ../examples/popmaboss/Log_Growth.pbnd >/dev/null
@@ -56,6 +60,8 @@ if [ $? != 0 ]; then exit 1; fi
 
 python compare_probtrajs.py popmaboss/refer/res_assymetric_pop_probtraj.csv tmp/res_assymetric_pop_probtraj.csv --exact
 check_file "pop_projtraj"
+python compare_probtrajs.py popmaboss/refer/res_assymetric_pop_probtraj_old.csv tmp/res_assymetric_pop_probtraj.csv 5e-2 5e-2
+check_file "pop_projtraj_old"
 
 rm -rf tmp; 
 
