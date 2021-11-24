@@ -134,9 +134,9 @@ PopMaBEstEngine::PopMaBEstEngine(PopNetwork *pop_network, RunConfig *runconfig) 
 }
 
 #ifdef EV_OPTIM_2021_10
-PopNetworkState PopMaBEstEngine::getTargetNode(RandomGenerator *random_generator, const STATE_MAP<PopNetworkState, double>& popNodeTransitionRates, double total_rate) const
+PopNetworkState PopMaBEstEngine::getTargetNode(RandomGenerator *random_generator, const PopNetworkStateMap& popNodeTransitionRates, double total_rate) const
 #else
-PopNetworkState PopMaBEstEngine::getTargetNode(RandomGenerator *random_generator, const STATE_MAP<PopNetworkState, double> popNodeTransitionRates, double total_rate) const
+PopNetworkState PopMaBEstEngine::getTargetNode(RandomGenerator *random_generator, const PopNetworkStateMap popNodeTransitionRates, double total_rate) const
 #endif
 {
   double U_rand2 = random_generator->generate();
@@ -268,7 +268,7 @@ void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, unsigned 
     {
       double total_rate = 0.;
       
-      STATE_MAP<PopNetworkState, double> popNodeTransitionRates;
+      PopNetworkStateMap popNodeTransitionRates;
       // forall S ∈ Σ such that ψ(S) > 0 do
       for (auto pop : pop_network_state.getMap())
       {

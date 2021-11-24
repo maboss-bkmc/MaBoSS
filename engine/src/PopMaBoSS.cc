@@ -155,9 +155,19 @@ int main(int argc, char* argv[])
     std::cerr << "PopMaBoSS use long long mask\n";
 #endif
 #ifdef HAS_UNORDERED_MAP
+    bool unordered = true;
     std::cerr << "PopMaBoSS use std::unordered_map\n";
 #else
+    bool unordered = false;
     std::cerr << "PopMaBoSS use standard std::map\n";
+#endif
+#ifdef POPNETWORKSTATE_STD_MAP
+    std::cerr << "PopMaBoSS use std::map<PopNetworkState, double>\n";
+#else
+    std::cerr << "PopMaBoSS use " << (unordered ? "std::unordered_map" : "std::map" ) << "<PopNetworkState, double>\n";
+#endif
+#ifdef EV_OPTIM_2021_10
+    std::cerr << "PopMaBoSS use EV_OPTIM_2021_10\n";
 #endif
   }
 

@@ -1332,6 +1332,8 @@ public:
       }
     }
     return result;
+    // EV: 2021-11-24 note: returning another hash code changes the results, for instance:
+    // return (size_t)(result*1.1);
 #else
     size_t result = 0;
     for (auto &network_state_pop: mp) {

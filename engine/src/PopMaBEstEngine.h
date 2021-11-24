@@ -63,6 +63,12 @@
 
 struct ArgWrapper;
 
+#ifdef POPNETWORKSTATE_STD_MAP
+// EV 2021-11-12: use std::map instead of STATE_MAP (std::unordered_map) for PopNetworkStateMap
+typedef std::map<PopNetworkState, double> PopNetworkStateMap;
+#else
+typedef STATE_MAP<PopNetworkState, double> PopNetworkStateMap;
+#endif
 
 class PopMaBEstEngine {
 
@@ -125,9 +131,9 @@ public:
   
   std::vector<ArgWrapper*> arg_wrapper_v;
 #ifdef EV_OPTIM_2021_10
-  PopNetworkState getTargetNode(RandomGenerator* random_generator, const STATE_MAP<PopNetworkState, double>& popNodeTransitionRates, double total_rate) const;
+  PopNetworkState getTargetNode(RandomGenerator* random_generator, const PopNetworkStateMap& popNodeTransitionRates, double total_rate) const;
 #else
-  PopNetworkState getTargetNode(RandomGenerator* random_generator, const STATE_MAP<PopNetworkState, double> popNodeTransitionRates, double total_rate) const;
+  PopNetworkState getTargetNode(RandomGenerator* random_generator, const PopNetworkStateMap popNodeTransitionRates, double total_rate) const;
 #endif
   double computeTH(const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
   void epilogue();
