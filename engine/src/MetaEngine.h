@@ -111,6 +111,12 @@ protected:
   // Global sample count          
   unsigned int global_sample_count;
 
+  std::vector<long long> elapsed_core_runtimes;
+  std::vector<long long> user_core_runtimes;
+  std::vector<long long> elapsed_epilogue_runtimes;
+  std::vector<long long> user_epilogue_runtimes; 
+  
+  
 #endif
 
 public:
@@ -171,6 +177,16 @@ public:
 
   long long getElapsedStatDistRunTime() const {return elapsed_statdist_runtime;}
   long long getUserStatDistRunTime() const {return user_statdist_runtime;}
+
+#ifdef MPI_COMPAT
+  int getWorldRank() const { return world_rank; }
+  int getWorldSize() const { return world_size; }
+  std::vector<long long> getUserCoreRuntimes() const { return user_core_runtimes; }
+  std::vector<long long> getElapsedCoreRuntimes() const { return elapsed_core_runtimes; }
+  std::vector<long long> getUserEpilogueRuntimes() const { return user_epilogue_runtimes; }
+  std::vector<long long> getElapsedEpilogueRuntimes() const { return elapsed_epilogue_runtimes; }
+  #endif
+
 
   bool converges() const {return fixpoints.size() > 0;}
   const STATE_MAP<NetworkState_Impl, unsigned int>& getFixpoints() const {return fixpoints;}

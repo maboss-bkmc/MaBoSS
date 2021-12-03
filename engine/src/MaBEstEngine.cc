@@ -301,6 +301,18 @@ void MaBEstEngine::run(std::ostream* output_traj)
   user_core_runtime = probe.user_msecs();
 #ifdef MPI_COMPAT
   // std::cout << "Trajectories computed, running epilogue on node " << world_rank << std::endl;
+  
+  if (world_rank == 0) {
+    elapsed_core_runtimes.resize(world_size);
+    user_core_runtimes.resize(world_size);
+
+  }
+  MPI_Gather(&elapsed_core_runtime, 1, MPI_LONG_LONG_INT, elapsed_core_runtimes.data(), 1, MPI_LONG_LONG_INT, 0, MPI_COMM_WORLD);
+  MPI_Gather(&user_core_runtime, 1, MPI_LONG_LONG_INT, user_core_runtimes.data(), 1, MPI_LONG_LONG_INT, 0, MPI_COMM_WORLD);
+
+  
+  
+  
 #else
   // std::cout << "Trajectories computed, running epilogue" << std::endl;
 #endif
@@ -311,6 +323,16 @@ void MaBEstEngine::run(std::ostream* output_traj)
   user_epilogue_runtime = probe.user_msecs();
 #ifdef MPI_COMPAT  
   // std::cout << "Epilogue done, quitting run() on node " << world_rank <<  std::endl;
+  
+  if (world_rank == 0) {
+    elapsed_epilogue_runtimes.resize(world_size);
+    user_epilogue_runtimes.resize(world_size);
+  }
+  
+  MPI_Gather(&elapsed_epilogue_runtime, 1, MPI_LONG_LONG_INT, elapsed_epilogue_runtimes.data(), 1, MPI_LONG_LONG_INT, 0, MPI_COMM_WORLD);
+  MPI_Gather(&user_epilogue_runtime, 1, MPI_LONG_LONG_INT, user_epilogue_runtimes.data(), 1, MPI_LONG_LONG_INT, 0, MPI_COMM_WORLD);
+
+  
 #else
   // std::cout << "Epilogue done, quitting run()" << std::endl;
 #endif
