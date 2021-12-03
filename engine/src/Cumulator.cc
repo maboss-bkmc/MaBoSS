@@ -1017,6 +1017,9 @@ Cumulator* Cumulator::mergeMPICumulators(RunConfig* runconfig, Cumulator* ret_cu
     Cumulator* mpi_ret_cumul = initializeMPICumulator(ret_cumul, runconfig, world_rank);
   
     unsigned int rr = 0;
+    unsigned int buff_size;
+    char* buff;
+    
     if (world_rank == 0) {
       // Now that the cumulator is initialized, we add values from node 0
       if (ret_cumul != NULL) {
@@ -1031,6 +1034,8 @@ Cumulator* Cumulator::mergeMPICumulators(RunConfig* runconfig, Cumulator* ret_cu
           mpi_ret_cumul->proba_dist_v[rr++] = ret_cumul->proba_dist_v[ii];
         }
       }
+    } else if (pack) {
+      buff = MPI_Pack_Cumulator(ret_cumul, 0, &buff_size);
     }
 
     for (int i = 1; i < world_size; i++) {
@@ -1059,8 +1064,8 @@ Cumulator* Cumulator::mergeMPICumulators(RunConfig* runconfig, Cumulator* ret_cu
         if (rank == world_rank) {
 
           if (pack) {
-            unsigned int buff_size;
-            char* buff = MPI_Pack_Cumulator(ret_cumul, 0, &buff_size);
+            // unsigned int buff_size;
+            // char* buff = MPI_Pack_Cumulator(ret_cumul, 0, &buff_size);
             MPI_Send(&buff_size, 1, MPI_UNSIGNED, 0, 0, MPI_COMM_WORLD);
             MPI_Send( buff, buff_size, MPI_PACKED, 0, 0, MPI_COMM_WORLD); 
             delete buff;
