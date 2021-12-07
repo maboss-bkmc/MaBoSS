@@ -121,7 +121,7 @@ NodeIndex MaBEstEngine::getTargetNode(RandomGenerator* random_generator, const M
   MAP<NodeIndex, double>::const_iterator begin = nodeTransitionRates.begin();
   MAP<NodeIndex, double>::const_iterator end = nodeTransitionRates.end();
   NodeIndex node_idx = INVALID_NODE_INDEX;
-  while (begin != end && random_rate > 0.) {
+  while (begin != end && random_rate >= 0.) {
     node_idx = (*begin).first;
     double rate = (*begin).second;
     random_rate -= rate;
