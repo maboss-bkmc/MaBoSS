@@ -82,6 +82,10 @@ void Cumulator::check() const
 
 void Cumulator::trajectoryEpilogue()
 {
+  if (sample_num >= statdist_trajcount) { 
+    return; 
+  }
+
   assert(sample_num < sample_count);
 
   ProbaDist::Iterator curtraj_proba_dist_iter = curtraj_proba_dist.iterator();
@@ -797,11 +801,13 @@ Cumulator* Cumulator::mergeCumulators(RunConfig* runconfig, std::vector<Cumulato
   }
 
   unsigned int t_cumulator_size = 0;
+  unsigned int t_probadist_size = 0;
   for (auto& cum: cumulator_v) {
     t_cumulator_size += cum->sample_count;
+    t_probadist_size += cum->statdist_trajcount;
   }
 
-  Cumulator* ret_cumul = new Cumulator(runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), t_cumulator_size);
+  Cumulator* ret_cumul = new Cumulator(runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), t_cumulator_size, t_probadist_size);
   size_t min_cumul_size = ~0ULL;
   size_t min_tick_index_size = ~0ULL;
   std::vector<Cumulator*>::iterator begin = cumulator_v.begin();

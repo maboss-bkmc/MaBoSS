@@ -71,6 +71,7 @@ protected:
   double time_tick;
   double max_time;
   unsigned int sample_count;
+  unsigned int statdist_trajcount;
   bool discrete_time;
   unsigned int thread_count;
   
@@ -93,6 +94,7 @@ public:
     time_tick(runconfig->getTimeTick()), 
     max_time(runconfig->getMaxTime()), 
     sample_count(runconfig->getSampleCount()), 
+    statdist_trajcount(runconfig->getStatDistTrajCount()),
     discrete_time(runconfig->isDiscreteTime()), 
     thread_count(runconfig->getThreadCount()) {}
 

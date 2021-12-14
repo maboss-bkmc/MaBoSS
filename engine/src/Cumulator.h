@@ -72,6 +72,7 @@ static bool COMPUTE_ERRORS = true;
 #define HD_BUG
 
 #include "ProbaDist.h"
+#include "RunConfig.h"
 
 class Network;
 class ProbTrajDisplayer;
@@ -257,6 +258,7 @@ class Cumulator {
 #ifdef HD_BUG
   std::vector<HDCumulMap> hd_cumul_map_v;
 #endif
+  unsigned int statdist_trajcount;
   std::vector<ProbaDist> proba_dist_v;
   ProbaDist curtraj_proba_dist;
   STATE_MAP<NetworkState_Impl, LastTickValue> last_tick_map;
@@ -306,8 +308,9 @@ class Cumulator {
       return true;
     }
 
-    curtraj_proba_dist.incr(fullstate, tm_slice);
-
+    if (sample_num < statdist_trajcount) {
+      curtraj_proba_dist.incr(fullstate, tm_slice);
+    }
     if (tick_index >= max_size) {
       return false;
     }
@@ -339,8 +342,8 @@ class Cumulator {
   
 public:
 
-  Cumulator(RunConfig* runconfig, double time_tick, double max_time, unsigned int sample_count) :
-    runconfig(runconfig), time_tick(time_tick), sample_count(sample_count), sample_num(0), last_tm(0.), tick_index(0) {
+  Cumulator(RunConfig* runconfig, double time_tick, double max_time, unsigned int sample_count, unsigned int statdist_trajcount) :
+    runconfig(runconfig), time_tick(time_tick), sample_count(sample_count), sample_num(0), last_tm(0.), tick_index(0), statdist_trajcount(statdist_trajcount) {
 #ifdef USE_STATIC_BITSET
     output_mask.set();
 #elif defined(USE_BOOST_BITSET) || defined(USE_DYNAMIC_BITSET)
@@ -363,7 +366,7 @@ public:
 	TH_square_v[nn] = 0.;
       }
     }
-    proba_dist_v.resize(sample_count);
+    proba_dist_v.resize(statdist_trajcount);
     tick_completed = false;
   }
 
