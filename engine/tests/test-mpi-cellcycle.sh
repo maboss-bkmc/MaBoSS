@@ -35,7 +35,7 @@ if [ "$MULTI_THREAD_ONLY" = "" ]; then
 	python compare_probtrajs.py cellcycle/refer/Cell_cycle_thread_1_probtraj.csv tmp/Cell_cycle_thread_1_probtraj.csv --exact
 	check_file "projtraj"
 	
-	python compare_statdist.py cellcycle/refer/Cell_cycle_thread_1_statdist.csv tmp/Cell_cycle_thread_1_statdist.csv --exact # || echo '**** error test #1.b (non regression) ****'
+	python compare_statdist.py cellcycle/refer/Cell_cycle_thread_1_statdist_mpi_$1.csv tmp/Cell_cycle_thread_1_statdist.csv --exact # || echo '**** error test #1.b (non regression) ****'
 	check_file "statdist"
     else
 	diff_sort cellcycle/refer/Cell_cycle_thread_1_finalprob.csv tmp/Cell_cycle_thread_1_finalprob.csv
@@ -59,7 +59,7 @@ if [[ -z "$FINAL" ]]; then
     check_file "projtraj"
 
     echo "Non regression test: checking differences between one and 6 threads results"
-    python compare_statdist.py cellcycle/refer/Cell_cycle_thread_6_statdist.csv tmp/Cell_cycle_thread_6_statdist.csv --exact #|| echo '**** error test #2.b (non regression) ****'
+    python compare_statdist.py cellcycle/refer/Cell_cycle_thread_6_statdist_mpi_$1.csv tmp/Cell_cycle_thread_6_statdist.csv --exact #|| echo '**** error test #2.b (non regression) ****'
     check_file "statdist"
 
     if [[ -z  "$MULTI_THREAD_ONLY" ]]; then
