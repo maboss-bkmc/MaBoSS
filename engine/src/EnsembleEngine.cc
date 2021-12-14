@@ -82,6 +82,7 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
     }
     if (node->isReference()) {
       reference_state.setNodeState(node, node->getReferenceState());
+      refnode_mask.setNodeState(node, true);
       refnode_count++;
     }
     ++begin;
@@ -143,6 +144,8 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
       cumulator->setOutputMask(~internal_state.getState());
 #endif
     }
+
+    cumulator->setRefnodeMask(refnode_mask.getState());
     cumulator_v[nn] = cumulator;
 
     // Setting the size of the list of indices to the thread's sample count
@@ -248,6 +251,7 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
           t_cumulator->setOutputMask(~internal_state.getState());
 #endif
           }
+          t_cumulator->setRefnodeMask(refnode_mask.getState());          
           cumulator_models_v[nn][nnn] = t_cumulator;
           cumulators_thread_v[simulation_indices_v[nn][c]].push_back(t_cumulator);
         

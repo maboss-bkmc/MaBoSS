@@ -84,6 +84,7 @@ MaBEstEngine::MaBEstEngine(Network* network, RunConfig* runconfig) :
     }
     if (node->isReference()) {
       reference_state.setNodeState(node, node->getReferenceState());
+      refnode_mask.setNodeState(node, true);
       refnode_count++;
     }
     ++begin;
@@ -108,6 +109,7 @@ MaBEstEngine::MaBEstEngine(Network* network, RunConfig* runconfig) :
       cumulator->setOutputMask(~internal_state.getState());
 #endif
     }
+    cumulator->setRefnodeMask(refnode_mask.getState());
     cumulator_v[nn] = cumulator;
   }
 }

@@ -77,7 +77,7 @@ protected:
   
   NetworkState reference_state;
   unsigned int refnode_count;
-
+  NetworkState refnode_mask;
   mutable long long elapsed_core_runtime, user_core_runtime, elapsed_statdist_runtime, user_statdist_runtime, elapsed_epilogue_runtime, user_epilogue_runtime;
   STATE_MAP<NetworkState_Impl, unsigned int> fixpoints;
   std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*> fixpoint_map_v;

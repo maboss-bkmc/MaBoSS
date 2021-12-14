@@ -259,6 +259,8 @@ class Cumulator {
   std::vector<HDCumulMap> hd_cumul_map_v;
 #endif
   unsigned int statdist_trajcount;
+  unsigned int refnode_count;
+  NetworkState_Impl refnode_mask;
   std::vector<ProbaDist> proba_dist_v;
   ProbaDist curtraj_proba_dist;
   STATE_MAP<NetworkState_Impl, LastTickValue> last_tick_map;
@@ -346,13 +348,17 @@ public:
     runconfig(runconfig), time_tick(time_tick), sample_count(sample_count), sample_num(0), last_tm(0.), tick_index(0), statdist_trajcount(statdist_trajcount) {
 #ifdef USE_STATIC_BITSET
     output_mask.set();
+    refnode_mask.reset();
 #elif defined(USE_BOOST_BITSET) || defined(USE_DYNAMIC_BITSET)
     // EV: 2020-10-23
     //output_mask.resize(MAXNODES);
     output_mask.resize(Network::getMaxNodeSize());
     output_mask.set();
+    refnode_mask.resize(Network::getMaxNodeSize());
+    refnode_mask.reset();
 #else
     output_mask = ~0ULL;
+    refnode_mask = 0ULL;
 #endif
     max_size = (int)(max_time/time_tick)+2;
     max_tick_index = max_size;
@@ -409,11 +415,11 @@ public:
 
   void cumul(const NetworkState& network_state, double tm, double TH) {
 #ifdef USE_DYNAMIC_BITSET
-    NetworkState_Impl fullstate(network_state.getState(), 1);
+    NetworkState_Impl fullstate(network_state.getState() & refnode_mask, 1);
 #else
-    NetworkState_Impl fullstate(network_state.getState());
-#endif
-    NetworkState_Impl state(fullstate & output_mask);
+    NetworkState_Impl fullstate(network_state.getState() & refnode_mask);
+#endif    
+    NetworkState_Impl state(network_state.getState() & output_mask);
     double time_1 = cumultime(tick_index+1);
     if (tm < time_1) {
       incr(state, tm - last_tm, TH, fullstate);
@@ -440,6 +446,10 @@ public:
 
   void setOutputMask(const NetworkState_Impl& output_mask) {
     this->output_mask = output_mask;
+  }
+  
+  void setRefnodeMask(const NetworkState_Impl& refnode_mask) {
+    this->refnode_mask = refnode_mask;
   }
 
   void displayCSV(Network* network, unsigned int refnode_count, std::ostream& os_probtraj = std::cout, std::ostream& os_statdist = std::cout, bool hexfloat = false) const;
