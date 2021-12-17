@@ -103,10 +103,11 @@ PopMaBEstEngine::PopMaBEstEngine(PopNetwork *pop_network, RunConfig *runconfig) 
       has_internal = true;
       internal_state.setNodeState(node, true);
     }
-    // if (node->isReference()) {
-    //   reference_state.setNodeState(node, node->getReferenceState());
-    //   refnode_count++;
-    // }
+    if (node->isReference()) {
+      reference_state.setNodeState(node, node->getReferenceState());
+      refnode_mask.setNodeState(node, true);
+      refnode_count++;
+    }
     ++begin;
   }
 

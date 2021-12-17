@@ -82,7 +82,8 @@ class PopMaBEstEngine {
   bool discrete_time;
   unsigned int thread_count;
   
-  PopNetworkState reference_state;
+  NetworkState reference_state;
+  NetworkState refnode_mask;
   unsigned int refnode_count;
 
   mutable long long elapsed_core_runtime, user_core_runtime, elapsed_statdist_runtime, user_statdist_runtime, elapsed_epilogue_runtime, user_epilogue_runtime;

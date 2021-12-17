@@ -721,7 +721,7 @@ unsigned int PopNetworkState::count(Expression * expr) const
 }
 
 
-unsigned int PopNetworkState::hamming(Network* network, const PopNetworkState& state2) const
+unsigned int PopNetworkState::hamming(Network* network, const NetworkState& state2) const
 {
   unsigned int hd = 0;
 // #ifdef HAMMING_METHOD1

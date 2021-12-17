@@ -1122,7 +1122,7 @@ PyObject* getNumpyLastNodesDists(Network* network, std::vector<Node*> output_nod
   
   int getMaxTickIndex() const { return max_tick_index;} 
 
-  void epilogue(Network* network, const S& reference_state) 
+  void epilogue(Network* network, const NetworkState& reference_state) 
   {
     computeMaxTickIndex();
 
@@ -1172,7 +1172,7 @@ PyObject* getNumpyLastNodesDists(Network* network, std::vector<Node*> output_nod
         iter.next(state, tm_slice);
   #endif
         double proba = tm_slice / ratio;      
-        int hd = reference_state.hamming(network, state);
+        int hd = state.hamming(network, reference_state);
         if (hd_m.find(hd) == hd_m.end()) {
     hd_m[hd] = proba;
         } else {

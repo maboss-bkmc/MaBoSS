@@ -1358,7 +1358,7 @@ public:
   void displayOneLine(std::ostream& os, Network* network, const std::string& sep = " -- ") const;
   void displayJSON(std::ostream& os, Network* network, const std::string& sep = " -- ") const;
 
-  unsigned int hamming(Network* network, const PopNetworkState& state) const;
+  unsigned int hamming(Network* network, const NetworkState& state) const;
 };
 
 namespace std {
