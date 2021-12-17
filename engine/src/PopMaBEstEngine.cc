@@ -72,6 +72,7 @@ PopMaBEstEngine::PopMaBEstEngine(PopNetwork *pop_network, RunConfig *runconfig) 
                                                                            time_tick(runconfig->getTimeTick()),
                                                                            max_time(runconfig->getMaxTime()),
                                                                            sample_count(runconfig->getSampleCount()),
+                                                                           statdist_trajcount(runconfig->getStatDistTrajCount()),
                                                                            discrete_time(runconfig->isDiscreteTime()),
                                                                            thread_count(runconfig->getThreadCount())
 {
