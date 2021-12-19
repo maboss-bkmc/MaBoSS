@@ -117,6 +117,11 @@ protected:
   std::vector<long long> elapsed_epilogue_runtimes;
   std::vector<long long> user_epilogue_runtimes; 
   
+  std::vector<std::vector<long long int> > thread_elapsed_runtimes;
+  
+#else
+
+  std::vector<long long int> thread_elapsed_runtimes;
   
 #endif
 
@@ -150,6 +155,8 @@ public:
     sample_count = sample_count / world_size;
     statdist_trajcount = statdist_trajcount / world_size;
   }
+  
+  thread_elapsed_runtimes.resize(world_size);
   
   // Get the name of the processor
   char processor_name[MPI_MAX_PROCESSOR_NAME];

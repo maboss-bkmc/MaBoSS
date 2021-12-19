@@ -68,7 +68,7 @@ class MaBEstEngine : public MetaEngine {
   std::vector<ArgWrapper*> arg_wrapper_v;
   void epilogue();
   static void* threadWrapper(void *arg);
-  void runThread(Cumulator* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj);
+  void runThread(Cumulator* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, long long int* elapsed_time, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj);
   // STATE_MAP<NetworkState_Impl, unsigned int>* mergeFixpointMaps();
 
 // #ifdef MPI_COMPAT
