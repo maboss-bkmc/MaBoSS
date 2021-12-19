@@ -619,8 +619,8 @@ void EnsembleEngine::mergeEnsembleFixpointMaps()
 
 void EnsembleEngine::epilogue()
 {
-  merged_cumulator = Cumulator::mergeCumulators(runconfig, cumulator_v);
-  merged_cumulator->epilogue(networks[0], reference_state);
+  merged_cumulator = Cumulator::mergeCumulatorsParallel(runconfig, cumulator_v);
+  merged_cumulator->epilogue(network, reference_state);
 
   if (save_individual_result) {
 
@@ -634,13 +634,9 @@ void EnsembleEngine::epilogue()
           cumulators_per_model[i] = model_cumulator[0];
           cumulators_per_model[i]->epilogue(networks[i], reference_state);
         } else {
-          Cumulator* t_cumulator = Cumulator::mergeCumulators(runconfig, model_cumulator);
+          Cumulator* t_cumulator = Cumulator::mergeCumulatorsParallel(runconfig, model_cumulator);
           t_cumulator->epilogue(networks[i], reference_state);
           cumulators_per_model[i] = t_cumulator;
-          
-          for (auto t_cumulator: model_cumulator) {
-            delete t_cumulator;
-          }
         }
       }
     }

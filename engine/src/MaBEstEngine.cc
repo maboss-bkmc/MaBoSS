@@ -367,11 +367,8 @@ STATE_MAP<NetworkState_Impl, unsigned int>* MaBEstEngine::mergeFixpointMaps()
 
 void MaBEstEngine::epilogue()
 {
-  merged_cumulator = Cumulator::mergeCumulators(runconfig, cumulator_v);
+  merged_cumulator = Cumulator::mergeCumulatorsParallel(runconfig, cumulator_v);
   merged_cumulator->epilogue(network, reference_state);
-  
-  for (auto t_cumulator: cumulator_v)
-    delete t_cumulator;
 
   STATE_MAP<NetworkState_Impl, unsigned int>* merged_fixpoint_map = mergeFixpointMaps();
 

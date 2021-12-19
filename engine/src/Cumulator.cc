@@ -798,7 +798,7 @@ Cumulator* Cumulator::mergeCumulators(RunConfig* runconfig, std::vector<Cumulato
   if (1 == size) {
     Cumulator* cumulator = cumulator_v[0];
     return new Cumulator(*cumulator);
-  }
+    }
 
   unsigned int t_cumulator_size = 0;
   unsigned int t_probadist_size = 0;
@@ -849,6 +849,104 @@ Cumulator* Cumulator::mergeCumulators(RunConfig* runconfig, std::vector<Cumulato
     ++begin;
   }
   return ret_cumul;
+}
+
+struct MergeCumulatorWrapper {
+  Cumulator* cumulator_1;
+  Cumulator* cumulator_2;
+  
+  MergeCumulatorWrapper(Cumulator* cumulator_1, Cumulator* cumulator_2) :
+    cumulator_1(cumulator_1), cumulator_2(cumulator_2) { }
+};
+
+void* Cumulator::threadMergeCumulatorWrapper(void *arg)
+{
+#ifdef USE_DYNAMIC_BITSET
+  MBDynBitset::init_pthread();
+#endif
+  MergeCumulatorWrapper* warg = (MergeCumulatorWrapper*)arg;
+  try {
+    mergePairOfCumulators(warg->cumulator_1, warg->cumulator_2);
+  } catch(const BNException& e) {
+    std::cerr << e;
+  }
+#ifdef USE_DYNAMIC_BITSET
+  MBDynBitset::end_pthread();
+#endif
+  return NULL;
+}
+
+Cumulator* Cumulator::mergeCumulatorsParallel(RunConfig* runconfig, std::vector<Cumulator*>& cumulator_v) {
+  
+  size_t size = cumulator_v.size();
+  
+  if (1 == size) {
+    return new Cumulator(*(cumulator_v[0]));
+  } else {
+    
+    unsigned int lvl=1;
+    unsigned int max_lvl = ceil(log2(size));
+
+    while(lvl <= max_lvl) {      
+    
+      unsigned int step_lvl = pow(2, lvl-1);
+      unsigned int width_lvl = floor(size/(step_lvl*2)) + 1;
+      pthread_t* tid = new pthread_t[width_lvl];
+      unsigned int nb_threads = 0;
+      
+      for(unsigned int i=0; i < size; i+=(step_lvl*2)) {
+        
+        if (i+step_lvl < size) {
+          MergeCumulatorWrapper* warg = new MergeCumulatorWrapper(cumulator_v[i], cumulator_v[i+step_lvl]);
+          pthread_create(&tid[nb_threads], NULL, Cumulator::threadMergeCumulatorWrapper, warg);
+          nb_threads++;
+        } 
+      }
+      
+      for(unsigned int i=0; i < nb_threads; i++) {   
+          pthread_join(tid[i], NULL);
+      }
+      
+      delete [] tid;
+      lvl++;
+    }
+  }
+  
+  return cumulator_v[0];
+}
+
+
+void Cumulator::mergePairOfCumulators(Cumulator* cumulator_1, Cumulator* cumulator_2) {
+    
+  cumulator_1->sample_count += cumulator_2->sample_count;
+  
+  unsigned int rr = cumulator_1->proba_dist_v.size();
+  cumulator_1->statdist_trajcount += cumulator_2->statdist_trajcount;
+  cumulator_1->proba_dist_v.resize(cumulator_1->statdist_trajcount);
+  
+  cumulator_1->computeMaxTickIndex();
+  cumulator_2->computeMaxTickIndex();
+  if (cumulator_2->cumul_map_v.size() > cumulator_1->cumul_map_v.size()) {
+    cumulator_1->cumul_map_v.resize(cumulator_2->cumul_map_v.size());
+    cumulator_1->hd_cumul_map_v.resize(cumulator_2->cumul_map_v.size());
+  }
+  if (cumulator_2->max_tick_index > cumulator_1->max_tick_index) {
+    cumulator_1->max_tick_index = cumulator_1->tick_index = cumulator_2->max_tick_index;
+  }
+
+  for (unsigned int nn = 0; nn < cumulator_2->cumul_map_v.size(); ++nn) {
+    cumulator_1->add(nn, cumulator_2->cumul_map_v[nn]);
+#ifdef HD_BUG
+    cumulator_1->add(nn, cumulator_2->hd_cumul_map_v[nn]);
+#endif
+    cumulator_1->TH_square_v[nn] += cumulator_2->TH_square_v[nn];
+  }
+  unsigned int proba_dist_size = cumulator_2->proba_dist_v.size();
+  for (unsigned int ii = 0; ii < proba_dist_size; ++ii) {
+    assert(cumulator_1->proba_dist_v.size() > rr);
+    cumulator_1->proba_dist_v[rr++] = cumulator_2->proba_dist_v[ii];
+  }
+  delete cumulator_2;
 }
 
 //

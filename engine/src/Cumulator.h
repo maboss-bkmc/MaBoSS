@@ -485,6 +485,9 @@ public:
   unsigned int getSampleCount() const {return sample_count;}
 
   static Cumulator* mergeCumulators(RunConfig* runconfig, std::vector<Cumulator*>& cumulator_v);
+  static Cumulator* mergeCumulatorsParallel(RunConfig* runconfig, std::vector<Cumulator*>& cumulator_v);
+  static void mergePairOfCumulators(Cumulator* cumulator_1, Cumulator* cumulator_2);
+  static void* threadMergeCumulatorWrapper(void *arg);
 };
 
 #endif
