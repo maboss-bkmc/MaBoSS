@@ -259,7 +259,6 @@ class Cumulator {
   std::vector<HDCumulMap> hd_cumul_map_v;
 #endif
   unsigned int statdist_trajcount;
-  unsigned int refnode_count;
   NetworkState_Impl refnode_mask;
   std::vector<ProbaDist> proba_dist_v;
   ProbaDist curtraj_proba_dist;
