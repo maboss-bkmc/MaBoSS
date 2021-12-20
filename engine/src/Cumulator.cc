@@ -148,7 +148,7 @@ void Cumulator::epilogue(Network* network, const NetworkState& reference_state)
     TH_v[nn] = 0.;
     while (iter.hasNext()) {
       TickValue tick_value;
-      const NetworkState_Impl &state = iter.next2(tick_value);
+      iter.next2(tick_value);
       double tm_slice = tick_value.tm_slice;
       double proba = tm_slice / ratio;      
       double TH = tick_value.TH / sample_count;
