@@ -138,9 +138,6 @@ void Cumulator::epilogue(Network* network, const NetworkState& reference_state)
   // compute H (Entropy), TH (Transition entropy) and HD (Hamming distance)
   H_v.resize(max_tick_index);
   TH_v.resize(max_tick_index);
-#ifndef HD_BUG
-  HD_v.resize(max_tick_index);
-#endif
 
   maxcols = 0;
   double ratio = time_tick * sample_count;
@@ -149,9 +146,6 @@ void Cumulator::epilogue(Network* network, const NetworkState& reference_state)
     CumulMap::Iterator iter = mp.iterator();
     H_v[nn] = 0.;
     TH_v[nn] = 0.;
-#ifndef HD_BUG
-    MAP<unsigned int, double>& hd_m = HD_v[nn];
-#endif
     while (iter.hasNext()) {
       TickValue tick_value;
 #ifdef USE_NEXT_OPT
@@ -164,14 +158,6 @@ void Cumulator::epilogue(Network* network, const NetworkState& reference_state)
       double proba = tm_slice / ratio;      
       double TH = tick_value.TH / sample_count;
       H_v[nn] += -log2(proba) * proba;
-#ifndef HD_BUG
-      int hd = reference_state.hamming(network, state);
-      if (hd_m.find(hd) == hd_m.end()) {
-	hd_m[hd] = proba;
-      } else {
-	hd_m[hd] += proba;
-      }
-#endif
       TH_v[nn] += TH;
     }
     TH_v[nn] /= time_tick;
@@ -180,7 +166,6 @@ void Cumulator::epilogue(Network* network, const NetworkState& reference_state)
     }
   }
 
-#ifdef HD_BUG
   HD_v.resize(max_tick_index);
 
   for (int nn = 0; nn < max_tick_index; ++nn) { // time tick
@@ -204,7 +189,6 @@ void Cumulator::epilogue(Network* network, const NetworkState& reference_state)
       }
     }
   }
-#endif
 }
 
 void Cumulator::displayProbTraj(Network* network, unsigned int refnode_count, ProbTrajDisplayer* displayer) const
@@ -773,7 +757,6 @@ void Cumulator::add(unsigned int where, const CumulMap& add_cumul_map)
   }
 }
 
-#ifdef HD_BUG
 void Cumulator::add(unsigned int where, const HDCumulMap& add_hd_cumul_map)
 {
   HDCumulMap& to_hd_cumul_map = get_hd_map(where);
@@ -790,7 +773,6 @@ void Cumulator::add(unsigned int where, const HDCumulMap& add_hd_cumul_map)
     to_hd_cumul_map.add(state, tm_slice);
   }
 }
-#endif
 
 Cumulator* Cumulator::mergeCumulators(RunConfig* runconfig, std::vector<Cumulator*>& cumulator_v)
 {
@@ -825,9 +807,7 @@ Cumulator* Cumulator::mergeCumulators(RunConfig* runconfig, std::vector<Cumulato
   }
 
   ret_cumul->cumul_map_v.resize(min_cumul_size);
-#ifdef HD_BUG
   ret_cumul->hd_cumul_map_v.resize(min_cumul_size);
-#endif
   ret_cumul->max_tick_index = ret_cumul->tick_index = min_tick_index_size;
 
   begin = cumulator_v.begin();
@@ -836,9 +816,7 @@ Cumulator* Cumulator::mergeCumulators(RunConfig* runconfig, std::vector<Cumulato
     Cumulator* cumulator = *begin;
     for (unsigned int nn = 0; nn < min_cumul_size; ++nn) {
       ret_cumul->add(nn, cumulator->cumul_map_v[nn]);
-#ifdef HD_BUG
       ret_cumul->add(nn, cumulator->hd_cumul_map_v[nn]);
-#endif
       ret_cumul->TH_square_v[nn] += cumulator->TH_square_v[nn];
     }
     unsigned int proba_dist_size = cumulator->proba_dist_v.size();
@@ -936,9 +914,7 @@ void Cumulator::mergePairOfCumulators(Cumulator* cumulator_1, Cumulator* cumulat
 
   for (unsigned int nn = 0; nn < cumulator_2->cumul_map_v.size(); ++nn) {
     cumulator_1->add(nn, cumulator_2->cumul_map_v[nn]);
-#ifdef HD_BUG
     cumulator_1->add(nn, cumulator_2->hd_cumul_map_v[nn]);
-#endif
     cumulator_1->TH_square_v[nn] += cumulator_2->TH_square_v[nn];
   }
   unsigned int proba_dist_size = cumulator_2->proba_dist_v.size();
