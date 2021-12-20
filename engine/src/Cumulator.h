@@ -50,8 +50,6 @@
 #ifndef _CUMULATOR_H_
 #define _CUMULATOR_H_
 
-#define USE_NEXT_OPT
-
 #include <string>
 #include <map>
 #include <set>
@@ -156,12 +154,10 @@ class Cumulator {
 	++iter;
       }
 	
-#ifdef USE_NEXT_OPT
       const NetworkState_Impl& next2(TickValue& tick_value) {
 	tick_value = (*iter).second;
 	return (*iter++).first;
       }
-#endif
 	
       void next(TickValue& tick_value) {
 	tick_value = (*iter).second;
@@ -219,12 +215,10 @@ class Cumulator {
 	++iter;
       }
 	
-#ifdef USE_NEXT_OPT
       const NetworkState_Impl& next2(double& tm_slice) {
 	tm_slice = (*iter).second;
 	return (*iter++).first;
       }
-#endif
 
       void next(double& tm_slice) {
 	tm_slice = (*iter).second;

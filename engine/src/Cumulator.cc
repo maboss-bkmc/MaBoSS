@@ -148,12 +148,7 @@ void Cumulator::epilogue(Network* network, const NetworkState& reference_state)
     TH_v[nn] = 0.;
     while (iter.hasNext()) {
       TickValue tick_value;
-#ifdef USE_NEXT_OPT
       const NetworkState_Impl &state = iter.next2(tick_value);
-#else
-      NetworkState_Impl state;
-      iter.next(state, tick_value);
-#endif
       double tm_slice = tick_value.tm_slice;
       double proba = tm_slice / ratio;      
       double TH = tick_value.TH / sample_count;
@@ -174,12 +169,7 @@ void Cumulator::epilogue(Network* network, const NetworkState& reference_state)
     MAP<unsigned int, double>& hd_m = HD_v[nn];
     while (iter.hasNext()) {
       double tm_slice;
-#ifdef USE_NEXT_OPT
       const NetworkState_Impl &state = iter.next2(tm_slice);
-#else
-      NetworkState_Impl state;
-      iter.next(state, tm_slice);
-#endif
       double proba = tm_slice / ratio;      
       int hd = reference_state.hamming(network, state);
       if (hd_m.find(hd) == hd_m.end()) {
@@ -241,12 +231,7 @@ void Cumulator::displayProbTraj(Network* network, unsigned int refnode_count, Pr
     // Proba, ErrorProba
     while (iter.hasNext()) {
       TickValue tick_value;
-#ifdef USE_NEXT_OPT
       const NetworkState_Impl& state = iter.next2(tick_value);
-#else
-      NetworkState_Impl state;
-      iter.next(state, tick_value);
-#endif
       double proba = tick_value.tm_slice / ratio;      
       if (COMPUTE_ERRORS) {
 	double tm_slice_square = tick_value.tm_slice_square;
@@ -348,12 +333,8 @@ void Cumulator::displayAsymptoticCSV(Network *network, unsigned int refnode_coun
   while (iter.hasNext())
   {
     TickValue tick_value;
-#ifdef USE_NEXT_OPT
     const NetworkState_Impl& state = iter.next2(tick_value);
-#else
-    NetworkState_Impl state;
-    iter.next(state, tick_value);
-#endif
+
     double proba = tick_value.tm_slice / ratio;
     if (proba)
     {
@@ -395,12 +376,7 @@ const std::map<double, STATE_MAP<NetworkState_Impl, double> > Cumulator::getStat
 
     while (iter.hasNext()) {
       TickValue tick_value;
-      //#ifdef USE_NEXT_OPT
-      //      const NetworkState_Impl& state = iter.next2(tick_value);
-      //#else
-      NetworkState_Impl state;
-      iter.next(state, tick_value);
-      //#endif
+      const NetworkState_Impl& state = iter.next2(tick_value);
       double proba = tick_value.tm_slice / ratio;      
       t_result[state] = proba;
     }
@@ -423,12 +399,7 @@ std::set<NetworkState_Impl> Cumulator::getStates() const
 
     while (iter.hasNext()) {
       TickValue tick_value;
-      //#ifdef USE_NEXT_OPT
-      //const NetworkState_Impl& state = iter.next2(tick_value);
-      //#else
-      NetworkState_Impl state;
-      iter.next(state, tick_value);
-      //#endif
+      const NetworkState_Impl& state = iter.next2(tick_value);
       result_states.insert(state);
     }
   }
@@ -445,12 +416,7 @@ std::vector<NetworkState_Impl> Cumulator::getLastStates() const
 
     while (iter.hasNext()) {
       TickValue tick_value;
-      //#ifdef USE_NEXT_OPT
-      //const NetworkState_Impl& state = iter.next2(tick_value);
-      //#else
-      NetworkState_Impl state;
-      iter.next(state, tick_value);
-      //#endif
+      const NetworkState_Impl& state = iter.next2(tick_value);
       result_states.push_back(state);
     }
 
@@ -479,12 +445,7 @@ PyObject* Cumulator::getNumpyStatesDists(Network* network) const
 
     while (iter.hasNext()) {
       TickValue tick_value;
-      //#ifdef USE_NEXT_OPT
-      //const NetworkState_Impl& state = iter.next2(tick_value);
-      //#else
-      NetworkState_Impl state;
-      iter.next(state, tick_value);
-      //#endif
+      const NetworkState_Impl& state = iter.next2(tick_value);
       
       void* ptr = PyArray_GETPTR2(result, nn, pos_states[state]);
       PyArray_SETITEM(
@@ -530,12 +491,7 @@ PyObject* Cumulator::getNumpyLastStatesDists(Network* network) const
 
   while (iter.hasNext()) {
     TickValue tick_value;
-    //#ifdef USE_NEXT_OPT
     const NetworkState_Impl& state = iter.next2(tick_value);
-    //#else
-    //NetworkState_Impl state;
-    //iter.next(state, tick_value);
-    //#endif
     
     void* ptr = PyArray_GETPTR2(result, 0, pos_states[state]);
     PyArray_SETITEM(
@@ -601,12 +557,7 @@ PyObject* Cumulator::getNumpyNodesDists(Network* network, std::vector<Node*> out
 
     while (iter.hasNext()) {
       TickValue tick_value;
-#ifdef USE_NEXT_OPT
       const NetworkState_Impl& state = iter.next2(tick_value);
-#else
-      NetworkState_Impl state;
-      iter.next(state, tick_value);
-#endif
       
       for (auto node: output_nodes) {
         
@@ -663,12 +614,7 @@ PyObject* Cumulator::getNumpyLastNodesDists(Network* network, std::vector<Node*>
 
   while (iter.hasNext()) {
     TickValue tick_value;
-#ifdef USE_NEXT_OPT
     const NetworkState_Impl& state = iter.next2(tick_value);
-#else
-    NetworkState_Impl state;
-    iter.next(state, tick_value);
-#endif
     
     for (auto node: output_nodes) {
       
@@ -720,13 +666,7 @@ const STATE_MAP<NetworkState_Impl, double> Cumulator::getNthStateDist(int nn) co
 
   while (iter.hasNext()) {
     TickValue tick_value;
-    //#ifdef USE_NEXT_OPT
-    //const NetworkState_Impl& state = iter.next2(tick_value);
-    //#else
-    NetworkState_Impl state;
-    iter.next(state, tick_value);
-    //#endif
-
+    const NetworkState_Impl& state = iter.next2(tick_value);
     double proba = tick_value.tm_slice / ratio;      
     result[state] = proba;
   }
@@ -747,12 +687,7 @@ void Cumulator::add(unsigned int where, const CumulMap& add_cumul_map)
   CumulMap::Iterator iter = add_cumul_map.iterator();
   while (iter.hasNext()) {
     TickValue tick_value;
-#ifdef USE_NEXT_OPT
     const NetworkState_Impl& state = iter.next2(tick_value);
-#else
-    NetworkState_Impl state;
-    iter.next(state, tick_value);
-#endif
     to_cumul_map.add(state, tick_value);
   }
 }
@@ -764,12 +699,7 @@ void Cumulator::add(unsigned int where, const HDCumulMap& add_hd_cumul_map)
   HDCumulMap::Iterator iter = add_hd_cumul_map.iterator();
   while (iter.hasNext()) {
     double tm_slice;
-#ifdef USE_NEXT_OPT
     const NetworkState_Impl& state = iter.next2(tm_slice);
-#else
-    NetworkState_Impl state;
-    iter.next(state, tm_slice);
-#endif
     to_hd_cumul_map.add(state, tm_slice);
   }
 }
@@ -1023,12 +953,7 @@ void Cumulator::displayProbTrajCSV_OBSOLETE(Network* network, unsigned int refno
     // Proba, ErrorProba
     while (iter.hasNext()) {
       TickValue tick_value;
-#ifdef USE_NEXT_OPT
       const NetworkState_Impl& state = iter.next2(tick_value);
-#else
-      NetworkState_Impl state;
-      iter.next(state, tick_value);
-#endif
       double proba = tick_value.tm_slice / ratio;      
       //double TH = tick_value.TH / sample_count;
       os_probtraj << '\t';
