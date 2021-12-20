@@ -614,7 +614,7 @@ int main(int argc, char* argv[])
       
       NetworkState initial_state;
       network->initStates(initial_state, single_simulation.random_generator);
-      [[maybe_unused]] NetworkState final_state = single_simulation.run(initial_state, output_run);
+      single_simulation.run(initial_state, output_run);
 
       ((std::ofstream*)output_run)->close();
       delete output_run;
