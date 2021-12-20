@@ -152,12 +152,12 @@ static PyObject* cMaBoSSResultFinal_display_run(cMaBoSSResultFinalObject* self, 
 }
 
 static PyMemberDef cMaBoSSResultFinal_members[] = {
-    {"network", T_OBJECT_EX, offsetof(cMaBoSSResultFinalObject, network), 0, "network"},
-    {"runconfig", T_OBJECT_EX, offsetof(cMaBoSSResultFinalObject, runconfig), 0, "runconfig"},
-    {"engine", T_OBJECT_EX, offsetof(cMaBoSSResultFinalObject, engine), 0, "engine"},
-    {"start_time", T_LONG, offsetof(cMaBoSSResultFinalObject, start_time), 0, "start_time"},
-    {"end_time", T_LONG, offsetof(cMaBoSSResultFinalObject, end_time), 0, "end_time"},
-    {"last_probtraj", T_OBJECT_EX, offsetof(cMaBoSSResultFinalObject, last_probtraj), 0, "last_probtraj"},
+    {(char*)"network", T_OBJECT_EX, offsetof(cMaBoSSResultFinalObject, network), 0, (char*)"network"},
+    {(char*)"runconfig", T_OBJECT_EX, offsetof(cMaBoSSResultFinalObject, runconfig), 0, (char*)"runconfig"},
+    {(char*)"engine", T_OBJECT_EX, offsetof(cMaBoSSResultFinalObject, engine), 0, (char*)"engine"},
+    {(char*)"start_time", T_LONG, offsetof(cMaBoSSResultFinalObject, start_time), 0, (char*)"start_time"},
+    {(char*)"end_time", T_LONG, offsetof(cMaBoSSResultFinalObject, end_time), 0, (char*)"end_time"},
+    {(char*)"last_probtraj", T_OBJECT_EX, offsetof(cMaBoSSResultFinalObject, last_probtraj), 0, (char*)"last_probtraj"},
     {NULL}  /* Sentinel */
 };
 
