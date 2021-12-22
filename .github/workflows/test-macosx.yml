@@ -177,7 +177,7 @@ jobs:
     name: MaBoSS MacOSX 64 bits binary
     runs-on: macos-10.15
     needs: [maboss, maboss_llvm]
-    if: github.event_name == 'release'
+    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
 
     steps:
     - uses: actions/checkout@v2
@@ -251,8 +251,15 @@ jobs:
         make install_static CXX=g++ MAXNODES=1024 SBML_COMPAT=1
         cd ../pub
         zip MaBoSS-osx64.zip *
+    
+    - uses: actions/upload-artifact@v2
+      if: github.event_name != 'release'
+      with:
+        name: MaBoSS-osx64
+        path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/engine/pub/MaBoSS-osx64.zip
             
     - uses: actions/upload-release-asset@v1
+      if: github.event_name == 'release'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
@@ -260,6 +267,53 @@ jobs:
         asset_name: MaBoSS-osx64.zip
         asset_path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/engine/pub/MaBoSS-osx64.zip
         asset_content_type: application/zip
+        
+  maboss_library:
+    name: Building MaBoSS osx library
+    runs-on: macos-latest
+    needs: [maboss, maboss_llvm]
+    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run : |
+        brew install flex bison gcc
+              
+    - name: Build library
+      run: |
+        rm -fr engine/pub/*
+        cd engine/src
+        make clean
+        make install_lib 
+        make install_lib MAXNODES=128
+        make install_lib MAXNODES=256
+        make install_lib MAXNODES=512
+        make install_lib MAXNODES=1024
+        make install_alib 
+        make install_alib MAXNODES=128
+        make install_alib MAXNODES=256
+        make install_alib MAXNODES=512
+        make install_alib MAXNODES=1024
+        make clean
+        cd ../../../
+        tar -zcvf libMaBoSS-osx64.tar.gz MaBoSS-env-2.0/README.md MaBoSS-env-2.0/LICENSE MaBoSS-env-2.0/engine/src MaBoSS-env-2.0/engine/include MaBoSS-env-2.0/engine/lib
+        
+    - uses: actions/upload-artifact@v2
+      if: github.event_name != 'release'
+      with:
+        name: libMaBoSS-osx64
+        path: /Users/runner/work/MaBoSS-env-2.0/libMaBoSS-osx64.tar.gz
+        
+    - uses: actions/upload-release-asset@v1
+      if: github.event_name == 'release'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_name: libMaBoSS-osx64.tar.gz
+        asset_path: /Users/runner/work/MaBoSS-env-2.0/libMaBoSS-osx64.tar.gz
+        asset_content_type: application/gzip
         
   conda_maboss:
     name: Build Conda MaBoSS package

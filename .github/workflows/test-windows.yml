@@ -86,7 +86,7 @@ jobs:
     runs-on: windows-latest
     name: Building MaBoSS Windows 64bits binary
     needs: build
-    if: github.event_name == 'release'
+    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
 
     defaults:
       run:
@@ -156,8 +156,15 @@ jobs:
         make install_static MAXNODES=1024 SBML_COMPAT=1
         cd ../pub
         zip MaBoSS-win64.zip *
+    
+    - uses: actions/upload-artifact@v2
+      if: github.event_name != 'release'
+      with:
+        name: MaBoSS-win64
+        path: D:\a\MaBoSS-env-2.0/MaBoSS-env-2.0/engine/pub/MaBoSS-win64.zip
       
     - uses: actions/upload-release-asset@v1
+      if: github.event_name == 'release'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
@@ -166,5 +173,59 @@ jobs:
         asset_path: D:\a\MaBoSS-env-2.0/MaBoSS-env-2.0/engine/pub/MaBoSS-win64.zip
         asset_content_type: application/zip
         
+  maboss_library:
+    runs-on: windows-latest
+    name: Building MaBoSS Windows 64bits library
+    needs: build
+    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
+
+    defaults:
+      run:
+        shell: msys2 {0}
+        
+    steps:
+    - uses: actions/checkout@v2
+    
+    - uses: msys2/setup-msys2@v2
+      with:
+        update: true
+        install: flex bison make gcc diffutils mingw-w64-x86_64-toolchain mingw-w64-x86_64-python-pip mingw-w64-x86_64-python-numpy mingw-w64-x86_64-lapack mingw-w64-x86_64-openblas mingw-w64-x86_64-libxml2 mingw-w64-x86_64-cmake zip
+            
+    - name: Build library
+      run: |
+        rm -fr engine/pub/*
+        cd engine/src
+        make clean
+        make install_lib 
+        make install_lib MAXNODES=128
+        make install_lib MAXNODES=256
+        make install_lib MAXNODES=512
+        make install_lib MAXNODES=1024
+        make install_alib 
+        make install_alib MAXNODES=128
+        make install_alib MAXNODES=256
+        make install_alib MAXNODES=512
+        make install_alib MAXNODES=1024
+        make clean
+        cd ../../../
+        tar -zcvf libMaBoSS-win64.tar.gz MaBoSS-env-2.0/README.md MaBoSS-env-2.0/LICENSE MaBoSS-env-2.0/engine/src MaBoSS-env-2.0/engine/include MaBoSS-env-2.0/engine/lib
+        
+      
+    - uses: actions/upload-artifact@v2
+      if: github.event_name != 'release'
+      with:
+        name: libMaBoSS-win64
+        path: D:\a\MaBoSS-env-2.0/libMaBoSS-win64.tar.gz
+        
+    - uses: actions/upload-release-asset@v1
+      if: github.event_name == 'release'
+
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_name: libMaBoSS-win64.tar.gz
+        asset_path: D:\a\MaBoSS-env-2.0/libMaBoSS-win64.tar.gz
+        asset_content_type: application/gzip
         
       

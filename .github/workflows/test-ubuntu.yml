@@ -154,7 +154,7 @@ jobs:
     name: Building MaBoSS linux64 binary
     runs-on: ubuntu-18.04
     needs: [maboss, maboss_llvm]
-    if: github.event_name == 'release'
+    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
 
     steps:
     - uses: actions/checkout@v2
@@ -219,11 +219,13 @@ jobs:
         zip MaBoSS-linux64.zip *
         
     - uses: actions/upload-artifact@v2
+      if: github.event_name != 'release'
       with:
-        name: MaBoSS-2.4.0-linux64
-        path: /home/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/engine/pub/*
+        name: MaBoSS-linux64
+        path: /home/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/engine/pub/MaBoSS-linux64.zip
         
     - uses: actions/upload-release-asset@v1
+      if: github.event_name == 'release'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
@@ -231,6 +233,55 @@ jobs:
         asset_name: MaBoSS-linux64.zip
         asset_path: /home/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/engine/pub/MaBoSS-linux64.zip
         asset_content_type: application/zip
+  
+  
+  maboss_library:
+    name: Building MaBoSS linux64 library
+    runs-on: ubuntu-18.04
+    needs: [maboss, maboss_llvm]
+    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get install flex bison
+          
+    - name: Build binary
+      run: |
+        rm -fr engine/pub/*
+        cd engine/src
+        make clean
+        make install_lib 
+        make install_lib MAXNODES=128
+        make install_lib MAXNODES=256
+        make install_lib MAXNODES=512
+        make install_lib MAXNODES=1024
+        make install_alib 
+        make install_alib MAXNODES=128
+        make install_alib MAXNODES=256
+        make install_alib MAXNODES=512
+        make install_alib MAXNODES=1024
+        make clean
+        cd ../../../
+        tar -zcvf libMaBoSS-linux64.tar.gz MaBoSS-env-2.0/README.md MaBoSS-env-2.0/LICENSE MaBoSS-env-2.0/engine/src MaBoSS-env-2.0/engine/include MaBoSS-env-2.0/engine/lib
+        
+    - uses: actions/upload-artifact@v2
+      if: github.event_name != 'release'
+      with:
+        name: libMaBoSS-linux64
+        path: /home/runner/work/MaBoSS-env-2.0/libMaBoSS-linux64.tar.gz
+        
+    - uses: actions/upload-release-asset@v1
+      if: github.event_name == 'release'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_name: libMaBoSS-linux64.tar.gz
+        asset_path: /home/runner/work/MaBoSS-env-2.0/libMaBoSS-linux64.tar.gz
+        asset_content_type: application/gzip
   
   maboss_conda_defaults:
     name: Build MaBoSS Anaconda package
