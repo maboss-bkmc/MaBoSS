@@ -804,36 +804,7 @@ jobs:
         path: |
           /home/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/engine/python/manylinux_2010
         key: ${{ runner.os }}-cmaboss-manylinux2010-${{ github.run_id }}
-        
-  cmaboss_manylinux_1:
-    name: manylinux1 wheel
-    runs-on: ubuntu-18.04
-    needs: cmaboss
-    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
-
-    steps:
-    - uses: actions/checkout@v2
-    
-    - name: Compile MaBoSS
-      run: |
-        cd engine/src; make
-        cd ../python; cp -r ../src cmaboss
-        cd ../..
-        
-    - name: Build cMaBoSS manylinux1_x86_64
-      run: |
-        cd engine/python
-        docker run --rm -e PLAT=manylinux1_x86_64 -v `pwd`:/io quay.io/pypa/manylinux1_x86_64 /io/build-wheels.sh
-        mkdir manylinux_1
-        cp wheelhouse/* manylinux_1/
-            
-    - name: Caching produced wheels
-      uses: actions/cache@v2
-      with:
-        path: |
-          /home/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/engine/python/manylinux_1
-        key: ${{ runner.os }}-cmaboss-manylinux1-${{ github.run_id }}
-        
+       
   cmaboss_manylinux_2014:
     name: manylinux2014 wheel
     runs-on: ubuntu-18.04
@@ -895,17 +866,10 @@ jobs:
   cmaboss_manylinux_ubuntu18_test:
     name: Ubuntu 18 wheels test
     runs-on: ubuntu-18.04
-    needs: [cmaboss_manylinux_1, cmaboss_manylinux_2010, cmaboss_manylinux_2014, cmaboss_manylinux_2_24]
+    needs: [cmaboss_manylinux_2010, cmaboss_manylinux_2014, cmaboss_manylinux_2_24]
    
     steps:
     - uses: actions/checkout@v2
-    
-    - name: Caching produced wheels
-      uses: actions/cache@v2
-      with:
-        path: |
-          /home/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/engine/python/manylinux_1
-        key: ${{ runner.os }}-cmaboss-manylinux1-${{ github.run_id }}
     
     - name: Caching produced wheels
       uses: actions/cache@v2
@@ -932,7 +896,6 @@ jobs:
       run: |
         cd engine/python
         mkdir manylinuxes
-        cp manylinux_1/* manylinuxes
         cp manylinux_2010/* manylinuxes
         cp manylinux_2014/* manylinuxes
         cp manylinux_2_24/* manylinuxes
@@ -956,17 +919,10 @@ jobs:
   cmaboss_manylinux_ubuntu20_test:
     name: Ubuntu 20 wheels test
     runs-on: ubuntu-20.04
-    needs: [cmaboss_manylinux_1, cmaboss_manylinux_2010, cmaboss_manylinux_2014, cmaboss_manylinux_2_24]
+    needs: [cmaboss_manylinux_2010, cmaboss_manylinux_2014, cmaboss_manylinux_2_24]
  
     steps:
     - uses: actions/checkout@v2
-    
-    - name: Caching produced wheels
-      uses: actions/cache@v2
-      with:
-        path: |
-          /home/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/engine/python/manylinux_1
-        key: ${{ runner.os }}-cmaboss-manylinux1-${{ github.run_id }}
     
     - name: Caching produced wheels
       uses: actions/cache@v2
@@ -993,7 +949,6 @@ jobs:
       run: |
         cd engine/python
         mkdir manylinuxes
-        cp manylinux_1/* manylinuxes
         cp manylinux_2010/* manylinuxes
         cp manylinux_2014/* manylinuxes
         cp manylinux_2_24/* manylinuxes

@@ -36,6 +36,11 @@ for PYBIN in /opt/python/cp3[6789]*/bin; do
     "${PYBIN}/pip" wheel /io/ -w wheelhouse/
 done
 
+for PYBIN in /opt/python/cp310*/bin; do
+    "${PYBIN}/pip" install numpy
+    "${PYBIN}/pip" wheel /io/ -w wheelhouse/
+done
+
 # Bundle external shared libraries into the wheels
 for whl in wheelhouse/cmaboss*.whl; do
     auditwheel repair "$whl" --plat $PLAT -w /io/wheelhouse/
@@ -43,6 +48,11 @@ done
 
 # Install packages and test
 for PYBIN in /opt/python/cp3[6789]*/bin/; do
+    "${PYBIN}/pip" install cmaboss --no-index -f /io/wheelhouse
+    # (cd "$HOME"; "${PYBIN}/nosetests" maboss_module)
+done
+
+for PYBIN in /opt/python/cp310*/bin; do
     "${PYBIN}/pip" install cmaboss --no-index -f /io/wheelhouse
     # (cd "$HOME"; "${PYBIN}/nosetests" maboss_module)
 done
