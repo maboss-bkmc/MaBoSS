@@ -246,7 +246,7 @@ jobs:
       run: |
         conda update conda
         conda update conda --all
-        conda install conda-build anaconda-client
+        conda install conda-build anaconda-client conda-verify
       
     - name: Build Anaconda package
       run: |
@@ -275,7 +275,7 @@ jobs:
         conda config --add channels conda-forge
         conda config --set channel_priority strict
         conda update conda --all
-        conda install conda-build anaconda-client
+        conda install conda-build anaconda-client conda-verify
       
     - name: Build Anaconda package
       run: |
@@ -591,7 +591,7 @@ jobs:
       run: |
         conda update conda
         conda update conda --all
-        conda install conda-build anaconda-client
+        conda install conda-build anaconda-client conda-verify
       
     - name: Build cMaBoSS Anaconda package
       run: |
@@ -600,6 +600,7 @@ jobs:
         conda build -c colomoto --variants "{\"python\": [\"3.6\", \"3.7\", \"3.8\"], \"numpy\": \"1.18\"}" conda/cmaboss;
         conda build -c colomoto --variants "{\"python\": [\"3.6\", \"3.7\", \"3.8\", \"3.9\"], \"numpy\": \"1.19\"}" conda/cmaboss;
         conda build -c colomoto --variants "{\"python\": [\"3.7\", \"3.8\", \"3.9\"], \"numpy\": \"1.20\"}" conda/cmaboss;
+        conda build -c colomoto --variants "{\"python\": [\"3.7\", \"3.8\", \"3.9\", \"3.10\"], \"numpy\": \"1.21\"}" conda/cmaboss;
         
     - name: Caching produced conda package
       uses: actions/cache@v2
@@ -624,7 +625,7 @@ jobs:
         conda config --add channels conda-forge
         conda config --set channel_priority strict
         conda update conda --all
-        conda install conda-build anaconda-client
+        conda install conda-build anaconda-client conda-verify
       
     - name: Build cMaBoSS Anaconda package
       run: |
@@ -633,6 +634,7 @@ jobs:
         CUSTOM_BUILD_NUMBER=1 conda build -c colomoto --variants "{\"python\": [\"3.6\", \"3.7\", \"3.8\"], \"numpy\": \"1.18\"}" conda/cmaboss;
         CUSTOM_BUILD_NUMBER=1 conda build -c colomoto --variants "{\"python\": [\"3.6\", \"3.7\", \"3.8\", \"3.9\"], \"numpy\": \"1.19\"}" conda/cmaboss;
         CUSTOM_BUILD_NUMBER=1 conda build -c colomoto --variants "{\"python\": [\"3.7\", \"3.8\", \"3.9\"], \"numpy\": \"1.20\"}" conda/cmaboss;
+        CUSTOM_BUILD_NUMBER=1 conda build -c colomoto --variants "{\"python\": [\"3.7\", \"3.8\", \"3.9\", \"3.10\"], \"numpy\": \"1.21\"}" conda/cmaboss;
         
     - name: Caching produced conda package
       uses: actions/cache@v2

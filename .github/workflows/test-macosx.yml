@@ -258,18 +258,18 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: s-weigand/setup-conda@v1
-
+    
     - name: Installing conda-build      
       run: |
         conda update conda
         conda update conda --all
-        conda install conda-build
+        conda install conda-build conda-verify
 
     - name: Downgrading XCode to 11.7
       run: |
         sudo xcode-select -s /Applications/Xcode_11.7.app/Contents/Developer
         brew reinstall llvm    
-    
+
     - name: Build MaBoSS Anaconda package
       run: |
         conda build -c colomoto conda/maboss
@@ -297,13 +297,8 @@ jobs:
         conda config --add channels conda-forge
         conda config --set channel_priority strict
         conda update conda --all
-        conda install conda-build
+        conda install conda-build conda-verify
 
-    - name: Downgrading XCode to 11.7
-      run: |
-        sudo xcode-select -s /Applications/Xcode_11.7.app/Contents/Developer
-        brew reinstall llvm    
-    
     - name: Build MaBoSS Anaconda package
       run: |
         CUSTOM_BUILD_NUMBER=1 conda build -c colomoto conda/maboss
@@ -552,7 +547,7 @@ jobs:
   
   conda_cmaboss:
     name: cMaBoSS Conda package
-    runs-on: macos-latest
+    runs-on: macos-10.15
     needs: cmaboss
     if: github.ref == 'refs/heads/master' || github.event_name == 'release'
 
@@ -564,7 +559,7 @@ jobs:
       run: |
         conda update conda
         conda update --all
-        conda install conda-build
+        conda install conda-build conda-verify
       
     - name: Downgrading XCode to 11.7
       run: |
@@ -578,6 +573,7 @@ jobs:
         conda build -c colomoto --variants "{\"python\": [\"3.6\", \"3.7\", \"3.8\"], \"numpy\": \"1.18\"}" conda/cmaboss;
         conda build -c colomoto --variants "{\"python\": [\"3.6\", \"3.7\", \"3.8\", \"3.9\"], \"numpy\": \"1.19\"}" conda/cmaboss;
         conda build -c colomoto --variants "{\"python\": [\"3.7\", \"3.8\", \"3.9\"], \"numpy\": \"1.20\"}" conda/cmaboss;
+        conda build -c colomoto --variants "{\"python\": [\"3.7\", \"3.8\", \"3.9\", \"3.10\"], \"numpy\": \"1.21\"}" conda/cmaboss;
         
     - name: Caching produced conda package
       uses: actions/cache@v2
@@ -588,7 +584,7 @@ jobs:
     
   conda_cmaboss_conda_forge:
     name: cMaBoSS Conda package (conda-forge)
-    runs-on: macos-latest
+    runs-on: macos-10.15
     needs: cmaboss
     if: github.ref == 'refs/heads/master' || github.event_name == 'release'
 
@@ -602,13 +598,8 @@ jobs:
         conda config --add channels conda-forge
         conda config --set channel_priority strict
         conda update --all
-        conda install conda-build
+        conda install conda-build conda-verify
       
-    - name: Downgrading XCode to 11.7
-      run: |
-        sudo xcode-select -s /Applications/Xcode_11.7.app/Contents/Developer
-        brew reinstall llvm    
-    
     - name: Build cMaBoSS Anaconda package
       run: |
         CUSTOM_BUILD_NUMBER=1 conda build -c colomoto --variants "{\"python\": [\"3.6\", \"3.7\"], \"numpy\": \"1.16\"}" conda/cmaboss;
@@ -616,6 +607,7 @@ jobs:
         CUSTOM_BUILD_NUMBER=1 conda build -c colomoto --variants "{\"python\": [\"3.6\", \"3.7\", \"3.8\"], \"numpy\": \"1.18\"}" conda/cmaboss;
         CUSTOM_BUILD_NUMBER=1 conda build -c colomoto --variants "{\"python\": [\"3.6\", \"3.7\", \"3.8\", \"3.9\"], \"numpy\": \"1.19\"}" conda/cmaboss;
         CUSTOM_BUILD_NUMBER=1 conda build -c colomoto --variants "{\"python\": [\"3.7\", \"3.8\", \"3.9\"], \"numpy\": \"1.20\"}" conda/cmaboss;
+        CUSTOM_BUILD_NUMBER=1 conda build -c colomoto --variants "{\"python\": [\"3.7\", \"3.8\", \"3.9\", \"3.10\"], \"numpy\": \"1.21\"}" conda/cmaboss;
         
     - name: Caching produced conda package
       uses: actions/cache@v2
@@ -627,7 +619,7 @@ jobs:
     
   cmaboss_conda_test:
     name: cMaBoSS Anaconda package test
-    runs-on: macos-latest
+    runs-on: macos-10.15
     needs: conda_cmaboss
     
     steps:
@@ -660,7 +652,7 @@ jobs:
         
   cmaboss_conda_test_conda_forge:
     name: cMaBoSS Anaconda package test (conda-forge)
-    runs-on: macos-latest
+    runs-on: macos-10.15
     needs: conda_cmaboss_conda_forge
     
     steps:
@@ -695,7 +687,7 @@ jobs:
   
   cmaboss_conda_publish:
     name: cMaBoSS Anaconda package publication
-    runs-on: macos-latest
+    runs-on: macos-10.15
     needs: cmaboss_conda_test
     
     steps:
@@ -728,7 +720,7 @@ jobs:
  
   cmaboss_conda_publish_conda_forge:
     name: cMaBoSS Anaconda package publication (conda-forge)
-    runs-on: macos-latest
+    runs-on: macos-10.15
     needs: cmaboss_conda_test_conda_forge
     
     steps:
