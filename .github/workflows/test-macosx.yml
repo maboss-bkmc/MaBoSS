@@ -773,15 +773,14 @@ jobs:
         anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/local/miniconda/conda-bld/osx-64/*.tar.bz2 --force;
             
   cmaboss_pypi:
-    name: cMaBoSS PyPi package
-    runs-on: macos-latest
+    name: cMaBoSS PyPi package on MacOSX 10.15
+    runs-on: macos-10.15
     needs: cmaboss
     if: github.ref == 'refs/heads/master' || github.event_name == 'release'
 
     strategy:
       matrix:
         python:
-          - 3.5.10
           - 3.6.12
           - 3.7.9
           - 3.8.6
@@ -789,33 +788,39 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     
-    - name: Setup python env
-      uses: gabrielfalcao/pyenv-action@v7
-      with:
-        default: "${{ matrix.python }}"
-        command: |
-          pip install -U pip  # upgrade pip after installing python
-          
-    - name: Install python dependencies
-      run: pip install twine wheel numpy
-
-    - name: Install libSBML
+    - name: Install packages
       run: |
-        brew install flex bison gcc@10 python3 libxml2 cmake
-        pip3 install numpy delocate
-    
+        brew install flex bison gcc libxml2 cmake pyenv
+        
+    - name: Install python
+      run: |
+        pyenv install ${{ matrix.python }}
+        echo "/Users/runner/.pyenv/shims" >> $GITHUB_PATH
+        pyenv global ${{ matrix.python }}
+        
+    - name: Install python libraries 
+      run: |
+        python -m pip install twine wheel numpy delocate
+        pyenv rehash
+
     - name: Get cmake version
       id: get-cmake-version
       run: |
         echo "::set-output name=version::$(cmake --version | head -n 1 | cut -d' ' -f 3)"
       shell: bash
 
+    - name: Get xcode version
+      id: get-xcode-version
+      run: |
+        echo "::set-output name=version::$(xcodebuild -version | sed -En 's/Xcode[[:space:]]+([0-9\.]*)/\1/p')"
+      shell: bash
+      
     - name: Cache compiled libSBML
       id: cache-libsbml-clang
       uses: actions/cache@v2
       with:
         path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
-        key: ${{ runner.os }}-libSBML-5.19-clang++-namespace-${{ steps.get-cmake-version.outputs.version }}
+        key: ${{ runner.os }}-libSBML-5.19-clang++-namespace-${{ steps.get-cmake-version.outputs.version }}-${{ steps.get-xcode-version.outputs.version }}
 
     - name: Compiling libSBML
       if: steps.cache-libsbml-clang.outputs.cache-hit != 'true'
@@ -866,7 +871,7 @@ jobs:
     - name: Build cMaBoSS
       run: |
         cd engine/python
-        pip wheel -w wheelhouse .
+        python -m pip wheel -w wheelhouse .
         
     - name: Fix wheel dependencies
       run: |
@@ -876,13 +881,12 @@ jobs:
         ls -al fixed_wheels
 
   cmaboss_wheel_test:
-    name: cMaBoSS Wheel test
-    runs-on: macos-latest
+    name: cMaBoSS Wheel test on MacOSX 10.15
+    runs-on: macos-10.15
     needs: cmaboss_pypi
     strategy:
       matrix:
         python:
-          - 3.5.10
           - 3.6.12
           - 3.7.9
           - 3.8.6
@@ -890,15 +894,20 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     
-    - name: Setup python env
-      uses: gabrielfalcao/pyenv-action@v7
-      with:
-        default: "${{ matrix.python }}"
-        command: |
-          pip install -U pip  # upgrade pip after installing python
-          
+    - name: Install packages
+      run: |
+        brew install flex bison gcc libxml2 cmake pyenv
+        
+    - name: Install python
+      run: |
+        pyenv install ${{ matrix.python }}
+        echo "/Users/runner/.pyenv/shims" >> $GITHUB_PATH
+        pyenv global ${{ matrix.python }}
+
     - name: Install python dependencies
-      run: pip install twine wheel numpy pandas
+      run: |
+        python -m pip install twine wheel numpy delocate
+        pyenv rehash
 
     - name: Cache wheel
       uses: actions/cache@v2
@@ -911,7 +920,7 @@ jobs:
         cd engine/python
         ls -al fixed_wheels
         unzip -l fixed_wheels/*.whl
-        pip install -f fixed_wheels --no-index cmaboss
+        python -m pip install -f fixed_wheels --no-index cmaboss
         
     - name: Test wheel
       run: |
@@ -920,13 +929,12 @@ jobs:
         python -m unittest test_128n
        
   cmaboss_wheel_publish:
-    name: cMaBoSS Wheel publish
-    runs-on: macos-latest
+    name: cMaBoSS Wheel publish on MacOSX 10.15
+    runs-on: macos-10.15
     needs: cmaboss_wheel_test
     strategy:
       matrix:
         python:
-          - 3.5.10
           - 3.6.12
           - 3.7.9
           - 3.8.6
@@ -934,16 +942,21 @@ jobs:
     
     steps:
     - uses: actions/checkout@v2
-    - name: Setup python env
-      uses: gabrielfalcao/pyenv-action@v7
-      with:
-        default: "${{ matrix.python }}"
-        command: |
-          pip install -U pip  # upgrade pip after installing python
-    
-    - name: Install python dependencies
-      run: pip install twine 
+    - name: Install packages
+      run: |
+        brew install flex bison gcc libxml2 cmake pyenv
+        
+    - name: Install python
+      run: |
+        pyenv install ${{ matrix.python }}
+        echo "/Users/runner/.pyenv/shims" >> $GITHUB_PATH
+        pyenv global ${{ matrix.python }}
 
+    - name: Install python dependencies
+      run: |
+        python -m pip install twine
+        pyenv rehash
+        
     - name: Cache wheel
       uses: actions/cache@v2
       with:
@@ -967,3 +980,212 @@ jobs:
       run: |
         cd engine/python
         python -m twine upload --skip-existing fixed_wheels/cmaboss*
+        
+  cmaboss_pypi_macos11:
+    name: cMaBoSS PyPi package on MacOSX 11
+    runs-on: macos-11
+    needs: cmaboss
+    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
+
+    strategy:
+      matrix:
+        python:
+          - 3.7.12
+          - 3.8.12
+          - 3.9.9
+          - 3.10.0
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Install packages
+      run: |
+        brew install flex bison gcc libxml2 cmake pyenv
+        
+    - name: Install python
+      run: |
+        pyenv install ${{ matrix.python }}
+        echo "/Users/runner/.pyenv/shims" >> $GITHUB_PATH
+        pyenv global ${{ matrix.python }}
+
+    - name: Install python libraries 
+      run: |
+        python -m pip install twine wheel numpy delocate
+        pyenv rehash
+
+    - name: Get cmake version
+      id: get-cmake-version
+      run: |
+        echo "::set-output name=version::$(cmake --version | head -n 1 | cut -d' ' -f 3)"
+      shell: bash
+
+    - name: Get xcode version
+      id: get-xcode-version
+      run: |
+        echo "::set-output name=version::$(xcodebuild -version | sed -En 's/Xcode[[:space:]]+([0-9\.]*)/\1/p')"
+      shell: bash
+      
+    - name: Cache compiled libSBML
+      id: cache-libsbml-clang
+      uses: actions/cache@v2
+      with:
+        path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
+        key: ${{ runner.os }}-libSBML-5.19-clang++-namespace-${{ steps.get-cmake-version.outputs.version }}-${{ steps.get-xcode-version.outputs.version }}
+
+    - name: Compiling libSBML
+      if: steps.cache-libsbml-clang.outputs.cache-hit != 'true'
+      run: |
+        wget https://sourceforge.net/projects/sbml/files/libsbml/5.19.0/stable/libSBML-5.19.0-core-plus-packages-src.tar.gz
+        tar -zxf libSBML-5.19.0-core-plus-packages-src.tar.gz
+        cd libSBML-5.19.0-Source
+        mkdir build
+        cd build
+        cmake -DCMAKE_INSTALL_PREFIX=/usr/local \
+        -DCMAKE_INSTALL_LIBDIR=/usr/local/lib \
+        -DCMAKE_CXX_COMPILER=g++ \
+        -DCMAKE_C_COMPILER=gcc \
+        -DCMAKE_CXX_STANDARD_LIBRARIES=-lxml2 \
+        -DWITH_SWIG=OFF \
+        -DLIBXML_LIBRARY=/usr/local/opt/libxml2/lib \
+        -DLIBXML_INCLUDE_DIR=/usr/local/opt/libxml2/include/libxml2 \
+        -DENABLE_COMP=ON \
+        -DENABLE_FBC=ON \
+        -DENABLE_GROUPS=ON \
+        -DENABLE_LAYOUT=ON \
+        -DENABLE_MULTI=ON \
+        -DENABLE_QUAL=ON \
+        -DENABLE_RENDER=ON \
+        -DENABLE_DISTRIB=ON \
+        -DWITH_CPP_NAMESPACE=ON \
+        .. 
+        make 
+        cd ../..
+        
+    - name: Install libSBML
+      run: |
+        cd libSBML-5.19.0-Source/build
+        sudo make install
+    
+    - name: Compile MaBoSS
+      run: |
+        cd engine/src; make
+        cd ../python; cp -r ../src cmaboss/
+        cd ../..
+    
+    - name: Cache wheel
+      uses: actions/cache@v2
+      with:
+        path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/engine/python/fixed_wheels/*
+        key: ${{ runner.os }}-wheel-${{ matrix.python }}-${{ github.run_id }}
+
+    - name: Build cMaBoSS
+      run: |
+        cd engine/python
+        python -m pip wheel -w wheelhouse .
+        
+    - name: Fix wheel dependencies
+      run: |
+        cd engine/python
+        cp /usr/local/lib/libsbml*.dylib .
+        delocate-wheel -w fixed_wheels -v `ls wheelhouse/cmaboss*.whl`
+        ls -al fixed_wheels
+
+  cmaboss_wheel_test_macos11:
+    name: cMaBoSS Wheel test on MacOSX 11
+    runs-on: macos-11
+    needs: cmaboss_pypi_macos11
+    strategy:
+      matrix:
+        python:
+          - 3.7.12
+          - 3.8.12
+          - 3.9.9
+          - 3.10.0
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Install packages
+      run: |
+        brew install flex bison gcc libxml2 cmake pyenv
+        
+    - name: Install python
+      run: |
+        pyenv install ${{ matrix.python }}
+        echo "/Users/runner/.pyenv/shims" >> $GITHUB_PATH
+        pyenv global ${{ matrix.python }}
+        
+    - name: Install python dependencies
+      run: |
+        python -m pip install twine wheel numpy delocate
+        pyenv rehash
+
+    - name: Cache wheel
+      uses: actions/cache@v2
+      with:
+        path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/engine/python/fixed_wheels/*
+        key: ${{ runner.os }}-wheel-${{ matrix.python }}-${{ github.run_id }}
+
+    - name: Install wheel
+      run: |
+        cd engine/python
+        ls -al fixed_wheels
+        unzip -l fixed_wheels/*.whl
+        python -m pip install -f fixed_wheels --no-index cmaboss
+        
+    - name: Test wheel
+      run: |
+        cd engine/tests
+        python -m unittest test
+        python -m unittest test_128n
+       
+  cmaboss_wheel_publish_macos11:
+    name: cMaBoSS Wheel publish on MacOSX 11
+    runs-on: macos-11
+    needs: cmaboss_wheel_test_macos11
+    strategy:
+      matrix:
+        python:
+          - 3.7.12
+          - 3.8.12
+          - 3.9.9
+          - 3.10.0
+    
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install packages
+      run: |
+        brew install flex bison gcc libxml2 cmake pyenv
+        
+    - name: Install python
+      run: |
+        pyenv install ${{ matrix.python }}
+        echo "/Users/runner/.pyenv/shims" >> $GITHUB_PATH
+        pyenv global ${{ matrix.python }}
+        
+    - name: Install python dependencies
+      run: |
+        python -m pip install twine
+        pyenv rehash
+        
+    - name: Cache wheel
+      uses: actions/cache@v2
+      with:
+        path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/engine/python/fixed_wheels/*
+        key: ${{ runner.os }}-wheel-${{ matrix.python }}-${{ github.run_id }}
+        
+    - name: Upload cMaBoSS to test Pypi
+      if: github.repository == 'vincent-noel/MaBoSS-env-2.0' && github.ref == 'refs/heads/master'
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_TEST_TOKEN }}
+      run: |
+        cd engine/python
+        twine upload --repository testpypi --skip-existing fixed_wheels/cmaboss*
+        
+    - name: Upload cMaBoSS to Pypi
+      if: github.repository == 'sysbio-curie/MaBoSS-env-2.0' && github.event_name == 'release'
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+      run: |
+        cd engine/python
+        twine upload --skip-existing fixed_wheels/cmaboss*
