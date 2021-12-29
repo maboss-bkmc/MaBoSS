@@ -117,8 +117,8 @@ class MBDynBitsetAllocator {
   };
 
   struct CellHeader {
-    int which; // buffer_index
-    int num;
+    unsigned int which; // buffer_index
+    unsigned int num;
     //unsigned char busy;
     unsigned char thread_index;
   };
@@ -131,7 +131,7 @@ class MBDynBitsetAllocator {
   size_t total_been_freed_cell_cnt;
   size_t cell_size;
 
-  int init(size_t num_bytes) {
+  unsigned int init(size_t num_bytes) {
     if (total_free_cell_cnt == 0) {
       cell_size = num_bytes + sizeof(CellHeader);
       bitmap_alloc_v.push_back(bitmap_alloc_t());
@@ -152,8 +152,8 @@ public:
   }
 
   uint8_t* alloc(size_t num_bytes) {
-    int which = init(num_bytes);
-    int cell_num = cellnum_v[which];
+    unsigned int which = init(num_bytes);
+    unsigned int cell_num = cellnum_v[which];
     uint8_t* buffer = buffer_v[which];
     BucketHeader* bh = (BucketHeader*)buffer;
     uint8_t* alloc_buffer = buffer+sizeof(BucketHeader);
@@ -179,7 +179,7 @@ public:
 
   void free(uint64_t* data) {
     CellHeader* cell = (CellHeader*)((uint8_t*)data-sizeof(CellHeader));
-    int which = cell->which;
+    unsigned int which = cell->which;
     //assert(which < buffer_v.size());
     //assert(cell->num < BUCKET_SIZE);
     //std::cout << "free: which=" << which << ", cell_num=" << cell->num << '\n';
