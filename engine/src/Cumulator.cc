@@ -65,6 +65,7 @@ double distance(const STATE_MAP<NetworkState_Impl, double>& proba_dist1, const S
 
 void Cumulator::check() const
 {
+#ifndef NDEBUG
   // check that for each tick (except the last one), the sigma of each map == 1.
   for (int nn = 0; nn < max_tick_index; ++nn) {
     const CumulMap& mp = get_map(nn);
@@ -78,6 +79,7 @@ void Cumulator::check() const
     sum /= time_tick*sample_count;
     assert(sum >= 1. - 0.0001 && sum <= 1. + 0.0001);
   }
+#endif
 }
 
 void Cumulator::trajectoryEpilogue()
@@ -99,7 +101,9 @@ void Cumulator::trajectoryEpilogue()
   }
 
   //std::cout << "Trajepilogue #" << (sample_num+1) << " " << proba_max_time << '\n';
+#ifndef NDEBUG
   double proba = 0;
+#endif
   curtraj_proba_dist_iter.rewind();
 
   ProbaDist& proba_dist = proba_dist_v[sample_num++];
@@ -110,7 +114,9 @@ void Cumulator::trajectoryEpilogue()
     //assert(proba_dist.find(state) == proba_dist.end());
     double new_tm_slice = tm_slice / proba_max_time;
     proba_dist.set(state, new_tm_slice);
+#ifndef NDEBUG
     proba += new_tm_slice;
+#endif
   }
 
   assert(proba >= 0.9999 && proba <= 1.0001);
