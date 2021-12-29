@@ -183,8 +183,6 @@ void Cumulator::epilogue(Network* network, const NetworkState& reference_state)
 
 void Cumulator::displayProbTraj(Network* network, unsigned int refnode_count, ProbTrajDisplayer* displayer) const
 {
-  std::vector<Node*>::const_iterator begin_network;
-
   displayer->begin(COMPUTE_ERRORS, maxcols, refnode_count);
 
   double time_tick2 = time_tick * time_tick;
@@ -867,8 +865,6 @@ void Cumulator::displayCSV(Network* network, unsigned int refnode_count, std::os
 
 void Cumulator::displayProbTrajCSV_OBSOLETE(Network* network, unsigned int refnode_count, std::ostream& os_probtraj, bool hexfloat) const
 {
-  std::vector<Node*>::const_iterator begin_network;
-
   os_probtraj << "Time\tTH" << (COMPUTE_ERRORS ? "\tErrorTH" : "") << "\tH";
 
   for (unsigned int jj = 0; jj <= refnode_count; ++jj) {
