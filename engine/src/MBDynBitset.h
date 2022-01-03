@@ -76,6 +76,7 @@ public:
     true_copy_cnt++;
 #endif
     data = 0;
+    num_bytes = 0;
     *this = bitset;
   }
 
@@ -145,6 +146,16 @@ public:
     return ((b_data[byte_loc] >> offset) & 0x1) == 1;
   }
 
+  void reset() {
+    /*if (num_64 == 1) {
+      data[0] = 0ULL;
+      } else*/ {
+      for (size_t nn = 0; nn < num_64; ++nn) {
+	data[nn] = 0ULL;
+      }
+    }
+  }
+  
   void set() {
     /*if (num_64 == 1) {
       data[0] = ~0ULL;
