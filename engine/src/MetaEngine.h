@@ -86,7 +86,9 @@ protected:
   std::vector<Cumulator*> cumulator_v;
 
   STATE_MAP<NetworkState_Impl, unsigned int>* mergeFixpointMaps();
-
+  NodeIndex getTargetNode(Network* _network, RandomGenerator* random_generator, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
+  double computeTH(Network* _network, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
+  
 public:
 
   MetaEngine(Network* network, RunConfig* runconfig) : 

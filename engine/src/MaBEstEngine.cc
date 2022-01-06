@@ -114,62 +114,6 @@ MaBEstEngine::MaBEstEngine(Network* network, RunConfig* runconfig) :
   }
 }
 
-NodeIndex MaBEstEngine::getTargetNode(RandomGenerator* random_generator, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const
-{
-  double U_rand2 = random_generator->generate();
-  double random_rate = U_rand2 * total_rate;
-  MAP<NodeIndex, double>::const_iterator begin = nodeTransitionRates.begin();
-  MAP<NodeIndex, double>::const_iterator end = nodeTransitionRates.end();
-  NodeIndex node_idx = INVALID_NODE_INDEX;
-  while (begin != end && random_rate >= 0.) {
-    node_idx = (*begin).first;
-    double rate = (*begin).second;
-    random_rate -= rate;
-    ++begin;
-  }
-
-  assert(node_idx != INVALID_NODE_INDEX);
-  assert(network->getNode(node_idx)->getIndex() == node_idx);
-  return node_idx;
-}
-
-double MaBEstEngine::computeTH(const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const
-{
-  if (nodeTransitionRates.size() == 1) {
-    return 0.;
-  }
-
-  MAP<NodeIndex, double>::const_iterator begin = nodeTransitionRates.begin();
-  MAP<NodeIndex, double>::const_iterator end = nodeTransitionRates.end();
-  double TH = 0.;
-  double rate_internal = 0.;
-
-  while (begin != end) {
-    NodeIndex index = (*begin).first;
-    double rate = (*begin).second;
-    if (network->getNode(index)->isInternal()) {
-      rate_internal += rate;
-    }
-    ++begin;
-  }
-
-  double total_rate_non_internal = total_rate - rate_internal;
-
-  begin = nodeTransitionRates.begin();
-
-  while (begin != end) {
-    NodeIndex index = (*begin).first;
-    double rate = (*begin).second;
-    if (!network->getNode(index)->isInternal()) {
-      double proba = rate / total_rate_non_internal;
-      TH -= log2(proba) * proba;
-    }
-    ++begin;
-  }
-
-  return TH;
-}
-
 struct ArgWrapper {
   MaBEstEngine* mabest;
   unsigned int start_count_thread;
@@ -283,7 +227,7 @@ void MaBEstEngine::runThread(Cumulator* cumulator, unsigned int start_count_thre
 	}
 	
 	tm += transition_time;
-	TH = computeTH(nodeTransitionRates, total_rate);
+	TH = computeTH(network, nodeTransitionRates, total_rate);
       }
 
       if (NULL != output_traj) {
@@ -298,7 +242,7 @@ void MaBEstEngine::runThread(Cumulator* cumulator, unsigned int start_count_thre
 	break;
       }
 
-      NodeIndex node_idx = getTargetNode(random_generator, nodeTransitionRates, total_rate);
+      NodeIndex node_idx = getTargetNode(network, random_generator, nodeTransitionRates, total_rate);
       network_state.flipState(network->getNode(node_idx));
       step++;
     }
