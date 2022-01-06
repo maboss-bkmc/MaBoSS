@@ -11,7 +11,7 @@ except ImportError:
 
 
 
-maboss_version = '1.0.0b15'
+maboss_version = '1.0.0b16'
 
 maboss_sources = [
    "FixedPointDisplayer.cc", "ProbTrajDisplayer.cc", "StatDistDisplayer.cc",
