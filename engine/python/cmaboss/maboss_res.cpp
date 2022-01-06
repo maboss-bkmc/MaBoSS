@@ -55,6 +55,9 @@
 #include "src/BooleanNetwork.h"
 #include "src/MaBEstEngine.h"
 #include "maboss_commons.h"
+#include "src/FixedPointDisplayer.h"
+#include "src/ProbTrajDisplayer.h"
+#include "src/StatDistDisplayer.h"
 
 typedef struct {
   PyObject_HEAD
@@ -169,7 +172,9 @@ static PyObject* cMaBoSSResult_display_fp(cMaBoSSResultObject* self, PyObject *a
     return NULL;
     
   std::ostream* output_fp = new std::ofstream(filename);
-  self->engine->displayFixpoints(*output_fp, (bool) hexfloat);
+  CSVFixedPointDisplayer* fp_displayer = new CSVFixedPointDisplayer(self->network, *output_fp, (bool)hexfloat);
+  self->engine->displayFixpoints(fp_displayer);
+  delete(fp_displayer);
   ((std::ofstream*) output_fp)->close();
   delete output_fp;
 
@@ -184,7 +189,11 @@ static PyObject* cMaBoSSResult_display_probtraj(cMaBoSSResultObject* self, PyObj
     return NULL;
     
   std::ostream* output_probtraj = new std::ofstream(filename);
-  self->engine->displayProbTraj(*output_probtraj, (bool) hexfloat);
+  CSVProbTrajDisplayer* probtraj_displayer = new CSVProbTrajDisplayer(self->network, *output_probtraj, (bool)hexfloat);
+  
+  self->engine->displayProbTraj(probtraj_displayer);
+  
+  delete probtraj_displayer;
   ((std::ofstream*) output_probtraj)->close();
   delete output_probtraj;
 
@@ -199,7 +208,9 @@ static PyObject* cMaBoSSResult_display_statdist(cMaBoSSResultObject* self, PyObj
     return NULL;
     
   std::ostream* output_statdist = new std::ofstream(filename);
-  self->engine->displayStatDist(*output_statdist, (bool) hexfloat);
+  CSVStatDistDisplayer*  statdist_displayer = new CSVStatDistDisplayer(self->network, *output_statdist, (bool)hexfloat);
+  self->engine->displayStatDist(statdist_displayer);
+  delete statdist_displayer;
   ((std::ofstream*) output_statdist)->close();
   delete output_statdist;
 
