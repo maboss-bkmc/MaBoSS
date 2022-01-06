@@ -697,6 +697,30 @@ void EnsembleEngine::displayIndividual(unsigned int model_id, std::ostream& outp
   }
 }
 
+void EnsembleEngine::displayIndividualFixpoints(unsigned int model_id, FixedPointDisplayer* displayer) const 
+{
+  displayer->begin(fixpoints_per_model[model_id]->size());
+  
+  STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator begin = fixpoints_per_model[model_id]->begin();
+  STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator end = fixpoints_per_model[model_id]->end();
+  
+  for (unsigned int nn = 0; begin != end; ++nn) {
+    const NetworkState& network_state = begin->first;
+    displayer->displayFixedPoint(nn+1, network_state, begin->second, sample_count);
+    ++begin;
+  }
+  displayer->end();
+}
+
+
+
+void EnsembleEngine::displayIndividual(unsigned int model_id, ProbTrajDisplayer* probtraj_displayer, StatDistDisplayer* statdist_displayer, FixedPointDisplayer* fp_displayer) const
+{
+  cumulators_per_model[model_id]->displayProbTraj(networks[model_id], refnode_count, probtraj_displayer);
+  cumulators_per_model[model_id]->displayStatDist(networks[model_id], refnode_count, statdist_displayer);
+  displayIndividualFixpoints(model_id, fp_displayer);
+}
+
 EnsembleEngine::~EnsembleEngine()
 {
   for (auto t_fixpoint_map: fixpoint_map_v)
