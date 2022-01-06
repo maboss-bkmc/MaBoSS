@@ -83,6 +83,7 @@ class EnsembleEngine : public MetaEngine {
   static void* threadWrapper(void *arg);
   void runThread(Cumulator* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj, std::vector<unsigned int> simulation_ind, std::vector<Cumulator*> t_models_cumulators, std::vector<STATE_MAP<NetworkState_Impl, unsigned int>* > t_models_fixpoints);
   void mergeEnsembleFixpointMaps();
+  void displayIndividualFixpoints(unsigned int model_id, FixedPointDisplayer* fp_displayer) const;
 
 public:
   static const std::string VERSION;
@@ -91,9 +92,7 @@ public:
 
   void run(std::ostream* output_traj);
 
-  void displayIndividual(unsigned int model_id, std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat = false) const;
   void displayIndividual(unsigned int model_id, ProbTrajDisplayer* probtraj_displayer, StatDistDisplayer* statdist_displayer, FixedPointDisplayer* fp_displayer) const;
-  void displayIndividualFixpoints(unsigned int model_id, FixedPointDisplayer* fp_displayer) const;
   ~EnsembleEngine();
 };
 

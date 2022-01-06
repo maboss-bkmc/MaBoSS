@@ -659,44 +659,6 @@ void EnsembleEngine::epilogue()
 
 }
 
-void EnsembleEngine::displayIndividual(unsigned int model_id, std::ostream& output_probtraj, std::ostream& output_statdist, std::ostream& output_fp, bool hexfloat) const {
-
-  if (cumulators_per_model[model_id] != NULL){
-    cumulators_per_model[model_id]->displayCSV(networks[0], refnode_count, output_probtraj, output_statdist, hexfloat);
-  }
-
-  if (fixpoints_per_model[model_id] != NULL){
-    output_fp << "Fixed Points (" << fixpoints_per_model[model_id]->size() << ")\n";
-    if (0 < fixpoints_per_model[model_id]->size()) {
-
-#ifdef HAS_STD_HEXFLOAT
-      if (hexfloat) {
-        output_fp << std::hexfloat;
-      }
-#endif
-
-      STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator begin = fixpoints_per_model[model_id]->begin();
-      STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator end = fixpoints_per_model[model_id]->end();
-      
-      output_fp << "FP\tProba\tState\t";
-      networks[model_id]->displayHeader(output_fp);
-      for (unsigned int nn = 0; begin != end; ++nn) {
-        const NetworkState& network_state = (*begin).first;
-        output_fp << "#" << (nn+1) << "\t";
-        if (hexfloat) {
-          output_fp << fmthexdouble((double)(*begin).second / sample_count) <<  "\t";
-        } else {
-          output_fp << ((double)(*begin).second / sample_count) <<  "\t";
-        }
-        network_state.displayOneLine(output_fp, networks[model_id]);
-        output_fp << '\t';
-        network_state.display(output_fp, networks[model_id]);
-        ++begin;
-      }
-    }
-  }
-}
-
 void EnsembleEngine::displayIndividualFixpoints(unsigned int model_id, FixedPointDisplayer* displayer) const 
 {
   displayer->begin(fixpoints_per_model[model_id]->size());
@@ -711,8 +673,6 @@ void EnsembleEngine::displayIndividualFixpoints(unsigned int model_id, FixedPoin
   }
   displayer->end();
 }
-
-
 
 void EnsembleEngine::displayIndividual(unsigned int model_id, ProbTrajDisplayer* probtraj_displayer, StatDistDisplayer* statdist_displayer, FixedPointDisplayer* fp_displayer) const
 {

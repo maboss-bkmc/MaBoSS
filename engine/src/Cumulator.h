@@ -433,10 +433,7 @@ public:
     this->refnode_mask = refnode_mask;
   }
 
-  void displayCSV(Network* network, unsigned int refnode_count, std::ostream& os_probtraj = std::cout, std::ostream& os_statdist = std::cout, bool hexfloat = false) const;
-  void displayProbTrajCSV_OBSOLETE(Network* network, unsigned int refnode_count, std::ostream& os_probtraj = std::cout, bool hexfloat = false) const;
   void displayProbTraj(Network* network, unsigned int refnode_count, ProbTrajDisplayer* displayer) const;
-  void displayStatDistCSV_OBSOLETE(Network* network, unsigned int refnode_count, std::ostream& os_statdist = std::cout, bool hexfloat = false) const;
   void displayStatDist(Network* network, unsigned int refnode_count, StatDistDisplayer* displayer) const;
   void displayAsymptoticCSV(Network* network, unsigned int refnode_count, std::ostream& os_asymptprob = std::cout, bool hexfloat = false, bool proba = true) const;
 
@@ -465,7 +462,6 @@ public:
 
   unsigned int getSampleCount() const {return sample_count;}
 
-  static Cumulator* mergeCumulators(RunConfig* runconfig, std::vector<Cumulator*>& cumulator_v);
   static Cumulator* mergeCumulatorsParallel(RunConfig* runconfig, std::vector<Cumulator*>& cumulator_v);
   static void mergePairOfCumulators(Cumulator* cumulator_1, Cumulator* cumulator_2);
   static void* threadMergeCumulatorWrapper(void *arg);
