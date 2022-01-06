@@ -565,7 +565,7 @@ int main(int argc, char* argv[])
         delete output_statdist;
         ((std::ofstream*)output_fp)->close();
         delete output_fp;
-
+        delete randgen;
         delete runconfig;
         for (std::vector<Network*>::iterator it = networks.begin(); it != networks.end(); ++it)
           delete *it;
