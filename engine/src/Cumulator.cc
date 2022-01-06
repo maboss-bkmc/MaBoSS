@@ -805,20 +805,25 @@ Cumulator* Cumulator::mergeCumulatorsParallel(RunConfig* runconfig, std::vector<
       unsigned int width_lvl = floor(size/(step_lvl*2)) + 1;
       pthread_t* tid = new pthread_t[width_lvl];
       unsigned int nb_threads = 0;
-      
+      std::vector<MergeCumulatorWrapper*> wargs;
       for(unsigned int i=0; i < size; i+=(step_lvl*2)) {
         
         if (i+step_lvl < size) {
           MergeCumulatorWrapper* warg = new MergeCumulatorWrapper(cumulator_v[i], cumulator_v[i+step_lvl]);
           pthread_create(&tid[nb_threads], NULL, Cumulator::threadMergeCumulatorWrapper, warg);
           nb_threads++;
+          wargs.push_back(warg);
         } 
       }
       
       for(unsigned int i=0; i < nb_threads; i++) {   
           pthread_join(tid[i], NULL);
+          
       }
       
+      for (auto warg: wargs) {
+        delete warg;
+      }
       delete [] tid;
       lvl++;
     }
