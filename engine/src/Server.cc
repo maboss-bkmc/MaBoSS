@@ -60,6 +60,9 @@
 #include "MaBEstEngine.h"
 #include "FinalStateSimulationEngine.h"
 #include "Function.h"
+#include "ProbTrajDisplayer.h"
+#include "StatDistDisplayer.h"
+#include "FixedPointDisplayer.h"
 
 Server* Server::server;
 static const char* RPC_portname;
@@ -209,7 +212,17 @@ void Server::run(const ClientData& client_data, ServerData& server_data)
 
       MaBEstEngine mabest(network, runconfig);
       mabest.run(output_traj);
-      mabest.display(*output_probtraj, *output_statdist, *output_fp, hexfloat);
+      
+      ProbTrajDisplayer* probtraj_displayer;
+      StatDistDisplayer* statdist_displayer;
+      FixedPointDisplayer* fp_displayer;
+      
+      probtraj_displayer = new CSVProbTrajDisplayer(network, *output_probtraj, hexfloat);
+      statdist_displayer = new CSVStatDistDisplayer(network, *output_statdist, hexfloat);
+      fp_displayer = new CSVFixedPointDisplayer(network, *output_fp, hexfloat);
+      
+      mabest.display(probtraj_displayer, statdist_displayer, fp_displayer);
+      
       time(&end_time);
 
       runconfig->display(network, start_time, end_time, mabest, *output_run);
