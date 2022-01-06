@@ -144,6 +144,48 @@ static std::string format_extension(OutputFormat format) {
   }
 }
 
+static void display(MetaEngine* engine, Network* network, const char* prefix, OutputFormat format, bool hexfloat, int individual) 
+{
+  
+  std::ostream* output_probtraj = new std::ofstream((std::string(prefix) + "_probtraj" + format_extension(format)).c_str());
+  std::ostream* output_fp = new std::ofstream((std::string(prefix) + "_fp" + format_extension(format)).c_str());
+  std::ostream* output_statdist = new std::ofstream((std::string(prefix) + "_statdist" + format_extension(format)).c_str());
+  std::ostream* output_statdist_cluster = new std::ofstream((std::string(prefix) + "_statdist_cluster" + format_extension(format)).c_str());
+  std::ostream* output_statdist_distrib = new std::ofstream((std::string(prefix) + "_statdist_distrib" + format_extension(format)).c_str());
+
+  ProbTrajDisplayer* probtraj_displayer;
+  StatDistDisplayer* statdist_displayer;
+  FixedPointDisplayer* fp_displayer;
+  if (format == CSV_FORMAT) {
+    probtraj_displayer = new CSVProbTrajDisplayer(network, *output_probtraj, hexfloat);
+    statdist_displayer = new CSVStatDistDisplayer(network, *output_statdist, hexfloat);
+    fp_displayer = new CSVFixedPointDisplayer(network, *output_fp, hexfloat);
+  } else if (format == JSON_FORMAT) {
+    probtraj_displayer =  new JSONProbTrajDisplayer(network, *output_probtraj, hexfloat);
+    statdist_displayer = new JSONStatDistDisplayer(network, *output_statdist, *output_statdist_cluster, *output_statdist_distrib, hexfloat);
+    fp_displayer = new JsonFixedPointDisplayer(network, *output_fp, hexfloat);
+  } else {
+    probtraj_displayer = NULL;
+    statdist_displayer = NULL;
+    fp_displayer = NULL;
+  }
+  if (individual >= 0) {
+    (static_cast<EnsembleEngine*>(engine))->displayIndividual(individual, probtraj_displayer, statdist_displayer, fp_displayer);
+  } else {
+    engine->display(probtraj_displayer, statdist_displayer, fp_displayer);
+  }
+  
+  delete probtraj_displayer;
+  delete statdist_displayer;
+  delete fp_displayer;
+  
+  ((std::ofstream*) output_probtraj)->close();
+  ((std::ofstream*) output_statdist)->close();
+  ((std::ofstream*) output_statdist_cluster)->close();
+  ((std::ofstream*) output_statdist_distrib)->close();
+  ((std::ofstream*) output_fp)->close();
+}
+
 int main(int argc, char* argv[])
 {
   const char* output = NULL;
@@ -349,11 +391,6 @@ int main(int argc, char* argv[])
 
   std::ostream* output_run = NULL;
   std::ostream* output_traj = NULL;
-  std::ostream* output_probtraj = NULL;
-  std::ostream* output_statdist = NULL;
-  std::ostream* output_statdist_cluster = NULL;
-  std::ostream* output_statdist_distrib = NULL;
-  std::ostream* output_fp = NULL;
   std::ostream* output_asymptprob = NULL;
   
 #ifdef USE_DYNAMIC_BITSET
@@ -428,107 +465,20 @@ int main(int argc, char* argv[])
         }
 
         // output_run = new std::ofstream((std::string(output) + "_run.txt").c_str());
-        output_probtraj = new std::ofstream((std::string(output) + "_probtraj" + format_extension(format)).c_str());
-        output_statdist = new std::ofstream((std::string(output) + "_statdist.csv").c_str());
-        output_statdist_cluster = new std::ofstream((std::string(output) + "_statdist_cluster" + format_extension(format)).c_str());
-	      output_statdist_distrib = new std::ofstream((std::string(output) + "_statdist_distrib" + format_extension(format)).c_str());
-        output_fp = new std::ofstream((std::string(output) + "_fp.csv").c_str());
         
         time(&start_time);
         EnsembleEngine engine(networks, runconfig, ensemble_save_individual_results, ensemble_random_sampling);
         engine.run(NULL);
         
-        ProbTrajDisplayer* probtraj_displayer;
-        StatDistDisplayer* statdist_displayer;
-        FixedPointDisplayer* fp_displayer;
-        if (format == CSV_FORMAT) {
-          probtraj_displayer = new CSVProbTrajDisplayer(networks[0], *output_probtraj, hexfloat);
-          statdist_displayer = new CSVStatDistDisplayer(networks[0], *output_statdist, hexfloat);
-          fp_displayer = new CSVFixedPointDisplayer(networks[0], *output_fp, hexfloat);
-        } else if (format == JSON_FORMAT) {
-          probtraj_displayer =  new JSONProbTrajDisplayer(networks[0], *output_probtraj, hexfloat);
-          statdist_displayer = new JSONStatDistDisplayer(networks[0], *output_statdist, *output_statdist_cluster, *output_statdist_distrib, hexfloat);
-          // Use CSV displayer for fixed points as the Json one is not fully implemented
-          fp_displayer = new CSVFixedPointDisplayer(networks[0], *output_fp, hexfloat);
-        } else {
-          probtraj_displayer = NULL;
-          statdist_displayer = NULL;
-          fp_displayer = NULL;
-        }
+        display(&engine, networks[0], output, format, hexfloat, -1);
         
-        // engine.display(*output_probtraj, *output_statdist, *output_fp, hexfloat);
-        engine.display(probtraj_displayer, statdist_displayer, fp_displayer);
-
         if (ensemble_save_individual_results) {
           for (unsigned int i=0; i < networks.size(); i++) {
-            
-            std::ostream* i_output_probtraj =
-	      new std::ofstream((std::string(output) + "_model_" + std::to_string(i) + "_probtraj" + format_extension(format)).c_str());
-            
-            std::ostream* i_output_fp = new std::ofstream(
-							  (std::string(output) + "_model_" + std::to_string(i) + "_fp.csv").c_str()
-							  );
-            
-            std::ostream* i_output_statdist = new std::ofstream(
-								(std::string(output) + "_model_" + std::to_string(i) + "_statdist.csv").c_str()
-								);
-                
-            std::ostream* i_output_statdist_cluster = new std::ofstream(
-								(std::string(output) + "_model_" + std::to_string(i) + "_statdist_cluster.csv").c_str()
-								);
-                
-            std::ostream* i_output_statdist_distrib = new std::ofstream(
-								(std::string(output) + "_model_" + std::to_string(i) + "_statdist_distrib.csv").c_str()
-								);
-
-            ProbTrajDisplayer* i_probtraj_displayer;
-            StatDistDisplayer* i_statdist_displayer;
-            FixedPointDisplayer* i_fp_displayer;
-            if (format == CSV_FORMAT) {
-              i_probtraj_displayer = new CSVProbTrajDisplayer(networks[i], *i_output_probtraj, hexfloat);
-              i_statdist_displayer = new CSVStatDistDisplayer(networks[i], *i_output_statdist, hexfloat);
-              i_fp_displayer = new CSVFixedPointDisplayer(networks[i], *i_output_fp, hexfloat);
-            } else if (format == JSON_FORMAT) {
-              i_probtraj_displayer =  new JSONProbTrajDisplayer(networks[i], *i_output_probtraj, hexfloat);
-              i_statdist_displayer = new JSONStatDistDisplayer(networks[i], *i_output_statdist, *i_output_statdist_cluster, *i_output_statdist_distrib, hexfloat);
-              // Use CSV displayer for fixed points as the Json one is not fully implemented
-              i_fp_displayer = new CSVFixedPointDisplayer(networks[i], *i_output_fp, hexfloat);
-            } else {
-              i_probtraj_displayer = NULL;
-              i_statdist_displayer = NULL;
-              i_fp_displayer = NULL;
-            }
-
-
-
-            engine.displayIndividual(i, i_probtraj_displayer, i_statdist_displayer, i_fp_displayer);
-            // engine.displayIndividual(i, *i_output_probtraj, *i_output_statdist, *i_output_fp, hexfloat);
-            
-            delete i_probtraj_displayer;
-            delete i_statdist_displayer;
-            delete i_fp_displayer;
-            
-            ((std::ofstream*) i_output_probtraj)->close();
-            ((std::ofstream*) i_output_statdist)->close();
-            ((std::ofstream*) i_output_statdist_cluster)->close();
-            ((std::ofstream*) i_output_statdist_distrib)->close();
-            ((std::ofstream*) i_output_fp)->close();
-            
-
+              display(&engine, networks[i], (std::string(output) + "_model_" + std::to_string(i)).c_str(), format, hexfloat, i);
           }
         }
         time(&end_time);
 
-        delete probtraj_displayer;
-        delete statdist_displayer;
-        delete fp_displayer;
-        
-        // ((std::ofstream*)output_run)->close();
-        ((std::ofstream*)output_probtraj)->close();
-        ((std::ofstream*)output_statdist)->close();
-        ((std::ofstream*)output_statdist_cluster)->close();
-        ((std::ofstream*)output_statdist_distrib)->close();
-        ((std::ofstream*)output_fp)->close();
       } else {
 
         std::vector<Network *> networks;
@@ -588,121 +538,20 @@ int main(int argc, char* argv[])
         }
 
         // output_run = new std::ofstream((std::string(output) + "_run.txt").c_str());
-        output_probtraj = new std::ofstream((std::string(output) + "_probtraj" + format_extension(format)).c_str());
-        output_statdist = new std::ofstream((std::string(output) + "_statdist.csv").c_str());
-        output_statdist_cluster = new std::ofstream((std::string(output) + "_statdist_cluster.csv").c_str());
-        output_statdist_distrib = new std::ofstream((std::string(output) + "_statdist_distrib.csv").c_str());
-        output_fp = new std::ofstream((std::string(output) + "_fp.csv").c_str());
         
         time(&start_time);
         EnsembleEngine engine(networks, runconfig, ensemble_save_individual_results, ensemble_random_sampling);
         engine.run(NULL);
         
+        display(&engine, networks[0], output, format, hexfloat, -1);
         
-        ProbTrajDisplayer* probtraj_displayer;
-        StatDistDisplayer* statdist_displayer;
-        FixedPointDisplayer* fp_displayer;
-        if (format == CSV_FORMAT) {
-          probtraj_displayer = new CSVProbTrajDisplayer(networks[0], *output_probtraj, hexfloat);
-          statdist_displayer = new CSVStatDistDisplayer(networks[0], *output_statdist, hexfloat);
-          fp_displayer = new CSVFixedPointDisplayer(networks[0], *output_fp, hexfloat);
-        } else if (format == JSON_FORMAT) {
-          probtraj_displayer =  new JSONProbTrajDisplayer(networks[0], *output_probtraj, hexfloat);
-          statdist_displayer = new JSONStatDistDisplayer(networks[0], *output_statdist, *output_statdist_cluster, *output_statdist_distrib, hexfloat);
-          // Use CSV displayer for fixed points as the Json one is not fully implemented
-          fp_displayer = new CSVFixedPointDisplayer(networks[0], *output_fp, hexfloat);
-        } else {
-          probtraj_displayer = NULL;
-          statdist_displayer = NULL;
-          fp_displayer = NULL;
-        }
-        
-        // engine.display(*output_probtraj, *output_statdist, *output_fp, hexfloat);
-        engine.display(probtraj_displayer, statdist_displayer, fp_displayer);
-
-        
-        // engine.display(*output_probtraj, *output_statdist, *output_fp, hexfloat);
-
         if (ensemble_save_individual_results) {
           for (unsigned int i=0; i < networks.size(); i++) {
-            
-            std::ostream* i_output_probtraj =
-	      new std::ofstream((std::string(output) + "_model_" + std::to_string(i) + "_probtraj" +format_extension(format)).c_str());
-            
-            std::ostream* i_output_fp = new std::ofstream(
-							  (std::string(output) + "_model_" + std::to_string(i) + "_fp.csv").c_str()
-							  );
-            
-            std::ostream* i_output_statdist = new std::ofstream(
-								(std::string(output) + "_model_" + std::to_string(i) + "_statdist.csv").c_str()
-								);
-            
-            std::ostream* i_output_statdist_cluster = new std::ofstream(
-								(std::string(output) + "_model_" + std::to_string(i) + "_statdist_cluster.csv").c_str()
-								);
-
-            std::ostream* i_output_statdist_distrib = new std::ofstream(
-								(std::string(output) + "_model_" + std::to_string(i) + "_statdist_distrib.csv").c_str()
-								);
-
-
-            ProbTrajDisplayer* i_probtraj_displayer;
-            StatDistDisplayer* i_statdist_displayer;
-            FixedPointDisplayer* i_fp_displayer;
-            if (format == CSV_FORMAT) {
-              i_probtraj_displayer = new CSVProbTrajDisplayer(networks[i], *i_output_probtraj, hexfloat);
-              i_statdist_displayer = new CSVStatDistDisplayer(networks[i], *i_output_statdist, hexfloat);
-              i_fp_displayer = new CSVFixedPointDisplayer(networks[i], *i_output_fp, hexfloat);
-            } else if (format == JSON_FORMAT) {
-              i_probtraj_displayer =  new JSONProbTrajDisplayer(networks[i], *i_output_probtraj, hexfloat);
-              i_statdist_displayer = new JSONStatDistDisplayer(networks[i], *i_output_statdist, *i_output_statdist_cluster, *i_output_statdist_distrib, hexfloat);
-              // Use CSV displayer for fixed points as the Json one is not fully implemented
-              i_fp_displayer = new CSVFixedPointDisplayer(networks[i], *i_output_fp, hexfloat);
-            } else {
-              i_probtraj_displayer = NULL;
-              i_statdist_displayer = NULL;
-              i_fp_displayer = NULL;
-            }
-
-
-
-            engine.displayIndividual(i, i_probtraj_displayer, i_statdist_displayer, i_fp_displayer);
-            // engine.displayIndividual(i, *i_output_probtraj, *i_output_statdist, *i_output_fp, hexfloat);
-
-            delete i_probtraj_displayer;
-            delete i_statdist_displayer;
-            delete i_fp_displayer;
-
-            ((std::ofstream*) i_output_probtraj)->close();
-            delete i_output_probtraj;
-            ((std::ofstream*) i_output_statdist)->close();
-            delete i_output_statdist;
-            ((std::ofstream*) i_output_statdist_cluster)->close();
-            delete i_output_statdist_cluster;
-            ((std::ofstream*) i_output_statdist_distrib)->close();
-            delete i_output_statdist_distrib;
-            ((std::ofstream*) i_output_fp)->close();
-            delete i_output_fp;
-
+            display(&engine, networks[i], (std::string(output) + "_model_" + std::to_string(i)).c_str(), format, hexfloat, i);
           }
         }
         time(&end_time);
 
-        delete probtraj_displayer;
-        delete statdist_displayer;
-        delete fp_displayer;
-
-        // ((std::ofstream*)output_run)->close();
-        ((std::ofstream*)output_probtraj)->close();
-        delete output_probtraj;
-        ((std::ofstream*)output_statdist)->close();
-        delete output_statdist;
-        ((std::ofstream*)output_statdist_cluster)->close();
-        delete output_statdist_cluster;
-        ((std::ofstream*)output_statdist_distrib)->close();
-        delete output_statdist_distrib;
-        ((std::ofstream*)output_fp)->close();
-        delete output_fp;
         delete randgen;
         delete runconfig;
         for (std::vector<Network*>::iterator it = networks.begin(); it != networks.end(); ++it)
@@ -848,12 +697,7 @@ int main(int argc, char* argv[])
 	delete output_final;
       } else {
         output_run = new std::ofstream((std::string(output) + "_run.txt").c_str());
-        output_probtraj = new std::ofstream((std::string(output) + "_probtraj" + format_extension(format)).c_str());
-        output_statdist = new std::ofstream((std::string(output) + "_statdist" + format_extension(format)).c_str());
-	      output_statdist_cluster = new std::ofstream((std::string(output) + "_statdist_cluster" + format_extension(format)).c_str());
-	      output_statdist_distrib = new std::ofstream((std::string(output) + "_statdist_distrib" + format_extension(format)).c_str());
-        output_fp = new std::ofstream((std::string(output) + "_fp" + format_extension(format)).c_str());
-
+ 
         if (export_asymptotic) {
           output_asymptprob = new std::ofstream((std::string(output) + "_finalprob.csv").c_str());
         }
@@ -861,30 +705,9 @@ int main(int argc, char* argv[])
         time(&start_time);
         MaBEstEngine mabest(network, runconfig);
         mabest.run(output_traj);
-        ProbTrajDisplayer* probtraj_displayer;
-        StatDistDisplayer* statdist_displayer;
-        FixedPointDisplayer* fp_displayer;
-        if (format == CSV_FORMAT) {
-          probtraj_displayer = new CSVProbTrajDisplayer(network, *output_probtraj, hexfloat);
-          statdist_displayer = new CSVStatDistDisplayer(network, *output_statdist, hexfloat);
-          fp_displayer = new CSVFixedPointDisplayer(network, *output_fp, hexfloat);
-        } else if (format == JSON_FORMAT) {
-          probtraj_displayer =  new JSONProbTrajDisplayer(network, *output_probtraj, hexfloat);
-          statdist_displayer = new JSONStatDistDisplayer(network, *output_statdist, *output_statdist_cluster, *output_statdist_distrib, hexfloat);
-          // Use CSV displayer for fixed points as the Json one is not fully implemented
-          fp_displayer = new CSVFixedPointDisplayer(network, *output_fp, hexfloat);
-        } else {
-          probtraj_displayer = NULL;
-          statdist_displayer = NULL;
-          fp_displayer = NULL;
-        }
-
-        // if (false) {
-        //   std::cerr << "***** using old displayers *****\n";
-        //   mabest.display(probtraj_displayer, *output_statdist, *output_fp, hexfloat);
-        // } else {
-          mabest.display(probtraj_displayer, statdist_displayer, fp_displayer);
-        // }
+        
+        display(&mabest, network, output, format, hexfloat, -1);
+        
         time(&end_time);
 
         runconfig->display(network, start_time, end_time, mabest, *output_run);
@@ -900,19 +723,6 @@ int main(int argc, char* argv[])
           ((std::ofstream*)output_traj)->close();
           delete output_traj;
         }
-        ((std::ofstream*)output_probtraj)->close();
-        delete output_probtraj;
-        ((std::ofstream*)output_statdist)->close();
-        delete output_statdist;
-        ((std::ofstream*)output_statdist_cluster)->close();
-        delete output_statdist_cluster;
-        ((std::ofstream*)output_statdist_distrib)->close();
-        delete output_statdist_distrib;
-        ((std::ofstream*)output_fp)->close();
-        delete output_fp;
-        delete probtraj_displayer;
-        delete statdist_displayer;
-        delete fp_displayer;
       }
       delete runconfig;
       delete network;
