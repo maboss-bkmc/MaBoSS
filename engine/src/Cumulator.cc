@@ -793,7 +793,7 @@ Cumulator* Cumulator::mergeCumulatorsParallel(RunConfig* runconfig, std::vector<
   size_t size = cumulator_v.size();
   
   if (1 == size) {
-    return new Cumulator(*(cumulator_v[0]));
+    return cumulator_v[0];
   } else {
     
     unsigned int lvl=1;
