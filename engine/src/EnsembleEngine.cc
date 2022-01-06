@@ -699,9 +699,6 @@ void EnsembleEngine::displayIndividual(unsigned int model_id, std::ostream& outp
 
 EnsembleEngine::~EnsembleEngine()
 {
-  for (auto t_cumulator: cumulator_v)
-    delete t_cumulator;
-
   for (auto t_fixpoint_map: fixpoint_map_v)
     delete t_fixpoint_map;
   
