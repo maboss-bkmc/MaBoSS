@@ -60,6 +60,7 @@ public:
   virtual void begin(size_t size) = 0;
   virtual void displayFixedPoint(size_t num, const NetworkState& state, unsigned int val, unsigned int sample_count) = 0;
   virtual void end() = 0;
+  virtual ~FixedPointDisplayer(){};
 };
 
 class CSVFixedPointDisplayer : public FixedPointDisplayer {
