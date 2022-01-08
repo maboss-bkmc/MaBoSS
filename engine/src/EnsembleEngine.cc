@@ -131,11 +131,15 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
 
   unsigned int count = sample_count / thread_count;
   unsigned int firstcount = count + sample_count - count * thread_count;
+  
+  unsigned int scount = statdist_trajcount / thread_count;
+  unsigned int first_scount = scount + statdist_trajcount - scount * thread_count;
+
   unsigned int position = 0;
   unsigned int offset = 0;
   for (unsigned int nn = 0; nn < thread_count; ++nn) {
     unsigned int t_count = (nn == 0 ? firstcount : count);
-    Cumulator* cumulator = new Cumulator(runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), t_count, 0);
+    Cumulator* cumulator = new Cumulator(runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), t_count, (nn == 0 ? first_scount : scount ));
     if (has_internal) {
 #ifdef USE_STATIC_BITSET
       NetworkState_Impl state2 = ~internal_state.getState();
@@ -240,7 +244,7 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
       for (nnn = 0; nnn < count_by_models.size(); nnn++) {
         if (count_by_models[nnn] > 0) {
           Cumulator* t_cumulator = new Cumulator(
-            runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), count_by_models[nnn], 0
+            runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), count_by_models[nnn], statdist_trajcount
           );
           if (has_internal) {
 
