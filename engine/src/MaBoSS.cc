@@ -184,6 +184,12 @@ static void display(MetaEngine* engine, Network* network, const char* prefix, Ou
   ((std::ofstream*) output_statdist_cluster)->close();
   ((std::ofstream*) output_statdist_distrib)->close();
   ((std::ofstream*) output_fp)->close();
+  
+  delete output_probtraj;
+  delete output_fp;
+  delete output_statdist;
+  delete output_statdist_cluster;
+  delete output_statdist_distrib;
 }
 
 int main(int argc, char* argv[])
