@@ -758,10 +758,7 @@ void EnsembleEngine::mergeIndividual() {
       Cumulator* t_cumulator = Cumulator::mergeCumulatorsParallel(runconfig, model_cumulator);
       t_cumulator->epilogue(networks[i], reference_state);
       cumulators_per_model[i] = t_cumulator;
-      
-      for (auto t_cumulator: model_cumulator) {
-        // delete t_cumulator;
-      }
+
     }
   }
 }
