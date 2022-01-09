@@ -768,15 +768,20 @@ void EnsembleEngine::displayIndividualFixpoints(unsigned int model_id, FixedPoin
 #ifdef MPI_COMPAT
   if (world_rank == 0) {
 #endif
-  displayer->begin(fixpoints_per_model[model_id]->size());
   
-  STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator begin = fixpoints_per_model[model_id]->begin();
-  STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator end = fixpoints_per_model[model_id]->end();
-  
-  for (unsigned int nn = 0; begin != end; ++nn) {
-    const NetworkState& network_state = begin->first;
-    displayer->displayFixedPoint(nn+1, network_state, begin->second, sample_count);
-    ++begin;
+  if (fixpoints_per_model[model_id] != NULL) {
+    displayer->begin(fixpoints_per_model[model_id]->size());
+
+    STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator begin = fixpoints_per_model[model_id]->begin();
+    STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator end = fixpoints_per_model[model_id]->end();
+
+    for (unsigned int nn = 0; begin != end; ++nn) {
+      const NetworkState& network_state = begin->first;
+      displayer->displayFixedPoint(nn+1, network_state, begin->second, sample_count);
+      ++begin;
+    }
+  } else {
+    displayer->begin(0);
   }
   displayer->end();
 #ifdef MPI_COMPAT
