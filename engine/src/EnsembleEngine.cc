@@ -791,8 +791,10 @@ void EnsembleEngine::displayIndividualFixpoints(unsigned int model_id, FixedPoin
 
 void EnsembleEngine::displayIndividual(unsigned int model_id, ProbTrajDisplayer* probtraj_displayer, StatDistDisplayer* statdist_displayer, FixedPointDisplayer* fp_displayer) const
 {
-  cumulators_per_model[model_id]->displayProbTraj(networks[model_id], refnode_count, probtraj_displayer);
-  cumulators_per_model[model_id]->displayStatDist(networks[model_id], refnode_count, statdist_displayer);
+  if (cumulators_per_model[model_id] != NULL) {
+    cumulators_per_model[model_id]->displayProbTraj(networks[model_id], refnode_count, probtraj_displayer);
+    cumulators_per_model[model_id]->displayStatDist(networks[model_id], refnode_count, statdist_displayer);
+  }
   displayIndividualFixpoints(model_id, fp_displayer);
 }
 
