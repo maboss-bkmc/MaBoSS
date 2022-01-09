@@ -699,7 +699,11 @@ void EnsembleEngine::epilogue()
   merged_cumulator = Cumulator::mergeMPICumulators(runconfig, merged_cumulator, world_size, world_rank);
 
   if (world_rank == 0){
+#endif
+
     merged_cumulator->epilogue(networks[0], reference_state);
+
+#ifdef MPI_COMPAT
   }
 #endif
   
