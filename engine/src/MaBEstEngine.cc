@@ -361,7 +361,8 @@ void MaBEstEngine::epilogue()
   merged_cumulator = Cumulator::mergeCumulatorsParallel(runconfig, cumulator_v);
   
 #ifdef MPI_COMPAT
-  merged_cumulator = Cumulator::mergeMPICumulators(runconfig, merged_cumulator, world_size, world_rank);
+  // merged_cumulator = Cumulator::mergeMPICumulators(runconfig, merged_cumulator, world_size, world_rank);
+  merged_cumulator = Cumulator::mergeMPICumulatorsParallel(runconfig, merged_cumulator, world_size, world_rank);
 
   if (world_rank == 0)
   {

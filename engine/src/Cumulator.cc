@@ -960,6 +960,101 @@ void Cumulator::MPI_Recv_Cumulator(Cumulator* mpi_ret_cumul, int origin)
   }   
 }
 
+Cumulator* Cumulator::mergePairOfMPICumulators(Cumulator* ret_cumul, int world_rank, int dest, int origin, RunConfig* runconfig, bool pack) 
+{
+  if (world_rank == dest) {
+    
+    std::cout << "receiving cumulator on " << dest << " from " << origin << std::endl;
+    
+    unsigned int other_cumulator_size;
+    MPI_Recv( &other_cumulator_size, 1, MPI_UNSIGNED, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+    unsigned int other_cumulator_statdist;
+    MPI_Recv( &other_cumulator_statdist, 1, MPI_UNSIGNED, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+    if (ret_cumul != NULL) {
+      ret_cumul->sample_count += other_cumulator_size;
+      ret_cumul->statdist_trajcount += other_cumulator_statdist;
+      
+    } else {
+      ret_cumul = new Cumulator(runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), other_cumulator_size, other_cumulator_statdist);
+    }
+    
+    size_t remote_cumul_size;
+    MPI_Recv( &remote_cumul_size, 1, my_MPI_SIZE_T, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+    unsigned int remote_max_tick_index;
+    MPI_Recv( &remote_max_tick_index, 1, MPI_UNSIGNED, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+    if (remote_cumul_size > ret_cumul->cumul_map_v.size()) {
+      ret_cumul->cumul_map_v.resize(remote_cumul_size);
+      ret_cumul->hd_cumul_map_v.resize(remote_cumul_size);
+    }
+    
+    ret_cumul->computeMaxTickIndex();
+    if (remote_max_tick_index > ret_cumul->max_tick_index) {
+      ret_cumul->max_tick_index = ret_cumul->tick_index = remote_max_tick_index;
+    }
+    
+    MPI_Recv_Cumulator(ret_cumul, origin);
+    
+  } else if (world_rank == origin) {
+    
+    std::cout << "sending cumulator from " << origin << " to " << dest << std::endl;
+    
+    unsigned int local_cumulator_size = ret_cumul != NULL ? ret_cumul->sample_count : 0;
+    MPI_Send(&local_cumulator_size, 1, MPI_UNSIGNED, dest, 0, MPI_COMM_WORLD);
+    
+    unsigned int local_statdist_trajcount = ret_cumul != NULL ? ret_cumul->statdist_trajcount : 0;
+    MPI_Send(&local_statdist_trajcount, 1, MPI_UNSIGNED, dest, 0, MPI_COMM_WORLD);
+    
+    if (ret_cumul != NULL) {
+      ret_cumul->computeMaxTickIndex();
+    }
+    
+    size_t local_cumul_size = ret_cumul != NULL ? ret_cumul->cumul_map_v.size() : SIZE_MAX;
+    MPI_Send(&local_cumul_size, 1, my_MPI_SIZE_T, dest, 0, MPI_COMM_WORLD);
+
+    int local_max_tick_index = ret_cumul != NULL ? ret_cumul->max_tick_index : INT_MAX;
+    MPI_Send(&local_max_tick_index, 1, MPI_UNSIGNED, dest, 0, MPI_COMM_WORLD);
+
+    MPI_Send_Cumulator(ret_cumul, dest);
+
+  }
+  
+  return ret_cumul;
+}
+
+Cumulator* Cumulator::mergeMPICumulatorsParallel(RunConfig* runconfig, Cumulator* ret_cumul, int world_size, int world_rank, bool pack)
+{  
+  if (1 == world_size) {
+    return ret_cumul;
+  } else {
+    
+    unsigned int lvl=1;
+    unsigned int max_lvl = ceil(log2(world_size));
+
+    while(lvl <= max_lvl) {
+    
+      unsigned int step_lvl = pow(2, lvl-1);
+      unsigned int width_lvl = floor(world_size/(step_lvl*2)) + 1;
+      
+      for(unsigned int i=0; i < world_size; i+=(step_lvl*2)) {
+        
+        if (i+step_lvl < world_size) {
+          if (world_rank == i || world_rank == (i+step_lvl))
+            mergePairOfMPICumulators(ret_cumul, world_rank, i, i+step_lvl, runconfig, pack);
+        } 
+      }
+      
+      lvl++;
+    }
+  }
+  
+  return ret_cumul;
+}
+
+
 Cumulator* Cumulator::initializeMPICumulator(Cumulator* ret_cumul, RunConfig* runconfig, int world_rank) 
 {
   // First we want to know the sample count
