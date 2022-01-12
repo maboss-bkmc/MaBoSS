@@ -38,7 +38,7 @@ if [ $? != 0 ]; then exit 1; fi
 python compare_probtrajs.py ewing/refer/ewing_thread_1_probtraj.csv tmp/ewing_thread_1_probtraj.csv --exact
 check_file "projtraj"
 
-python compare_statdist.py ewing/refer/ewing_thread_1_statdist_mpi_$1.csv tmp/ewing_thread_1_statdist.csv --exact # || echo '**** error test #1.b (non regression) ****'
+python compare_statdist.py ewing/refer/ewing_thread_1_statdist.csv tmp/ewing_thread_1_statdist.csv --exact # || echo '**** error test #1.b (non regression) ****'
 check_file "statdist"
 
 if [ "$ONE_THREAD_ONLY" != "" ]; then exit 0; fi
@@ -51,7 +51,7 @@ if [ $? != 0 ]; then exit 1; fi
 python compare_probtrajs.py ewing/refer/ewing_thread_6_probtraj.csv tmp/ewing_thread_6_probtraj.csv --exact
 check_file "projtraj"
 
-python compare_statdist.py ewing/refer/ewing_thread_6_statdist_mpi_$1.csv tmp/ewing_thread_6_statdist.csv --exact #|| echo '**** error test #2.b (non regression) ****'
+python compare_statdist.py ewing/refer/ewing_thread_6_statdist.csv tmp/ewing_thread_6_statdist.csv --exact #|| echo '**** error test #2.b (non regression) ****'
 check_file "statdist"
 
 echo
