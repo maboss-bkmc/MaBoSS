@@ -892,12 +892,13 @@ void Cumulator::MPI_Unpack_Cumulator(Cumulator* mpi_ret_cumul, char* buff, unsig
   
   size_t t_proba_dist_size;
   MPI_Unpack(buff, buff_size, &position, &t_proba_dist_size, 1, my_MPI_SIZE_T, MPI_COMM_WORLD);
-
+  
+  size_t begin = mpi_ret_cumul->statdist_trajcount - t_proba_dist_size;
   for (size_t ii = 0; ii < t_proba_dist_size; ii++) {
     // Here we are receiving the proba_dist, which is a map of <state, double>
     ProbaDist t_proba_dist;
     t_proba_dist.my_MPI_Unpack(buff, buff_size, &position);
-    mpi_ret_cumul->proba_dist_v.push_back(t_proba_dist);          
+    mpi_ret_cumul->proba_dist_v[begin + ii] = t_proba_dist;
   }    
 }
 
@@ -951,12 +952,13 @@ void Cumulator::MPI_Recv_Cumulator(Cumulator* mpi_ret_cumul, int origin)
   
   size_t t_proba_dist_size;
   MPI_Recv(&t_proba_dist_size, 1, my_MPI_SIZE_T, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+  size_t begin = mpi_ret_cumul->statdist_trajcount - t_proba_dist_size;
 
   for (size_t ii = 0; ii < t_proba_dist_size; ii++) {
     // Here we are receiving the proba_dist, which is a map of <state, double>
     ProbaDist t_proba_dist;
     t_proba_dist.my_MPI_Recv(origin);
-    mpi_ret_cumul->proba_dist_v.push_back(t_proba_dist);          
+    mpi_ret_cumul->proba_dist_v[begin+ii] = t_proba_dist;  
   }   
 }
 
@@ -975,6 +977,7 @@ Cumulator* Cumulator::mergePairOfMPICumulators(Cumulator* ret_cumul, int world_r
     if (ret_cumul != NULL) {
       ret_cumul->sample_count += other_cumulator_size;
       ret_cumul->statdist_trajcount += other_cumulator_statdist;
+      ret_cumul->proba_dist_v.resize(ret_cumul->statdist_trajcount);
       
     } else {
       ret_cumul = new Cumulator(runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), other_cumulator_size, other_cumulator_statdist);
