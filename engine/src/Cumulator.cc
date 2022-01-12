@@ -1042,7 +1042,7 @@ Cumulator* Cumulator::mergeMPICumulatorsParallel(RunConfig* runconfig, Cumulator
         
         if (i+step_lvl < world_size) {
           if (world_rank == i || world_rank == (i+step_lvl))
-            mergePairOfMPICumulators(ret_cumul, world_rank, i, i+step_lvl, runconfig, pack);
+            ret_cumul = mergePairOfMPICumulators(ret_cumul, world_rank, i, i+step_lvl, runconfig, pack);
         } 
       }
       
