@@ -270,7 +270,7 @@ jobs:
         
   maboss_library:
     name: Building MaBoSS osx library
-    runs-on: macos-latest
+    runs-on: macos-10.15
     needs: [maboss, maboss_llvm]
     if: github.ref == 'refs/heads/master' || github.event_name == 'release'
 
@@ -279,22 +279,24 @@ jobs:
     - name: Install dependencies
       run : |
         brew install flex bison gcc
+        gcc --version
+        gcc-11 --version
               
     - name: Build library
       run: |
         rm -fr engine/pub/*
         cd engine/src
         make clean
-        make install_lib 
-        make install_lib MAXNODES=128
-        make install_lib MAXNODES=256
-        make install_lib MAXNODES=512
-        make install_lib MAXNODES=1024
-        make install_alib 
-        make install_alib MAXNODES=128
-        make install_alib MAXNODES=256
-        make install_alib MAXNODES=512
-        make install_alib MAXNODES=1024
+        make install_lib CXX=g++-11
+        make install_lib MAXNODES=128 CXX=g++-11
+        make install_lib MAXNODES=256 CXX=g++-11
+        make install_lib MAXNODES=512 CXX=g++-11
+        make install_lib MAXNODES=1024 CXX=g++-11
+        make install_alib CXX=g++-11
+        make install_alib MAXNODES=128 CXX=g++-11
+        make install_alib MAXNODES=256 CXX=g++-11
+        make install_alib MAXNODES=512 CXX=g++-11
+        make install_alib MAXNODES=1024 CXX=g++-11
         make clean
         cd ../../../
         tar -zcvf libMaBoSS-osx64.tar.gz MaBoSS-env-2.0/README.md MaBoSS-env-2.0/LICENSE MaBoSS-env-2.0/engine/src MaBoSS-env-2.0/engine/include MaBoSS-env-2.0/engine/lib
