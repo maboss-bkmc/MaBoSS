@@ -130,12 +130,7 @@ class ProbaDist {
     ProbaDist::Iterator t_proba_dist1_iter = iterator();
     while (t_proba_dist1_iter.hasNext()) {
       double proba;
-#if 1
       const NetworkState_Impl& state = t_proba_dist1_iter.next2(proba);
-#else
-      NetworkState_Impl state;
-      t_proba_dist1_iter.next(state, proba);
-#endif
       NetworkState t_state(state);
       t_state.my_MPI_Pack(buff, size_pack, position);
       MPI_Pack(&proba, 1, MPI_DOUBLE, buff, size_pack, position, MPI_COMM_WORLD);
@@ -183,12 +178,7 @@ class ProbaDist {
     ProbaDist::Iterator t_proba_dist1_iter = iterator();
     while (t_proba_dist1_iter.hasNext()) {
       double proba;
-#if 1
       const NetworkState_Impl& state = t_proba_dist1_iter.next2(proba);
-#else
-      NetworkState_Impl state;
-      t_proba_dist1_iter.next(state, proba);
-#endif
       NetworkState t_state(state);
       t_state.my_MPI_Send(dest);
       // MPI_Send(&state, 1, MPI_UNSIGNED_LONG_LONG, dest, 0, MPI_COMM_WORLD);

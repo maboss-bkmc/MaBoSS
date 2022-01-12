@@ -196,12 +196,7 @@ void ProbaDistCluster::computeStationaryDistribution()
     ProbaDist::Iterator iter(proba_dist);
     while (iter.hasNext()) {
       double proba;
-#if 1
       const NetworkState_Impl& state = iter.next2(proba);
-#else
-      NetworkState_Impl state;
-      iter.next(state, proba);
-#endif
       if (stat_dist_map.find(state) == stat_dist_map.end()) {
 	stat_dist_map[state] = Proba(proba, proba*proba);
       } else {
@@ -272,12 +267,8 @@ double ProbaDistCluster::similarity(unsigned int nn1, const ProbaDist& proba_dis
   unsigned int out_of_support = 0;
   while (proba_dist1_iter.hasNext()) {
     double proba1, proba2;
-#if 1
     const NetworkState_Impl& state = proba_dist1_iter.next2(proba1);
-#else
-    NetworkState_Impl state;
-    proba_dist1_iter.next(state, proba1);
-#endif
+
     if (proba_dist2.hasState(state, proba2)) {
       simil1 += proba1;
       simil2 += proba2;
@@ -286,15 +277,6 @@ double ProbaDistCluster::similarity(unsigned int nn1, const ProbaDist& proba_dis
     }
   }
 
-#if 0
-  std::cout << "Similarity between [" << out_of_support << "]:\n";
-  std::cout << "   ";
-  displayProbaDist(std::cout, network, proba_dist1);
-  std::cout << "AND\n";
-  std::cout << "   ";
-  displayProbaDist(std::cout, network, proba_dist2);
-  std::cout << simil1 << " " << simil2 << " " << (simil1*simil2) << "\n\n";
-#endif
   return simil1 * simil2;
 }
 

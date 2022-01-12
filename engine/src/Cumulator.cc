@@ -965,9 +965,7 @@ void Cumulator::MPI_Recv_Cumulator(Cumulator* mpi_ret_cumul, int origin)
 Cumulator* Cumulator::mergePairOfMPICumulators(Cumulator* ret_cumul, int world_rank, int dest, int origin, RunConfig* runconfig, bool pack) 
 {
   if (world_rank == dest) {
-    
-    std::cout << "receiving cumulator on " << dest << " from " << origin << std::endl;
-    
+        
     unsigned int other_cumulator_size;
     MPI_Recv( &other_cumulator_size, 1, MPI_UNSIGNED, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
@@ -1002,9 +1000,7 @@ Cumulator* Cumulator::mergePairOfMPICumulators(Cumulator* ret_cumul, int world_r
     MPI_Recv_Cumulator(ret_cumul, origin);
     
   } else if (world_rank == origin) {
-    
-    std::cout << "sending cumulator from " << origin << " to " << dest << std::endl;
-    
+        
     unsigned int local_cumulator_size = ret_cumul != NULL ? ret_cumul->sample_count : 0;
     MPI_Send(&local_cumulator_size, 1, MPI_UNSIGNED, dest, 0, MPI_COMM_WORLD);
     
