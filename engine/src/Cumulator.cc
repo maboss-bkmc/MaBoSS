@@ -1011,10 +1011,10 @@ Cumulator* Cumulator::mergePairOfMPICumulators(Cumulator* ret_cumul, int world_r
       ret_cumul->computeMaxTickIndex();
     }
     
-    size_t local_cumul_size = ret_cumul != NULL ? ret_cumul->cumul_map_v.size() : SIZE_MAX;
+    size_t local_cumul_size = ret_cumul != NULL ? ret_cumul->cumul_map_v.size() : 0;
     MPI_Send(&local_cumul_size, 1, my_MPI_SIZE_T, dest, 0, MPI_COMM_WORLD);
 
-    int local_max_tick_index = ret_cumul != NULL ? ret_cumul->max_tick_index : INT_MAX;
+    int local_max_tick_index = ret_cumul != NULL ? ret_cumul->max_tick_index : 0;
     MPI_Send(&local_max_tick_index, 1, MPI_UNSIGNED, dest, 0, MPI_COMM_WORLD);
 
     MPI_Send_Cumulator(ret_cumul, dest);
