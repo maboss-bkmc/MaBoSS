@@ -680,7 +680,7 @@ void EnsembleEngine::mergeMPIIndividual(bool pack)
   if (world_size > 1) {
     for (unsigned int model=0; model < networks.size(); model++) {
       
-      Cumulator* t_cumulator = Cumulator::mergeMPICumulators(runconfig, cumulators_per_model[model], world_size, world_rank, pack);
+      Cumulator* t_cumulator = Cumulator::mergeMPICumulatorsParallel(runconfig, cumulators_per_model[model], world_size, world_rank, pack);
       if (world_rank == 0)
         t_cumulator->epilogue(networks[model], reference_state);
 
@@ -696,7 +696,8 @@ void EnsembleEngine::epilogue()
   merged_cumulator = Cumulator::mergeCumulatorsParallel(runconfig, cumulator_v);
   
 #ifdef MPI_COMPAT
-  merged_cumulator = Cumulator::mergeMPICumulators(runconfig, merged_cumulator, world_size, world_rank);
+  // merged_cumulator = Cumulator::mergeMPICumulators(runconfig, merged_cumulator, world_size, world_rank);
+  merged_cumulator = Cumulator::mergeMPICumulatorsParallel(runconfig, merged_cumulator, world_size, world_rank);
 
   if (world_rank == 0){
 #endif
