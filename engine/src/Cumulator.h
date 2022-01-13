@@ -489,8 +489,6 @@ class Cumulator {
 
 static void MPI_Send_Cumulator(Cumulator* ret_cumul, int dest);
 static void MPI_Recv_Cumulator(Cumulator* mpi_ret_cumul, int origin);
-static Cumulator* initializeMPICumulator(Cumulator* ret_cumul, RunConfig* runconfig, int world_rank);
-
 #endif
   double cumultime(int at_tick_index = -1) {
     if (at_tick_index < 0) {
@@ -679,7 +677,6 @@ public:
   static Cumulator* mergePairOfMPICumulators(Cumulator* ret_cumul, int world_rank, int rank_receives, int rank_sends, RunConfig* runconfig, bool pack=true);
   static Cumulator* mergeMPICumulatorsParallel(RunConfig* runconfig, Cumulator* ret_cumul, int world_size, int world_rank, bool pack=true);
 
-  static Cumulator* mergeMPICumulators(RunConfig* runconfig, Cumulator* ret_cumul, int world_size, int world_rank, bool pack=true);
   static size_t MPI_Size_Cumulator(Cumulator* ret_cumul);
   static char* MPI_Pack_Cumulator(Cumulator* ret_cumul, int dest, unsigned int * buff_size);
   static void MPI_Unpack_Cumulator(Cumulator* mpi_ret_cumul, char* buff, unsigned int buff_size);
