@@ -358,43 +358,26 @@ void MaBEstEngine::run(std::ostream* output_traj)
 
 void MaBEstEngine::epilogue()
 {
-  merged_cumulator = Cumulator::mergeCumulatorsParallel(runconfig, cumulator_v);
-  
-#ifdef MPI_COMPAT
-  // merged_cumulator = Cumulator::mergeMPICumulators(runconfig, merged_cumulator, world_size, world_rank);
-  merged_cumulator = Cumulator::mergeMPICumulatorsParallel(runconfig, merged_cumulator, world_size, world_rank);
+  std::pair<Cumulator*, STATE_MAP<NetworkState_Impl, unsigned int>*> results = mergeResults(cumulator_v, fixpoint_map_v);
+  merged_cumulator = results.first;
+  fixpoints = *(results.second);
 
+#ifdef MPI_COMPAT
+  merged_cumulator = Cumulator::mergeMPICumulatorsParallel(runconfig, merged_cumulator, world_size, world_rank);
+  fixpoints = *(mergeMPIFixpointMaps(&fixpoints));
+  
   if (world_rank == 0)
   {
 #endif
   merged_cumulator->epilogue(network, reference_state);
+  
 #ifdef MPI_COMPAT
   }
-  // std::cout << "Finished merging cumulators on node " << world_rank << std::endl;
 #endif 
-
-  STATE_MAP<NetworkState_Impl, unsigned int>* merged_fixpoint_map = mergeFixpointMaps();
-
-#ifdef MPI_COMPAT
-  merged_fixpoint_map = mergeMPIFixpointMaps(merged_fixpoint_map);
-  // std::cout << "Finished merging fixpoints on node " << world_rank << std::endl;
-#endif
-
-  STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator b = merged_fixpoint_map->begin();
-  STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator e = merged_fixpoint_map->end();
-
-  while (b != e) {
-    fixpoints[NetworkState((*b).first).getState()] = (*b).second;
-    ++b;
-  }
-  delete merged_fixpoint_map;
 }
 
 MaBEstEngine::~MaBEstEngine()
 {
-  for (auto t_fixpoint_map: fixpoint_map_v)
-    delete t_fixpoint_map;
-  
   for (auto t_arg_wrapper: arg_wrapper_v)
     delete t_arg_wrapper;
 

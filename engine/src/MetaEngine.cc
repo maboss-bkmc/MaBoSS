@@ -452,6 +452,23 @@ void MetaEngine::displayAsymptotic(std::ostream& output_asymptprob, bool hexfloa
 #endif
 }
 
+void MetaEngine::mergePairOfFixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_1, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_2)
+{
+  for (auto& fixpoint: *fixpoints_2) {
+    
+    STATE_MAP<NetworkState_Impl, unsigned int>::iterator t_fixpoint = fixpoints_1->find(fixpoint.first);
+    if (fixpoints_1->find(fixpoint.first) == fixpoints_1->end()) {
+      t_fixpoint->second = fixpoint.second;
+    
+    } else {
+      t_fixpoint->second += fixpoint.second;
+    
+    }
+  }
+  delete fixpoints_2; 
+}
+
+
 STATE_MAP<NetworkState_Impl, unsigned int>* MetaEngine::mergeFixpointMaps()
 {
   if (1 == fixpoint_map_v.size()) {
@@ -480,6 +497,82 @@ STATE_MAP<NetworkState_Impl, unsigned int>* MetaEngine::mergeFixpointMaps()
   return fixpoint_map;
 }
 
+
+
+struct MergeWrapper {
+  Cumulator* cumulator_1;
+  Cumulator* cumulator_2;
+  STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_1;
+  STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_2;
+  
+  MergeWrapper(Cumulator* cumulator_1, Cumulator* cumulator_2, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_1, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_2) :
+    cumulator_1(cumulator_1), cumulator_2(cumulator_2), fixpoints_1(fixpoints_1), fixpoints_2(fixpoints_2) { }
+};
+
+void* MetaEngine::threadMergeWrapper(void *arg)
+{
+#ifdef USE_DYNAMIC_BITSET
+  MBDynBitset::init_pthread();
+#endif
+  MergeWrapper* warg = (MergeWrapper*)arg;
+  try {
+    Cumulator::mergePairOfCumulators(warg->cumulator_1, warg->cumulator_2);
+    MetaEngine::mergePairOfFixpoints(warg->fixpoints_1, warg->fixpoints_2);
+  } catch(const BNException& e) {
+    std::cerr << e;
+  }
+#ifdef USE_DYNAMIC_BITSET
+  MBDynBitset::end_pthread();
+#endif
+  return NULL;
+}
+
+
+std::pair<Cumulator*, STATE_MAP<NetworkState_Impl, unsigned int>*> MetaEngine::mergeResults(std::vector<Cumulator*>& cumulator_v, std::vector<STATE_MAP<NetworkState_Impl, unsigned int> *>& fixpoint_map_v) {
+  
+  size_t size = cumulator_v.size();
+  
+  if (size > 1) {
+    
+    
+    unsigned int lvl=1;
+    unsigned int max_lvl = ceil(log2(size));
+
+    while(lvl <= max_lvl) {      
+    
+      unsigned int step_lvl = pow(2, lvl-1);
+      unsigned int width_lvl = floor(size/(step_lvl*2)) + 1;
+      pthread_t* tid = new pthread_t[width_lvl];
+      unsigned int nb_threads = 0;
+      std::vector<MergeWrapper*> wargs;
+      for(unsigned int i=0; i < size; i+=(step_lvl*2)) {
+        
+        if (i+step_lvl < size) {
+          std::cout << "Merging thread " << i+step_lvl << " into " << i << std::endl;
+          MergeWrapper* warg = new MergeWrapper(cumulator_v[i], cumulator_v[i+step_lvl], fixpoint_map_v[i], fixpoint_map_v[i+step_lvl]);
+          pthread_create(&tid[nb_threads], NULL, MetaEngine::threadMergeWrapper, warg);
+          nb_threads++;
+          wargs.push_back(warg);
+        } 
+      }
+      
+      for(unsigned int i=0; i < nb_threads; i++) {   
+          pthread_join(tid[i], NULL);
+          
+      }
+      
+      for (auto warg: wargs) {
+        delete warg;
+      }
+      delete [] tid;
+      lvl++;
+    }
+  
+   
+  }
+  
+  return std::make_pair(cumulator_v[0], fixpoint_map_v[0]);
+}
 
 #ifdef MPI_COMPAT
 STATE_MAP<NetworkState_Impl, unsigned int>* MetaEngine::MPI_Unpack_Fixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, char* buff, unsigned int buff_size)

@@ -91,6 +91,12 @@ protected:
   std::vector<Cumulator*> cumulator_v;
 
   STATE_MAP<NetworkState_Impl, unsigned int>* mergeFixpointMaps();
+  static void mergePairOfFixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_1, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_2);
+  
+  static void* threadMergeWrapper(void *arg);
+  // void mergeResults();
+  static std::pair<Cumulator*, STATE_MAP<NetworkState_Impl, unsigned int>*> mergeResults(std::vector<Cumulator*>& cumulator_v, std::vector<STATE_MAP<NetworkState_Impl, unsigned int> *>& fixpoint_map_v);
+
   NodeIndex getTargetNode(Network* _network, RandomGenerator* random_generator, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
   double computeTH(Network* _network, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
   

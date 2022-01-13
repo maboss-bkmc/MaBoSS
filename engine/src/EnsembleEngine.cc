@@ -693,11 +693,16 @@ void EnsembleEngine::mergeMPIIndividual(bool pack)
 
 void EnsembleEngine::epilogue()
 {
-  merged_cumulator = Cumulator::mergeCumulatorsParallel(runconfig, cumulator_v);
-  
+  // merged_cumulator = Cumulator::mergeCumulatorsParallel(runconfig, cumulator_v);
+  // mergeResults();
+  std::pair<Cumulator*, STATE_MAP<NetworkState_Impl, unsigned int>*> results = mergeResults(cumulator_v, fixpoint_map_v);
+  merged_cumulator = results.first;
+  fixpoints = *(results.second);
+
 #ifdef MPI_COMPAT
   // merged_cumulator = Cumulator::mergeMPICumulators(runconfig, merged_cumulator, world_size, world_rank);
   merged_cumulator = Cumulator::mergeMPICumulatorsParallel(runconfig, merged_cumulator, world_size, world_rank);
+  fixpoints = *(mergeMPIFixpointMaps(&fixpoints));
 
   if (world_rank == 0){
 #endif
@@ -711,56 +716,38 @@ void EnsembleEngine::epilogue()
   
   if (save_individual_result) {
     mergeIndividual();
+    // mergeEnsembleFixpointMaps();
 #ifdef MPI_COMPAT
     mergeMPIIndividual();
-#endif    
-
-  }
-
-  STATE_MAP<NetworkState_Impl, unsigned int>* merged_fixpoint_map = mergeFixpointMaps();
-#ifdef MPI_COMPAT
-  mergeMPIFixpointMaps(merged_fixpoint_map);
-#endif 
-
-  STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator b = merged_fixpoint_map->begin();
-  STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator e = merged_fixpoint_map->end();
-
-  while (b != e) {
-    fixpoints[NetworkState((*b).first).getState()] = (*b).second;
-    ++b;
-  }
-  delete merged_fixpoint_map;
-
-  if (save_individual_result) {
-    mergeEnsembleFixpointMaps();
-    
-#ifdef MPI_COMPAT
     mergeEnsembleMPIFixpointMaps();
-#endif
+#endif    
+    
+  } 
 
-  }
 }
 
 void EnsembleEngine::mergeIndividual() {
   cumulators_per_model.resize(networks.size(), NULL);
+  fixpoints_per_model.resize(networks.size(), NULL);
 
   for (unsigned int i=0; i < networks.size(); i++) {
-    std::vector<Cumulator*> model_cumulator = cumulators_thread_v[i];
-      
-    if (model_cumulator.size() == 0) {
-      cumulators_per_model[i] = NULL;
-    }
-    else if (model_cumulator.size() == 1) {
-      cumulators_per_model[i] = model_cumulator[0];
-      cumulators_per_model[i]->epilogue(networks[i], reference_state);
+    
+    std::pair<Cumulator*, STATE_MAP<NetworkState_Impl, unsigned int>*> results = mergeResults(cumulators_thread_v[i], fixpoints_threads_v[i]);
+    cumulators_per_model[i] = results.first;
+    fixpoints_per_model[i] = results.second;
+  // merged_cumulator = results.first;
+  // fixpoints = *(results.second);
 
-    } else {
+    // if (model_cumulator.size() == 0) {
+    //   cumulators_per_model[i] = NULL;
+    
+    // } else {
       
-      Cumulator* t_cumulator = Cumulator::mergeCumulatorsParallel(runconfig, model_cumulator);
-      t_cumulator->epilogue(networks[i], reference_state);
-      cumulators_per_model[i] = t_cumulator;
+    //   Cumulator* t_cumulator = Cumulator::mergeCumulatorsParallel(runconfig, model_cumulator);
+    //   t_cumulator->epilogue(networks[i], reference_state);
+    //   cumulators_per_model[i] = t_cumulator;
 
-    }
+    // }
   }
 }
 
