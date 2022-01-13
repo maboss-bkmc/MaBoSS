@@ -548,7 +548,6 @@ std::pair<Cumulator*, STATE_MAP<NetworkState_Impl, unsigned int>*> MetaEngine::m
       for(unsigned int i=0; i < size; i+=(step_lvl*2)) {
         
         if (i+step_lvl < size) {
-          std::cout << "Merging thread " << i+step_lvl << " into " << i << std::endl;
           MergeWrapper* warg = new MergeWrapper(cumulator_v[i], cumulator_v[i+step_lvl], fixpoint_map_v[i], fixpoint_map_v[i+step_lvl]);
           pthread_create(&tid[nb_threads], NULL, MetaEngine::threadMergeWrapper, warg);
           nb_threads++;
