@@ -41,7 +41,7 @@ check_file "projtraj"
 python compare_statdist.py ewing/refer/ewing_thread_1_statdist.csv tmp/ewing_thread_1_statdist.csv --exact # || echo '**** error test #1.b (non regression) ****'
 check_file "statdist"
 
-diff ewing/refer/ewing_thread_1_fp.csv tmp/ewing_thread_1_fp.csv
+python compare_fixpoints.py ewing/refer/ewing_thread_1_fp.csv tmp/ewing_thread_1_fp.csv
 check_file "fixpoints"
     
 if [ "$ONE_THREAD_ONLY" != "" ]; then exit 0; fi
@@ -57,7 +57,7 @@ check_file "projtraj"
 python compare_statdist.py ewing/refer/ewing_thread_6_statdist.csv tmp/ewing_thread_6_statdist.csv --exact #|| echo '**** error test #2.b (non regression) ****'
 check_file "statdist"
 
-diff ewing/refer/ewing_thread_6_fp.csv tmp/ewing_thread_6_fp.csv
+python compare_fixpoints.py ewing/refer/ewing_thread_6_fp.csv tmp/ewing_thread_6_fp.csv
 check_file "fixpoints"
 
 echo
