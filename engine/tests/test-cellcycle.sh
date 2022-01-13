@@ -37,6 +37,9 @@ if [ "$MULTI_THREAD_ONLY" = "" ]; then
 	
 	python compare_statdist.py cellcycle/refer/Cell_cycle_thread_1_statdist.csv tmp/Cell_cycle_thread_1_statdist.csv --exact # || echo '**** error test #1.b (non regression) ****'
 	check_file "statdist"
+    
+    diff cellcycle/refer/Cell_cycle_thread_1_fp.csv tmp/Cell_cycle_thread_1_fp.csv
+    check_file "fixpoints"
     else
 	diff_sort cellcycle/refer/Cell_cycle_thread_1_finalprob.csv tmp/Cell_cycle_thread_1_finalprob.csv
 	if [ $? != 0 ]; then
@@ -62,6 +65,9 @@ if [[ -z "$FINAL" ]]; then
     python compare_statdist.py cellcycle/refer/Cell_cycle_thread_6_statdist.csv tmp/Cell_cycle_thread_6_statdist.csv --exact #|| echo '**** error test #2.b (non regression) ****'
     check_file "statdist"
 
+    diff cellcycle/refer/Cell_cycle_thread_6_fp.csv tmp/Cell_cycle_thread_6_fp.csv
+    check_file "fixpoints"
+    
     if [[ -z  "$MULTI_THREAD_ONLY" ]]; then
 	python compare_probtrajs.py tmp/Cell_cycle_thread_1_probtraj.csv tmp/Cell_cycle_thread_6_probtraj.csv # || echo '**** error test #3 (multi threads) ****'
 	check_file "probtraj"

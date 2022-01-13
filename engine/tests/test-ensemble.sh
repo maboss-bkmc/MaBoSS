@@ -45,6 +45,22 @@ check_file "projtraj_model_4"
 python compare_probtrajs.py ensemble/refer/res_model_5_probtraj.csv tmp/res_model_5_probtraj.csv --exact
 check_file "projtraj_model_5"
 
+diff ensemble/refer/res_fp.csv tmp/res_fp.csv
+check_file "fixpoints"
+
+diff ensemble/refer/res_model_0_fp.csv tmp/res_model_0_fp.csv
+check_file "fixpoints_model_0"
+diff ensemble/refer/res_model_1_fp.csv tmp/res_model_1_fp.csv
+check_file "fixpoints_model_1"
+diff ensemble/refer/res_model_2_fp.csv tmp/res_model_2_fp.csv
+check_file "fixpoints_model_2"
+diff ensemble/refer/res_model_3_fp.csv tmp/res_model_3_fp.csv
+check_file "fixpoints_model_3"
+diff ensemble/refer/res_model_4_fp.csv tmp/res_model_4_fp.csv
+check_file "fixpoints_model_4"
+diff ensemble/refer/res_model_5_fp.csv tmp/res_model_5_fp.csv
+check_file "fixpoints_model_5"
+
 # rm -rf tmp; 
 
 exit $return_code
