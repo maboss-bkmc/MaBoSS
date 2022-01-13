@@ -532,6 +532,10 @@ std::pair<Cumulator*, STATE_MAP<NetworkState_Impl, unsigned int>*> MetaEngine::m
   
   size_t size = cumulator_v.size();
   
+  if (size == 0) {
+    return std::make_pair((Cumulator*) NULL, new STATE_MAP<NetworkState_Impl, unsigned int>());
+  }
+  
   if (size > 1) {
     
     

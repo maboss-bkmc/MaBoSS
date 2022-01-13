@@ -735,8 +735,8 @@ void EnsembleEngine::mergeIndividual() {
     std::pair<Cumulator*, STATE_MAP<NetworkState_Impl, unsigned int>*> results = mergeResults(cumulators_thread_v[i], fixpoints_threads_v[i]);
     cumulators_per_model[i] = results.first;
     fixpoints_per_model[i] = results.second;
-    
-    cumulators_per_model[i]->epilogue(networks[i], reference_state);
+    if (cumulators_per_model[i] != NULL)
+      cumulators_per_model[i]->epilogue(networks[i], reference_state);
   // merged_cumulator = results.first;
   // fixpoints = *(results.second);
 
