@@ -150,10 +150,6 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
     }
   }
   
-  // std::cout << "Simulations per model : " << std::endl;
-  // for (int i=0; i < networks.size(); i++) {
-  //   std::cout << "Model #" << i << " : " << simulations_per_model[i] << std::endl;
-  // }
   
 #ifdef MPI_COMPAT
 
@@ -409,16 +405,6 @@ void EnsembleEngine::runThread(Cumulator* cumulator, unsigned int start_count_th
 #endif
     unsigned int network_index = simulation_ind[nn];
 
-// #ifdef MPI_COMPAT
-//     std::cout << "Running simulation #" << (world_rank * (global_sample_count/world_size) + (world_rank > 0 ? global_sample_count % world_size : 0)) + start_count_thread+nn 
-//               << " of model #" << network_index << " on node #" << world_rank 
-//               << " with seed " << seed+(world_rank * (global_sample_count/world_size) + (world_rank > 0 ? global_sample_count % world_size : 0))+start_count_thread+nn << std::endl;
-// #else
-//     std::cout << "Running simulation #" << start_count_thread+nn 
-//               << " of model #" << network_index 
-//               << " with seed " << seed+start_count_thread+nn << std::endl;
-// #endif
-
     if (nn > 0 && network_index != simulation_ind[nn-1]) {
       model_ind++;
     }
@@ -574,106 +560,7 @@ void EnsembleEngine::run(std::ostream* output_traj)
   delete [] tid;
 }  
 
-// void EnsembleEngine::mergeEnsembleFixpointMaps()
-// {
-//   fixpoints_per_model.resize(networks.size(), NULL);
-
-//   for (unsigned int i=0; i < networks.size(); i++) {
-//     std::vector<STATE_MAP<NetworkState_Impl, unsigned int>* > model_fixpoints = fixpoints_threads_v[i];
-//     if (model_fixpoints.size() > 0) {
-//       if (1 == model_fixpoints.size()) {
-//         fixpoints_per_model[i] = new STATE_MAP<NetworkState_Impl, unsigned int>(*model_fixpoints[0]);
-//         delete model_fixpoints[0];
-//       } else {
-
-//         STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map = new STATE_MAP<NetworkState_Impl, unsigned int>();
-//         std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*>::iterator begin = model_fixpoints.begin();
-//         std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*>::iterator end = model_fixpoints.end();
-//         unsigned int iii = 0;
-//         while (begin != end) {
-//           STATE_MAP<NetworkState_Impl, unsigned int>* fp_map = *begin;
-//           STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator b = fp_map->begin();
-//           STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator e = fp_map->end();
-//           while (b != e) {
-//             //NetworkState_Impl state = (*b).first;
-//             const NetworkState_Impl& state = (*b).first;
-//             if (fixpoint_map->find(state) == fixpoint_map->end()) {
-//         (*fixpoint_map)[state] = (*b).second;
-//             } else {
-//         (*fixpoint_map)[state] += (*b).second;
-//             }
-//             ++b;
-//           }
-//           ++begin;
-//           ++iii;
-//         }
-//         fixpoints_per_model[i] = fixpoint_map;
-//         for (auto t_model_fixpoint: model_fixpoints) {
-//           delete t_model_fixpoint;
-//         }
-//       }
-//     }
-//   }
-// }
 #ifdef MPI_COMPAT
-
-// void EnsembleEngine::mergeEnsembleMPIFixpointMaps(bool pack)
-// {
-//   if (world_size > 1) {
-
-//     for (unsigned int model=0; model < networks.size(); model++) {
-//       for (int rank = 1; rank < world_size; rank++) {
-
-//         if (world_rank == 0) {
-//           // std::cout << "Receiving from node " << rank << std::endl;
-//           // Broadcasting which node will send
-//           int t_rank = rank;
-//           MPI_Bcast(&t_rank, 1, MPI_INT, 0, MPI_COMM_WORLD);
-
-//           if (pack) {
-//             // MPI_Unpack version
-//             unsigned int buff_size;
-//             MPI_Recv( &buff_size, 1, MPI_UNSIGNED, rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            
-//             char* buff = new char[buff_size];
-//             MPI_Recv( buff, buff_size, MPI_PACKED, rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
-            
-//             // if (fixpoints_per_model[model] == NULL) {
-//             //   std::cout << "Will create new cumulator for model #" << model << " to receive from node " << rank << std::endl;
-//             // }
-//             MPI_Unpack_Fixpoints(fixpoints_per_model[model], buff, buff_size);
-//             // if (fixpoints_per_model[model] != NULL) {
-//             //   std::cout << "created new cumulator for model #" << model << " to receive from node " << rank << std::endl;
-//             // }
-            
-//             delete buff;
-            
-//           } else {
-//             MPI_Recv_Fixpoints(fixpoints_per_model[model], rank);
-//           }
-          
-//         } else {
-          
-//           int sender_rank;
-//           MPI_Bcast(&sender_rank, 1, MPI_INT, 0, MPI_COMM_WORLD);
-          
-//           if (sender_rank == world_rank) {
-//             if (pack) {
-//               unsigned int buff_size = 0;
-//               char* buff = MPI_Pack_Fixpoints(fixpoints_per_model[model], 0, &buff_size);
-//               MPI_Send(&buff_size, 1, MPI_UNSIGNED, 0, 0, MPI_COMM_WORLD);
-//               MPI_Send( buff, buff_size, MPI_PACKED, 0, 0, MPI_COMM_WORLD); 
-//               delete buff;
-              
-//             } else {
-//               MPI_Send_Fixpoints(fixpoints_per_model[model], 0);
-//             }
-//           }
-//         }      
-//       }
-//     }
-//   }
-// }
 
 void EnsembleEngine::mergeMPIIndividual(bool pack) 
 {
@@ -683,11 +570,9 @@ void EnsembleEngine::mergeMPIIndividual(bool pack)
       std::pair<Cumulator*, STATE_MAP<NetworkState_Impl, unsigned int>*> results = mergeMPIResults(runconfig, cumulators_per_model[model], fixpoints_per_model[model], world_size, world_rank);
       cumulators_per_model[model] = results.first;
       fixpoints_per_model[model] = results.second;
-      // Cumulator* t_cumulator = Cumulator::mergeMPICumulatorsParallel(runconfig, cumulators_per_model[model], world_size, world_rank, pack);
+      
       if (world_rank == 0)
         cumulators_per_model[model]->epilogue(networks[model], reference_state);
-
-      // cumulators_per_model[model] = t_cumulator;
     }
   }
 }
@@ -701,8 +586,6 @@ void EnsembleEngine::epilogue()
   fixpoints = *(results.second);
 
 #ifdef MPI_COMPAT
-  // merged_cumulator = Cumulator::mergeMPICumulatorsParallel(runconfig, merged_cumulator, world_size, world_rank);
-  // fixpoints = *(mergeMPIFixpointMaps(&fixpoints));
   std::pair<Cumulator*, STATE_MAP<NetworkState_Impl, unsigned int>*> mpi_results = mergeMPIResults(runconfig, merged_cumulator, &fixpoints, world_size, world_rank);
   merged_cumulator = mpi_results.first;
   fixpoints = *(mpi_results.second);
@@ -715,16 +598,14 @@ void EnsembleEngine::epilogue()
 #ifdef MPI_COMPAT
   }
 #endif
-  std::cout << "Main results merged" << std::endl;
   
-  if (save_individual_result) {
+  if (save_individual_result) 
+  {
     mergeIndividual();
-    // mergeEnsembleFixpointMaps();
+    
 #ifdef MPI_COMPAT
     mergeMPIIndividual();
-    // mergeEnsembleMPIFixpointMaps();
 #endif    
-
   } 
 
 }

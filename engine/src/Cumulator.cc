@@ -709,76 +709,6 @@ void Cumulator::add(unsigned int where, const HDCumulMap& add_hd_cumul_map)
   }
 }
 
-// struct MergeCumulatorWrapper {
-//   Cumulator* cumulator_1;
-//   Cumulator* cumulator_2;
-  
-//   MergeCumulatorWrapper(Cumulator* cumulator_1, Cumulator* cumulator_2) :
-//     cumulator_1(cumulator_1), cumulator_2(cumulator_2) { }
-// };
-
-// void* Cumulator::threadMergeCumulatorWrapper(void *arg)
-// {
-// #ifdef USE_DYNAMIC_BITSET
-//   MBDynBitset::init_pthread();
-// #endif
-//   MergeCumulatorWrapper* warg = (MergeCumulatorWrapper*)arg;
-//   try {
-//     mergePairOfCumulators(warg->cumulator_1, warg->cumulator_2);
-//   } catch(const BNException& e) {
-//     std::cerr << e;
-//   }
-// #ifdef USE_DYNAMIC_BITSET
-//   MBDynBitset::end_pthread();
-// #endif
-//   return NULL;
-// }
-
-// Cumulator* Cumulator::mergeCumulatorsParallel(RunConfig* runconfig, std::vector<Cumulator*>& cumulator_v) {
-  
-//   size_t size = cumulator_v.size();
-  
-//   if (1 == size) {
-//     return cumulator_v[0];
-//   } else {
-    
-//     unsigned int lvl=1;
-//     unsigned int max_lvl = ceil(log2(size));
-
-//     while(lvl <= max_lvl) {      
-    
-//       unsigned int step_lvl = pow(2, lvl-1);
-//       unsigned int width_lvl = floor(size/(step_lvl*2)) + 1;
-//       pthread_t* tid = new pthread_t[width_lvl];
-//       unsigned int nb_threads = 0;
-//       std::vector<MergeCumulatorWrapper*> wargs;
-//       for(unsigned int i=0; i < size; i+=(step_lvl*2)) {
-        
-//         if (i+step_lvl < size) {
-//           MergeCumulatorWrapper* warg = new MergeCumulatorWrapper(cumulator_v[i], cumulator_v[i+step_lvl]);
-//           pthread_create(&tid[nb_threads], NULL, Cumulator::threadMergeCumulatorWrapper, warg);
-//           nb_threads++;
-//           wargs.push_back(warg);
-//         } 
-//       }
-      
-//       for(unsigned int i=0; i < nb_threads; i++) {   
-//           pthread_join(tid[i], NULL);
-          
-//       }
-      
-//       for (auto warg: wargs) {
-//         delete warg;
-//       }
-//       delete [] tid;
-//       lvl++;
-//     }
-//   }
-  
-//   return cumulator_v[0];
-// }
-
-
 void Cumulator::mergePairOfCumulators(Cumulator* cumulator_1, Cumulator* cumulator_2) {
     
   cumulator_1->sample_count += cumulator_2->sample_count;
@@ -872,11 +802,6 @@ void Cumulator::MPI_Unpack_Cumulator(Cumulator* mpi_ret_cumul, char* buff, unsig
 
   for (size_t nn = 0; nn < t_cumul_size; ++nn) {
 
-    // Here we need to get various data structures : 
-    // a CumulMap : a <NetworkState_Impl, TickValue> map
-    // a HDCumulMap : a <NetworkState_Impl, double> map
-    // A vector of doubles
-    
     CumulMap t_cumulMap;
     t_cumulMap.my_MPI_Unpack(buff, buff_size, &position);  
     mpi_ret_cumul->add(nn, t_cumulMap);
@@ -895,7 +820,6 @@ void Cumulator::MPI_Unpack_Cumulator(Cumulator* mpi_ret_cumul, char* buff, unsig
   
   size_t begin = mpi_ret_cumul->statdist_trajcount - t_proba_dist_size;
   for (size_t ii = 0; ii < t_proba_dist_size; ii++) {
-    // Here we are receiving the proba_dist, which is a map of <state, double>
     ProbaDist t_proba_dist;
     t_proba_dist.my_MPI_Unpack(buff, buff_size, &position);
     mpi_ret_cumul->proba_dist_v[begin + ii] = t_proba_dist;
@@ -932,11 +856,6 @@ void Cumulator::MPI_Recv_Cumulator(Cumulator* mpi_ret_cumul, int origin)
 
   for (size_t nn = 0; nn < t_cumul_size; ++nn) {
 
-    // Here we need to get various data structures : 
-    // a CumulMap : a <NetworkState_Impl, TickValue> map
-    // a HDCumulMap : a <NetworkState_Impl, double> map
-    // A vector of doubles
-    
     CumulMap t_cumulMap;
     t_cumulMap.my_MPI_Recv(origin);  
     mpi_ret_cumul->add(nn, t_cumulMap);
@@ -998,7 +917,6 @@ Cumulator* Cumulator::mergePairOfMPICumulators(Cumulator* ret_cumul, int world_r
     }
     
     if (pack) {
-      // MPI_Unpack version
       unsigned int buff_size;
       MPI_Recv( &buff_size, 1, MPI_UNSIGNED, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       char* buff = new char[buff_size];
@@ -1045,34 +963,5 @@ Cumulator* Cumulator::mergePairOfMPICumulators(Cumulator* ret_cumul, int world_r
   
   return ret_cumul;
 }
-
-// Cumulator* Cumulator::mergeMPICumulatorsParallel(RunConfig* runconfig, Cumulator* ret_cumul, int world_size, int world_rank, bool pack)
-// {  
-//   if (1 == world_size) {
-//     return ret_cumul;
-//   } else {
-    
-//     unsigned int lvl=1;
-//     unsigned int max_lvl = ceil(log2(world_size));
-
-//     while(lvl <= max_lvl) {
-    
-//       unsigned int step_lvl = pow(2, lvl-1);
-//       unsigned int width_lvl = floor(world_size/(step_lvl*2)) + 1;
-      
-//       for(unsigned int i=0; i < world_size; i+=(step_lvl*2)) {
-        
-//         if (i+step_lvl < world_size) {
-//           if (world_rank == i || world_rank == (i+step_lvl))
-//             ret_cumul = mergePairOfMPICumulators(ret_cumul, world_rank, i, i+step_lvl, runconfig, pack);
-//         } 
-//       }
-      
-//       lvl++;
-//     }
-//   }
-  
-//   return ret_cumul;
-// }
 
 #endif

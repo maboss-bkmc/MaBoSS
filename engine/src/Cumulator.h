@@ -157,8 +157,6 @@ class Cumulator {
     }
 
     void my_MPI_Pack(void* buff, unsigned int size_pack, int* position) {
-       // First, the cumulMap
-      // and first, it's size
       size_t s_cumulMap = size();
       MPI_Pack(&s_cumulMap, 1, my_MPI_SIZE_T, buff, size_pack, position, MPI_COMM_WORLD);
 
@@ -217,19 +215,15 @@ class Cumulator {
         TickValue t_tick_value(t_tm_slice, t_TH);
         add(t_state.getState(), t_tick_value); 
       }
-      // std::cout << "Finished receiving cumulMap" << std::endl;
     }
     
     void my_MPI_Send(int dest) {
-      // First, the cumulMap
-      // and first, it's size
+      
       size_t s_cumulMap = size();
-      // std::cout << "Will send a cumul map of size " << s_cumulMap << std::endl;
       MPI_Send(&s_cumulMap, 1, my_MPI_SIZE_T, dest, 0, MPI_COMM_WORLD);
 
       CumulMap::Iterator t_iterator = iterator();
       
-      // NetworkState t_state;
       TickValue t_tick_value;
       while ( t_iterator.hasNext()) {
 
@@ -238,14 +232,10 @@ class Cumulator {
         NetworkState t_state(state);
         t_state.my_MPI_Send(dest);
         
-        // MPI_Send(&t_state, 1, MPI_UNSIGNED_LONG_LONG, dest, 0, MPI_COMM_WORLD);
-      
-        // TickValue t_tick_value = entry.second;
         MPI_Send(&(t_tick_value.tm_slice), 1, MPI_DOUBLE, dest, 0, MPI_COMM_WORLD);
         MPI_Send(&(t_tick_value.TH), 1, MPI_DOUBLE, dest, 0, MPI_COMM_WORLD);
 
       }   
-      // std::cout << "Finished sending cumulMap" << std::endl;
     }
 #endif
 
@@ -669,13 +659,10 @@ public:
 
   unsigned int getSampleCount() const {return sample_count;}
 
-  // static Cumulator* mergeCumulatorsParallel(RunConfig* runconfig, std::vector<Cumulator*>& cumulator_v);
   static void mergePairOfCumulators(Cumulator* cumulator_1, Cumulator* cumulator_2);
-  // static void* threadMergeCumulatorWrapper(void *arg);
 
 #ifdef MPI_COMPAT
   static Cumulator* mergePairOfMPICumulators(Cumulator* ret_cumul, int world_rank, int rank_receives, int rank_sends, RunConfig* runconfig, bool pack=true);
-  // static Cumulator* mergeMPICumulatorsParallel(RunConfig* runconfig, Cumulator* ret_cumul, int world_size, int world_rank, bool pack=true);
 
   static size_t MPI_Size_Cumulator(Cumulator* ret_cumul);
   static char* MPI_Pack_Cumulator(Cumulator* ret_cumul, int dest, unsigned int * buff_size);

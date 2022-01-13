@@ -588,7 +588,6 @@ void MetaEngine::MPI_Unpack_Fixpoints(STATE_MAP<NetworkState_Impl, unsigned int>
   if (nb_fixpoints > 0) {
     if (fp_map == NULL) {
       fp_map = new STATE_MAP<NetworkState_Impl, unsigned int>();
-      // std::cout << "Creating new fp map for " << nb_fixpoints << " fixpoints" << std::endl;
     }
     for (unsigned int j=0; j < nb_fixpoints; j++) {
       NetworkState state;
@@ -603,8 +602,6 @@ void MetaEngine::MPI_Unpack_Fixpoints(STATE_MAP<NetworkState_Impl, unsigned int>
       }
     }
   }
-  // std::cout << "Added " << fp_map->size() <<  " fixpoints to the map" << std::endl;
-  // return fp_map;
 }
 
 char* MetaEngine::MPI_Pack_Fixpoints(const STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, int dest, unsigned int * buff_size)
@@ -629,8 +626,6 @@ char* MetaEngine::MPI_Pack_Fixpoints(const STATE_MAP<NetworkState_Impl, unsigned
 
 void MetaEngine::MPI_Send_Fixpoints(const STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, int dest) 
 {
-  // MPI_Send version
-  // First we send the number of fixpoints we have
   int nb_fixpoints = fp_map->size();
   MPI_Send(&nb_fixpoints, 1, MPI_INT, dest, 0, MPI_COMM_WORLD);
   
@@ -664,62 +659,8 @@ void MetaEngine::MPI_Recv_Fixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* 
   }
 }
 
-// STATE_MAP<NetworkState_Impl, unsigned int>* MetaEngine::mergeMPIFixpointMaps(STATE_MAP<NetworkState_Impl, unsigned int>* t_fixpoint_map, bool pack)
-// {
-//   // If we are, but only on one node, we don't need to do anything
-//   if (world_size == 1) {
-//     return t_fixpoint_map;
-//   } else {
-    
-//     for (int i = 1; i < world_size; i++) {
-      
-//       if (world_rank == 0) {
-        
-//         int rank = i;
-//         MPI_Bcast(&rank, 1, MPI_INT, 0, MPI_COMM_WORLD);
-
-//         if (pack) {
-//           // MPI_Unpack version
-//           unsigned int buff_size;
-//           MPI_Recv( &buff_size, 1, MPI_UNSIGNED, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-          
-//           char* buff = new char[buff_size];
-//           MPI_Recv( buff, buff_size, MPI_PACKED, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
-          
-//           MPI_Unpack_Fixpoints(t_fixpoint_map, buff, buff_size);
-//           delete buff;
-          
-//         } else {
-//           MPI_Recv_Fixpoints(t_fixpoint_map, i);
-//         }
-         
-//       } else {
-        
-//         int rank;
-//         MPI_Bcast(&rank, 1, MPI_INT, 0, MPI_COMM_WORLD);
-        
-//         if (rank == world_rank) {
-          
-//           if (pack) {
-//             unsigned int buff_size;
-//             char* buff = MPI_Pack_Fixpoints(t_fixpoint_map, 0, &buff_size);
-
-//             MPI_Send(&buff_size, 1, MPI_UNSIGNED, 0, 0, MPI_COMM_WORLD);
-//             MPI_Send( buff, buff_size, MPI_PACKED, 0, 0, MPI_COMM_WORLD); 
-//             delete buff;
-            
-//           } else {
-//             MPI_Send_Fixpoints(t_fixpoint_map, 0);
-//           }
-//         }
-//       }      
-//     }
-
-//     return t_fixpoint_map; 
-//   }
-// }
-
-void MetaEngine::mergePairOfMPIFixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints, int world_rank, int dest, int origin, bool pack) {
+void MetaEngine::mergePairOfMPIFixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints, int world_rank, int dest, int origin, bool pack) 
+{
    if (world_rank == dest) 
    {
    
