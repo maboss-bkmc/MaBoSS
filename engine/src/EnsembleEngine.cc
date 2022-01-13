@@ -574,47 +574,47 @@ void EnsembleEngine::run(std::ostream* output_traj)
   delete [] tid;
 }  
 
-void EnsembleEngine::mergeEnsembleFixpointMaps()
-{
-  fixpoints_per_model.resize(networks.size(), NULL);
+// void EnsembleEngine::mergeEnsembleFixpointMaps()
+// {
+//   fixpoints_per_model.resize(networks.size(), NULL);
 
-  for (unsigned int i=0; i < networks.size(); i++) {
-    std::vector<STATE_MAP<NetworkState_Impl, unsigned int>* > model_fixpoints = fixpoints_threads_v[i];
-    if (model_fixpoints.size() > 0) {
-      if (1 == model_fixpoints.size()) {
-        fixpoints_per_model[i] = new STATE_MAP<NetworkState_Impl, unsigned int>(*model_fixpoints[0]);
-        delete model_fixpoints[0];
-      } else {
+//   for (unsigned int i=0; i < networks.size(); i++) {
+//     std::vector<STATE_MAP<NetworkState_Impl, unsigned int>* > model_fixpoints = fixpoints_threads_v[i];
+//     if (model_fixpoints.size() > 0) {
+//       if (1 == model_fixpoints.size()) {
+//         fixpoints_per_model[i] = new STATE_MAP<NetworkState_Impl, unsigned int>(*model_fixpoints[0]);
+//         delete model_fixpoints[0];
+//       } else {
 
-        STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map = new STATE_MAP<NetworkState_Impl, unsigned int>();
-        std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*>::iterator begin = model_fixpoints.begin();
-        std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*>::iterator end = model_fixpoints.end();
-        unsigned int iii = 0;
-        while (begin != end) {
-          STATE_MAP<NetworkState_Impl, unsigned int>* fp_map = *begin;
-          STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator b = fp_map->begin();
-          STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator e = fp_map->end();
-          while (b != e) {
-            //NetworkState_Impl state = (*b).first;
-            const NetworkState_Impl& state = (*b).first;
-            if (fixpoint_map->find(state) == fixpoint_map->end()) {
-        (*fixpoint_map)[state] = (*b).second;
-            } else {
-        (*fixpoint_map)[state] += (*b).second;
-            }
-            ++b;
-          }
-          ++begin;
-          ++iii;
-        }
-        fixpoints_per_model[i] = fixpoint_map;
-        for (auto t_model_fixpoint: model_fixpoints) {
-          delete t_model_fixpoint;
-        }
-      }
-    }
-  }
-}
+//         STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map = new STATE_MAP<NetworkState_Impl, unsigned int>();
+//         std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*>::iterator begin = model_fixpoints.begin();
+//         std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*>::iterator end = model_fixpoints.end();
+//         unsigned int iii = 0;
+//         while (begin != end) {
+//           STATE_MAP<NetworkState_Impl, unsigned int>* fp_map = *begin;
+//           STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator b = fp_map->begin();
+//           STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator e = fp_map->end();
+//           while (b != e) {
+//             //NetworkState_Impl state = (*b).first;
+//             const NetworkState_Impl& state = (*b).first;
+//             if (fixpoint_map->find(state) == fixpoint_map->end()) {
+//         (*fixpoint_map)[state] = (*b).second;
+//             } else {
+//         (*fixpoint_map)[state] += (*b).second;
+//             }
+//             ++b;
+//           }
+//           ++begin;
+//           ++iii;
+//         }
+//         fixpoints_per_model[i] = fixpoint_map;
+//         for (auto t_model_fixpoint: model_fixpoints) {
+//           delete t_model_fixpoint;
+//         }
+//       }
+//     }
+//   }
+// }
 #ifdef MPI_COMPAT
 
 void EnsembleEngine::mergeEnsembleMPIFixpointMaps(bool pack)

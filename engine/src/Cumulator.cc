@@ -709,74 +709,74 @@ void Cumulator::add(unsigned int where, const HDCumulMap& add_hd_cumul_map)
   }
 }
 
-struct MergeCumulatorWrapper {
-  Cumulator* cumulator_1;
-  Cumulator* cumulator_2;
+// struct MergeCumulatorWrapper {
+//   Cumulator* cumulator_1;
+//   Cumulator* cumulator_2;
   
-  MergeCumulatorWrapper(Cumulator* cumulator_1, Cumulator* cumulator_2) :
-    cumulator_1(cumulator_1), cumulator_2(cumulator_2) { }
-};
+//   MergeCumulatorWrapper(Cumulator* cumulator_1, Cumulator* cumulator_2) :
+//     cumulator_1(cumulator_1), cumulator_2(cumulator_2) { }
+// };
 
-void* Cumulator::threadMergeCumulatorWrapper(void *arg)
-{
-#ifdef USE_DYNAMIC_BITSET
-  MBDynBitset::init_pthread();
-#endif
-  MergeCumulatorWrapper* warg = (MergeCumulatorWrapper*)arg;
-  try {
-    mergePairOfCumulators(warg->cumulator_1, warg->cumulator_2);
-  } catch(const BNException& e) {
-    std::cerr << e;
-  }
-#ifdef USE_DYNAMIC_BITSET
-  MBDynBitset::end_pthread();
-#endif
-  return NULL;
-}
+// void* Cumulator::threadMergeCumulatorWrapper(void *arg)
+// {
+// #ifdef USE_DYNAMIC_BITSET
+//   MBDynBitset::init_pthread();
+// #endif
+//   MergeCumulatorWrapper* warg = (MergeCumulatorWrapper*)arg;
+//   try {
+//     mergePairOfCumulators(warg->cumulator_1, warg->cumulator_2);
+//   } catch(const BNException& e) {
+//     std::cerr << e;
+//   }
+// #ifdef USE_DYNAMIC_BITSET
+//   MBDynBitset::end_pthread();
+// #endif
+//   return NULL;
+// }
 
-Cumulator* Cumulator::mergeCumulatorsParallel(RunConfig* runconfig, std::vector<Cumulator*>& cumulator_v) {
+// Cumulator* Cumulator::mergeCumulatorsParallel(RunConfig* runconfig, std::vector<Cumulator*>& cumulator_v) {
   
-  size_t size = cumulator_v.size();
+//   size_t size = cumulator_v.size();
   
-  if (1 == size) {
-    return cumulator_v[0];
-  } else {
+//   if (1 == size) {
+//     return cumulator_v[0];
+//   } else {
     
-    unsigned int lvl=1;
-    unsigned int max_lvl = ceil(log2(size));
+//     unsigned int lvl=1;
+//     unsigned int max_lvl = ceil(log2(size));
 
-    while(lvl <= max_lvl) {      
+//     while(lvl <= max_lvl) {      
     
-      unsigned int step_lvl = pow(2, lvl-1);
-      unsigned int width_lvl = floor(size/(step_lvl*2)) + 1;
-      pthread_t* tid = new pthread_t[width_lvl];
-      unsigned int nb_threads = 0;
-      std::vector<MergeCumulatorWrapper*> wargs;
-      for(unsigned int i=0; i < size; i+=(step_lvl*2)) {
+//       unsigned int step_lvl = pow(2, lvl-1);
+//       unsigned int width_lvl = floor(size/(step_lvl*2)) + 1;
+//       pthread_t* tid = new pthread_t[width_lvl];
+//       unsigned int nb_threads = 0;
+//       std::vector<MergeCumulatorWrapper*> wargs;
+//       for(unsigned int i=0; i < size; i+=(step_lvl*2)) {
         
-        if (i+step_lvl < size) {
-          MergeCumulatorWrapper* warg = new MergeCumulatorWrapper(cumulator_v[i], cumulator_v[i+step_lvl]);
-          pthread_create(&tid[nb_threads], NULL, Cumulator::threadMergeCumulatorWrapper, warg);
-          nb_threads++;
-          wargs.push_back(warg);
-        } 
-      }
+//         if (i+step_lvl < size) {
+//           MergeCumulatorWrapper* warg = new MergeCumulatorWrapper(cumulator_v[i], cumulator_v[i+step_lvl]);
+//           pthread_create(&tid[nb_threads], NULL, Cumulator::threadMergeCumulatorWrapper, warg);
+//           nb_threads++;
+//           wargs.push_back(warg);
+//         } 
+//       }
       
-      for(unsigned int i=0; i < nb_threads; i++) {   
-          pthread_join(tid[i], NULL);
+//       for(unsigned int i=0; i < nb_threads; i++) {   
+//           pthread_join(tid[i], NULL);
           
-      }
+//       }
       
-      for (auto warg: wargs) {
-        delete warg;
-      }
-      delete [] tid;
-      lvl++;
-    }
-  }
+//       for (auto warg: wargs) {
+//         delete warg;
+//       }
+//       delete [] tid;
+//       lvl++;
+//     }
+//   }
   
-  return cumulator_v[0];
-}
+//   return cumulator_v[0];
+// }
 
 
 void Cumulator::mergePairOfCumulators(Cumulator* cumulator_1, Cumulator* cumulator_2) {

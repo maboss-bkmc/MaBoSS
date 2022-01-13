@@ -669,9 +669,9 @@ public:
 
   unsigned int getSampleCount() const {return sample_count;}
 
-  static Cumulator* mergeCumulatorsParallel(RunConfig* runconfig, std::vector<Cumulator*>& cumulator_v);
+  // static Cumulator* mergeCumulatorsParallel(RunConfig* runconfig, std::vector<Cumulator*>& cumulator_v);
   static void mergePairOfCumulators(Cumulator* cumulator_1, Cumulator* cumulator_2);
-  static void* threadMergeCumulatorWrapper(void *arg);
+  // static void* threadMergeCumulatorWrapper(void *arg);
 
 #ifdef MPI_COMPAT
   static Cumulator* mergePairOfMPICumulators(Cumulator* ret_cumul, int world_rank, int rank_receives, int rank_sends, RunConfig* runconfig, bool pack=true);
