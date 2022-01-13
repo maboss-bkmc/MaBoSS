@@ -102,8 +102,12 @@ protected:
   
   
 #ifdef MPI_COMPAT
-  STATE_MAP<NetworkState_Impl, unsigned int>* mergeMPIFixpointMaps(STATE_MAP<NetworkState_Impl, unsigned int>*, bool pack=true);
-  STATE_MAP<NetworkState_Impl, unsigned int>* MPI_Unpack_Fixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, char* buff, unsigned int buff_size);
+  static std::pair<Cumulator*, STATE_MAP<NetworkState_Impl, unsigned int>*> mergeMPIResults(RunConfig* runconfig, Cumulator* ret_cumul, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints, int world_size, int world_rank, bool pack=true);
+
+  
+  static void mergePairOfMPIFixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints, int world_rank, int dest, int origin, bool pack=true);
+  // STATE_MAP<NetworkState_Impl, unsigned int>* mergeMPIFixpointMaps(STATE_MAP<NetworkState_Impl, unsigned int>*, bool pack=true);
+  static void MPI_Unpack_Fixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, char* buff, unsigned int buff_size);
   static char* MPI_Pack_Fixpoints(const STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, int dest, unsigned int * buff_size);
   static void MPI_Send_Fixpoints(const STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, int dest);
   static void MPI_Recv_Fixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, int origin);

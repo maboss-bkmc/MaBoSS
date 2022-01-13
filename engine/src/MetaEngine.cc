@@ -578,7 +578,7 @@ std::pair<Cumulator*, STATE_MAP<NetworkState_Impl, unsigned int>*> MetaEngine::m
 }
 
 #ifdef MPI_COMPAT
-STATE_MAP<NetworkState_Impl, unsigned int>* MetaEngine::MPI_Unpack_Fixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, char* buff, unsigned int buff_size)
+void MetaEngine::MPI_Unpack_Fixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, char* buff, unsigned int buff_size)
 {
         
   int position = 0;
@@ -604,7 +604,7 @@ STATE_MAP<NetworkState_Impl, unsigned int>* MetaEngine::MPI_Unpack_Fixpoints(STA
     }
   }
   // std::cout << "Added " << fp_map->size() <<  " fixpoints to the map" << std::endl;
-  return fp_map;
+  // return fp_map;
 }
 
 char* MetaEngine::MPI_Pack_Fixpoints(const STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, int dest, unsigned int * buff_size)
@@ -664,58 +664,127 @@ void MetaEngine::MPI_Recv_Fixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* 
   }
 }
 
-STATE_MAP<NetworkState_Impl, unsigned int>* MetaEngine::mergeMPIFixpointMaps(STATE_MAP<NetworkState_Impl, unsigned int>* t_fixpoint_map, bool pack)
-{
-  // If we are, but only on one node, we don't need to do anything
-  if (world_size == 1) {
-    return t_fixpoint_map;
-  } else {
+// STATE_MAP<NetworkState_Impl, unsigned int>* MetaEngine::mergeMPIFixpointMaps(STATE_MAP<NetworkState_Impl, unsigned int>* t_fixpoint_map, bool pack)
+// {
+//   // If we are, but only on one node, we don't need to do anything
+//   if (world_size == 1) {
+//     return t_fixpoint_map;
+//   } else {
     
-    for (int i = 1; i < world_size; i++) {
+//     for (int i = 1; i < world_size; i++) {
       
-      if (world_rank == 0) {
+//       if (world_rank == 0) {
         
-        int rank = i;
-        MPI_Bcast(&rank, 1, MPI_INT, 0, MPI_COMM_WORLD);
+//         int rank = i;
+//         MPI_Bcast(&rank, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-        if (pack) {
-          // MPI_Unpack version
-          unsigned int buff_size;
-          MPI_Recv( &buff_size, 1, MPI_UNSIGNED, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+//         if (pack) {
+//           // MPI_Unpack version
+//           unsigned int buff_size;
+//           MPI_Recv( &buff_size, 1, MPI_UNSIGNED, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
           
-          char* buff = new char[buff_size];
-          MPI_Recv( buff, buff_size, MPI_PACKED, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
+//           char* buff = new char[buff_size];
+//           MPI_Recv( buff, buff_size, MPI_PACKED, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
           
-          MPI_Unpack_Fixpoints(t_fixpoint_map, buff, buff_size);
-          delete buff;
+//           MPI_Unpack_Fixpoints(t_fixpoint_map, buff, buff_size);
+//           delete buff;
           
-        } else {
-          MPI_Recv_Fixpoints(t_fixpoint_map, i);
-        }
+//         } else {
+//           MPI_Recv_Fixpoints(t_fixpoint_map, i);
+//         }
          
-      } else {
+//       } else {
         
-        int rank;
-        MPI_Bcast(&rank, 1, MPI_INT, 0, MPI_COMM_WORLD);
+//         int rank;
+//         MPI_Bcast(&rank, 1, MPI_INT, 0, MPI_COMM_WORLD);
         
-        if (rank == world_rank) {
+//         if (rank == world_rank) {
           
-          if (pack) {
-            unsigned int buff_size;
-            char* buff = MPI_Pack_Fixpoints(t_fixpoint_map, 0, &buff_size);
+//           if (pack) {
+//             unsigned int buff_size;
+//             char* buff = MPI_Pack_Fixpoints(t_fixpoint_map, 0, &buff_size);
 
-            MPI_Send(&buff_size, 1, MPI_UNSIGNED, 0, 0, MPI_COMM_WORLD);
-            MPI_Send( buff, buff_size, MPI_PACKED, 0, 0, MPI_COMM_WORLD); 
-            delete buff;
+//             MPI_Send(&buff_size, 1, MPI_UNSIGNED, 0, 0, MPI_COMM_WORLD);
+//             MPI_Send( buff, buff_size, MPI_PACKED, 0, 0, MPI_COMM_WORLD); 
+//             delete buff;
             
-          } else {
-            MPI_Send_Fixpoints(t_fixpoint_map, 0);
-          }
-        }
-      }      
-    }
+//           } else {
+//             MPI_Send_Fixpoints(t_fixpoint_map, 0);
+//           }
+//         }
+//       }      
+//     }
 
-    return t_fixpoint_map; 
+//     return t_fixpoint_map; 
+//   }
+// }
+
+void MetaEngine::mergePairOfMPIFixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints, int world_rank, int dest, int origin, bool pack) {
+   if (world_rank == dest) 
+   {
+   
+    if (pack) {
+      unsigned int buff_size;
+      MPI_Recv( &buff_size, 1, MPI_UNSIGNED, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        
+      char* buff = new char[buff_size];
+      MPI_Recv( buff, buff_size, MPI_PACKED, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
+          
+      MPI_Unpack_Fixpoints(fixpoints, buff, buff_size);
+      delete buff;
+      
+    } else {
+      MPI_Recv_Fixpoints(fixpoints, origin);
+    }
+    
+  } else if (world_rank == origin) {
+
+    if (pack) {
+
+      unsigned int buff_size;
+      char* buff = MPI_Pack_Fixpoints(fixpoints, dest, &buff_size);
+
+      MPI_Send(&buff_size, 1, MPI_UNSIGNED, dest, 0, MPI_COMM_WORLD);
+      MPI_Send( buff, buff_size, MPI_PACKED, dest, 0, MPI_COMM_WORLD); 
+      delete buff;            
+      
+    } else {
+     
+      MPI_Send_Fixpoints(fixpoints, dest);
+    }
   }
 }
+
+
+std::pair<Cumulator*, STATE_MAP<NetworkState_Impl, unsigned int>*> MetaEngine::mergeMPIResults(RunConfig* runconfig, Cumulator* ret_cumul, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints, int world_size, int world_rank, bool pack)
+{  
+  if (world_size> 1) {
+    
+    unsigned int lvl=1;
+    unsigned int max_lvl = ceil(log2(world_size));
+
+    while(lvl <= max_lvl) {
+    
+      unsigned int step_lvl = pow(2, lvl-1);
+      unsigned int width_lvl = floor(world_size/(step_lvl*2)) + 1;
+      
+      for(unsigned int i=0; i < world_size; i+=(step_lvl*2)) {
+        
+        if (i+step_lvl < world_size) {
+          if (world_rank == i || world_rank == (i+step_lvl)){
+            ret_cumul = Cumulator::mergePairOfMPICumulators(ret_cumul, world_rank, i, i+step_lvl, runconfig, pack);
+            mergePairOfMPIFixpoints(fixpoints, world_rank, i, i+step_lvl, pack);
+          }
+        } 
+      }
+      
+      lvl++;
+    }
+  }
+  
+  return std::make_pair(ret_cumul, fixpoints); 
+  
+}
+
+
 #endif

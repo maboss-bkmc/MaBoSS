@@ -675,7 +675,7 @@ public:
 
 #ifdef MPI_COMPAT
   static Cumulator* mergePairOfMPICumulators(Cumulator* ret_cumul, int world_rank, int rank_receives, int rank_sends, RunConfig* runconfig, bool pack=true);
-  static Cumulator* mergeMPICumulatorsParallel(RunConfig* runconfig, Cumulator* ret_cumul, int world_size, int world_rank, bool pack=true);
+  // static Cumulator* mergeMPICumulatorsParallel(RunConfig* runconfig, Cumulator* ret_cumul, int world_size, int world_rank, bool pack=true);
 
   static size_t MPI_Size_Cumulator(Cumulator* ret_cumul);
   static char* MPI_Pack_Cumulator(Cumulator* ret_cumul, int dest, unsigned int * buff_size);

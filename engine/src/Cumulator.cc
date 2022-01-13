@@ -1046,33 +1046,33 @@ Cumulator* Cumulator::mergePairOfMPICumulators(Cumulator* ret_cumul, int world_r
   return ret_cumul;
 }
 
-Cumulator* Cumulator::mergeMPICumulatorsParallel(RunConfig* runconfig, Cumulator* ret_cumul, int world_size, int world_rank, bool pack)
-{  
-  if (1 == world_size) {
-    return ret_cumul;
-  } else {
+// Cumulator* Cumulator::mergeMPICumulatorsParallel(RunConfig* runconfig, Cumulator* ret_cumul, int world_size, int world_rank, bool pack)
+// {  
+//   if (1 == world_size) {
+//     return ret_cumul;
+//   } else {
     
-    unsigned int lvl=1;
-    unsigned int max_lvl = ceil(log2(world_size));
+//     unsigned int lvl=1;
+//     unsigned int max_lvl = ceil(log2(world_size));
 
-    while(lvl <= max_lvl) {
+//     while(lvl <= max_lvl) {
     
-      unsigned int step_lvl = pow(2, lvl-1);
-      unsigned int width_lvl = floor(world_size/(step_lvl*2)) + 1;
+//       unsigned int step_lvl = pow(2, lvl-1);
+//       unsigned int width_lvl = floor(world_size/(step_lvl*2)) + 1;
       
-      for(unsigned int i=0; i < world_size; i+=(step_lvl*2)) {
+//       for(unsigned int i=0; i < world_size; i+=(step_lvl*2)) {
         
-        if (i+step_lvl < world_size) {
-          if (world_rank == i || world_rank == (i+step_lvl))
-            ret_cumul = mergePairOfMPICumulators(ret_cumul, world_rank, i, i+step_lvl, runconfig, pack);
-        } 
-      }
+//         if (i+step_lvl < world_size) {
+//           if (world_rank == i || world_rank == (i+step_lvl))
+//             ret_cumul = mergePairOfMPICumulators(ret_cumul, world_rank, i, i+step_lvl, runconfig, pack);
+//         } 
+//       }
       
-      lvl++;
-    }
-  }
+//       lvl++;
+//     }
+//   }
   
-  return ret_cumul;
-}
+//   return ret_cumul;
+// }
 
 #endif

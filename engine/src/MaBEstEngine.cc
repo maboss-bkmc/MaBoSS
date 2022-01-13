@@ -363,9 +363,12 @@ void MaBEstEngine::epilogue()
   fixpoints = *(results.second);
 
 #ifdef MPI_COMPAT
-  merged_cumulator = Cumulator::mergeMPICumulatorsParallel(runconfig, merged_cumulator, world_size, world_rank);
-  fixpoints = *(mergeMPIFixpointMaps(&fixpoints));
+  // merged_cumulator = Cumulator::mergeMPICumulatorsParallel(runconfig, merged_cumulator, world_size, world_rank);
+  // fixpoints = *(mergeMPIFixpointMaps(&fixpoints));
   
+  std::pair<Cumulator*, STATE_MAP<NetworkState_Impl, unsigned int>*> mpi_results = mergeMPIResults(runconfig, merged_cumulator, &fixpoints, world_size, world_rank);
+  merged_cumulator = mpi_results.first;
+  fixpoints = *(mpi_results.second);
   if (world_rank == 0)
   {
 #endif

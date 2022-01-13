@@ -85,7 +85,7 @@ class EnsembleEngine : public MetaEngine {
   void mergeIndividual();
 
 #ifdef MPI_COMPAT
-  void mergeEnsembleMPIFixpointMaps(bool pack=true);
+  // void mergeEnsembleMPIFixpointMaps(bool pack=true);
   void mergeMPIIndividual(bool pack=true);
 #endif
 
