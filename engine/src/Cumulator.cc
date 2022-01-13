@@ -997,7 +997,19 @@ Cumulator* Cumulator::mergePairOfMPICumulators(Cumulator* ret_cumul, int world_r
       ret_cumul->max_tick_index = ret_cumul->tick_index = remote_max_tick_index;
     }
     
-    MPI_Recv_Cumulator(ret_cumul, origin);
+    if (pack) {
+      // MPI_Unpack version
+      unsigned int buff_size;
+      MPI_Recv( &buff_size, 1, MPI_UNSIGNED, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      char* buff = new char[buff_size];
+      MPI_Recv( buff, buff_size, MPI_PACKED, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
+      
+      MPI_Unpack_Cumulator(ret_cumul, buff, buff_size);
+      delete buff;
+      
+    } else {
+      MPI_Recv_Cumulator(ret_cumul, origin);
+    }
     
   } else if (world_rank == origin) {
         
@@ -1017,8 +1029,18 @@ Cumulator* Cumulator::mergePairOfMPICumulators(Cumulator* ret_cumul, int world_r
     int local_max_tick_index = ret_cumul != NULL ? ret_cumul->max_tick_index : 0;
     MPI_Send(&local_max_tick_index, 1, MPI_UNSIGNED, dest, 0, MPI_COMM_WORLD);
 
-    MPI_Send_Cumulator(ret_cumul, dest);
+    if (pack) {
 
+      unsigned int buff_size;
+      char* buff = MPI_Pack_Cumulator(ret_cumul, 0, &buff_size);
+      MPI_Send(&buff_size, 1, MPI_UNSIGNED, dest, 0, MPI_COMM_WORLD);
+      MPI_Send( buff, buff_size, MPI_PACKED, dest, 0, MPI_COMM_WORLD); 
+      delete buff;
+      
+    } else {
+     
+      MPI_Send_Cumulator(ret_cumul, dest);
+    }
   }
   
   return ret_cumul;
