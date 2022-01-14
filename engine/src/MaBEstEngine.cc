@@ -281,33 +281,12 @@ void MaBEstEngine::run(std::ostream* output_traj)
   probe.stop();
   elapsed_core_runtime = probe.elapsed_msecs();
   user_core_runtime = probe.user_msecs();
-#ifdef MPI_COMPAT
-  
-  if (world_rank == 0) {
-    elapsed_core_runtimes.resize(world_size);
-    user_core_runtimes.resize(world_size);
-
-  }
-  MPI_Gather(&elapsed_core_runtime, 1, MPI_LONG_LONG_INT, elapsed_core_runtimes.data(), 1, MPI_LONG_LONG_INT, 0, MPI_COMM_WORLD);
-  MPI_Gather(&user_core_runtime, 1, MPI_LONG_LONG_INT, user_core_runtimes.data(), 1, MPI_LONG_LONG_INT, 0, MPI_COMM_WORLD);
-#endif
 
   probe.start();
   epilogue();
   probe.stop();
   elapsed_epilogue_runtime = probe.elapsed_msecs();
   user_epilogue_runtime = probe.user_msecs();
-#ifdef MPI_COMPAT  
-  
-  if (world_rank == 0) {
-    elapsed_epilogue_runtimes.resize(world_size);
-    user_epilogue_runtimes.resize(world_size);
-  }
-  
-  MPI_Gather(&elapsed_epilogue_runtime, 1, MPI_LONG_LONG_INT, elapsed_epilogue_runtimes.data(), 1, MPI_LONG_LONG_INT, 0, MPI_COMM_WORLD);
-  MPI_Gather(&user_epilogue_runtime, 1, MPI_LONG_LONG_INT, user_epilogue_runtimes.data(), 1, MPI_LONG_LONG_INT, 0, MPI_COMM_WORLD);
-
-#endif
   delete [] tid;
 }  
 
@@ -326,10 +305,23 @@ void MaBEstEngine::epilogue()
   if (world_rank == 0)
   {
 #endif
+
   merged_cumulator->epilogue(network, reference_state);
   
 #ifdef MPI_COMPAT
+  
+  elapsed_core_runtimes.resize(world_size);
+  user_core_runtimes.resize(world_size);
+  elapsed_epilogue_runtimes.resize(world_size);
+  user_epilogue_runtimes.resize(world_size);
+  
   }
+  
+  MPI_Gather(&elapsed_core_runtime, 1, MPI_LONG_LONG_INT, elapsed_core_runtimes.data(), 1, MPI_LONG_LONG_INT, 0, MPI_COMM_WORLD);
+  MPI_Gather(&user_core_runtime, 1, MPI_LONG_LONG_INT, user_core_runtimes.data(), 1, MPI_LONG_LONG_INT, 0, MPI_COMM_WORLD);  
+  MPI_Gather(&elapsed_epilogue_runtime, 1, MPI_LONG_LONG_INT, elapsed_epilogue_runtimes.data(), 1, MPI_LONG_LONG_INT, 0, MPI_COMM_WORLD);
+  MPI_Gather(&user_epilogue_runtime, 1, MPI_LONG_LONG_INT, user_epilogue_runtimes.data(), 1, MPI_LONG_LONG_INT, 0, MPI_COMM_WORLD);
+  
 #endif 
 }
 

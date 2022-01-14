@@ -701,15 +701,14 @@ std::pair<Cumulator*, STATE_MAP<NetworkState_Impl, unsigned int>*> MetaEngine::m
 {  
   if (world_size> 1) {
     
-    unsigned int lvl=1;
-    unsigned int max_lvl = ceil(log2(world_size));
+    int lvl=1;
+    int max_lvl = ceil(log2(world_size));
 
     while(lvl <= max_lvl) {
     
-      unsigned int step_lvl = pow(2, lvl-1);
-      unsigned int width_lvl = floor(world_size/(step_lvl*2)) + 1;
+      int step_lvl = pow(2, lvl-1);
       
-      for(unsigned int i=0; i < world_size; i+=(step_lvl*2)) {
+      for(int i=0; i < world_size; i+=(step_lvl*2)) {
         
         if (i+step_lvl < world_size) {
           if (world_rank == i || world_rank == (i+step_lvl)){

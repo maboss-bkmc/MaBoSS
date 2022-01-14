@@ -422,12 +422,12 @@ void EnsembleEngine::runThread(Cumulator* cumulator, unsigned int start_count_th
     network->initStates(network_state, random_generator);
     double tm = 0.;
     unsigned int step = 0;
-  //   if (NULL != output_traj) {
-  //     (*output_traj) << "\nTrajectory #" << (nn+1) << '\n';
-  //     (*output_traj) << " istate\t";
-  //     network_state.displayOneLine(*output_traj, network);
-  //     (*output_traj) << '\n';
-  //   }
+    if (NULL != output_traj) {
+      (*output_traj) << "\nTrajectory #" << (nn+1) << '\n';
+      (*output_traj) << " istate\t";
+      network_state.displayOneLine(*output_traj, network);
+      (*output_traj) << '\n';
+    }
     while (tm < max_time) {
       double total_rate = 0.;
       MAP<NodeIndex, double> nodeTransitionRates;
@@ -451,23 +451,6 @@ void EnsembleEngine::runThread(Cumulator* cumulator, unsigned int start_count_th
         }
 	      ++begin;
       }
-
-      // EV: 2018-12-19 suppressed this block and integrated fixed point management below
-      /*
-      if (total_rate == 0.0) {
-	std::cerr << "FP\n";
-	// may have several fixpoint maps
-	if (fixpoint_map->find(network_state.getState()) == fixpoint_map->end()) {
-	  (*fixpoint_map)[network_state.getState()] = 1;
-	} else {
-	  (*fixpoint_map)[network_state.getState()]++;
-	}
-	cumulator->cumul(network_state, max_time, 0.);
-	tm = max_time;
-	stable_cnt++;
-	break;
-      }
-      */
 
       double TH;
       if (total_rate == 0) {
@@ -502,11 +485,11 @@ void EnsembleEngine::runThread(Cumulator* cumulator, unsigned int start_count_th
         TH = computeTH(network, nodeTransitionRates, total_rate);
       }
 
-  //     if (NULL != output_traj) {
-	// (*output_traj) << std::setprecision(10) << tm << '\t';
-	// network_state.displayOneLine(*output_traj, network);
-	// (*output_traj) << '\t' << TH << '\n';
-  //     }
+      if (NULL != output_traj) {
+	(*output_traj) << std::setprecision(10) << tm << '\t';
+	network_state.displayOneLine(*output_traj, network);
+	(*output_traj) << '\t' << TH << '\n';
+      }
 
       cumulator->cumul(network_state, tm, TH);
       if (save_individual_result){

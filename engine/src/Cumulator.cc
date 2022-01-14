@@ -903,8 +903,8 @@ Cumulator* Cumulator::mergePairOfMPICumulators(Cumulator* ret_cumul, int world_r
     size_t remote_cumul_size;
     MPI_Recv( &remote_cumul_size, 1, my_MPI_SIZE_T, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-    unsigned int remote_max_tick_index;
-    MPI_Recv( &remote_max_tick_index, 1, MPI_UNSIGNED, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    int remote_max_tick_index;
+    MPI_Recv( &remote_max_tick_index, 1, MPI_INT, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
     if (remote_cumul_size > ret_cumul->cumul_map_v.size()) {
       ret_cumul->cumul_map_v.resize(remote_cumul_size);
@@ -945,7 +945,7 @@ Cumulator* Cumulator::mergePairOfMPICumulators(Cumulator* ret_cumul, int world_r
     MPI_Send(&local_cumul_size, 1, my_MPI_SIZE_T, dest, 0, MPI_COMM_WORLD);
 
     int local_max_tick_index = ret_cumul != NULL ? ret_cumul->max_tick_index : 0;
-    MPI_Send(&local_max_tick_index, 1, MPI_UNSIGNED, dest, 0, MPI_COMM_WORLD);
+    MPI_Send(&local_max_tick_index, 1, MPI_INT, dest, 0, MPI_COMM_WORLD);
 
     if (pack) {
 
