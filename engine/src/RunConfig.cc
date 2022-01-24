@@ -165,16 +165,20 @@ if (mabest.getWorldRank() == 0) {
 
 #ifdef MPI_COMPAT
 
-  os << "\nAverage core user runtime: " << avg(mabest.getUserCoreRuntimes())/1000. << " secs (" 
-     << min(mabest.getUserCoreRuntimes())/1000. << ","
-     << max(mabest.getUserCoreRuntimes())/1000. << ")"
-     
-     << "\nAverage core elapsed runtime: " << avg(mabest.getElapsedCoreRuntimes())/1000. << " secs (" 
-     << min(mabest.getElapsedCoreRuntimes())/1000. << ","
-     << max(mabest.getElapsedCoreRuntimes())/1000. << ")"
-      
-     << "\nEpilogue user runtime: " << avg(mabest.getUserEpilogueRuntimes())/1000. << " secs"
-     << "\nEpilogue elapsed runtime: " << avg(mabest.getElapsedEpilogueRuntimes())/1000. << " secs";
+  os << "\nAverage core user runtime: " << avg(mabest.getUserCoreRuntimes()) / 1000. << " secs ("
+       << min(mabest.getUserCoreRuntimes()) / 1000. << ","
+       << max(mabest.getUserCoreRuntimes()) / 1000. << ")"
+
+       << "\nAverage core elapsed runtime: " << avg(mabest.getElapsedCoreRuntimes()) / 1000. << " secs ("
+       << min(mabest.getElapsedCoreRuntimes()) / 1000. << ","
+       << max(mabest.getElapsedCoreRuntimes()) / 1000. << ")"
+
+       << "\nEpilogue user runtime: " << avg(mabest.getUserEpilogueRuntimes()) / 1000. << " secs ("
+       << min(mabest.getUserEpilogueRuntimes()) / 1000. << ","
+       << max(mabest.getUserEpilogueRuntimes()) / 1000. << ")"
+       << "\nEpilogue elapsed runtime: " << avg(mabest.getElapsedEpilogueRuntimes()) / 1000. << " secs ("
+       << min(mabest.getElapsedEpilogueRuntimes()) / 1000. << ","
+       << max(mabest.getElapsedEpilogueRuntimes()) / 1000. << ")";
       
 #else
 
