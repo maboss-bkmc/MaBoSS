@@ -458,7 +458,7 @@ void MetaEngine::mergePairOfFixpoints(STATE_MAP<NetworkState_Impl, unsigned int>
     
     STATE_MAP<NetworkState_Impl, unsigned int>::iterator t_fixpoint = fixpoints_1->find(fixpoint.first);
     if (fixpoints_1->find(fixpoint.first) == fixpoints_1->end()) {
-      t_fixpoint->second = fixpoint.second;
+      (*fixpoints_1)[fixpoint.first] = fixpoint.second;
     
     } else {
       t_fixpoint->second += fixpoint.second;
