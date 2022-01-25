@@ -11,16 +11,16 @@
 ### Threads only version
 
     cd engine/src
-    make install MAXNODES=128
+    make install MAXNODES=150
     
-This will compile MaBoSS_128n (a version for models up to 128 nodes) and copy the executable in engine/pub
+This will compile MaBoSS_150n (a version for models up to 150 nodes) and copy the executable in engine/pub
 
 ### MPI version
 
     cd engine/src
-    make install MPI_COMPAT=1 CXX=mpic++ MAXNODES=128
+    make install MPI_COMPAT=1 CXX=mpic++ MAXNODES=150
     
-This will compile the mpi-compatible version of MaBoSS_128n and copy the executable in engine/pub
+This will compile the mpi-compatible version of MaBoSS_150n and copy the executable in engine/pub
 
 
 ## Running MaBoSS
@@ -28,7 +28,7 @@ This will compile the mpi-compatible version of MaBoSS_128n and copy the executa
 ### Threads only version
  
     cd engine/benchmark
-    ../pub/MaBoSS_128n \
+    ../pub/MaBoSS_150n \
         ../examples/Sizek/sizek.bnd -c ../examples/Sizek/sizek.cfg \ # This is the model we are simulating, defined by its bnd and cfg files
         -o results/small/res_32 \ # This is defining the prefix of the output files of the simulation
         -e thread_count=32 \ # This is the number of threads we are using to simulate
@@ -39,7 +39,7 @@ Here is an example of command line to launch a MaBoSS simulation using several t
 ### MPI version
 
     cd engine/benchmark
-    mpirun -np 4 ../pub/MaBoSS_128n \
+    mpirun -np 4 ../pub/MaBoSS_150n \
         ../examples/Sizek/sizek.bnd -c ../examples/Sizek/sizek.cfg \ # This is the model we are simulating, defined by its bnd and cfg files
         -o results/small/res_32 \ # This is defining the prefix of the output files of the simulation
         -e thread_count=32 \ # This is the number of threads we are using to simulate
@@ -55,9 +55,13 @@ I had the same problem running the MPI version of MaBoSS without the mpirun. Cou
 
 The model is composed of two files : the model (.bnd) and it's simulation settings (.cfg). They are defined in the command line as such :
 
+    path_bnd_file -c path_cfg_file
+    
+#### Sizek model
+
     ../examples/Sizek/sizek.bnd -c ../examples/Sizek/sizek.cfg
 
-The model I tested comes with multiple settings, to vary the size of the results (via the number of nodes) and look at it's effect on the parallelization efficiency
+This model contains 87 nodes, so it needs to be run with a MaBoSS version compiled for at least 87 nodes. It comes with multiple settings, to vary the size of the results (via the number of nodes) and look at it's effect on the parallelization efficiency
 
     sizek.cfg : 4 nodes
     sizek_medium.cfg : 8 nodes
@@ -65,6 +69,15 @@ The model I tested comes with multiple settings, to vary the size of the results
     sizek_xlarge.cfg : 20 nodes
     sizek_xxlarge.cfg : 30 nodes
 
+#### Montagud model
+
+    ../examples/Montagud_Prostate/Montagud2021_Prostate_Cancer.bnd \
+    -c ../examples/Montagud_Prostate/Montagud2021_Prostate_Cancer.cfg
+
+This model contains 133 nodes, so it needs to be run with a MaBoSS version compiled for at least 133 nodes. It comes with two settings, to vary the size of the results (via the number of nodes) and look at it's effect on the parallelization efficiency
+
+    Montagud2021_Prostate_Cancer.cfg : 3 nodes
+    Montagud2021_Prostate_Cancer_large.cfg : 20 nodes
     
 
 ### Slurm scripts
