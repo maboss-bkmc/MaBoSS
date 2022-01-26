@@ -548,7 +548,7 @@ jobs:
         
     - name: Install dependencies
       run: |
-        brew install flex bison gcc python3 libxml2 cmake
+        brew install flex bison python3 libxml2 cmake
         pip3 install numpy
         
     - name: Get cmake version
@@ -581,8 +581,8 @@ jobs:
         cd build
         cmake -DCMAKE_INSTALL_PREFIX=/usr/local \
         -DCMAKE_INSTALL_LIBDIR=/usr/local/lib \
-        -DCMAKE_CXX_COMPILER=g++ \
-        -DCMAKE_C_COMPILER=gcc \
+        -DCMAKE_CXX_COMPILER=clang++ \
+        -DCMAKE_C_COMPILER=clang \
         -DCMAKE_CXX_STANDARD_LIBRARIES=-lxml2 \
         -DWITH_SWIG=OFF \
         -DLIBXML_LIBRARY=/usr/local/opt/libxml2/lib \
