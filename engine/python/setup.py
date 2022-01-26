@@ -1,15 +1,4 @@
 from setuptools import setup, Extension, find_packages
-from sys import executable, argv
-from os.path import join, dirname, abspath
-
-try:
-   from numpy.distutils.ccompiler import CCompiler_compile
-   import distutils.ccompiler
-   distutils.ccompiler.CCompiler.compile = CCompiler_compile
-except ImportError:
-   print("Numpy not found, parallel compile not available")
-
-
 
 maboss_version = '1.0.0b16'
 
