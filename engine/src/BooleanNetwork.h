@@ -872,7 +872,8 @@ public:
   MulExpression(Expression* left, Expression* right) : BinaryExpression(left, right) { }
 
   Expression* clone() const {return new MulExpression(left->clone(), right->clone());}
-
+  Expression* cloneAndShrink(bool& shrinked) const;
+  
   double eval(const Node* this_node, const NetworkState& network_state) const {
     return left->eval(this_node, network_state) * right->eval(this_node, network_state);
   }
@@ -916,6 +917,7 @@ public:
   AddExpression(Expression* left, Expression* right) : BinaryExpression(left, right) { }
 
   Expression* clone() const {return new AddExpression(left->clone(), right->clone());}
+  Expression* cloneAndShrink(bool& shrinked) const;
 
   double eval(const Node* this_node, const NetworkState& network_state) const {
     return left->eval(this_node, network_state) + right->eval(this_node, network_state);

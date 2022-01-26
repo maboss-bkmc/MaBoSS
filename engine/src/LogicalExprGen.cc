@@ -431,15 +431,32 @@ void AliasExpression::generateLogicalExpression(LogicalExprGenContext& genctx) c
   delete shrinked_expr;
 }
 
-// NOT IMPLEMENTED generateLogicalExpression methods
+// Tentative of implementation : Mul = AND
+Expression* MulExpression::cloneAndShrink(bool& shrinked) const {
+  return new AndLogicalExpression(left->cloneAndShrink(shrinked), right->cloneAndShrink(shrinked));
+}
+
 void MulExpression::generateLogicalExpression(LogicalExprGenContext& genctx) const
 {
-  throw BNException(LOGICAL_EXPR_MSG + "MulExpression is not yet implemented");
+  std::ostream& os = genctx.getOStream();
+ 
+  left->generateLogicalExpression(genctx);
+  os << LOGICAL_AND_SYMBOL;
+  right->generateLogicalExpression(genctx);
+}
+
+// Tentative of implementation : Add = OR
+Expression* AddExpression::cloneAndShrink(bool& shrinked) const {
+  return new OrLogicalExpression(left->cloneAndShrink(shrinked), right->cloneAndShrink(shrinked));
 }
 
 void AddExpression::generateLogicalExpression(LogicalExprGenContext& genctx) const
 {
-  throw BNException(LOGICAL_EXPR_MSG + "AddExpression is not yet implemented");
+  std::ostream& os = genctx.getOStream();
+ 
+  left->generateLogicalExpression(genctx);
+  os << LOGICAL_OR_SYMBOL;
+  right->generateLogicalExpression(genctx);
 }
 
 void SubExpression::generateLogicalExpression(LogicalExprGenContext& genctx) const
