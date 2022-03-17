@@ -34,7 +34,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
-        key: ${{ runner.os }}-libSBML-5.19-g++-namespace-${{ steps.get-cmake-version.outputs.version }}
+        key: ${{ runner.os }}-libSBML-5.19-g++11-namespace-${{ steps.get-cmake-version.outputs.version }}
 
     - name: Compiling libSBML
       if: steps.cache-libsbml-gcc.outputs.cache-hit != 'true'
@@ -46,8 +46,8 @@ jobs:
         cd build
         cmake -DCMAKE_INSTALL_PREFIX=/usr/local \
         -DCMAKE_INSTALL_LIBDIR=/usr/local/lib \
-        -DCMAKE_CXX_COMPILER=g++-10 \
-        -DCMAKE_C_COMPILER=gcc-10 \
+        -DCMAKE_CXX_COMPILER=g++-11 \
+        -DCMAKE_C_COMPILER=gcc-11 \
         -DCMAKE_CXX_STANDARD_LIBRARIES=-lxml2 \
         -DWITH_SWIG=OFF \
         -DLIBXML_LIBRARY=/usr/local/opt/libxml2/lib \
@@ -76,8 +76,8 @@ jobs:
         make clean
         export CXXFLAGS="${CXXFLAGS} -I/usr/local/include -I/usr/local/include/libxml2"
         export LDFLAGS="${LDFLAGS} -L/usr/local/lib -lxml2"
-        make CXX=g++-10 install SBML_COMPAT=1
-        make CXX=g++-10 MAXNODES=128 install SBML_COMPAT=1
+        make CXX=g++-11 GCC=gcc-11 install SBML_COMPAT=1
+        make CXX=g++-11 GCC=gcc-11 MAXNODES=128 install SBML_COMPAT=1
         
     - name: Test MaBoSS
       run: |
@@ -573,7 +573,7 @@ jobs:
     - name: Install dependencies
       run: |
         brew install flex bison python3 libxml2 cmake
-        pip3 install numpy
+        pip3 install numpy wheel delocate
         
     - name: Get cmake version
       id: get-cmake-version
@@ -603,8 +603,9 @@ jobs:
         cd libSBML-5.19.0-Source
         mkdir build
         cd build
-        cmake -DCMAKE_INSTALL_PREFIX=/usr/local \
-        -DCMAKE_INSTALL_LIBDIR=/usr/local/lib \
+        cmake \
+        -DCMAKE_INSTALL_PREFIX=/Library/Developer/CommandLineTools/SDKs/MacOSX11.sdk/usr/ \
+        -DCMAKE_INSTALL_LIBDIR=/Library/Developer/CommandLineTools/SDKs/MacOSX11.sdk/usr/lib/ \
         -DCMAKE_CXX_COMPILER=clang++ \
         -DCMAKE_C_COMPILER=clang \
         -DCMAKE_CXX_STANDARD_LIBRARIES=-lxml2 \
@@ -635,9 +636,11 @@ jobs:
         make
         cd ../python
         cp -r ../src cmaboss
-        pip3 install .
-        cd ../..
-    
+        python3 -m pip wheel -w wheelhouse .
+        cp /Library/Developer/CommandLineTools/SDKs/MacOSX11.sdk/usr/lib/libsbml*.dylib .
+        delocate-wheel -w fixed_wheels -v `ls wheelhouse/cmaboss*.whl`
+        pip3 install `ls fixed_wheels/cmaboss*.whl` 
+        
     - name: Test cMaBoSS
       run: |
         cd engine/tests
@@ -1119,8 +1122,8 @@ jobs:
         cd libSBML-5.19.0-Source
         mkdir build
         cd build
-        cmake -DCMAKE_INSTALL_PREFIX=/usr/local \
-        -DCMAKE_INSTALL_LIBDIR=/usr/local/lib \
+        cmake -DCMAKE_INSTALL_PREFIX=/Applications/Xcode_13.2.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local \
+        -DCMAKE_INSTALL_LIBDIR=/Applications/Xcode_13.2.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/lib \
         -DCMAKE_CXX_COMPILER=g++ \
         -DCMAKE_C_COMPILER=gcc \
         -DCMAKE_CXX_STANDARD_LIBRARIES=-lxml2 \
@@ -1165,7 +1168,7 @@ jobs:
     - name: Fix wheel dependencies
       run: |
         cd engine/python
-        cp /usr/local/lib/libsbml*.dylib .
+        cp /Applications/Xcode_13.2.1.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/lib/libsbml*.dylib .
         delocate-wheel -w fixed_wheels -v `ls wheelhouse/cmaboss*.whl`
         ls -al fixed_wheels
 
