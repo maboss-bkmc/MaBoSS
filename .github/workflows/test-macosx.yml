@@ -294,7 +294,7 @@ jobs:
         
   maboss_library:
     name: Building MaBoSS osx library
-    runs-on: macos-10.15
+    runs-on: macos-latest
     needs: [maboss, maboss_llvm]
     if: github.ref == 'refs/heads/master' || github.event_name == 'release'
 
@@ -303,24 +303,22 @@ jobs:
     - name: Install dependencies
       run : |
         brew install flex bison gcc
-        gcc --version
-        gcc-11 --version
               
     - name: Build library
       run: |
         rm -fr engine/pub/*
         cd engine/src
         make clean
-        make install_lib CXX=g++-11
-        make install_lib MAXNODES=128 CXX=g++-11
-        make install_lib MAXNODES=256 CXX=g++-11
-        make install_lib MAXNODES=512 CXX=g++-11
-        make install_lib MAXNODES=1024 CXX=g++-11
-        make install_alib CXX=g++-11
-        make install_alib MAXNODES=128 CXX=g++-11
-        make install_alib MAXNODES=256 CXX=g++-11
-        make install_alib MAXNODES=512 CXX=g++-11
-        make install_alib MAXNODES=1024 CXX=g++-11
+        make install_lib GCC=gcc-11 CXX=g++-11
+        make install_lib MAXNODES=128 GCC=gcc-11 CXX=g++-11
+        make install_lib MAXNODES=256 GCC=gcc-11 CXX=g++-11
+        make install_lib MAXNODES=512 GCC=gcc-11 CXX=g++-11
+        make install_lib MAXNODES=1024 GCC=gcc-11 CXX=g++-11
+        make install_alib GCC=gcc-11 CXX=g++-11
+        make install_alib MAXNODES=128 GCC=gcc-11 CXX=g++-11
+        make install_alib MAXNODES=256 GCC=gcc-11 CXX=g++-11
+        make install_alib MAXNODES=512 GCC=gcc-11 CXX=g++-11
+        make install_alib MAXNODES=1024 GCC=gcc-11 CXX=g++-11
         make clean
         cd ../../../
         tar -zcvf libMaBoSS-osx64.tar.gz MaBoSS-env-2.0/README.md MaBoSS-env-2.0/LICENSE MaBoSS-env-2.0/engine/src MaBoSS-env-2.0/engine/include MaBoSS-env-2.0/engine/lib
@@ -339,6 +337,107 @@ jobs:
         upload_url: ${{ github.event.release.upload_url }}
         asset_name: libMaBoSS-osx64.tar.gz
         asset_path: /Users/runner/work/MaBoSS-env-2.0/libMaBoSS-osx64.tar.gz
+        asset_content_type: application/gzip     
+        
+  maboss_library_sbml:
+    name: Building MaBoSS osx library with libSBML
+    runs-on: macos-latest
+    needs: [maboss, maboss_llvm]
+    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run : |
+        brew install flex bison gcc libxml2 cmake
+        
+    - name: Get cmake version
+      id: get-cmake-version
+      run: |
+        echo "::set-output name=version::$(cmake --version | head -n 1 | cut -d' ' -f 3)"
+      shell: bash
+    
+    - name: Cache compiled libSBML
+      id: cache-libsbml-gcc11
+      uses: actions/cache@v2
+      with:
+        path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
+        key: ${{ runner.os }}-libSBML-5.19-g++11-namespace-${{ steps.get-cmake-version.outputs.version }}-sdk11
+
+    - name: Compiling libSBML
+      if: steps.cache-libsbml-gcc11.outputs.cache-hit != 'true'
+      run: |
+        wget https://sourceforge.net/projects/sbml/files/libsbml/5.19.0/stable/libSBML-5.19.0-core-plus-packages-src.tar.gz
+        tar -zxf libSBML-5.19.0-core-plus-packages-src.tar.gz
+        cd libSBML-5.19.0-Source
+        mkdir -p build
+        cd build
+        rm -fr *
+        cmake -DCMAKE_INSTALL_PREFIX=/Library/Developer/CommandLineTools/SDKs/MacOSX11.sdk/usr/local \
+        -DCMAKE_INSTALL_LIBDIR=/Library/Developer/CommandLineTools/SDKs/MacOSX11.sdk/usr/local/lib \
+        -DCMAKE_CXX_COMPILER=g++-11 \
+        -DCMAKE_C_COMPILER=gcc-11 \
+        -DCMAKE_CXX_STANDARD_LIBRARIES=-lxml2 \
+        -DWITH_SWIG=OFF \
+        -DLIBXML_LIBRARY=/usr/local/opt/libxml2/lib \
+        -DLIBXML_INCLUDE_DIR=/usr/local/opt/libxml2/include/libxml2 \
+        -DENABLE_COMP=ON \
+        -DENABLE_FBC=ON \
+        -DENABLE_GROUPS=ON \
+        -DENABLE_LAYOUT=ON \
+        -DENABLE_MULTI=ON \
+        -DENABLE_QUAL=ON \
+        -DENABLE_RENDER=ON \
+        -DENABLE_DISTRIB=ON \
+        -DWITH_CPP_NAMESPACE=ON \
+        ..
+        make
+        cd ../..
+        
+    - name: Install libSBML
+      run: |
+        cd libSBML-5.19.0-Source/build
+        sudo make install
+              
+    - name: Build library
+      run: |
+        rm -fr engine/pub/*
+        cd engine/src
+        type -a cmake
+        type -a g++-11
+        which cmake
+        which g++-11
+        make clean
+        make install GCC=gcc-11 CXX=g++-11
+        cat depend.mk
+        make install_lib SBML_COMPAT=1 GCC=gcc-11 CXX=g++-11
+        make install_lib SBML_COMPAT=1 GCC=gcc-11 MAXNODES=128 CXX=g++-11
+        make install_lib SBML_COMPAT=1 GCC=gcc-11 MAXNODES=256 CXX=g++-11
+        make install_lib SBML_COMPAT=1 GCC=gcc-11 MAXNODES=512 CXX=g++-11
+        make install_lib SBML_COMPAT=1 GCC=gcc-11 MAXNODES=1024 CXX=g++-11
+        make install_alib SBML_COMPAT=1 GCC=gcc-11 CXX=g++-11
+        make install_alib SBML_COMPAT=1 GCC=gcc-11 MAXNODES=128 CXX=g++-11
+        make install_alib SBML_COMPAT=1 GCC=gcc-11 MAXNODES=256 CXX=g++-11
+        make install_alib SBML_COMPAT=1 GCC=gcc-11 MAXNODES=512 CXX=g++-11
+        make install_alib SBML_COMPAT=1 GCC=gcc-11 MAXNODES=1024 CXX=g++-11
+        make clean
+        cd ../../../
+        tar -zcvf libMaBoSS-sbml-osx64.tar.gz MaBoSS-env-2.0/README.md MaBoSS-env-2.0/LICENSE MaBoSS-env-2.0/engine/src MaBoSS-env-2.0/engine/include MaBoSS-env-2.0/engine/lib
+        
+    - uses: actions/upload-artifact@v2
+      if: github.event_name != 'release'
+      with:
+        name: libMaBoSS-osx64
+        path: /Users/runner/work/MaBoSS-env-2.0/libMaBoSS-sbml-osx64.tar.gz
+        
+    - uses: actions/upload-release-asset@v1
+      if: github.event_name == 'release'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_name: libMaBoSS-sbml-osx64.tar.gz
+        asset_path: /Users/runner/work/MaBoSS-env-2.0/libMaBoSS-sbml-osx64.tar.gz
         asset_content_type: application/gzip
         
   conda_maboss:

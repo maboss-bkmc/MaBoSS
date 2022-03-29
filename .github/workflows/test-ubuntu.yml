@@ -310,6 +310,95 @@ jobs:
         asset_path: /home/runner/work/MaBoSS-env-2.0/libMaBoSS-linux64.tar.gz
         asset_content_type: application/gzip
   
+  maboss_library_sbml:
+    name: Building MaBoSS linux64 library with libSBML
+    runs-on: ubuntu-18.04
+    needs: [maboss, maboss_llvm]
+    if: github.ref == 'refs/heads/master' || github.event_name == 'release'
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get install flex bison
+    
+    - name: Cache compiled libSBML
+      id: cache-libsbml-gcc
+      uses: actions/cache@v2
+      with:
+        path: /home/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
+        key: ${{ runner.os }}-libSBML-5.19-gcc-namespace
+
+    - name: Compiling libSBML
+      if: steps.cache-libsbml-gcc.outputs.cache-hit != 'true'
+      run: |
+        wget https://sourceforge.net/projects/sbml/files/libsbml/5.19.0/stable/libSBML-5.19.0-core-plus-packages-src.tar.gz
+        tar -zxf libSBML-5.19.0-core-plus-packages-src.tar.gz
+        cd libSBML-5.19.0-Source
+        mkdir build
+        cd build
+        cmake -DCMAKE_INSTALL_PREFIX=/usr \
+        -DCMAKE_INSTALL_LIBDIR=/usr/lib \
+        -DCMAKE_CXX_COMPILER=g++ \
+        -DCMAKE_C_COMPILER=gcc \
+        -DCMAKE_CXX_STANDARD_LIBRARIES=-lxml2 \
+        -DWITH_SWIG=OFF \
+        -DLIBXML_LIBRARY=/usr/lib \
+        -DLIBXML_INCLUDE_DIR=/usr/include/libxml2 \
+        -DENABLE_COMP=ON \
+        -DENABLE_FBC=ON \
+        -DENABLE_GROUPS=ON \
+        -DENABLE_LAYOUT=ON \
+        -DENABLE_MULTI=ON \
+        -DENABLE_QUAL=ON \
+        -DENABLE_RENDER=ON \
+        -DENABLE_DISTRIB=ON \
+        -DWITH_CPP_NAMESPACE=ON \
+        ..
+        make
+        cd ../..
+
+    - name: Install libSBML
+      run: |
+        cd libSBML-5.19.0-Source/build
+        sudo make install    
+              
+    - name: Build binary
+      run: |
+        rm -fr engine/pub/*
+        cd engine/src
+        make clean
+        make install_lib SBML_COMPAT=1
+        make install_lib SBML_COMPAT=1 MAXNODES=128
+        make install_lib SBML_COMPAT=1 MAXNODES=256
+        make install_lib SBML_COMPAT=1 MAXNODES=512
+        make install_lib SBML_COMPAT=1 MAXNODES=1024
+        make install_alib SBML_COMPAT=1 
+        make install_alib SBML_COMPAT=1 MAXNODES=128
+        make install_alib SBML_COMPAT=1 MAXNODES=256
+        make install_alib SBML_COMPAT=1 MAXNODES=512
+        make install_alib SBML_COMPAT=1 MAXNODES=1024
+        make clean
+        cd ../../../
+        tar -zcvf libMaBoSS-sbml-linux64.tar.gz MaBoSS-env-2.0/README.md MaBoSS-env-2.0/LICENSE MaBoSS-env-2.0/engine/src MaBoSS-env-2.0/engine/include MaBoSS-env-2.0/engine/lib
+        
+    - uses: actions/upload-artifact@v2
+      if: github.event_name != 'release'
+      with:
+        name: libMaBoSS-linux64
+        path: /home/runner/work/MaBoSS-env-2.0/libMaBoSS-sbml-linux64.tar.gz
+        
+    - uses: actions/upload-release-asset@v1
+      if: github.event_name == 'release'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_name: libMaBoSS-sbml-linux64.tar.gz
+        asset_path: /home/runner/work/MaBoSS-env-2.0/libMaBoSS-sbml-linux64.tar.gz
+        asset_content_type: application/gzip
+  
   maboss_conda_defaults:
     name: Build MaBoSS Anaconda package
     runs-on: ubuntu-18.04
