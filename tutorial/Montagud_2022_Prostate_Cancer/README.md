@@ -1,8 +1,8 @@
-# Example of MaBoSS 2.5.0 use to simulate Montagud 2021 Prostate Cancer model
+# Example of MaBoSS 2.5.0 use to simulate Montagud 2022 Prostate Cancer model
 
 In this example we will use a newly published model by Montagud et al. ([eLife, 2022](https://elifesciences.org/articles/72626)).  This model contains 133 nodes, a large model describing the pathways involved in prostate cancer. The interaction graph of the model, colored by pathway, is shown in Fig.1.
 
-![figures/Montagud_2021_Prostate_Cancer.png](figures/Montagud2021_Prostate_Cancer.png)
+![figures/Montagud_2022_Prostate_Cancer.png](figures/Montagud2022_Prostate_Cancer.png)
 
 *Fig.1 Interaction graph of the Montagud et al. prostate cancer Boolean model.*
 
@@ -41,15 +41,15 @@ To add MaBoSS_256 to the path, you then need to activate MaBoSS environment via 
 ##### Simulating the model
 Then, to simulate the model, we can use the BND and CFG file provided in the supplementary files of the article, or via its github repository (https://github.com/ArnauMontagud/PROFILE_v2), by executing the following command line : 
 
-    MaBoSS_256n -c Montagud2021_Prostate_Cancer.cfg Montagud2021_Prostate_Cancer.bnd -o results
+    MaBoSS_256n -c Montagud2022_Prostate_Cancer.cfg Montagud2022_Prostate_Cancer.bnd -o results
 
 Note that with the newly developed SBML-qual compatibility, we can also use the SBML model definition of the model by simply substituting it to the BND file : 
 
-    MaBoSS_256n -c Montagud2021_Prostate_Cancer.cfg Montagud2021_Prostate_Cancer.sbml -o results
+    MaBoSS_256n -c Montagud2022_Prostate_Cancer.cfg Montagud2022_Prostate_Cancer.sbml -o results
 
 To use MaBoSS MPI capabilitiy, for example using two MPI nodes, you need to run MaBoSS (correctly compiled with MPI flag) via mpirun, as such : 
 
-    mpirun -np 2 MaBoSS_256n -c Montagud2021_Prostate_Cancer.cfg Montagud2021_Prostate_Cancer.sbml -o results
+    mpirun -np 2 MaBoSS_256n -c Montagud2022_Prostate_Cancer.cfg Montagud2022_Prostate_Cancer.sbml -o results
 
 
 ##### Raw result files
@@ -88,11 +88,11 @@ Then, in a python command line, you first need to import maboss :
 
 And then import the model : 
 
-    model = maboss.load("Montagud2021_Prostate_Cancer.bnd","Montagud2021_Prostate_Cancer.cfg")
+    model = maboss.load("Montagud2022_Prostate_Cancer.bnd","Montagud2022_Prostate_Cancer.cfg")
 
 Again, note that the model can also be imported using the SBML file provided, with the following command : 
 
-    model = maboss.loadSBML("Montagud2021_Prostate_Cancer.sbml","Montagud2021_Prostate_Cancer.cfg")
+    model = maboss.loadSBML("Montagud2022_Prostate_Cancer.sbml","Montagud2022_Prostate_Cancer.cfg")
 
 Once loaded, the model can be simlated as such : 
 
