@@ -13,7 +13,7 @@ jobs:
 ###################################################################################################
   maboss:
     name: MaBoSS
-    runs-on: macos-latest
+    runs-on: macos-11
 
     steps:
     - uses: actions/checkout@v2
@@ -29,16 +29,23 @@ jobs:
         echo "::set-output name=version::$(cmake --version | head -n 1 | cut -d' ' -f 3)"
       shell: bash
 
-    - name: Cache compiled libSBML
-      id: cache-libsbml-gcc
-      uses: actions/cache@v2
-      with:
-        path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
-        key: ${{ runner.os }}-libSBML-5.19-g++11-namespace-${{ steps.get-cmake-version.outputs.version }}
+    - name: Get xcode version
+      id: get-xcode-version
+      run: |
+        echo "::set-output name=version::$(xcodebuild -version | sed -En 's/Xcode[[:space:]]+([0-9\.]*)/\1/p')"
+      shell: bash
+      
+# - name: Cache compiled libSBML
+#   id: cache-libsbml-gcc
+#   uses: actions/cache@v2
+#   with:
+#     path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
+#     key: ${{ runner.os }}-macos-11-libSBML-5.19-g++11-namespace-${{ steps.get-cmake-version.outputs.version }}
 
     - name: Compiling libSBML
-      if: steps.cache-libsbml-gcc.outputs.cache-hit != 'true'
+# if: steps.cache-libsbml-gcc.outputs.cache-hit != 'true'
       run: |
+        echo ${{steps.get-xcode-version.outputs.version }}
         wget https://sourceforge.net/projects/sbml/files/libsbml/5.19.0/stable/libSBML-5.19.0-core-plus-packages-src.tar.gz
         tar -zxf libSBML-5.19.0-core-plus-packages-src.tar.gz
         cd libSBML-5.19.0-Source
@@ -113,15 +120,15 @@ jobs:
         echo "::set-output name=version::$(xcodebuild -version | sed -En 's/Xcode[[:space:]]+([0-9\.]*)/\1/p')"
       shell: bash  
 
-    - name: Cache compiled libSBML
-      id: cache-libsbml-clang
-      uses: actions/cache@v2
-      with:
-        path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
-        key: ${{ runner.os }}-libSBML-5.19-clang++-namespace-${{ steps.get-cmake-version.outputs.version }}-${{ steps.get-xcode-version.outputs.version }}
+# - name: Cache compiled libSBML
+#   id: cache-libsbml-clang
+#   uses: actions/cache@v2
+#   with:
+#     path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
+#     key: ${{ runner.os }}-libSBML-5.19-clang++-namespace-${{ steps.get-cmake-version.outputs.version }}-${{ steps.get-xcode-version.outputs.version }}
 
     - name: Compiling libSBML
-      if: steps.cache-libsbml-clang.outputs.cache-hit != 'true'
+# if: steps.cache-libsbml-clang.outputs.cache-hit != 'true'
       run: |
         wget https://sourceforge.net/projects/sbml/files/libsbml/5.19.0/stable/libSBML-5.19.0-core-plus-packages-src.tar.gz
         tar -zxf libSBML-5.19.0-core-plus-packages-src.tar.gz
@@ -175,7 +182,7 @@ jobs:
   
   maboss_mpi:
     name: MaBoSS MPI
-    runs-on: macos-latest
+    runs-on: macos-11
 
     steps:
     - uses: actions/checkout@v2
@@ -199,7 +206,7 @@ jobs:
         
   maboss_binary:
     name: MaBoSS MacOSX 64 bits binary
-    runs-on: macos-10.15
+    runs-on: macos-11
     needs: [maboss, maboss_llvm]
     if: github.ref == 'refs/heads/master' || github.event_name == 'release'
 
@@ -221,15 +228,15 @@ jobs:
         echo "::set-output name=version::$(xcodebuild -version | sed -En 's/Xcode[[:space:]]+([0-9\.]*)/\1/p')"
       shell: bash  
 
-    - name: Cache compiled libSBML
-      id: cache-libsbml-clang
-      uses: actions/cache@v2
-      with:
-        path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
-        key: ${{ runner.os }}-libSBML-5.19-clang++-namespace-${{ steps.get-cmake-version.outputs.version }}-${{ steps.get-xcode-version.outputs.version }}
+# - name: Cache compiled libSBML
+#   id: cache-libsbml-clang
+#   uses: actions/cache@v2
+#   with:
+#     path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
+#     key: ${{ runner.os }}-macos-11-libSBML-5.19-clang++-namespace-${{ steps.get-cmake-version.outputs.version }}-${{ steps.get-xcode-version.outputs.version }}
 
     - name: Compiling libSBML
-      if: steps.cache-libsbml-clang.outputs.cache-hit != 'true'
+# if: steps.cache-libsbml-clang.outputs.cache-hit != 'true'
       run: |
         wget https://sourceforge.net/projects/sbml/files/libsbml/5.19.0/stable/libSBML-5.19.0-core-plus-packages-src.tar.gz
         tar -zxf libSBML-5.19.0-core-plus-packages-src.tar.gz
@@ -294,7 +301,7 @@ jobs:
         
   maboss_library:
     name: Building MaBoSS osx library
-    runs-on: macos-latest
+    runs-on: macos-11
     needs: [maboss, maboss_llvm]
     if: github.ref == 'refs/heads/master' || github.event_name == 'release'
 
@@ -341,7 +348,7 @@ jobs:
         
   maboss_library_sbml:
     name: Building MaBoSS osx library with libSBML
-    runs-on: macos-latest
+    runs-on: macos-11
     needs: [maboss, maboss_llvm]
     if: github.ref == 'refs/heads/master' || github.event_name == 'release'
 
@@ -357,15 +364,15 @@ jobs:
         echo "::set-output name=version::$(cmake --version | head -n 1 | cut -d' ' -f 3)"
       shell: bash
     
-    - name: Cache compiled libSBML
-      id: cache-libsbml-gcc11
-      uses: actions/cache@v2
-      with:
-        path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
-        key: ${{ runner.os }}-libSBML-5.19-g++11-namespace-${{ steps.get-cmake-version.outputs.version }}-sdk11
+# - name: Cache compiled libSBML
+#   id: cache-libsbml-gcc11
+#   uses: actions/cache@v2
+#   with:
+#     path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
+#     key: ${{ runner.os }}-libSBML-5.19-g++11-namespace-${{ steps.get-cmake-version.outputs.version }}-sdk11
 
     - name: Compiling libSBML
-      if: steps.cache-libsbml-gcc11.outputs.cache-hit != 'true'
+# if: steps.cache-libsbml-gcc11.outputs.cache-hit != 'true'
       run: |
         wget https://sourceforge.net/projects/sbml/files/libsbml/5.19.0/stable/libSBML-5.19.0-core-plus-packages-src.tar.gz
         tar -zxf libSBML-5.19.0-core-plus-packages-src.tar.gz
@@ -403,13 +410,8 @@ jobs:
       run: |
         rm -fr engine/pub/*
         cd engine/src
-        type -a cmake
-        type -a g++-11
-        which cmake
-        which g++-11
         make clean
         make install GCC=gcc-11 CXX=g++-11
-        cat depend.mk
         make install_lib SBML_COMPAT=1 GCC=gcc-11 CXX=g++-11
         make install_lib SBML_COMPAT=1 GCC=gcc-11 MAXNODES=128 CXX=g++-11
         make install_lib SBML_COMPAT=1 GCC=gcc-11 MAXNODES=256 CXX=g++-11
@@ -442,7 +444,7 @@ jobs:
         
   conda_maboss:
     name: Build Conda MaBoSS package
-    runs-on: macos-latest
+    runs-on: macos-11
     needs: [maboss, maboss_llvm]
     if: github.ref == 'refs/heads/master' || github.event_name == 'release'
 
@@ -474,7 +476,7 @@ jobs:
         
   conda_maboss_conda_forge:
     name: Build Conda MaBoSS package (conda-forge)
-    runs-on: macos-latest
+    runs-on: macos-11
     needs: [maboss, maboss_llvm]
     if: github.ref == 'refs/heads/master' || github.event_name == 'release'
 
@@ -503,7 +505,7 @@ jobs:
    
   maboss_conda_test:
     name: MaBoSS Anaconda package test
-    runs-on: macos-latest
+    runs-on: macos-11
     needs: conda_maboss
     
     steps:
@@ -546,7 +548,7 @@ jobs:
   
   maboss_conda_test_conda_forge:
     name: MaBoSS Anaconda package test (conda-forge)
-    runs-on: macos-latest
+    runs-on: macos-11
     needs: conda_maboss_conda_forge
     
     steps:
@@ -591,7 +593,7 @@ jobs:
     
   maboss_conda_publish:
     name: MaBoSS Anaconda package publication
-    runs-on: macos-latest
+    runs-on: macos-11
     needs: maboss_conda_test
     
     steps:
@@ -625,7 +627,7 @@ jobs:
  
   maboss_conda_publish_conda_forge:
     name: MaBoSS Anaconda package publication (conda-forge)
-    runs-on: macos-latest
+    runs-on: macos-11
     needs: maboss_conda_test_conda_forge
     
     steps:
@@ -664,7 +666,7 @@ jobs:
 ###################################################################################################                        
   cmaboss:
     name: cMaBoSS
-    runs-on: macos-11.0
+    runs-on: macos-11
 
     steps:
     - uses: actions/checkout@v2
@@ -687,15 +689,15 @@ jobs:
       shell: bash
       
 
-    - name: Cache compiled libSBML
-      id: cache-libsbml-clang
-      uses: actions/cache@v2
-      with:
-        path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
-        key: ${{ runner.os }}-libSBML-5.19-clang++-namespace-${{ steps.get-cmake-version.outputs.version }}-${{ steps.get-xcode-version.outputs.version }}
+# - name: Cache compiled libSBML
+#   id: cache-libsbml-clang
+#   uses: actions/cache@v2
+#   with:
+#     path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
+#     key: ${{ runner.os }}-libSBML-5.19-clang++-namespace-${{ steps.get-cmake-version.outputs.version }}-${{ steps.get-xcode-version.outputs.version }}
 
     - name: Compiling libSBML
-      if: steps.cache-libsbml-clang.outputs.cache-hit != 'true'
+# if: steps.cache-libsbml-clang.outputs.cache-hit != 'true'
       run: |
         wget https://sourceforge.net/projects/sbml/files/libsbml/5.19.0/stable/libSBML-5.19.0-core-plus-packages-src.tar.gz
         tar -zxf libSBML-5.19.0-core-plus-packages-src.tar.gz
@@ -997,15 +999,15 @@ jobs:
         echo "::set-output name=version::$(xcodebuild -version | sed -En 's/Xcode[[:space:]]+([0-9\.]*)/\1/p')"
       shell: bash
       
-    - name: Cache compiled libSBML
-      id: cache-libsbml-clang
-      uses: actions/cache@v2
-      with:
-        path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
-        key: ${{ runner.os }}-libSBML-5.19-clang++-namespace-${{ steps.get-cmake-version.outputs.version }}-${{ steps.get-xcode-version.outputs.version }}
+# - name: Cache compiled libSBML
+#   id: cache-libsbml-clang
+#   uses: actions/cache@v2
+#   with:
+#     path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
+#     key: ${{ runner.os }}-libSBML-5.19-clang++-namespace-${{ steps.get-cmake-version.outputs.version }}-${{ steps.get-xcode-version.outputs.version }}
 
     - name: Compiling libSBML
-      if: steps.cache-libsbml-clang.outputs.cache-hit != 'true'
+# if: steps.cache-libsbml-clang.outputs.cache-hit != 'true'
       run: |
         wget https://sourceforge.net/projects/sbml/files/libsbml/5.19.0/stable/libSBML-5.19.0-core-plus-packages-src.tar.gz
         tar -zxf libSBML-5.19.0-core-plus-packages-src.tar.gz
@@ -1206,16 +1208,17 @@ jobs:
         echo "::set-output name=version::$(xcodebuild -version | sed -En 's/Xcode[[:space:]]+([0-9\.]*)/\1/p')"
       shell: bash
       
-    - name: Cache compiled libSBML
-      id: cache-libsbml-clang
-      uses: actions/cache@v2
-      with:
-        path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
-        key: ${{ runner.os }}-libSBML-5.19-clang++-namespace-${{ steps.get-cmake-version.outputs.version }}-${{ steps.get-xcode-version.outputs.version }}
+# - name: Cache compiled libSBML
+#   id: cache-libsbml-clang
+#   uses: actions/cache@v2
+#   with:
+#     path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/libSBML-5.19.0-Source
+#     key: ${{ runner.os }}-libSBML-5.19-clang++-namespace-${{ steps.get-cmake-version.outputs.version }}-${{ steps.get-xcode-version.outputs.version }}
 
     - name: Compiling libSBML
-      if: steps.cache-libsbml-clang.outputs.cache-hit != 'true'
+# if: steps.cache-libsbml-clang.outputs.cache-hit != 'true'
       run: |
+        echo ${{steps.get-xcode-version.outputs.version }}
         wget https://sourceforge.net/projects/sbml/files/libsbml/5.19.0/stable/libSBML-5.19.0-core-plus-packages-src.tar.gz
         tar -zxf libSBML-5.19.0-core-plus-packages-src.tar.gz
         cd libSBML-5.19.0-Source
