@@ -99,7 +99,7 @@ jobs:
         
   maboss_llvm:
     name: MaBoSS (clang)
-    runs-on: macos-10.15
+    runs-on: macos-11
 
     steps:
     - uses: actions/checkout@v2
@@ -750,7 +750,7 @@ jobs:
   
   conda_cmaboss:
     name: cMaBoSS Conda package
-    runs-on: macos-10.15
+    runs-on: macos-11
     needs: cmaboss
     if: github.ref == 'refs/heads/master' || github.event_name == 'release'
 
@@ -787,7 +787,7 @@ jobs:
     
   conda_cmaboss_conda_forge:
     name: cMaBoSS Conda package (conda-forge)
-    runs-on: macos-10.15
+    runs-on: macos-11
     needs: cmaboss
     if: github.ref == 'refs/heads/master' || github.event_name == 'release'
 
@@ -822,7 +822,7 @@ jobs:
     
   cmaboss_conda_test:
     name: cMaBoSS Anaconda package test
-    runs-on: macos-10.15
+    runs-on: macos-11
     needs: conda_cmaboss
     
     steps:
@@ -855,7 +855,7 @@ jobs:
         
   cmaboss_conda_test_conda_forge:
     name: cMaBoSS Anaconda package test (conda-forge)
-    runs-on: macos-10.15
+    runs-on: macos-11
     needs: conda_cmaboss_conda_forge
     
     steps:
@@ -890,7 +890,7 @@ jobs:
   
   cmaboss_conda_publish:
     name: cMaBoSS Anaconda package publication
-    runs-on: macos-10.15
+    runs-on: macos-11
     needs: cmaboss_conda_test
     
     steps:
@@ -923,7 +923,7 @@ jobs:
  
   cmaboss_conda_publish_conda_forge:
     name: cMaBoSS Anaconda package publication (conda-forge)
-    runs-on: macos-10.15
+    runs-on: macos-11
     needs: cmaboss_conda_test_conda_forge
     
     steps:
