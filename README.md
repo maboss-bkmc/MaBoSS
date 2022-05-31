@@ -42,6 +42,7 @@ MaBoSS-env-2.0 is composed of:
 - MaBoSS engine 2.5.2: C++ core program simulating continuous/discrete time Markov processes, applied on a Boolean network.
 - MaBoSS tools 2.0: perl and python scripts using MaBoSS engine 2.0
 - cMaBoSS: python bindings using Python C API.
+- PopMaBoSS engine 0.0.1: Simulating continuous/discrete time Markov processes, applied on a Population of Boolean network state.
 
 ### Tested platforms
 - Linux: Ubuntu (Ubuntu 4.3.2-1ubuntu11 and higher), RedHat and CentOS
@@ -150,6 +151,30 @@ If you want to use the binary version, extract the binaries to a path and add it
 Important notes on the Windows version:
 - to execute MaBoSS.exe, cygwin must be installed (http://www.cygwin.com/)
 - because of the cygwin emulation, the windows version is very slow (about 4 times slower than the linux and Mac OS versions). We urge you to run MaBoSS on linux or Mac OS X if possible.
+
+### PopMaBoSS Engine compilation
+
+    cd engine/src
+    make install
+
+The executable file will be located in engine/pub and is named PopMaBoSS.This compiled version supports up to 64 nodes per network.
+
+### PopMaBoSS Engine usage
+
+    cd engine/pub
+
+    ./PopMaBoSS --version
+    PopMaBoSS version 0.0.1 [networks up to 64 nodes]
+
+This is a simple check which returns the version of the engine
+
+    ./PopMaBoSS -c ../examples/popmaboss/Toy.cfg ../examples/popmaboss/Toy.pbnd -o res
+
+This will simulate a toy example available in the engine/example/popmaboss directory, and generate results files : 
+
+- res_fp.csv : list of fixed points of the boolean network encountered during the simulation
+- res_pop_probtraj.csv : Population states probability distribution trajectories (as with MaBoSS, but this time on populations of boolean states) 
+- res_simple_pop_probtraj.csv : Simplified population output, with an average population size for every boolean state.
 
 ### Environment
 
