@@ -1297,7 +1297,7 @@ public:
     std::map<NetworkState_Impl, unsigned int>::const_iterator other_iter = other_mp.begin();
     for ( ; iter != mp.end(); ++iter, ++other_iter) {
       if (iter->first != other_iter->first) {
-	return iter->first < other_iter->first;
+	return std::less<NetworkState_Impl>{}(iter->first, other_iter->first);//  iter->first < other_iter->first;
       } else if (iter->second != other_iter->second) {
 	return iter->second < other_iter->second;
       }
