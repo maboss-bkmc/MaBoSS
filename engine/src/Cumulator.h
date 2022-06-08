@@ -921,7 +921,7 @@ PyObject* getNumpyStatesDists(Network* network) const
     PyList_SetItem(timepoints, i, PyFloat_FromDouble(((double) i) * time_tick));
   }
 
-  return PyTuple_Pack(3, PyArray_Return(result), pylist_state, timepoints);
+  return PyTuple_Pack(3, PyArray_Return(result), timepoints, pylist_state);
 }
 
 
@@ -972,7 +972,7 @@ PyObject* getNumpyLastStatesDists(Network* network) const
     )
   );
 
-  return PyTuple_Pack(3, PyArray_Return(result), pylist_state, timepoints);
+  return PyTuple_Pack(3, PyArray_Return(result), timepoints, pylist_state);
 }
 
 
@@ -1042,7 +1042,7 @@ PyObject* getNumpyNodesDists(Network* network, std::vector<Node*> output_nodes) 
     PyList_SetItem(timepoints, i, PyFloat_FromDouble(((double) i) * time_tick));
   }
 
-  return PyTuple_Pack(3, PyArray_Return(result), pylist_nodes, timepoints);
+  return PyTuple_Pack(3, PyArray_Return(result), timepoints, pylist_nodes);
 }
 
 
@@ -1102,7 +1102,7 @@ PyObject* getNumpyLastNodesDists(Network* network, std::vector<Node*> output_nod
     )
   );
   
-  return PyTuple_Pack(3, PyArray_Return(result), pylist_nodes, timepoints);
+  return PyTuple_Pack(3, PyArray_Return(result), timepoints, pylist_nodes);
 }
   
 #endif
