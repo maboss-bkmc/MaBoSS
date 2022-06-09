@@ -701,16 +701,7 @@ public:
       // Proba, ErrorProba
       while (iter.hasNext()) {
         TickValue tick_value;
-  #ifdef USE_NEXT_OPT
-        const S& state = S(iter.next2(tick_value), 1);
-        // Here I'm copying because it was a copy in the displayer
-        // But do we really need it ?
-        // NetworkState state(t_state, 1);
-  #else
-        S state;
-        iter.next(state, tick_value);
-        // NetworkState state(t_state);
-  #endif
+        const S& state = iter.next2(tick_value); 
         double proba = tick_value.tm_slice / ratio;      
         if (COMPUTE_ERRORS) {
     double tm_slice_square = tick_value.tm_slice_square;
