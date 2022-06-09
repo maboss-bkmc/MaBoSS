@@ -555,6 +555,9 @@ void EnsembleEngine::mergeMPIIndividual(bool pack)
       std::pair<Cumulator<NetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> results = mergeMPIResults(runconfig, cumulators_per_model[model], fixpoints_per_model[model], world_size, world_rank);
       cumulators_per_model[model] = results.first;
       fixpoints_per_model[model] = results.second;
+
+      if (world_rank == 0)
+        cumulators_per_model[model]->epilogue(networks[model], reference_state);
     }
   }
 }
