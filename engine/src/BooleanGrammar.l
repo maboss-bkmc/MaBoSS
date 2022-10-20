@@ -65,6 +65,7 @@ exppart		[eE](\-|\+)?[0-9]+
 "\n" { input_lineno++; }
 "/*" { skip_comment(); }
 "//".* { }
+"#".* { }
 [a-zA-Z_][a-zA-Z_0-9]* {
   if (!strcasecmp(yytext, "NOT")) {
      return LOGNOT;

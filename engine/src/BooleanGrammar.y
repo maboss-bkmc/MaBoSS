@@ -84,7 +84,6 @@ static Network* current_network;
 %type<expr> conditional_expression
 %type<expr> expression
 %type<arg_list> argument_expression_list
-%type<str> colon_comma
 
 %token<str> IDENTIFIER VARIABLE STRING
 %token<d> DOUBLE
@@ -118,7 +117,7 @@ node_decl: NODE IDENTIFIER '{' node_decl_item_list '}'
   free($2);
   delete truc;
 }
-| IDENTIFIER colon_comma expression term_opt
+| IDENTIFIER ':' expression term_opt
 {
   NodeDeclItem* decl_item = new NodeDeclItem("logic", $3);
   std::vector<NodeDeclItem*>* decl_item_v = new std::vector<NodeDeclItem*>();
@@ -132,12 +131,25 @@ node_decl: NODE IDENTIFIER '{' node_decl_item_list '}'
   delete decl_item_v;
   delete truc;
 }
-;
+| IDENTIFIER ',' expression term_opt
+{
+  if (strcmp($1, "targets") == 0 && strcmp($3->toString().c_str(), "factors") == 0) {
+    current_network->removeNode($3->toString());
+    free($3);
+  } else {
+    NodeDeclItem* decl_item = new NodeDeclItem("logic", $3);
+    std::vector<NodeDeclItem*>* decl_item_v = new std::vector<NodeDeclItem*>();
+    decl_item_v->push_back(decl_item);
 
-colon_comma: ':' 
-{}
-| ',' 
-{}
+    NodeDecl* truc = new NodeDecl($1, decl_item_v);
+    free($1);
+    for (std::vector<NodeDeclItem*>::iterator it = decl_item_v->begin(); it != decl_item_v->end(); ++it) {
+      delete *it;
+    }
+    delete decl_item_v;
+    delete truc;
+  }
+}
 ;
 
 node_decl_item_list: node_decl_item

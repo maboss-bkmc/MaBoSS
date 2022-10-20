@@ -51,6 +51,7 @@
 #define _BOOLEANGRAMMAR_H_
 
 #include <vector>
+#include <string.h>
 #include "BooleanNetwork.h"
 
 extern void set_current_network(Network* network);

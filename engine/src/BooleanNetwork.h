@@ -701,6 +701,19 @@ public:
     node_def_map.clear();
   }
 
+  void removeNode(const std::string& identifier) {
+    Node* to_delete = NULL;
+    if (isNodeDefined(identifier)) {
+      node_def_map.erase(identifier);
+    }
+    if (node_map.find(identifier) != node_map.end()) {
+      to_delete = node_map[identifier];
+      node_map.erase(identifier);
+    }
+    
+    free(to_delete);
+  }
+
   ~Network();
 };
 
