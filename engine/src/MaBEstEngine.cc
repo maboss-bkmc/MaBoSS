@@ -335,6 +335,8 @@ void MaBEstEngine::epilogue()
 
 MaBEstEngine::~MaBEstEngine()
 {
+  delete fixpoint_map_v[0];
+  
   for (auto t_arg_wrapper: arg_wrapper_v)
     delete t_arg_wrapper;
 
