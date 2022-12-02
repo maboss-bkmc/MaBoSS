@@ -324,7 +324,7 @@ logical_and_expression: equality_expression
 {
   $$ = $1;
 }
-| logical_and_expression LOGAND equality_expression
+| equality_expression LOGAND logical_and_expression
 {
   $$ = new AndLogicalExpression($1, $3);
 }
@@ -334,7 +334,7 @@ logical_or_expression: logical_and_expression
 {
   $$ = $1;
 }
-| logical_or_expression LOGOR logical_and_expression
+| logical_and_expression LOGOR logical_or_expression
 {
   $$ = new OrLogicalExpression($1, $3);
 }
