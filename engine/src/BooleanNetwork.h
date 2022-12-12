@@ -823,6 +823,9 @@ public:
     return NetworkState(state & mask.getState());
   }
   
+  NetworkState applyMask(const NetworkState& mask) const {
+    return NetworkState(state & mask.getState());
+  }
 
 #ifdef USE_STATIC_BITSET
   NetworkState() { }
@@ -1107,11 +1110,20 @@ public:
  PopNetworkState() : mp(std::map<NetworkState_Impl, unsigned int>()), hash(0) , hash_init(false) { }
  PopNetworkState(const PopNetworkState &p ) : hash(0), hash_init(false) { *this = p; }
  PopNetworkState(const PopNetworkState &p , int copy) : hash(0), hash_init(false) { *this = p; }
-  
+ PopNetworkState(std::map<NetworkState_Impl, unsigned int> mp ) : mp(mp), hash(0), hash_init(false) { }
+
  PopNetworkState(NetworkState_Impl state, unsigned int value) : mp(std::map<NetworkState_Impl, unsigned int>()), hash(0) , hash_init(false) {
     mp[state] = value;
   }
   
+  void set() {
+    mp.clear();
+    hash_init = false;
+    hash = 0;
+    NetworkState new_state;
+    new_state.set();
+    mp[new_state.getState()] = 1;
+  }
   
   PopNetworkState& operator=(const PopNetworkState &p ) 
   {     
@@ -1125,6 +1137,20 @@ public:
     hash_init = true; // EV 2021-10-28 added
 #endif
     return *this;
+  }
+
+  PopNetworkState applyMask(const PopNetworkState& mask) const {
+    // return PopNetworkState(state & mask.getState());
+    std::map<NetworkState_Impl, unsigned int> new_map;
+    NetworkState networkstate_mask = mask.getMap().begin()->first;
+    
+    
+    
+    for (auto elem: mp) {
+      NetworkState_Impl new_state = elem.first & networkstate_mask.getState();
+      new_map[new_state] = elem.second;
+    }
+    return PopNetworkState(new_map);
   }
 
   void addStatePop(const NetworkState_Impl& state, unsigned int pop) {

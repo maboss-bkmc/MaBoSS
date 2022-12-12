@@ -432,7 +432,7 @@ class Cumulator {
   unsigned int maxcols;
   int max_size;
   int max_tick_index;
-  NetworkState output_mask;
+  S output_mask;
   std::vector<CumulMap> cumul_map_v;
   std::vector<HDCumulMap> hd_cumul_map_v;
   unsigned int statdist_trajcount;
@@ -612,13 +612,17 @@ public:
     last_tick_map.clear();
   }
 
-  void cumul(const S& network_state, double tm, double TH) {
+  void cumul(const S& network_state, double tm, double TH) { 
 #ifdef USE_DYNAMIC_BITSET
     S fullstate(network_state & refnode_mask, 1);
 #else
     S fullstate(network_state & refnode_mask);
 #endif    
-    S state(network_state & output_mask);
+
+
+    // S state(network_state & output_mask);
+    S state = network_state.applyMask(output_mask);
+
     double time_1 = cumultime(tick_index+1);
     if (tm < time_1) {
       incr(state, tm - last_tm, TH, fullstate);
@@ -643,8 +647,8 @@ public:
     last_tm = tm;
   }
 
-  void setOutputMask(const NetworkState& output_mask) {
-    this->output_mask = output_mask.getState();
+  void setOutputMask(const S& output_mask) {
+    this->output_mask = output_mask;
   }
   
   void setRefnodeMask(const NetworkState_Impl& refnode_mask) {
