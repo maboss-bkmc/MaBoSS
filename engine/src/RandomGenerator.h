@@ -330,9 +330,10 @@ class MT19937RandomGenerator : public RandomGenerator
 
   int seed;
   std::mt19937 generator;
+  std::uniform_real_distribution<double> dis;
 
   void mt19937_srand(int seed) {
-    std::mt19937 generator(seed);
+    generator = std::mt19937(seed);
   }
 
   unsigned int mt19937_rand() {
@@ -342,6 +343,7 @@ class MT19937RandomGenerator : public RandomGenerator
  public:
   MT19937RandomGenerator(int seed) : seed(seed) {
     mt19937_srand(seed);
+    dis = std::uniform_real_distribution<double>(0.0, 1.0);
   }
 
   bool isPseudoRandom() const {
@@ -365,7 +367,7 @@ class MT19937RandomGenerator : public RandomGenerator
 #ifdef USE_DUMMY_RANDOM
     return 0.5;
 #endif
-    return (double(mt19937_rand()) / generator.max());
+    return dis(generator);
   }
 
   virtual void setSeed(int seed) {
