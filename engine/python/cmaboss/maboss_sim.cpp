@@ -93,11 +93,15 @@ static PyObject * cMaBoSSSim_new(PyTypeObject* type, PyObject *args, PyObject* k
       // Loading bnd file
       std::string nf(network_file);
       network = new Network();
+#ifdef SBML_COMPAT
       if (nf.substr(nf.find_last_of(".") + 1) == "sbml" || nf.substr(nf.find_last_of(".") + 1) == "xml" ) {
         network->parseSBML(network_file, NULL, use_sbml_names); 
       } else {
+#endif
         network->parse(network_file);
+#ifdef SBML_COMPAT
       }
+#endif
       // Loading cfg file
       runconfig = new RunConfig();
       IStateGroup::reset(network);
