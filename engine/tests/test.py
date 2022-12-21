@@ -86,6 +86,9 @@ class TestCMaBoSS(TestCase):
             
     def test_use_sbml_names(self):
         sim = cmaboss.MaBoSSSim("../examples/sbml/Cohen.sbml")
-        self.assertEqual(sim.str_bnd().split("{")[0].split("node ")[1].strip(), "S_26")
-        sim = cmaboss.MaBoSSSim("../examples/sbml/Cohen.sbml", use_sbml_names=True)
-        self.assertEqual(sim.str_bnd().split("{")[0].split("node ")[1].strip(), "CTNNB1")
+        nodes = ",".join(sorted([s.split(" ")[1] for s in sim.str_bnd().split("\n") if s.lower().startswith("node")]))
+        self.assertEqual(nodes, "S_1,S_10,S_11,S_12,S_13,S_14,S_15,S_16,S_17,S_18,S_19,S_2,S_20,S_21,S_22,S_23,S_24,S_25,S_26,S_27,S_28,S_29,S_3,S_30,S_31,S_32,S_4,S_5,S_6,S_7,S_8,S_9")
+        
+        sim = cmaboss.MaBoSSSim("../examples/sbml/Cohen.sbml", use_sbml_names=True)        
+        nodes = ",".join(sorted([s.split(" ")[1] for s in sim.str_bnd().split("\n") if s.lower().startswith("node")]))
+        self.assertEqual(nodes, "AKT1,AKT2,Apoptosis,CDH1,CDH2,CTNNB1,CellCycleArrest,DKK1,DNAdamage,ECM,EMT,ERK,GF,Invasion,Metastasis,Migration,NICD,SMAD,SNAI1,SNAI2,TGFbeta,TWIST1,VIM,ZEB1,ZEB2,miR200,miR203,miR34,p21,p53,p63,p73")
