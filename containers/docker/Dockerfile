@@ -1,4 +1,4 @@
-FROM ubuntu:bionic
+FROM ubuntu:jammy
 
 MAINTAINER Vincent Noel version: 1.0
 
@@ -7,16 +7,44 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Installing dependencies
 RUN apt-get -qq update
-RUN apt-get install -yq git flex bison gcc g++ make
+RUN apt-get install -yq git flex bison gcc g++ make libxml2-dev cmake wget
 
+RUN wget https://sourceforge.net/projects/sbml/files/libsbml/5.19.0/stable/libSBML-5.19.0-core-plus-packages-src.tar.gz \
+    && tar -zxf libSBML-5.19.0-core-plus-packages-src.tar.gz \
+    && cd libSBML-5.19.0-Source \
+    && mkdir build \
+    && cd build \
+    && cmake -DCMAKE_INSTALL_PREFIX=/usr \
+    -DCMAKE_INSTALL_LIBDIR=/usr/lib \
+    -DCMAKE_CXX_COMPILER=g++ \
+    -DCMAKE_C_COMPILER=gcc \
+    -DCMAKE_CXX_STANDARD_LIBRARIES=-lxml2 \
+    -DWITH_SWIG=OFF \
+    -DLIBXML_LIBRARY=/usr/lib/x86_64-linux-gnu/libxml2.so \
+    -DLIBXML_INCLUDE_DIR=/usr/include/libxml2 \
+    -DENABLE_COMP=ON \
+    -DENABLE_FBC=ON \
+    -DENABLE_GROUPS=ON \
+    -DENABLE_LAYOUT=ON \
+    -DENABLE_MULTI=ON \
+    -DENABLE_QUAL=ON \
+    -DENABLE_RENDER=ON \
+    -DENABLE_DISTRIB=ON \
+    -DWITH_CPP_NAMESPACE=ON \
+    .. \
+    && make \
+    && make install \
+    && cd ../../ \
+    && rm -fr libSBML-5.19.0-Source
+    
 # Installing MaBoSS
-ADD . /opt/MaBoSS-env-2.0
+ADD engine/src /opt/MaBoSS-env-2.0/engine/src
 RUN bash -c "rm -fr /opt/MaBoSS-env-2.0/.git"
-RUN bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; make install"
-RUN bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; make MAXNODES=128 install"
-RUN bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; make MAXNODES=256 install"
-RUN bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; make MAXNODES=512 install"
-RUN bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; make MAXNODES=1024 install"
+RUN bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; make install SBML_COMPAT=1"
+RUN bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; make MAXNODES=128 install SBML_COMPAT=1"
+RUN bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; make MAXNODES=256 install SBML_COMPAT=1"
+RUN bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; make MAXNODES=512 install SBML_COMPAT=1"
+RUN bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; make MAXNODES=1024 install SBML_COMPAT=1"
 
 # Exposing port 7777
 EXPOSE 7777

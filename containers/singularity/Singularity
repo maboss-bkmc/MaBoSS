@@ -1,18 +1,47 @@
 Bootstrap: debootstrap
-OSVersion: xenial
+OSVersion: jammy
 MirrorURL:  http://us.archive.ubuntu.com/ubuntu/
-Include: flex bison gcc g++ make
+Include: flex bison gcc g++ make libxml2-dev cmake wget ca-certificates
 
 %files
     . /opt/MaBoSS-env-2.0
 
 %post
+    apt update && apt upgrade -yq
+    wget https://sourceforge.net/projects/sbml/files/libsbml/5.19.0/stable/libSBML-5.19.0-core-plus-packages-src.tar.gz
+    tar -zxf libSBML-5.19.0-core-plus-packages-src.tar.gz
+    cd libSBML-5.19.0-Source
+    mkdir build
+    cd build
+    cmake -DCMAKE_INSTALL_PREFIX=/usr \
+    -DCMAKE_INSTALL_LIBDIR=/usr/lib \
+    -DCMAKE_CXX_COMPILER=g++ \
+    -DCMAKE_C_COMPILER=gcc \
+    -DCMAKE_CXX_STANDARD_LIBRARIES=-lxml2 \
+    -DWITH_SWIG=OFF \
+    -DLIBXML_LIBRARY=/usr/lib/x86_64-linux-gnu/libxml2.so \
+    -DLIBXML_INCLUDE_DIR=/usr/include/libxml2 \
+    -DENABLE_COMP=ON \
+    -DENABLE_FBC=ON \
+    -DENABLE_GROUPS=ON \
+    -DENABLE_LAYOUT=ON \
+    -DENABLE_MULTI=ON \
+    -DENABLE_QUAL=ON \
+    -DENABLE_RENDER=ON \
+    -DENABLE_DISTRIB=ON \
+    -DWITH_CPP_NAMESPACE=ON \
+    ..
+    make
+    make install
+    cd ../../
+    rm -fr libSBML-5.19.0-Source
     rm -fr /opt/MaBoSS-env-2.0/.git
-    bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; make install"
-    bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; make MAXNODES=128 install"
-    bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; make MAXNODES=256 install"
-    bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; make MAXNODES=512 install"
-    bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; make MAXNODES=1024 install"
+    
+    bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; make install SBML_COMPAT=1"
+    bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; make MAXNODES=128 install SBML_COMPAT=1"
+    bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; make MAXNODES=256 install SBML_COMPAT=1"
+    bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; make MAXNODES=512 install SBML_COMPAT=1"
+    bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; make MAXNODES=1024 install SBML_COMPAT=1"
 
 
 %runscript
