@@ -6,6 +6,7 @@ bash ./test-cellcycle.sh
 bash ./test-ensemble.sh
 bash ./test-ewing.sh
 bash ./test-sbml.sh
+bash ./test-bnet.sh
 bash ./test-prngs.sh
 bash ./test-user_func.sh
 

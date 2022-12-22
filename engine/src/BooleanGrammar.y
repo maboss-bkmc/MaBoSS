@@ -134,7 +134,7 @@ node_decl: NODE IDENTIFIER '{' node_decl_item_list '}'
 | IDENTIFIER ',' expression term_opt
 {
   if (strcmp($1, "targets") == 0 && strcmp($3->toString().c_str(), "factors") == 0) {
-    current_network->removeNode($3->toString());
+    current_network->removeLastNode($3->toString());
     free($3);
   } else {
     NodeDeclItem* decl_item = new NodeDeclItem("logic", $3);

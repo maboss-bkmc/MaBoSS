@@ -701,17 +701,19 @@ public:
     node_def_map.clear();
   }
 
-  void removeNode(const std::string& identifier) {
-    Node* to_delete = NULL;
-    if (isNodeDefined(identifier)) {
-      node_def_map.erase(identifier);
-    }
+  void removeLastNode(const std::string& identifier) {
+    /* This function was created to remove the last node which was just created. 
+       It is only used when parsing a bnet file, to remove the "target, factors" which is part of the header
+       Changes are that you should NEVER use it for another purpose.
+    */
     if (node_map.find(identifier) != node_map.end()) {
-      to_delete = node_map[identifier];
+      Node* to_delete = node_map[identifier];
       node_map.erase(identifier);
+      if (to_delete->getIndex() == (last_index-1)) {
+        last_index--;
+      }
+      free(to_delete);
     }
-    
-    free(to_delete);
   }
 
   ~Network();
