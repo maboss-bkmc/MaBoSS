@@ -627,9 +627,8 @@ void PopMaBEstEngine::epilogue()
 
 PopMaBEstEngine::~PopMaBEstEngine()
 {
-  for (auto t_fixpoint_map : fixpoint_map_v)
-    delete t_fixpoint_map;
-
+  delete fixpoint_map_v[0];
+  
   for (auto t_arg_wrapper : arg_wrapper_v)
     delete t_arg_wrapper;
 
