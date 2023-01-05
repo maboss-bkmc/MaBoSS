@@ -430,6 +430,8 @@ class Cumulator {
   std::vector<MAP<unsigned int, double> > HD_v;
   std::vector<double> TH_square_v;
   unsigned int maxcols;
+  bool isPopCumulator;
+  unsigned int max_simplecols;
   int max_size;
   int max_tick_index;
   S output_mask;
@@ -573,6 +575,7 @@ public:
     }
     proba_dist_v.resize(statdist_trajcount);
     tick_completed = false;
+    isPopCumulator = S::isPopState();
   }
 
   void rewind() {
@@ -659,7 +662,7 @@ public:
   {
     std::vector<Node*>::const_iterator begin_network;
 
-    displayer->begin(COMPUTE_ERRORS, maxcols, refnode_count);
+    displayer->begin(COMPUTE_ERRORS, maxcols, max_simplecols, refnode_count);
 
     double time_tick2 = time_tick * time_tick;
     double ratio = time_tick*sample_count;
@@ -1126,6 +1129,8 @@ PyObject* getNumpyLastNodesDists(Network* network, std::vector<Node*> output_nod
     TH_v.resize(max_tick_index);
 
     maxcols = 0;
+    max_simplecols = 0;
+    std::set<NetworkState_Impl> network_states;
     double ratio = time_tick * sample_count;
     for (int nn = 0; nn < max_tick_index; ++nn) { // time tick
       const CumulMap& mp = get_map(nn);
@@ -1140,6 +1145,11 @@ PyObject* getNumpyLastNodesDists(Network* network, std::vector<Node*> output_nod
         S state;
         iter.next(state, tick_value);
   #endif
+        if (isPopCumulator) {
+          std::set<NetworkState_Impl>* t_network_states = state.getNetworkStates();
+          network_states.insert(t_network_states->begin(), t_network_states->end());
+          delete t_network_states;
+        }
         double tm_slice = tick_value.tm_slice;
         double proba = tm_slice / ratio;      
         double TH = tick_value.TH / sample_count;
@@ -1150,8 +1160,13 @@ PyObject* getNumpyLastNodesDists(Network* network, std::vector<Node*> output_nod
       if (mp.size() > maxcols) {
         maxcols = mp.size();
       }
+      if (network_states.size() > max_simplecols) {
+        max_simplecols = network_states.size();
+      }
+      
+      network_states.clear();
     }
-
+    
     HD_v.resize(max_tick_index);
 
     for (int nn = 0; nn < max_tick_index; ++nn) { // time tick

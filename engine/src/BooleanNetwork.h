@@ -84,7 +84,7 @@
 #define MAP std::map
 
 #include <map>
-
+#include <set>
 #include <string>
 #include <vector>
 #include <assert.h>
@@ -897,6 +897,11 @@ public:
   // returns true if and only if there is a logical input expression that allows to compute state from input nodes
   bool computeNodeState(const Node* node, NodeState& node_state);
 
+  static bool isPopState() { return false; }
+  std::set<NetworkState_Impl>* getNetworkStates() {
+    return new std::set<NetworkState_Impl>({state});
+  }
+  
 #ifdef USE_DYNAMIC_BITSET
   NetworkState_Impl getState(int copy) const {return NetworkState_Impl(state, copy);}
 #endif
@@ -1385,6 +1390,15 @@ public:
   void displayJSON(std::ostream& os, Network* network, const std::string& sep = " -- ") const;
 
   unsigned int hamming(Network* network, const NetworkState& state) const;
+  
+  static bool isPopState() { return true; }
+  std::set<NetworkState_Impl>* getNetworkStates() {
+    std::set<NetworkState_Impl>* result = new std::set<NetworkState_Impl>();
+    for (auto network_state_pop : mp) {
+      result->insert(network_state_pop.first);
+    }
+    return result;
+  }
 };
 
 namespace std {

@@ -77,8 +77,7 @@ public:
     }
 
     os_simple_probtraj << "\tPop\tVar\tH";
-
-    for (unsigned int nn = 0; nn < this->maxcols; ++nn)
+    for (unsigned int nn = 0; nn < this->max_simplecols; ++nn)
     {
       os_simple_probtraj << "\tState\tProba" << (this->compute_errors ? "\tErrorProba" : "");
     }

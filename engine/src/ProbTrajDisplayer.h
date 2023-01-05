@@ -64,6 +64,7 @@ public:
   bool hexfloat;
   bool compute_errors;
   size_t maxcols;
+  size_t max_simplecols;
   size_t refnode_count;
 
   size_t current_line;
@@ -85,10 +86,11 @@ public:
   ProbTrajDisplayer(Network* network, bool hexfloat = false) : network(network), hexfloat(hexfloat), current_line(0), HD_v(NULL) { }
 
 // public:
-  void begin(bool compute_errors, size_t maxcols, size_t refnode_count) {
+  void begin(bool compute_errors, size_t maxcols, size_t max_simplecols, size_t refnode_count) {
     this->compute_errors = compute_errors;
     this->refnode_count = refnode_count;
     this->maxcols = maxcols;
+    this->max_simplecols = max_simplecols;
     this->HD_v = new double[refnode_count+1];
     beginDisplay();
   }
