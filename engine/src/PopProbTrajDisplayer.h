@@ -129,6 +129,7 @@ public:
     // Computing total population and state probabilities
     double pop = 0;
     std::map<NetworkState, double> network_state_probas;
+    std::map<NetworkState, double> network_state_errors;
     std::map<unsigned int, double> pop_size_distrib;
     for (const typename ProbTrajDisplayer<PopNetworkState>::Proba &proba : this->proba_v)
     {
@@ -138,10 +139,16 @@ public:
         if (network_state_probas.find(network_state.first) != network_state_probas.end())
         {
           network_state_probas[network_state.first] += proba.proba * network_state.second;
+          if (this->compute_errors) {
+            network_state_errors[network_state.first] += proba.err_proba;
+          }
         }
         else
         {
           network_state_probas[network_state.first] = proba.proba * network_state.second;
+          if (this->compute_errors) {
+            network_state_errors[network_state.first] = proba.err_proba;
+          }
         }
       }
       
@@ -178,12 +185,12 @@ public:
       if (this->hexfloat)
       {
         os_simple_probtraj << '\t' << fmthexdouble(network_state_proba.second/pop);
-        // os_probtraj << '\t' << fmthexdouble(proba.err_proba);
+        os_simple_probtraj << '\t' << fmthexdouble(network_state_errors[network_state_proba.first]);
       }
       else
       {
         os_simple_probtraj << '\t' << std::setprecision(6) << (network_state_proba.second/pop);
-        // os_probtraj << '\t' << proba.err_proba;
+        os_simple_probtraj << '\t' << std::setprecision(6) << (network_state_errors[network_state_proba.first]);
       }
     }
     os_simple_probtraj << '\n';
