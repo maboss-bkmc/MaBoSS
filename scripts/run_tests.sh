@@ -26,14 +26,16 @@ bash ./test-bnet.sh
 check "bnet"
 bash ./test-prngs.sh
 check "prngs"
-bash ./test-user_func.sh
-check "user_func"
+
 if [[ -n $RUNNER_OS ]] && [[ $RUNNER_OS != "Windows" ]]; then
     bash ./test-server.sh
     check "server"
     bash ./test-rngs.sh    
     check "rngs"
 fi
+
+bash ./test-user_func.sh
+check "user_func"
 
 cd ../..
 
