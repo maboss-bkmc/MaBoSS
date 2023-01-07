@@ -164,7 +164,7 @@ public:
     double network_state_variance = - pop*pop;
     double network_state_entropy = 0;
     
-    for (const auto size_proba: pop_size_distrib) 
+    for (const auto &size_proba: pop_size_distrib) 
     {
       network_state_variance += size_proba.second * (size_proba.first * size_proba.first);
       network_state_entropy -= log2(size_proba.second)*size_proba.second;
@@ -278,7 +278,7 @@ public:
     double network_state_variance = - pop*pop;
     double network_state_entropy = 0;
     
-    for (const auto size_proba: pop_size_distrib) 
+    for (const auto &size_proba: pop_size_distrib) 
     {
       network_state_variance += size_proba.second * (size_proba.first * size_proba.first);
       network_state_entropy -= log2(size_proba.second)*size_proba.second;
