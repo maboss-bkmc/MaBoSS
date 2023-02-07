@@ -9,7 +9,7 @@ on:
 jobs:
   maboss:
     name: MaBoSS (gcc)
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       GCC: gcc
       CXX: g++
@@ -52,7 +52,7 @@ jobs:
         
   maboss_llvm:
     name: MaBoSS (clang)
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       GCC: clang
       CXX: clang++
@@ -93,7 +93,7 @@ jobs:
   
   maboss_mpi:
     name: MaBoSS MPI
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
     - uses: actions/checkout@v3
@@ -115,7 +115,7 @@ jobs:
 
   maboss_binary:
     name: Building MaBoSS linux64 binary
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs: [maboss, maboss_llvm, maboss_mpi]
     env:  
       GCC: gcc
@@ -182,7 +182,7 @@ jobs:
   
   maboss_library:
     name: Building MaBoSS linux64 library
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs: [maboss, maboss_llvm, maboss_mpi]
 
     steps:
@@ -229,7 +229,7 @@ jobs:
   
   maboss_library_sbml:
     name: Building MaBoSS linux64 library with libSBML
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs: [maboss, maboss_llvm, maboss_mpi]
     env:
       GCC: gcc
@@ -298,7 +298,8 @@ jobs:
         
   test_docker:
     name: Docker MaBoSS Server
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
+
     needs: [maboss, maboss_llvm, maboss_mpi]
     
     steps:
@@ -331,7 +332,8 @@ jobs:
     
   test_singularity:
     name: Singularity MaBoSS Server
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
+
     needs: [maboss, maboss_llvm, maboss_mpi]
    
     steps:
@@ -358,7 +360,8 @@ jobs:
     
   maboss_conda_defaults:
     name: Build MaBoSS Anaconda package
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
+
     needs: [maboss, maboss_llvm, maboss_mpi]
     
     steps:
@@ -384,7 +387,8 @@ jobs:
            
   maboss_conda:
     name: Build MaBoSS Anaconda package (conda-forge)
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
+
     needs: [maboss, maboss_llvm, maboss_mpi]
     
     steps:
@@ -413,7 +417,8 @@ jobs:
   
   maboss_conda_test_defaults:
     name: Test MaBoSS Anaconda package
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
+
     needs: maboss_conda_defaults
      
     steps:
@@ -455,7 +460,8 @@ jobs:
         bash -c "cd engine/tests; bash ./test-sbml.sh"
   maboss_conda_test:
     name: Test MaBoSS Anaconda package (conda-forge)
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
+
     needs: maboss_conda
      
     steps:
@@ -500,7 +506,8 @@ jobs:
         
   maboss_conda_publish_defaults:
     name: Publish MaBoSS Anaconda package
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
+
     needs: maboss_conda_test_defaults
      
     steps:
@@ -532,7 +539,8 @@ jobs:
     
   maboss_conda_publish:
     name: Publish MaBoSS Anaconda package (conda-forge)
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
+
     needs: maboss_conda_test
      
     steps:

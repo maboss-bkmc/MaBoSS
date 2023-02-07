@@ -9,7 +9,8 @@ on:
 jobs:
   cmaboss:
     name: cMaBoSS
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
+
     env:
       GCC: gcc
       CXX: g++
@@ -54,7 +55,8 @@ jobs:
 
   build_wheels_linux:
     name: Build linux wheels
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
+
     needs: cmaboss
     steps:
       - uses: actions/checkout@v3
@@ -95,7 +97,8 @@ jobs:
           
   cmaboss_conda_defaults:
     name: Build cMaBoSS Anaconda package
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
+
     needs: cmaboss
 
     steps:
@@ -125,7 +128,8 @@ jobs:
   
   cmaboss_conda:
     name: Build cMaBoSS Anaconda package (conda-forge)
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
+
     needs: cmaboss
 
     steps:
@@ -158,7 +162,8 @@ jobs:
         
   cmaboss_conda_defaults_test:
     name: Test cMaBoSS Anaconda package
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
+
     needs: cmaboss_conda_defaults
     
     steps:
@@ -191,7 +196,8 @@ jobs:
   
   cmaboss_conda_test:
     name: Test cMaBoSS Anaconda package (conda-forge)
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
+
     needs: cmaboss_conda
     
     steps:
@@ -226,7 +232,8 @@ jobs:
         
   cmaboss_conda_publish_defaults:
     name: Publish cMaBoSS Anaconda package
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
+
     needs: cmaboss_conda_defaults_test
     
     steps:
@@ -257,7 +264,8 @@ jobs:
         anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/share/miniconda/conda-bld/linux-64/*.tar.bz2 --force;
   cmaboss_conda_publish:
     name: Publish cMaBoSS Anaconda package (conda-forge)
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
+
     needs: cmaboss_conda_test
     
     steps:
