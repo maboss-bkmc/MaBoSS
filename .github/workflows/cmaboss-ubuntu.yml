@@ -104,6 +104,8 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: s-weigand/setup-conda@v1
+      with:
+        update-conda: true
  
     - name: Install conda-build
       run: |
@@ -135,6 +137,8 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: s-weigand/setup-conda@v1
+      with:
+        update-conda: true
  
     - name: Install conda-build
       run: |
@@ -169,6 +173,8 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: s-weigand/setup-conda@v1
+      with:
+        update-conda: true
     
     - name: Caching produced conda package
       uses: actions/cache@v3
@@ -203,6 +209,8 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: s-weigand/setup-conda@v1
+      with:
+        update-conda: true
     
     - name: Caching produced conda package
       uses: actions/cache@v3
@@ -239,6 +247,8 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: s-weigand/setup-conda@v1
+      with:
+        update-conda: true
     
     - name: Caching produced conda package
       uses: actions/cache@v3
@@ -271,6 +281,8 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - uses: s-weigand/setup-conda@v1
+      with:
+        update-conda: true
     
     - name: Caching produced conda package
       uses: actions/cache@v3
