@@ -24,16 +24,13 @@ requirements:
     - bison
     - make
     - libsbml-plus-packages
-    - libxml2
         
   host:
     - libsbml-plus-packages
-    - libxml2
     
   run:
     - libsbml-plus-packages
-    - libxml2
-      
+
 about:
   home:  https://maboss.curie.fr
 
