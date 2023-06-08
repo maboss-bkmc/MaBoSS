@@ -17,6 +17,7 @@ before-all = [
     "BUILD_PATH=/tmp/ bash scripts/install_libsbml.sh"
 ]
 skip = [
+    "pp*",
     "*-manylinux_i686",
     "*-musllinux_*"
 ]
