@@ -2,6 +2,7 @@
 #include <string.h>
 #include <sstream>
 #include <iostream>
+#include <cstdint>
 #include "maboss-config.h"
 
 //#define USE_MB_SHIFT
