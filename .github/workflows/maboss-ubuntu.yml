@@ -439,6 +439,7 @@ jobs:
     - name: Install conda-build
       run: |
         conda update conda
+        conda config --set channel_priority strict
         conda update conda --all
         conda install conda-build
      
