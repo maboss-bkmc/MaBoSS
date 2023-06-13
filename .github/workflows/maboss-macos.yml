@@ -297,7 +297,7 @@ jobs:
       
   conda_maboss_macosx:
     name: Build Conda MaBoSS package
-    runs-on: macos-11
+    runs-on: macos-12
     needs: [maboss_macos, maboss_llvm_macos, maboss_mpi_macos]
 
     steps:
@@ -326,7 +326,7 @@ jobs:
         
   conda_maboss_conda_forge_macosx:
     name: Build Conda MaBoSS package (conda-forge)
-    runs-on: macos-11
+    runs-on: macos-12
     needs: [maboss_macos, maboss_llvm_macos, maboss_mpi_macos]
 
     steps:
@@ -353,7 +353,7 @@ jobs:
    
   maboss_conda_test_macosx:
     name: MaBoSS Anaconda package test
-    runs-on: macos-11
+    runs-on: macos-12
     needs: conda_maboss_macosx
     
     steps:
@@ -363,6 +363,7 @@ jobs:
     - name: Install conda-build
       run: |
         conda update conda
+        conda config --set channel_priority strict
         conda update conda --all
         conda install conda-build anaconda-client
       
@@ -396,7 +397,7 @@ jobs:
   
   maboss_conda_test_conda_forge_macosx:
     name: MaBoSS Anaconda package test (conda-forge)
-    runs-on: macos-11
+    runs-on: macos-12
     needs: conda_maboss_conda_forge_macosx
     
     steps:
