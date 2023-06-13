@@ -311,6 +311,7 @@ jobs:
         conda install conda-build conda-verify
     - name: Downgrading XCode to 11.7
       run: |
+        ls -al /Applications
         sudo xcode-select -s /Applications/Xcode_11.7.app/Contents/Developer
         brew reinstall llvm    
     - name: Build MaBoSS Anaconda package
