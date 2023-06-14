@@ -29,7 +29,7 @@ rm -rf tmp; mkdir -p tmp
 $MABOSS_SERVER -q --host 0.0.0.0 --port 7777 $VERBOSE &
 SERVER_PID=$!;
 echo "Launched server on pid ${SERVER_PID}"
-sleep 2s
+sleep 2
 
 
 /usr/bin/time -p $LAUNCHER $MABOSS_CLIENT --host 127.0.0.1 --port 7777 cellcycle/cellcycle.bnd -c cellcycle/cellcycle_runcfg.cfg -c cellcycle/cellcycle_runcfg-thread_1.cfg -o tmp/Cell_cycle_thread_1 $VERBOSE $FINAL
@@ -84,7 +84,7 @@ if [[ ! -x "$MABOSS_SERVER_128n" ]]; then echo "$MABOSS_SERVER_128n not found; s
 $MABOSS_SERVER_128n -q --host 0.0.0.0 --port 7778 &
 SERVER_128_PID=$!;
 echo "Launched server on pid ${SERVER_128_PID}";
-sleep 2s
+sleep 2
 
 
 /usr/bin/time -p $LAUNCHER $MABOSS_CLIENT --host 127.0.0.1 --port 7778 ewing/ewing_full.bnd -c ewing/ewing.cfg -c ewing/ewing_runcfg-thread_1.cfg -o tmp/ewing_thread_1
