@@ -99,7 +99,7 @@ jobs:
 
   conda_cmaboss_macosx:
     name: cMaBoSS Conda package
-    runs-on: macos-11
+    runs-on: macos-12
     needs: cmaboss_macos
 
     steps:
@@ -112,10 +112,14 @@ jobs:
         conda update --all
         conda install conda-build conda-verify
       
-    - name: Downgrading XCode to 11.7
+    - name: Installing MacOSX10.10 SDK
       run: |
-        sudo xcode-select -s /Applications/Xcode_11.7.app/Contents/Developer
-        brew reinstall llvm    
+        wget https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX10.10.sdk.tar.xz
+        sudo tar xf MacOSX10.10.sdk.tar.xz -C /opt
+        echo "conda_build:" > ~/.condarc
+        echo "  config_file: ~/.conda/conda_build_config.yaml" >> ~/.condarc
+        echo "CONDA_BUILD_SYSROOT:" > ~/.conda/conda_build_config.yaml
+        echo "  - /opt/MacOSX10.10.sdk        # [osx]" >> ~/.conda/conda_build_config.yaml
     
     - name: Build cMaBoSS Anaconda package
       run: |
@@ -134,7 +138,7 @@ jobs:
     
   conda_cmaboss_conda_forge_macosx:
     name: cMaBoSS Conda package (conda-forge)
-    runs-on: macos-11
+    runs-on: macos-12
     needs: cmaboss_macos
 
     steps:
@@ -148,6 +152,15 @@ jobs:
         conda config --set channel_priority strict
         conda update --all
         conda install conda-build conda-verify
+    
+    - name: Installing MacOSX10.10 SDK
+      run: |
+        wget https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX10.10.sdk.tar.xz
+        sudo tar xf MacOSX10.10.sdk.tar.xz -C /opt
+        echo "conda_build:" > ~/.condarc
+        echo "  config_file: ~/.conda/conda_build_config.yaml" >> ~/.condarc
+        echo "CONDA_BUILD_SYSROOT:" > ~/.conda/conda_build_config.yaml
+        echo "  - /opt/MacOSX10.10.sdk        # [osx]" >> ~/.conda/conda_build_config.yaml
       
     - name: Build cMaBoSS Anaconda package
       run: |
@@ -167,7 +180,7 @@ jobs:
     
   cmaboss_conda_test_macosx:
     name: cMaBoSS Anaconda package test
-    runs-on: macos-11
+    runs-on: macos-12
     needs: conda_cmaboss_macosx
     
     steps:
@@ -200,7 +213,7 @@ jobs:
         
   cmaboss_conda_test_conda_forge_macosx:
     name: cMaBoSS Anaconda package test (conda-forge)
-    runs-on: macos-11
+    runs-on: macos-12
     needs: conda_cmaboss_conda_forge_macosx
     
     steps:
@@ -235,7 +248,7 @@ jobs:
   
   cmaboss_conda_publish_macosx:
     name: cMaBoSS Anaconda package publication
-    runs-on: macos-11
+    runs-on: macos-12
     needs: cmaboss_conda_test_macosx
     
     steps:
@@ -268,7 +281,7 @@ jobs:
  
   cmaboss_conda_publish_conda_forge_macosx:
     name: cMaBoSS Anaconda package publication (conda-forge)
-    runs-on: macos-11
+    runs-on: macos-12
     needs: cmaboss_conda_test_conda_forge_macosx
     
     steps:

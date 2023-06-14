@@ -304,17 +304,21 @@ jobs:
     - uses: actions/checkout@v3
     - uses: s-weigand/setup-conda@v1
     
-    - name: Downgrading XCode to 13.4.1
-      run: |
-        sudo xcode-select -s /Applications/Xcode_13.4.1.app/Contents/Developer
-        brew reinstall llvm            
-    
     - name: Installing conda-build      
       run: |
         conda update conda
         conda update conda --all
         conda install conda-build conda-verify
     
+    - name: Installing MacOSX10.10 SDK
+      run: |
+        wget https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX10.10.sdk.tar.xz
+        sudo tar xf MacOSX10.10.sdk.tar.xz -C /opt
+        echo "conda_build:" > ~/.condarc
+        echo "  config_file: ~/.conda/conda_build_config.yaml" >> ~/.condarc
+        echo "CONDA_BUILD_SYSROOT:" > ~/.conda/conda_build_config.yaml
+        echo "  - /opt/MacOSX10.10.sdk        # [osx]" >> ~/.conda/conda_build_config.yaml
+        
     - name: Build MaBoSS Anaconda package
       run: |
         conda build -c colomoto conda/maboss
@@ -335,11 +339,6 @@ jobs:
     - uses: actions/checkout@v3
     - uses: s-weigand/setup-conda@v1
 
-    - name: Downgrading XCode to 13.4.1
-      run: |
-        sudo xcode-select -s /Applications/Xcode_13.4.1.app/Contents/Developer
-        brew reinstall llvm            
-    
     - name: Installing conda-build      
       run: |
         conda update conda
@@ -347,6 +346,16 @@ jobs:
         conda config --set channel_priority strict
         conda update conda --all
         conda install conda-build conda-verify
+    
+    - name: Installing MacOSX10.10 SDK
+      run: |
+        wget https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX10.10.sdk.tar.xz
+        sudo tar xf MacOSX10.10.sdk.tar.xz -C /opt
+        echo "conda_build:" > ~/.condarc
+        echo "  config_file: ~/.conda/conda_build_config.yaml" >> ~/.condarc
+        echo "CONDA_BUILD_SYSROOT:" > ~/.conda/conda_build_config.yaml
+        echo "  - /opt/MacOSX10.10.sdk        # [osx]" >> ~/.conda/conda_build_config.yaml
+    
     - name: Build MaBoSS Anaconda package
       run: |
         CUSTOM_BUILD_NUMBER=1 conda build -c colomoto conda/maboss
@@ -449,7 +458,7 @@ jobs:
     
   maboss_conda_publish_macosx:
     name: MaBoSS Anaconda package publication
-    runs-on: macos-11
+    runs-on: macos-12
     needs: maboss_conda_test_macosx
     
     steps:
@@ -483,7 +492,7 @@ jobs:
  
   maboss_conda_publish_conda_forge_macosx:
     name: MaBoSS Anaconda package publication (conda-forge)
-    runs-on: macos-11
+    runs-on: macos-12
     needs: maboss_conda_test_conda_forge_macosx
     
     steps:
