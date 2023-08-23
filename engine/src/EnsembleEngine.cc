@@ -396,6 +396,8 @@ void EnsembleEngine::runThread(Cumulator* cumulator, unsigned int start_count_th
   
   int model_ind = 0;
   RandomGenerator* random_generator = randgen_factory->generateRandomGenerator(seed);
+  const std::vector<Node*>& nodes = networks[0]->getNodes();
+  std::vector<double> nodeTransitionRates(nodes.size(), 0.0);
   for (unsigned int nn = 0; nn < sample_count_thread; ++nn) {
 
 #ifdef MPI_COMPAT
@@ -430,7 +432,7 @@ void EnsembleEngine::runThread(Cumulator* cumulator, unsigned int start_count_th
     }
     while (tm < max_time) {
       double total_rate = 0.;
-      MAP<NodeIndex, double> nodeTransitionRates;
+      nodeTransitionRates.assign(nodes.size(), 0.0);
       begin = nodes.begin();
 
       while (begin != end) {

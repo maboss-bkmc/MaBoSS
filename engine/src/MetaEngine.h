@@ -97,8 +97,8 @@ protected:
   // void mergeResults();
   static std::pair<Cumulator*, STATE_MAP<NetworkState_Impl, unsigned int>*> mergeResults(std::vector<Cumulator*>& cumulator_v, std::vector<STATE_MAP<NetworkState_Impl, unsigned int> *>& fixpoint_map_v);
 
-  NodeIndex getTargetNode(Network* _network, RandomGenerator* random_generator, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
-  double computeTH(Network* _network, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
+  NodeIndex getTargetNode(Network* _network, RandomGenerator* random_generator, const std::vector<double>& nodeTransitionRates, double total_rate) const;
+  double computeTH(Network* _network, const std::vector<double>& nodeTransitionRates, double total_rate) const;
   
   
 #ifdef MPI_COMPAT

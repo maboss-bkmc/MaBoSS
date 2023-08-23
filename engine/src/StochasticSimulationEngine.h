@@ -74,7 +74,7 @@ class StochasticSimulationEngine {
   double time_tick;
   
 
-  NodeIndex getTargetNode(RandomGenerator* random_generator, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
+  NodeIndex getTargetNode(RandomGenerator* random_generator, const std::vector<double>& nodeTransitionRates, double total_rate) const;
 
 public:
   static const std::string VERSION;

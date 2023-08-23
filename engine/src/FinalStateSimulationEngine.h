@@ -83,7 +83,7 @@ class FinalStateSimulationEngine {
   std::vector<unsigned int> sample_count_per_thread;
 
   std::vector<FinalStateArgWrapper*> arg_wrapper_v;
-  NodeIndex getTargetNode(RandomGenerator* random_generator, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
+  NodeIndex getTargetNode(RandomGenerator* random_generator, const std::vector<double>& nodeTransitionRates, double total_rate) const;
   void epilogue();
   static void* threadWrapper(void *arg);
   void runThread(unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* final_state_map, std::ostream* output_traj);

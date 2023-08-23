@@ -104,18 +104,16 @@ FinalStateSimulationEngine::FinalStateSimulationEngine(Network* network, RunConf
   }
 }
 
-NodeIndex FinalStateSimulationEngine::getTargetNode(RandomGenerator* random_generator, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const
+NodeIndex FinalStateSimulationEngine::getTargetNode(RandomGenerator* random_generator, const std::vector<double>& nodeTransitionRates, double total_rate) const
 {
   double U_rand2 = random_generator->generate();
   double random_rate = U_rand2 * total_rate;
-  MAP<NodeIndex, double>::const_iterator begin = nodeTransitionRates.begin();
-  MAP<NodeIndex, double>::const_iterator end = nodeTransitionRates.end();
   NodeIndex node_idx = INVALID_NODE_INDEX;
-  while (begin != end && random_rate > 0.) {
-    node_idx = begin->first;
-    double rate = begin->second;
+  
+  for (unsigned int i=0; i < nodeTransitionRates.size() && random_rate >= 0.; i++) {
+    node_idx = i;
+    double rate = nodeTransitionRates[i];
     random_rate -= rate;
-    ++begin;
   }
 
   assert(node_idx != INVALID_NODE_INDEX);
@@ -160,6 +158,7 @@ void FinalStateSimulationEngine::runThread(unsigned int start_count_thread, unsi
   std::vector<Node*>::const_iterator begin = nodes.begin();
   std::vector<Node*>::const_iterator end = nodes.end();
   NetworkState network_state; 
+  std::vector<double> nodeTransitionRates(nodes.size(), 0.0);
 
   RandomGenerator* random_generator = randgen_factory->generateRandomGenerator(seed);
   for (unsigned int nn = 0; nn < sample_count_thread; ++nn) {
@@ -176,7 +175,7 @@ void FinalStateSimulationEngine::runThread(unsigned int start_count_thread, unsi
     }
     while (tm < max_time) {
       double total_rate = 0.;
-      MAP<NodeIndex, double> nodeTransitionRates;
+      nodeTransitionRates.assign(nodes.size(), 0.0);
       begin = nodes.begin();
 
       while (begin != end) {

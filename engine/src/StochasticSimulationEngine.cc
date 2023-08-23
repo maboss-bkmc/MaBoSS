@@ -56,19 +56,16 @@
 
 const std::string StochasticSimulationEngine::VERSION = "1.0.0";
 
-NodeIndex StochasticSimulationEngine::getTargetNode(RandomGenerator *random_generator, const MAP<NodeIndex, double> &nodeTransitionRates, double total_rate) const
+NodeIndex StochasticSimulationEngine::getTargetNode(RandomGenerator *random_generator, const std::vector<double> &nodeTransitionRates, double total_rate) const
 {
   double U_rand2 = random_generator->generate();
   double random_rate = U_rand2 * total_rate;
-  MAP<NodeIndex, double>::const_iterator begin = nodeTransitionRates.begin();
-  MAP<NodeIndex, double>::const_iterator end = nodeTransitionRates.end();
   NodeIndex node_idx = INVALID_NODE_INDEX;
-  while (begin != end && random_rate > 0.)
-  {
-    node_idx = (*begin).first;
-    double rate = (*begin).second;
+  
+  for (unsigned int i=0; i < nodeTransitionRates.size() && random_rate >= 0.; i++) {
+    node_idx = i;
+    double rate = nodeTransitionRates[i];
     random_rate -= rate;
-    ++begin;
   }
 
   assert(node_idx != INVALID_NODE_INDEX);
@@ -83,25 +80,23 @@ NetworkState StochasticSimulationEngine::run(NetworkState& initial_state, std::o
   std::vector<Node *>::const_iterator end = nodes.end();
   NetworkState network_state;
     
-  // if ( != NULL) {
-    network_state = initial_state;
-  // } else {
-  //   network->initStates(network_state, random_generator);
-  // }
+  network_state = initial_state;
   
   double tm = 0.;
   unsigned int step = 0;
   if (NULL != output_traj)
   {
-    // (*output_traj) << "\nTrajectory #" << (nn+1) << '\n';
     (*output_traj) << " istate\t";
     network_state.displayOneLine(*output_traj, network);
     (*output_traj) << '\n';
   }
+
+  std::vector<double> nodeTransitionRates(nodes.size(), 0.0);
+  
   while (tm < max_time)
   {
     double total_rate = 0.;
-    MAP<NodeIndex, double> nodeTransitionRates;
+    nodeTransitionRates.assign(nodes.size(), 0.0);
     begin = nodes.begin();
 
     while (begin != end)

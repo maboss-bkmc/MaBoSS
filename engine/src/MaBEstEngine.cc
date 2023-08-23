@@ -155,7 +155,7 @@ void MaBEstEngine::runThread(Cumulator* cumulator, unsigned int start_count_thre
   NetworkState network_state; 
   Probe probe;
   probe.start();
-  
+  std::vector<double> nodeTransitionRates(nodes.size(), 0.0);
   RandomGenerator* random_generator = randgen_factory->generateRandomGenerator(seed);
   for (unsigned int nn = 0; nn < sample_count_thread; ++nn) {
 
@@ -172,7 +172,8 @@ void MaBEstEngine::runThread(Cumulator* cumulator, unsigned int start_count_thre
     }
     while (tm < max_time) {
       double total_rate = 0.;
-      MAP<NodeIndex, double> nodeTransitionRates;
+            nodeTransitionRates.assign(nodes.size(), 0.0);
+
       begin = nodes.begin();
 
       while (begin != end) {

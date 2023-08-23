@@ -118,18 +118,16 @@ const std::map<unsigned int, std::pair<NetworkState, double> > MetaEngine::getFi
 }
 
 
-NodeIndex MetaEngine::getTargetNode(Network* _network, RandomGenerator* random_generator, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const
+NodeIndex MetaEngine::getTargetNode(Network* _network, RandomGenerator* random_generator, const std::vector<double>& nodeTransitionRates, double total_rate) const
 {
   double U_rand2 = random_generator->generate();
   double random_rate = U_rand2 * total_rate;
-  MAP<NodeIndex, double>::const_iterator begin = nodeTransitionRates.begin();
-  MAP<NodeIndex, double>::const_iterator end = nodeTransitionRates.end();
   NodeIndex node_idx = INVALID_NODE_INDEX;
-  while (begin != end && random_rate >= 0.) {
-    node_idx = (*begin).first;
-    double rate = (*begin).second;
+  
+  for (unsigned int i=0; i < nodeTransitionRates.size() && random_rate >= 0.; i++) {
+    node_idx = i;
+    double rate = nodeTransitionRates[i];
     random_rate -= rate;
-    ++begin;
   }
 
   assert(node_idx != INVALID_NODE_INDEX);
@@ -137,38 +135,34 @@ NodeIndex MetaEngine::getTargetNode(Network* _network, RandomGenerator* random_g
   return node_idx;
 }
 
-double MetaEngine::computeTH(Network* _network, const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const
+double MetaEngine::computeTH(Network* _network, const std::vector<double>& nodeTransitionRates, double total_rate) const
 {
   if (nodeTransitionRates.size() == 1) {
     return 0.;
   }
 
-  MAP<NodeIndex, double>::const_iterator begin = nodeTransitionRates.begin();
-  MAP<NodeIndex, double>::const_iterator end = nodeTransitionRates.end();
+
   double TH = 0.;
   double rate_internal = 0.;
 
-  while (begin != end) {
-    NodeIndex index = (*begin).first;
-    double rate = (*begin).second;
-    if (_network->getNode(index)->isInternal()) {
+  for (unsigned int i = 0; i < nodeTransitionRates.size(); i++) {
+    NodeIndex index = i;
+    double rate = nodeTransitionRates[i];
+    if (rate != 0.0 && _network->getNode(index)->isInternal()) {
       rate_internal += rate;
     }
-    ++begin;
   }
 
   double total_rate_non_internal = total_rate - rate_internal;
 
-  begin = nodeTransitionRates.begin();
+  for (unsigned int i = 0; i < nodeTransitionRates.size(); i++){
 
-  while (begin != end) {
-    NodeIndex index = (*begin).first;
-    double rate = (*begin).second;
-    if (!_network->getNode(index)->isInternal()) {
+    NodeIndex index = i;
+    double rate = nodeTransitionRates[i];
+    if (rate != 0.0 && !_network->getNode(index)->isInternal()) {
       double proba = rate / total_rate_non_internal;
       TH -= log2(proba) * proba;
     }
-    ++begin;
   }
 
   return TH;
