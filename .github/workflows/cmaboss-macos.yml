@@ -22,7 +22,7 @@ jobs:
     - name: Install dependencies
       run: |
         brew install flex bison python3 libxml2 cmake
-        pip3 install numpy wheel delocate
+        pip3 install numpy wheel delocate pandas
 
     - name: Cache compiled libSBML
       id: cache-libsbml-clang
@@ -202,7 +202,11 @@ jobs:
       run: |
         conda index /usr/local/miniconda/conda-bld
         conda install -c colomoto cmaboss --use-local
-      
+        
+    - name: Install test dependencies
+      run: |
+        pip install pandas
+              
     - name: Test package
       run: |
         cd engine/tests
@@ -237,7 +241,11 @@ jobs:
       run: |
         conda index /usr/local/miniconda/conda-bld
         conda install -c colomoto cmaboss --use-local
-      
+        
+    - name: Install test dependencies
+      run: |
+        pip install pandas
+              
     - name: Test package
       run: |
         cd engine/tests
