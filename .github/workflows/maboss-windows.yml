@@ -49,8 +49,8 @@ jobs:
     - name: Build MaBoSS
       run: |
         cd engine/src
-        make MAXNODES=128 SBML_COMPAT=1 maboss
-        make SBML_COMPAT=1 maboss
+        make MAXNODES=128 SBML_COMPAT=1 maboss popmaboss
+        make SBML_COMPAT=1 maboss popmaboss
 
     - name: Test MaBoSS
       run: bash scripts/run_tests.sh

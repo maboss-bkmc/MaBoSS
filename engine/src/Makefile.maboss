@@ -254,10 +254,12 @@ install_alib: $(MABOSS_ALIB)
 	mkdir -p ../include/
 	cp *.h ../include/
 	
-install_static: MaBoSS$(INFIX).o $(MABOSS_OBJS)
+install_static: MaBoSS$(INFIX).o $(MABOSS_OBJS) PopMaBoSS$(INFIX).o $(POPMABOSS_OBJS)
 	$(CXX) -o $(MABOSS) MaBoSS$(INFIX).o $(MABOSS_OBJS) $(SBML_LIB_STATIC) $(STATIC_LIBS) -lpthread $(LDL_FLAG) -L.  $(LDFLAGS) $(EXTRA_LDFLAGS)
+	$(CXX) -o $(POPMABOSS) PopMaBoSS$(INFIX).o $(POPMABOSS_OBJS) $(SBML_LIB_STATIC) $(STATIC_LIBS) -lpthread $(LDL_FLAG) -L. $(LDFLAGS) $(EXTRA_LDFLAGS)
 	mkdir -p ../pub
 	cp $(MABOSS) ../pub
+	cp $(POPMABOSS) ../pub
 	
 #test_dynbitset: test_dynbitset.o
 #	g++ -o $@ $+ $(EXTRA_FLAGS)
