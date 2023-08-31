@@ -359,14 +359,14 @@ public:
 
 #ifdef HAS_UNORDERED_MAP
 namespace std {
-  template <> struct HASH_STRUCT<MBDynBitset > : public std::unary_function<MBDynBitset, size_t>
+  template <> struct HASH_STRUCT<MBDynBitset >
   {
     size_t operator()(const MBDynBitset& val) const {
       return val.to_ulong();
     }
   };
 
-  template <> struct equal_to<MBDynBitset > : public binary_function<MBDynBitset, MBDynBitset, bool>
+  template <> struct equal_to<MBDynBitset >
   {
     size_t operator()(const MBDynBitset& val1, const MBDynBitset& val2) const {
       return val1 == val2;
@@ -374,7 +374,7 @@ namespace std {
   };
 
   // Added less operator, necessary for maps, sets. Code from https://stackoverflow.com/a/21245301/11713763
-  template <> struct less<MBDynBitset> : public binary_function<MBDynBitset, MBDynBitset, bool>
+  template <> struct less<MBDynBitset>
   {
     size_t operator()(const MBDynBitset& val1, const MBDynBitset& val2) const {
       return val1 < val2;

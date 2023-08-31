@@ -191,7 +191,7 @@ typedef unsigned int SymbolIndex;
 typedef std::bitset<MAXNODES> NetworkState_Impl;
 
 namespace std {
-  template <> struct HASH_STRUCT<bitset<MAXNODES> > : public std::unary_function<bitset<MAXNODES>, size_t>
+  template <> struct HASH_STRUCT<bitset<MAXNODES> >
   {
     size_t operator()(const bitset<MAXNODES>& val) const {
 #ifdef COMPARE_BITSET_AND_ULONG
@@ -203,7 +203,7 @@ namespace std {
     }
   };
 
-  template <> struct equal_to<bitset<MAXNODES> > : public binary_function<bitset<MAXNODES>, bitset<MAXNODES>, bool>
+  template <> struct equal_to<bitset<MAXNODES> >
   {
     size_t operator()(const bitset<MAXNODES>& val1, const bitset<MAXNODES>& val2) const {
       return val1 == val2;
@@ -211,7 +211,7 @@ namespace std {
   };
 
   // Added less operator, necessary for maps, sets. Code from https://stackoverflow.com/a/21245301/11713763
-  template <> struct less<bitset<MAXNODES> > : public binary_function<bitset<MAXNODES>, bitset<MAXNODES>, bool>
+  template <> struct less<bitset<MAXNODES> >
   {
     size_t operator()(const bitset<MAXNODES>& val1, const bitset<MAXNODES>& val2) const {
     for (int i = MAXNODES-1; i >= 0; i--) {
@@ -1066,14 +1066,14 @@ public:
 
 };
 namespace std {
-  template <> struct HASH_STRUCT<NetworkState> : public std::unary_function<NetworkState, size_t>
+  template <> struct HASH_STRUCT<NetworkState>
   {
     size_t operator()(const NetworkState& val) const {
       return std::hash<NetworkState_Impl>{}(val.getState());
     }
   };
   
-  template <> struct equal_to<NetworkState> : public binary_function<NetworkState, NetworkState, bool>
+  template <> struct equal_to<NetworkState>
   {
     size_t operator()(const NetworkState& val1, const NetworkState& val2) const {
       return std::equal_to<NetworkState_Impl>{}(val1.getState(), val2.getState());
@@ -1081,7 +1081,7 @@ namespace std {
   };
 
   // Added less operator, necessary for maps, sets. Code from https://stackoverflow.com/a/21245301/11713763
-  template <> struct less<NetworkState> : public binary_function<NetworkState, NetworkState, bool>
+  template <> struct less<NetworkState>
   {
     size_t operator()(const NetworkState& val1, const NetworkState& val2) const {
       return std::less<NetworkState_Impl>{}(val1.getState(), val2.getState());
