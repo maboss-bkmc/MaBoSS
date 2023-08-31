@@ -1,4 +1,4 @@
-name: cMaBoSS Linux Workflow
+name: cMaBoSS Linux
 
 on:
   push:

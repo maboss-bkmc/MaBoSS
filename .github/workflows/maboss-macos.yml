@@ -1,4 +1,4 @@
-name: MaBoSS MacOS Workflow
+name: MacOS
 
 on:
   push:

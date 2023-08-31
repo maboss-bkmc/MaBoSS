@@ -1,4 +1,4 @@
-name: MaBoSS Linux Workflow
+name: Linux
 
 on:
   push:

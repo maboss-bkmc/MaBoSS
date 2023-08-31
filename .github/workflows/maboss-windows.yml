@@ -1,4 +1,4 @@
-name: MaBoSS Windows Workflow
+name: Windows
 
 on:
   push:
