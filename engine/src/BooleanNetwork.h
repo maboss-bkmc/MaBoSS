@@ -2329,7 +2329,7 @@ public:
     
     PopProbaIState(Expression* proba_expr, std::vector<PopIStateGroupIndividual*>* individual_list) 
     {
-      proba_expr = proba_expr;
+      this->proba_expr = proba_expr;
       NetworkState network_state;
       proba_value = proba_expr->eval(NULL, network_state);
       
