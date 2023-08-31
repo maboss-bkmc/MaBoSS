@@ -69,6 +69,7 @@ POPMABOSS_LIBNAME = PopMaBoSS$(INFIX)
 MABOSS_LIB = lib$(MABOSS_LIBNAME).so
 MABOSS_ALIB = lib$(MABOSS_LIBNAME)-static.a
 POPMABOSS_LIB = lib$(POPMABOSS_LIBNAME).so
+POPMABOSS_ALIB = lib$(POPMABOSS_LIBNAME)-static.a
 
 ifeq ($(shell grep @HAS_UNORDERED_MAP maboss-config.h > /dev/null 2> /dev/null && echo OK), OK)
 EXTRA_FLAGS = -std=c++11 -Wpedantic
@@ -146,8 +147,11 @@ $(MABOSS_ALIB): $(CORE_LIB_OBJS) $(LIB_OBJS)
 $(MABOSS_LIB): $(CORE_LIB_OBJS) $(LIB_OBJS)
 	$(CXX) -shared -o $(MABOSS_LIB) $+ -lpthread $(LDL_FLAG) $(LDFLAGS) $(SBML_LIB)
 
+$(POPMABOSS_ALIB): $(CORE_LIB_OBJS) $(POP_LIB_OBJS)
+	ar rcs $(POPMABOSS_ALIB) $+
+
 $(POPMABOSS_LIB): $(CORE_LIB_OBJS) $(POP_LIB_OBJS)
-	$(CXX) -shared -o $(POPMABOSS_LIB) $+ -lpthread $(LDL_FLAG)
+	$(CXX) -shared -o $(POPMABOSS_LIB) $+ -lpthread $(LDL_FLAG) $(LDFLAGS) $(SBML_LIB)
 
 
 $(FUNC_MODULE): $(FUNC_MODULE).o $(CORE_LIB_OBJS) $(LIB_OBJS)
@@ -242,15 +246,17 @@ package:
 
 include depend.mk
 
-install_lib: $(MABOSS_LIB)
+install_lib: $(MABOSS_LIB) $(POPMABOSS_LIB)
 	mkdir -p ../lib
 	cp $(MABOSS_LIB) ../lib
+	cp $(POPMABOSS_LIB) ../lib
 	mkdir -p ../include/
 	cp *.h ../include/
 
-install_alib: $(MABOSS_ALIB)
+install_alib: $(MABOSS_ALIB) $(POPMABOSS_ALIB)
 	mkdir -p ../lib
 	cp $(MABOSS_ALIB) ../lib
+	cp $(POPMABOSS_ALIB) ../lib
 	mkdir -p ../include/
 	cp *.h ../include/
 	
