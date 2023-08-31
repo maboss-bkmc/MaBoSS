@@ -1,5 +1,7 @@
 # MaBoSS : Markovian Boolean Stochastic Simulator 
-[![Build Status](https://travis-ci.org/sysbio-curie/MaBoSS-env-2.0.svg?branch=master)](https://travis-ci.org/sysbio-curie/MaBoSS-env-2.0) [![Anaconda-Server Badge](https://anaconda.org/sysbio-curie/maboss/badges/version.svg)](https://anaconda.org/sysbio-curie/maboss) [![PyPI version](https://badge.fury.io/py/cmaboss.svg)](https://badge.fury.io/py/cmaboss) <img align="right" height="100" src="https://maboss.curie.fr/images/maboss_logo.jpg">
+[![Linux Workflow](https://github.com/sysbio-curie/MaBoSS-env-2.0/actions/workflows/maboss-ubuntu.yml/badge.svg)](https://github.com/sysbio-curie/MaBoSS-env-2.0/actions/workflows/maboss-ubuntu.yml) [![MacOS Workflow](https://github.com/sysbio-curie/MaBoSS-env-2.0/actions/workflows/maboss-macos.yml/badge.svg)](https://github.com/sysbio-curie/MaBoSS-env-2.0/actions/workflows/maboss-macos.yml) [![Linux Workflow](https://github.com/sysbio-curie/MaBoSS-env-2.0/actions/workflows/maboss-windows.yml/badge.svg)](https://github.com/sysbio-curie/MaBoSS-env-2.0/actions/workflows/maboss-windows.yml)
+
+[![Anaconda-Server Badge](https://anaconda.org/sysbio-curie/maboss/badges/version.svg)](https://anaconda.org/sysbio-curie/maboss) [![PyPI version](https://badge.fury.io/py/cmaboss.svg)](https://badge.fury.io/py/cmaboss) <img align="right" height="100" src="https://maboss.curie.fr/images/maboss_logo.jpg">
 
 MaBoSS is a C++ software for simulating continuous/discrete time Markov processes, applied on a Boolean network.
 
