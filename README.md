@@ -39,7 +39,7 @@ To install it, run
 
 ### Package Contents
 MaBoSS-env-2.0 is composed of:
-- MaBoSS engine 2.5.2: C++ core program simulating continuous/discrete time Markov processes, applied on a Boolean network.
+- MaBoSS engine 2.5.3: C++ core program simulating continuous/discrete time Markov processes, applied on a Boolean network.
 - MaBoSS tools 2.0: perl and python scripts using MaBoSS engine 2.0
 - cMaBoSS: python bindings using Python C API.
 - PopMaBoSS engine 0.0.1: Simulating continuous/discrete time Markov processes, applied on a Population of Boolean network state.
@@ -126,10 +126,10 @@ Finally, it you need the MPI compatible version, you need to have a MPI library 
     cd engine/pub
 
     ./MaBoSS --version
-    MaBoSS version 2.5.2 [networks up to 64 nodes]
+    MaBoSS version 2.5.3 [networks up to 64 nodes]
 
     ./MaBoSS_100n --version
-    MaBoSS version 2.5.2 [networks up to 100 nodes]
+    MaBoSS version 2.5.3 [networks up to 100 nodes]
 
 The usage is described in the [reference card](https://github.com/sysbio-curie/MaBoSS-env-2.0/blob/master/engine/doc/MaBoSS-RefCard.pdf).
 
