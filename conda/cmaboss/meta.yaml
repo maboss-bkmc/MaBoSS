@@ -23,19 +23,19 @@ requirements:
     - bison
     - make
     - python {{ python }}
-    - numpy {{ numpy }}
+    - numpy
     - setuptools
     - libsbml-plus-packages
     
   host: 
     - python {{ python }}
-    - numpy {{ numpy }}
+    - numpy
     - setuptools
     - libsbml-plus-packages
   
   run: 
     - python {{ python }}
-    - numpy
+    - {{ pin_compatible('numpy') }}
     - setuptools
     - libsbml-plus-packages
 
