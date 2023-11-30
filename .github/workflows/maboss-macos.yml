@@ -30,8 +30,8 @@ jobs:
       id: cache-libsbml-gcc
       uses: actions/cache@v3
       with:
-        path: /tmp/libSBML-5.19.0-Source
-        key: ${{ runner.os }}-libSBML-5.19-g++11-namespace
+        path: /tmp/libsbml-5.20.2
+        key: ${{ runner.os }}-libSBML-5.20.2-g++11-namespace
 
     - name: Compiling libSBML
       if: steps.cache-libsbml-gcc.outputs.cache-hit != 'true'
@@ -74,8 +74,8 @@ jobs:
       id: cache-libsbml-clang
       uses: actions/cache@v3
       with:
-        path: /tmp/libSBML-5.19.0-Source
-        key: ${{ runner.os }}-libSBML-5.19-clang++-namespace
+        path: /tmp/libsbml-5.20.2
+        key: ${{ runner.os }}-libSBML-5.20.2-clang++-namespace
 
     - name: Compiling libSBML
       if: steps.cache-libsbml-clang.outputs.cache-hit != 'true'
@@ -138,8 +138,8 @@ jobs:
       id: cache-libsbml-clang
       uses: actions/cache@v3
       with:
-        path: /tmp/libSBML-5.19.0-Source
-        key: ${{ runner.os }}-libSBML-5.19-clang++-namespace
+        path: /tmp/libsbml-5.20.2
+        key: ${{ runner.os }}-libSBML-5.20.2-clang++-namespace
 
     - name: Compiling libSBML
       if: steps.cache-libsbml-gcc11.outputs.cache-hit != 'true'
@@ -245,8 +245,8 @@ jobs:
       id: cache-libsbml-gcc11
       uses: actions/cache@v3
       with:
-        path: /tmp/libSBML-5.19.0-Source
-        key: ${{ runner.os }}-libSBML-5.19-g++11-namespace
+        path: /tmp/libsbml-5.20.2
+        key: ${{ runner.os }}-libSBML-5.20.2-g++11-namespace
 
     - name: Compiling libSBML
       if: steps.cache-libsbml-gcc11.outputs.cache-hit != 'true'

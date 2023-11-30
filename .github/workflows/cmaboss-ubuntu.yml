@@ -31,8 +31,8 @@ jobs:
       id: cache-libsbml-gcc
       uses: actions/cache@v3
       with:
-        path: /tmp/libSBML-5.19.0-Source
-        key: ${{ runner.os }}-libSBML-5.19-gcc-namespace
+        path: /tmp/libsbml-5.20.2
+        key: ${{ runner.os }}-libSBML-5.20.2-gcc-namespace
 
     - name: Compiling libSBML
       if: steps.cache-libsbml-gcc.outputs.cache-hit != 'true'
