@@ -15,7 +15,7 @@ jobs:
       CXX: clang++
       INSTALL_PATH: /usr/local/
       BUILD_PATH: /tmp/
-      LIBXML_LIBDIR: /usr/local/opt/libxml2/lib/
+      LIBXML_LIBDIR: /usr/local/opt/libxml2/lib/libxml2.dylib
       LIBXML_INCLUDEDIR: /usr/local/opt/libxml2/include/libxml2/
     steps:
     - uses: actions/checkout@v3 

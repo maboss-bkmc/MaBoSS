@@ -16,7 +16,7 @@ jobs:
       CXX: g++
       INSTALL_PATH: /usr/
       BUILD_PATH: /tmp/
-      LIBXML_LIBDIR: /usr/lib/
+      LIBXML_LIBDIR: /usr/lib/x86_64-linux-gnu/libxml2.so
       LIBXML_INCLUDEDIR: /usr/include/libxml2
 
     steps:
