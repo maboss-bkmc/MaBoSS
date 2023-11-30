@@ -33,9 +33,9 @@ fi
 
 mkdir -p ${BUILD_PATH}
 cd ${BUILD_PATH}
-wget https://sourceforge.net/projects/sbml/files/libsbml/5.19.0/stable/libSBML-5.19.0-core-plus-packages-src.tar.gz
-tar -zxf libSBML-5.19.0-core-plus-packages-src.tar.gz
-cd libSBML-5.19.0-Source
+wget https://github.com/sbmlteam/libsbml/archive/refs/tags/v5.20.2.tar.gz
+tar -zxf v5.20.2.tar.gz
+cd libsbml-5.20.2
 mkdir build
 cd build
 
