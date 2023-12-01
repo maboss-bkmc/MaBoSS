@@ -1,6 +1,4 @@
-FROM ubuntu:jammy
-
-MAINTAINER Vincent Noel version: 1.0
+FROM ubuntu:22.04
 
 # Preventing python3-tk from asking timezone
 ENV DEBIAN_FRONTEND=noninteractive
@@ -9,9 +7,9 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get -qq update
 RUN apt-get install -yq git flex bison gcc g++ make libxml2-dev cmake wget
 
-RUN wget https://sourceforge.net/projects/sbml/files/libsbml/5.19.0/stable/libSBML-5.19.0-core-plus-packages-src.tar.gz \
-    && tar -zxf libSBML-5.19.0-core-plus-packages-src.tar.gz \
-    && cd libSBML-5.19.0-Source \
+RUN wget https://github.com/sbmlteam/libsbml/archive/refs/tags/v5.20.2.tar.gz \
+    && tar -zxf v5.20.2.tar.gz \
+    && cd libsbml-5.20.2 \
     && mkdir build \
     && cd build \
     && cmake -DCMAKE_INSTALL_PREFIX=/usr \
@@ -35,7 +33,7 @@ RUN wget https://sourceforge.net/projects/sbml/files/libsbml/5.19.0/stable/libSB
     && make \
     && make install \
     && cd ../../ \
-    && rm -fr libSBML-5.19.0-Source
+    && rm -fr libsbml-5.20.2
     
 # Installing MaBoSS
 ADD engine/src /opt/MaBoSS-env-2.0/engine/src

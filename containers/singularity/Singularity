@@ -1,16 +1,16 @@
-Bootstrap: debootstrap
-OSVersion: jammy
-MirrorURL:  http://us.archive.ubuntu.com/ubuntu/
-Include: flex bison gcc g++ make libxml2-dev cmake wget ca-certificates
+Bootstrap: docker
+from: ubuntu:22.04
 
 %files
     . /opt/MaBoSS-env-2.0
 
 %post
-    apt update && apt upgrade -yq
-    wget https://sourceforge.net/projects/sbml/files/libsbml/5.19.0/stable/libSBML-5.19.0-core-plus-packages-src.tar.gz
-    tar -zxf libSBML-5.19.0-core-plus-packages-src.tar.gz
-    cd libSBML-5.19.0-Source
+    apt-get --quiet update
+    DEBIAN_FRONTEND=noninteractive apt-get install --assume-yes --no-install-recommends \
+        flex bison gcc g++ make libxml2-dev cmake wget ca-certificates
+    wget https://github.com/sbmlteam/libsbml/archive/refs/tags/v5.20.2.tar.gz
+    tar -zxf v5.20.2.tar.gz
+    cd libsbml-5.20.2
     mkdir build
     cd build
     cmake -DCMAKE_INSTALL_PREFIX=/usr \
@@ -34,7 +34,7 @@ Include: flex bison gcc g++ make libxml2-dev cmake wget ca-certificates
     make
     make install
     cd ../../
-    rm -fr libSBML-5.19.0-Source
+    rm -fr libsbml-5.20.2
     rm -fr /opt/MaBoSS-env-2.0/.git
     
     bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; make install SBML_COMPAT=1"
