@@ -269,7 +269,6 @@ jobs:
         key: ${{ runner.os }}-cmaboss-conda-${{ github.run_id }}
     
     - name: Upload MaBoSS to Anaconda cloud on vincent-noel
-      if: github.repository == 'vincent-noel/MaBoSS-env-2.0' && github.ref == 'refs/heads/master'
       run: |   
         anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/local/miniconda/conda-bld/osx-64/*.tar.bz2 --force;
  
@@ -304,7 +303,6 @@ jobs:
         key: ${{ runner.os }}-cmaboss-conda-forge-${{ github.run_id }}
     
     - name: Upload MaBoSS to Anaconda cloud on vincent-noel
-      if: github.repository == 'vincent-noel/MaBoSS-env-2.0' && github.ref == 'refs/heads/master'
       run: |   
         anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/local/miniconda/conda-bld/osx-64/*.tar.bz2 --force;
  

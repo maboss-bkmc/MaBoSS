@@ -263,7 +263,6 @@ jobs:
         conda install anaconda-client
      
     - name: Upload cMaBoSS Ananconda package on vincent-noel
-      if: github.repository == 'vincent-noel/MaBoSS-env-2.0' && github.ref == 'refs/heads/master'
       run: |
         anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/share/miniconda/conda-bld/linux-64/*.tar.bz2 --force;
 
@@ -299,7 +298,6 @@ jobs:
         conda install anaconda-client
      
     - name: Upload cMaBoSS Ananconda package on vincent-noel
-      if: github.repository == 'vincent-noel/MaBoSS-env-2.0' && github.ref == 'refs/heads/master'
       run: |
         anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/share/miniconda/conda-bld/linux-64/*.tar.bz2 --force;
 
