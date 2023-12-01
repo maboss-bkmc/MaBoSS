@@ -17,6 +17,7 @@ before-all = [
     "BUILD_PATH=/tmp/ bash scripts/install_libsbml.sh"
 ]
 skip = [
+    "cp36-*","cp37-*",
     "pp*",
     "*-manylinux_i686",
     "*-musllinux_*"
@@ -30,7 +31,10 @@ before-all = [
     "cp /usr/local/lib/libsbml* ."
 ]
 archs = ["x86_64", "arm64"]
-skip = ["pp*"]
+skip = [
+    "cp36-*","cp37-*",
+    "pp*"
+]
 
 [tool.cibuildwheel]
 test-requires = "pandas"
