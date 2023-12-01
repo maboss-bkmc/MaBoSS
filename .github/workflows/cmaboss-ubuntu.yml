@@ -139,13 +139,13 @@ jobs:
       run: |
         conda update conda
         conda config --add channels conda-forge
-        conda config --set channel_priority strict
+        # conda config --set channel_priority strict
         conda update conda --all
         conda install conda-build anaconda-client conda-verify
       
     - name: Build cMaBoSS Anaconda package
       run: |
-        CUSTOM_BUILD_NUMBER=1 conda build -c colomoto --variants "{\"python\": [\"3.8\", \"3.9\", \"3.10\", \"3.11\"]}" conda/cmaboss;
+        CUSTOM_BUILD_NUMBER=1 conda build -c conda-forge -c colomoto --variants "{\"python\": [\"3.8\", \"3.9\", \"3.10\", \"3.11\"]}" conda/cmaboss;
         
     - name: Caching produced conda package
       uses: actions/cache@v3

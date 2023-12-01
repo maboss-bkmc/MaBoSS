@@ -145,7 +145,7 @@ jobs:
       run: |
         conda update conda
         conda config --add channels conda-forge
-        conda config --set channel_priority strict
+        # conda config --set channel_priority strict
         conda update --all
         conda install conda-build conda-verify
     
