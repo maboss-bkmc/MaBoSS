@@ -24,19 +24,16 @@ requirements:
     - make
     - python {{ python }}
     - numpy
-    - setuptools
     - libsbml-plus-packages
     
   host: 
     - python {{ python }}
     - numpy
-    - setuptools
     - libsbml-plus-packages
   
   run: 
     - python {{ python }}
     - {{ pin_compatible('numpy') }}
-    - setuptools
     - libsbml-plus-packages
 
 about:
