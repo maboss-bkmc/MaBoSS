@@ -412,7 +412,7 @@ PyObject* FinalStateSimulationEngine::getNumpyLastStatesDists() const
     PyFloat_FromDouble(max_time)
   );
 
-  return PyTuple_Pack(3, PyArray_Return(result), list_states, timepoints);
+  return PyTuple_Pack(3, PyArray_Return(result), timepoints, list_states);
 }
 
 std::vector<Node*> FinalStateSimulationEngine::getNodes() const {
@@ -464,7 +464,7 @@ PyObject* FinalStateSimulationEngine::getNumpyLastNodesDists(std::vector<Node*> 
     PyFloat_FromDouble(max_time)
   );
 
-  return PyTuple_Pack(3, PyArray_Return(result), list_nodes, timepoints);
+  return PyTuple_Pack(3, PyArray_Return(result), timepoints, list_nodes);
 }
 
 
