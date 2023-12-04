@@ -70,6 +70,19 @@ static Network* cMaBoSSNetwork_getNetwork(cMaBoSSNetworkObject* self)
   return self->network;
 }
 
+static PyObject* cMaBoSSNetwork_getListNodes(cMaBoSSNetworkObject* self)
+{
+  PyObject *list = PyList_New(self->network->getNodes().size());
+
+  size_t index = 0;
+  for (auto* node: self->network->getNodes()) {
+    PyList_SetItem(list, index, PyUnicode_FromString(node->getLabel().c_str()));
+    index++;
+  }
+
+  return list;
+}
+
 static PyObject * cMaBoSSNetwork_new(PyTypeObject* type, PyObject *args, PyObject* kwargs) 
 {
   char * network_file;
@@ -90,6 +103,7 @@ static PyObject * cMaBoSSNetwork_new(PyTypeObject* type, PyObject *args, PyObjec
 
 static PyMethodDef cMaBoSSNetwork_methods[] = {
     {"getNetwork", (PyCFunction) cMaBoSSNetwork_getNetwork, METH_NOARGS, "returns the network object"},
+    {"getListNodes", (PyCFunction) cMaBoSSNetwork_getListNodes, METH_NOARGS, "returns the list of nodes"},
     {NULL}  /* Sentinel */
 };
 

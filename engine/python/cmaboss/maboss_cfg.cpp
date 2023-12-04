@@ -70,6 +70,11 @@ static RunConfig* cMaBoSSConfig_getConfig(cMaBoSSConfigObject* self)
   return self->config;
 }
 
+static PyObject* cMaBoSSConfig_getMaxTime(cMaBoSSConfigObject* self)
+{
+  return PyFloat_FromDouble(self->config->getMaxTime());
+}
+
 static PyObject * cMaBoSSConfig_new(PyTypeObject* type, PyObject *args, PyObject* kwargs) 
 {
   Py_ssize_t nb_args = PyTuple_Size(args);  
@@ -96,6 +101,7 @@ static PyObject * cMaBoSSConfig_new(PyTypeObject* type, PyObject *args, PyObject
 
 static PyMethodDef cMaBoSSConfig_methods[] = {
     {"getConfig", (PyCFunction) cMaBoSSConfig_getConfig, METH_NOARGS, "returns the config object"},
+    {"getMaxTime", (PyCFunction) cMaBoSSConfig_getMaxTime, METH_NOARGS, "returns the max time"},
     {NULL}  /* Sentinel */
 };
 
