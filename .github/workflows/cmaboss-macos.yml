@@ -68,6 +68,19 @@ jobs:
         run: python -m pip install cibuildwheel numpy twine
 
       - name: Build wheels
+        env: 
+          CIBW_BEFORE_ALL: >
+            brew uninstall --ignore-dependencies libxml2 &&
+            wget https://github.com/Homebrew/homebrew-core/raw/38ba35404e3cdb398694419850179e0023158887/Formula/lib/libxml2.rb && 
+            brew install -s libxml2.rb && 
+            GCC=clang CXX=clang++ INSTALL_PATH=/usr/local/ BUILD_PATH=/tmp/ \
+              LIBXML_LIBDIR=/usr/local/opt/libxml2/lib/libxml2.dylib \
+              LIBXML_INCLUDEDIR=/usr/local/opt/libxml2/include/libxml2/ \
+              bash scripts/build_libsbml.sh && 
+            BUILD_PATH=/tmp/ bash scripts/install_libsbml.sh
+          CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
+            DYLD_LIBRARY_PATH=/usr/local/lib/ delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}
+
         run: |
           cd engine/src
           make grammars

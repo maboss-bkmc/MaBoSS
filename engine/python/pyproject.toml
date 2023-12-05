@@ -11,11 +11,6 @@ build-backend = "setuptools.build_meta"
 
 # Install libSBML with all packages
 [tool.cibuildwheel.linux]
-before-all = [
-    "yum install wget libxml2-devel -y",
-    "GCC=gcc CXX=g++ INSTALL_PATH=/usr/ BUILD_PATH=/tmp/ LIBXML_LIBDIR=/usr/lib64/libxml2.so LIBXML_INCLUDEDIR=/usr/include/libxml2 bash scripts/build_libsbml.sh",
-    "BUILD_PATH=/tmp/ bash scripts/install_libsbml.sh"
-]
 skip = [
     "cp36-*","cp37-*",
     "*-manylinux_i686",
@@ -23,17 +18,9 @@ skip = [
 ]
 
 [tool.cibuildwheel.macos]
-before-all = [
-    "brew install libxml2",
-    "GCC=clang CXX=clang++ INSTALL_PATH=/usr/local/ BUILD_PATH=/tmp/ LIBXML_LIBDIR=/usr/local/opt/libxml2/lib/libxml2.dylib LIBXML_INCLUDEDIR=/usr/local/opt/libxml2/include/libxml2/ bash scripts/build_libsbml.sh",
-    "BUILD_PATH=/tmp/ bash scripts/install_libsbml.sh",
-]
 archs = ["x86_64", "arm64"]
 skip = [
     "cp36-*","cp37-*",
-]
-repair-wheel-command = [
-  "DYLD_LIBRARY_PATH=/usr/local/lib/ delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
 ]
 
 [tool.cibuildwheel]
