@@ -28,7 +28,12 @@ jobs:
     - uses: msys2/setup-msys2@v2
       with:
         update: true
-        install: flex bison make gcc diffutils mingw-w64-x86_64-toolchain mingw-w64-x86_64-python-pip mingw-w64-x86_64-python-numpy mingw-w64-x86_64-lapack mingw-w64-x86_64-openblas mingw-w64-x86_64-cmake
+        install: flex bison make 
+          mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-binutils 
+          mingw-w64-x86_64-gcc mingw-w64-x86_64-headers-git mingw-w64-x86_64-gcc-libs 
+          mingw-w64-x86_64-libwinpthread-git mingw-w64-x86_64-winpthreads-git mingw-w64-x86_64-bzip2 
+          mingw-w64-x86_64-lapack mingw-w64-x86_64-openblas
+          mingw-w64-x86_64-python-pip mingw-w64-x86_64-python-numpy
      
     - name: Manually install libxml2 2.11
       run: |
@@ -82,7 +87,11 @@ jobs:
     - uses: msys2/setup-msys2@v2
       with:
         update: true
-        install: flex bison make gcc diffutils mingw-w64-x86_64-toolchain mingw-w64-x86_64-python-pip mingw-w64-x86_64-python-numpy mingw-w64-x86_64-lapack mingw-w64-x86_64-openblas mingw-w64-x86_64-cmake zip
+        install: flex bison make zip 
+          mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-binutils 
+          mingw-w64-x86_64-gcc mingw-w64-x86_64-headers-git mingw-w64-x86_64-gcc-libs 
+          mingw-w64-x86_64-libwinpthread-git mingw-w64-x86_64-winpthreads-git mingw-w64-x86_64-bzip2 
+          mingw-w64-x86_64-lapack mingw-w64-x86_64-openblas
         
     - name: Manually install libxml2 2.11
       run: |
@@ -149,13 +158,11 @@ jobs:
     - uses: msys2/setup-msys2@v2
       with:
         update: true
-        install: flex bison make zip mingw-w64-x86_64-binutils mingw-w64-x86_64-gcc mingw-w64-x86_64-headers-git mingw-w64-x86_64-gcc-libs mingw-w64-x86_64-libwinpthread-git mingw-w64-x86_64-winpthreads-git mingw-w64-x86_64-lapack mingw-w64-x86_64-openblas mingw-w64-x86_64-bzip2
+        install: flex bison make 
+          mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-binutils 
+          mingw-w64-x86_64-gcc mingw-w64-x86_64-headers-git mingw-w64-x86_64-gcc-libs 
+          mingw-w64-x86_64-libwinpthread-git mingw-w64-x86_64-winpthreads-git
             
-    - name: Manually install libxml2 2.11
-      run: |
-        wget https://repo.msys2.org/mingw/mingw64/mingw-w64-x86_64-libxml2-2.11.6-1-any.pkg.tar.zst
-        pacman -U --noconfirm mingw-w64-x86_64-libxml2-2.11.6-1-any.pkg.tar.zst
-       
     - name: Build library
       run: |
         rm -fr engine/pub/*
@@ -216,7 +223,11 @@ jobs:
     - uses: msys2/setup-msys2@v2
       with:
         update: true
-        install: flex bison make gcc diffutils mingw-w64-x86_64-toolchain mingw-w64-x86_64-python-pip mingw-w64-x86_64-python-numpy mingw-w64-x86_64-lapack mingw-w64-x86_64-openblas mingw-w64-x86_64-cmake
+        install: flex bison make 
+          mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-binutils 
+          mingw-w64-x86_64-gcc mingw-w64-x86_64-headers-git mingw-w64-x86_64-gcc-libs 
+          mingw-w64-x86_64-libwinpthread-git mingw-w64-x86_64-winpthreads-git mingw-w64-x86_64-bzip2 
+          mingw-w64-x86_64-lapack mingw-w64-x86_64-openblas
         
     - name: Manually install libxml2 2.11
       run: |
