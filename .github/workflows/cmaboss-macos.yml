@@ -62,6 +62,9 @@ jobs:
   build_wheels_macos:
     name: Build MacOS wheels
     runs-on: macOS-11
+    strategy:
+      matrix:
+        arch: ["x86_64", "arm64"]
     needs: cmaboss_macos
     
     steps:
@@ -75,6 +78,7 @@ jobs:
 
       - name: Build wheels
         env: 
+          CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_BEFORE_ALL: >
             brew uninstall --ignore-dependencies libxml2 &&
             wget https://github.com/Homebrew/homebrew-core/raw/38ba35404e3cdb398694419850179e0023158887/Formula/lib/libxml2.rb && 

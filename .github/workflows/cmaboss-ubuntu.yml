@@ -56,7 +56,9 @@ jobs:
   build_wheels_linux:
     name: Build linux wheels
     runs-on: ubuntu-22.04
-
+    strategy:
+      matrix:
+        build: ["cp*-manylinux_x86_64", "pp*-manylinux_x86_64"]
     needs: cmaboss
     steps:
       - uses: actions/checkout@v3
@@ -69,6 +71,7 @@ jobs:
 
       - name: Build wheels
         env: 
+          CIBW_BUILD: ${{ matrix.build }}
           CIBW_BEFORE_ALL: >
             yum install wget libxml2-devel -y &&
             GCC=gcc CXX=g++ INSTALL_PATH=/usr/ BUILD_PATH=/tmp/ \
