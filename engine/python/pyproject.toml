@@ -17,7 +17,7 @@ skip = [
 
 [tool.cibuildwheel.macos]
 skip = [
-    "cp36-*","cp37-*", "pp37-*"
+    "cp36-*","cp37-*", "pp*"
 ]
 
 [tool.cibuildwheel]
