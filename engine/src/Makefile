@@ -33,6 +33,8 @@ clean:
 	$(MAKE) -f $(MAKEFILE) USE_DYNAMIC_BITSET=1 $@
 	rm -f *.o MaBoSS MaBoSS_dn MaBoSS_[0-9]*n MaBoSS_[0-9]*n-server MaBoSS_[0-9]*n-client
 	rm -f *.o PopMaBoSS PopMaBoSS_dn PopMaBoSS_[0-9]*n
+	rm -f libMaBoSS.so libMaBoSS_[0-9]*n.so libPopMaBoSS.so libPopMaBoSS_[0-9]*n.so
+	rm -f libMaBoSS-static.a libMaBoSS_[0-9]*n-static.a libPopMaBoSS-static.a libPopMaBoSS_[0-9]*n-static.a
 
 %:
 	@rm -f depend.mk
