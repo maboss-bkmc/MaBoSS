@@ -235,6 +235,56 @@ jobs:
         asset_path: /Users/runner/work/MaBoSS-env-2.0/libMaBoSS-osx64.tar.gz
         asset_content_type: application/gzip     
         
+  maboss_library_macos_m1:
+    name: Building MaBoSS osx library for arm64 
+    runs-on: flyci-macos-large-latest-m1
+    needs: [maboss_macos, maboss_llvm_macos, maboss_mpi_macos]
+
+    steps:
+    - uses: actions/checkout@v4
+  
+    - name: Downgrade XCODE to 14.3.1
+      run: sudo xcode-select -switch /Applications/Xcode_14.3.1.app
+  
+    - name: Install dependencies
+      run : |
+        brew install flex bison gcc@13
+              
+    - name: Build library
+      run: |
+        rm -fr engine/pub/*
+        cd engine/src
+        make clean
+        make install_lib GCC=gcc-13 CXX=g++-13
+        make install_lib MAXNODES=128 GCC=gcc-13 CXX=g++-13
+        make install_lib MAXNODES=256 GCC=gcc-13 CXX=g++-13
+        make install_lib MAXNODES=512 GCC=gcc-13 CXX=g++-13
+        make install_lib MAXNODES=1024 GCC=gcc-13 CXX=g++-13
+        make install_alib GCC=gcc-13 CXX=g++-13
+        make install_alib MAXNODES=128 GCC=gcc-13 CXX=g++-13
+        make install_alib MAXNODES=256 GCC=gcc-13 CXX=g++-13
+        make install_alib MAXNODES=512 GCC=gcc-13 CXX=g++-13
+        make install_alib MAXNODES=1024 GCC=gcc-13 CXX=g++-13
+        make clean
+        cd ../../../
+        tar -zcvf libMaBoSS-macos-arm64.tar.gz MaBoSS-env-2.0/README.md MaBoSS-env-2.0/LICENSE MaBoSS-env-2.0/engine/src MaBoSS-env-2.0/engine/include MaBoSS-env-2.0/engine/lib
+        
+    - uses: actions/upload-artifact@v3
+      if: github.event_name != 'release'
+      with:
+        name: libMaBoSS-macos-arm64
+        path: /opt/actions-runner/_work/MaBoSS-env-2.0/libMaBoSS-macos-arm64.tar.gz
+        
+    - uses: actions/upload-release-asset@v1
+      if: github.event_name == 'release'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_name: libMaBoSS-macos-arm64.tar.gz
+        asset_path: /Users/runner/work/MaBoSS-env-2.0/libMaBoSS-macos-arm64.tar.gz
+        asset_content_type: application/gzip     
+        
   maboss_library_sbml_macos:
     name: Building MaBoSS osx library with libSBML
     runs-on: macos-11
