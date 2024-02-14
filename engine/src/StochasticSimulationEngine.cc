@@ -77,7 +77,7 @@ NetworkState StochasticSimulationEngine::run(NetworkState& initial_state, std::o
 {
   const std::vector<Node *> &nodes = network->getNodes();
   std::vector<Node *>::const_iterator begin = nodes.begin();
-  std::vector<Node *>::const_iterator end = nodes.end();
+  // std::vector<Node *>::const_iterator end = nodes.end();
   NetworkState network_state;
     
   network_state = initial_state;
@@ -99,7 +99,7 @@ NetworkState StochasticSimulationEngine::run(NetworkState& initial_state, std::o
     nodeTransitionRates.assign(nodes.size(), 0.0);
     begin = nodes.begin();
 
-    while (begin != end)
+    while (begin != nodes.end())
     {
       Node *node = *begin;
       NodeIndex node_idx = node->getIndex();

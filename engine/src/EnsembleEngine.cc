@@ -68,14 +68,11 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
   }
   
   const std::vector<Node*>& nodes = networks[0]->getNodes();
-  std::vector<Node*>::const_iterator begin = nodes.begin();
-  std::vector<Node*>::const_iterator end = nodes.end();
-
+  
   NetworkState internal_state;
   bool has_internal = false;
   refnode_count = 0;
-  while (begin != end) {
-    Node* node = *begin;
+  for (const auto * node : nodes) {
     if (node->isInternal()) {
       has_internal = true;
       internal_state.setNodeState(node, true);
@@ -85,7 +82,6 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
       refnode_mask.setNodeState(node, true);
       refnode_count++;
     }
-    ++begin;
   }
 
   merged_cumulator = NULL;
@@ -414,7 +410,7 @@ void EnsembleEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int 
     Network* network = networks[network_index];
     const std::vector<Node*>& nodes = network->getNodes();
     std::vector<Node*>::const_iterator begin = nodes.begin();
-    std::vector<Node*>::const_iterator end = nodes.end();
+    // std::vector<Node*>::const_iterator end = nodes.end();
   
     cumulator->rewind();
     if (save_individual_result){
@@ -435,7 +431,7 @@ void EnsembleEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int 
       nodeTransitionRates.assign(nodes.size(), 0.0);
       begin = nodes.begin();
 
-      while (begin != end) {
+      while (begin != nodes.end()) {
         Node* node = *begin;
         NodeIndex node_idx = node->getIndex();
         if (node->getNodeState(network_state)) {
@@ -458,18 +454,20 @@ void EnsembleEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int 
       if (total_rate == 0) {
         tm = max_time;
         TH = 0.;
-        if (fixpoint_map->find(network_state.getState()) == fixpoint_map->end()) {
+        STATE_MAP<NetworkState_Impl, unsigned int>::iterator iter = fixpoint_map->find(network_state.getState());
+        if (iter == fixpoint_map->end()) {
           (*fixpoint_map)[network_state.getState()] = 1;
         } else {
-          (*fixpoint_map)[network_state.getState()]++;
+          iter->second++;
         }
 
         if (save_individual_result) {
           STATE_MAP<NetworkState_Impl, unsigned int>* t_fixpoint_map = t_models_fixpoints[model_ind];
-          if (t_fixpoint_map->find(network_state.getState()) == t_fixpoint_map->end()) {
+          STATE_MAP<NetworkState_Impl, unsigned int>::iterator iter = t_fixpoint_map->find(network_state.getState());
+          if (iter == t_fixpoint_map->end()) {
             (*t_fixpoint_map)[network_state.getState()] = 1;
           } else {
-            (*t_fixpoint_map)[network_state.getState()]++;
+            iter->second++;
           }
         }
 
@@ -619,13 +617,10 @@ void EnsembleEngine::displayIndividualFixpoints(unsigned int model_id, FixedPoin
   if (fixpoints_per_model[model_id] != NULL) {
     displayer->begin(fixpoints_per_model[model_id]->size());
 
-    STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator begin = fixpoints_per_model[model_id]->begin();
-    STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator end = fixpoints_per_model[model_id]->end();
-
-    for (unsigned int nn = 0; begin != end; ++nn) {
-      const NetworkState& network_state = begin->first;
-      displayer->displayFixedPoint(nn+1, network_state, begin->second, sample_count);
-      ++begin;
+    size_t nn = 0;
+    for (const auto & fixpoint: *fixpoints_per_model[model_id]) {
+      displayer->displayFixedPoint(nn+1, fixpoint.first, fixpoint.second, sample_count);
+      ++nn;
     }
   } else {
     displayer->begin(0);
@@ -658,14 +653,14 @@ EnsembleEngine::~EnsembleEngine()
 {
   delete fixpoint_map_v[0];
   
-  for (auto t_arg_wrapper: arg_wrapper_v)
+  for (auto * t_arg_wrapper: arg_wrapper_v)
     delete t_arg_wrapper;
   
   delete merged_cumulator;
 
-  for (auto t_cumulator: cumulators_per_model) 
+  for (auto * t_cumulator: cumulators_per_model) 
     delete t_cumulator;
 
-  for (auto t_fixpoint: fixpoints_per_model)
+  for (auto * t_fixpoint: fixpoints_per_model)
     delete t_fixpoint;
 }

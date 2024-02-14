@@ -84,7 +84,7 @@ Function* Function::getFunction(const std::string& funname)
 void Function::displayFunctionDescriptions(std::ostream& os)
 {
   if (func_map == NULL) {return;}
-  for (std::map<std::string, Function*>::iterator iter = func_map->begin(); iter != func_map->end(); ++iter) {
-    os << "  " << iter->second->getDescription() << "\n\n";
+  for (const auto & func : *func_map) {
+    os << "  " << func.second->getDescription() << "\n\n";
   }
 }

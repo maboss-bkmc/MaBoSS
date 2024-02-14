@@ -66,19 +66,8 @@ struct FinalStateArgWrapper;
 
 class FinalStateSimulationEngine : public MetaEngine {
   
-  // Network* network;
-  // RunConfig* runconfig;
-
-  // double time_tick;
-  // double max_time;
-  // unsigned int sample_count;
-  // bool discrete_time;
-  // unsigned int thread_count;
   bool has_internal = false;
   NetworkState internal_state;
-
-  // NetworkState reference_state;
-  // unsigned int refnode_count;
 
   std::vector<unsigned int> sample_count_per_thread;
 
@@ -100,7 +89,6 @@ public:
   void run(std::ostream* output_traj);
   ~FinalStateSimulationEngine();
 
-  //const STATE_MAP<NetworkState_Impl, double>& getFinalStates() const {return final_states;}
   const STATE_MAP<Node*, double> getFinalNodes() const;
   const double getFinalTime() const { return max_time; }
 
@@ -110,7 +98,6 @@ public:
   PyObject* getNumpyLastNodesDists(std::vector<Node*> output_nodes) const;
 #endif
 
-  void displayFinal(std::ostream& output_final, bool hexfloat=false) const;
   void displayFinal(FinalStateDisplayer* displayer) const;
   
   void displayRunStats(std::ostream& os, time_t start_time, time_t end_time) const;

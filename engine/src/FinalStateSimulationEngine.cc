@@ -69,25 +69,17 @@ FinalStateSimulationEngine::FinalStateSimulationEngine(Network* network, RunConf
   }
 
   const std::vector<Node*>& nodes = network->getNodes();
-  std::vector<Node*>::const_iterator begin = nodes.begin();
-  std::vector<Node*>::const_iterator end = nodes.end();
   
   refnode_count = 0;
-  while (begin != end) {
-    Node* node = *begin;
+  for (const auto * node : nodes) {
     if (node->isInternal()) {
-
       has_internal = true;
       internal_state.setNodeState(node, true);
-      // std::cout << "Node " << node->getLabel() << " is internal, internal state is ";
-      // internal_state.displayOneLine(std::cout, network);
-      // std::cout << std::endl;
     }
     if (node->isReference()) {
       reference_state.setNodeState(node, node->getReferenceState());
       refnode_count++;
     }
-    ++begin;
   }
 
   sample_count_per_thread.resize(thread_count);
@@ -224,8 +216,6 @@ void FinalStateSimulationEngine::runThread(unsigned int start_count_thread, unsi
     NetworkState_Impl final_state = network_state.getState();
 
     if (has_internal) {
-      //final_state &= ~internal_state.getState();
-      // EV: 2020-11-24 to avoid use of operator&=()
 #ifdef USE_DYNAMIC_BITSET
       final_state = final_state & ~internal_state.getState(1);
 #else
@@ -235,16 +225,18 @@ void FinalStateSimulationEngine::runThread(unsigned int start_count_thread, unsi
 
 #ifdef USE_DYNAMIC_BITSET
     NetworkState_Impl cp_final_state(final_state, 1);
-    if (final_state_map->find(cp_final_state) == final_state_map->end()) {
+    STATE_MAP<NetworkState_Impl, unsigned int>::iterator iter = final_state_map->find(cp_final_state);
+    if (iter == final_state_map->end()) {
       (*final_state_map)[cp_final_state] = 1;
     } else {
-      (*final_state_map)[cp_final_state]++;
+      iter->second++;
     }  
 #else
-    if (final_state_map->find(final_state) == final_state_map->end()) {
+    STATE_MAP<NetworkState_Impl, unsigned int>::iterator iter = final_state_map->find(final_state);
+    if (iter == final_state_map->end()) {
       (*final_state_map)[final_state] = 1;
     } else {
-      (*final_state_map)[final_state]++;
+      iter->second++;
     }  
 #endif
   }
@@ -281,24 +273,16 @@ STATE_MAP<NetworkState_Impl, unsigned int>* FinalStateSimulationEngine::mergeFin
   }
 
   STATE_MAP<NetworkState_Impl, unsigned int>* final_states_map = new STATE_MAP<NetworkState_Impl, unsigned int>();
-  std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*>::iterator begin = final_states_map_v.begin();
-  std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*>::iterator end = final_states_map_v.end();
-  while (begin != end) {
-    
-    STATE_MAP<NetworkState_Impl, unsigned int>* fp_map = *begin;
-    STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator b = fp_map->begin();
-    STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator e = fp_map->end();
-    while (b != e) {
-      //NetworkState_Impl state = b->first;
-      const NetworkState_Impl& state = b->first;
-      if (final_states_map->find(state) == final_states_map->end()) {
-	(*final_states_map)[state] = b->second;
+  for (auto * fs_map : final_states_map_v) {
+    for (const auto & fs : *fs_map) {
+      const NetworkState_Impl& state = fs.first;
+      STATE_MAP<NetworkState_Impl, unsigned int>::iterator iter = final_states_map->find(state);
+      if (iter == final_states_map->end()) {
+	      (*final_states_map)[state] = fs.second;
       } else {
-	(*final_states_map)[state] += b->second;
+	      iter->second += fs.second;
       }
-      ++b;
     }
-    ++begin;
   }
   return final_states_map;
 }
@@ -306,17 +290,12 @@ STATE_MAP<NetworkState_Impl, unsigned int>* FinalStateSimulationEngine::mergeFin
 void FinalStateSimulationEngine::epilogue()
 {
   STATE_MAP<NetworkState_Impl, unsigned int>* merged_final_states_map = mergeFinalStateMaps();
-
-  STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator b = merged_final_states_map->begin();
-  STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator e = merged_final_states_map->end();
-
-  while (b != e) {
+  for (const auto & fs : *merged_final_states_map) {
 #ifdef USE_DYNAMIC_BITSET
-    final_states[NetworkState(b->first).getState(1)] = ((double) b->second)/sample_count;
+    final_states[NetworkState(fs.first).getState(1)] = ((double) fs.second)/sample_count;
 #else
-    final_states[NetworkState(b->first).getState()] = ((double) b->second)/sample_count;
+    final_states[NetworkState(fs.first).getState()] = ((double) fs.second)/sample_count;
 #endif
-    ++b;
   }
   delete merged_final_states_map;
 }
@@ -327,34 +306,11 @@ FinalStateSimulationEngine::~FinalStateSimulationEngine()
     delete t_arg_wrapper;
 }
 
-void FinalStateSimulationEngine::displayFinal(std::ostream& output_final, bool hexfloat) const
-{
-  for (auto final_state: final_states) {
-    if (hexfloat)
-      output_final << std::setprecision(6) << fmthexdouble(final_state.second);
-    
-    else
-      output_final << std::setprecision(6) << final_state.second << "\t";
-    
-    NetworkState(final_state.first).displayOneLine(output_final, network);
-    output_final << "\n";
-  }
-}
-
 void FinalStateSimulationEngine::displayFinal(FinalStateDisplayer* displayer) const
 {
   displayer->begin();
   for (auto final_state: final_states) {
     displayer->displayFinalState(final_state.first, final_state.second);
-    /*
-    if (hexfloat)
-      output_final << std::setprecision(6) << fmthexdouble(final_state.second);
-    else
-      output_final << std::setprecision(6) << final_state.second << "\t";
-    
-    NetworkState(final_state.first).displayOneLine(output_final, network);
-    output_final << "\n";
-    */
   }
   displayer->end();
 }

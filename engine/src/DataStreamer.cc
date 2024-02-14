@@ -99,8 +99,7 @@ void DataStreamer::buildStreamData(std::string& data, const ClientData& client_d
   o_header << COMMAND << client_data.getCommand() << "\n";
 
   const std::vector<std::string>& config_v = client_data.getConfigs();
-  for (std::vector<std::string>::const_iterator iter_config = config_v.begin(); iter_config != config_v.end(); ++iter_config) {
-    const std::string& config = *iter_config;
+  for (const auto& config : config_v) {
     o_data << config;
     offset += config.length();
   }
@@ -108,8 +107,7 @@ void DataStreamer::buildStreamData(std::string& data, const ClientData& client_d
   o_offset = add_header(o_header, CONFIGURATION, o_offset, offset);
 
   const std::vector<std::string>& config_expr_v = client_data.getConfigExprs();
-  for (std::vector<std::string>::const_iterator iter_config_expr = config_expr_v.begin(); iter_config_expr != config_expr_v.end(); ++iter_config_expr) {
-    const std::string& config_expr = *iter_config_expr;
+  for (const auto& config_expr : config_expr_v) {
     o_data << config_expr << ';';
     offset += config_expr.length() + 1;
   }
@@ -258,15 +256,15 @@ int DataStreamer::parseStreamData(ClientData& client_data, const std::string& in
     return 3;
   }
 
-  for (std::vector<HeaderItem>::const_iterator header_item_iter = header_item_v.begin(); header_item_iter != header_item_v.end(); ++header_item_iter) {
-    const std::string& directive = header_item_iter->getDirective();
-    std::string data_value = data.substr(header_item_iter->getFrom(), header_item_iter->getTo() - header_item_iter->getFrom() + 1);
+  for (const auto& header_item : header_item_v) {
+    const std::string& directive = header_item.getDirective();
+    std::string data_value = data.substr(header_item.getFrom(), header_item.getTo() - header_item.getFrom() + 1);
     if (directive == PROTOCOL_VERSION) {
-      client_data.setProtocolVersion(header_item_iter->getValue());
+      client_data.setProtocolVersion(header_item.getValue());
     } else if (directive == FLAGS) {
-      client_data.setFlags(atoll(header_item_iter->getValue().c_str()));
+      client_data.setFlags(atoll(header_item.getValue().c_str()));
     } else if (directive == COMMAND) {
-      client_data.setCommand(header_item_iter->getValue());
+      client_data.setCommand(header_item.getValue());
     } else if (directive == NETWORK) {
       client_data.setNetwork(data_value);
     } else if (directive == CONFIGURATION) {
@@ -279,15 +277,8 @@ int DataStreamer::parseStreamData(ClientData& client_data, const std::string& in
       err_data = "unknown directive " + directive;
       return 4;
     }
-    /*
-    std::cout << "directive [" << header_item_iter->getDirective() << "]\n";
-    std::cout << "from [" << header_item_iter->getFrom() << "]\n";
-    std::cout << "to [" << header_item_iter->getTo() << "]\n";
-    */
   }
-
-  //std::cout << "header [" << header << "]\n";
-  //std::cout << "data [" << data << "]\n";
+  
   return 0;
 }
 
@@ -321,14 +312,14 @@ int DataStreamer::parseStreamData(ServerData& server_data, const std::string& in
     return 1;
   }
 
-  for (std::vector<HeaderItem>::const_iterator header_item_iter = header_item_v.begin(); header_item_iter != header_item_v.end(); ++header_item_iter) {
-    const std::string& directive = header_item_iter->getDirective();
+  for (const auto& header_item : header_item_v) {
+    const std::string& directive = header_item.getDirective();
     if (directive == STATUS) {
-      server_data.setStatus(atoi(header_item_iter->getValue().c_str()));
+      server_data.setStatus(atoi(header_item.getValue().c_str()));
     } else if (directive == ERROR_MESSAGE) {
-      server_data.setErrorMessage(header_item_iter->getValue());
+      server_data.setErrorMessage(header_item.getValue());
     } else {
-      std::string data_value = data.substr(header_item_iter->getFrom(), header_item_iter->getTo() - header_item_iter->getFrom() + 1);
+      std::string data_value = data.substr(header_item.getFrom(), header_item.getTo() - header_item.getFrom() + 1);
 
       if (directive == STATIONARY_DISTRIBUTION) {
 	server_data.setStatDist(data_value);

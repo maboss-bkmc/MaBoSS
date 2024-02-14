@@ -124,19 +124,19 @@ decl: node_decl
 
 node_decl: NODE IDENTIFIER '{' node_decl_item_list '}'
 {
-  NodeDecl* truc = new NodeDecl($2, $4);
+  NodeDecl* node_decl = new NodeDecl($2, $4);
   free($2);
-  for (std::vector<NodeDeclItem*>::iterator it = $4->begin(); it != $4->end(); ++it) {
-    delete *it;
+  for (auto * node_decl_item : *($4)) {
+    delete node_decl_item;
   }
   delete $4;
-  delete truc;
+  delete node_decl;
 }
 | NODE IDENTIFIER '{' '}'
 {
-  NodeDecl* truc = new NodeDecl($2, NULL);
+  NodeDecl* node_decl = new NodeDecl($2, NULL);
   free($2);
-  delete truc;
+  delete node_decl;
 }
 | IDENTIFIER ':' expression term_opt
 {
@@ -144,13 +144,13 @@ node_decl: NODE IDENTIFIER '{' node_decl_item_list '}'
   std::vector<NodeDeclItem*>* decl_item_v = new std::vector<NodeDeclItem*>();
   decl_item_v->push_back(decl_item);
 
-  NodeDecl* truc = new NodeDecl($1, decl_item_v);
+  NodeDecl* node_decl = new NodeDecl($1, decl_item_v);
   free($1);
-  for (std::vector<NodeDeclItem*>::iterator it = decl_item_v->begin(); it != decl_item_v->end(); ++it) {
-    delete *it;
+  for (auto * decl_item : *decl_item_v) {
+    delete decl_item;
   }
   delete decl_item_v;
-  delete truc;
+  delete node_decl;
 }
 | IDENTIFIER ',' expression term_opt
 {
@@ -162,13 +162,13 @@ node_decl: NODE IDENTIFIER '{' node_decl_item_list '}'
     std::vector<NodeDeclItem*>* decl_item_v = new std::vector<NodeDeclItem*>();
     decl_item_v->push_back(decl_item);
 
-    NodeDecl* truc = new NodeDecl($1, decl_item_v);
+    NodeDecl* node_decl = new NodeDecl($1, decl_item_v);
     free($1);
-    for (std::vector<NodeDeclItem*>::iterator it = decl_item_v->begin(); it != decl_item_v->end(); ++it) {
-      delete *it;
+    for (auto * node_decl_item : *decl_item_v) {
+      delete node_decl_item;
     }
     delete decl_item_v;
-    delete truc;
+    delete node_decl;
   }
 }
 ;

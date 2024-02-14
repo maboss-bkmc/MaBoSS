@@ -59,15 +59,10 @@ static bool rewrite_xor = true;
 
 void Network::generateLogicalExpressions(std::ostream& os) const
 {
-  std::vector<Node*>::const_iterator begin = nodes.begin();
-  std::vector<Node*>::const_iterator end = nodes.end();
-
-  for (unsigned int nn = 0; begin != end; ++nn) {
-    Node* node = *begin;
+  for (const auto * node : nodes){
     LogicalExprGenContext genctx(this, node, os);
     node->generateLogicalExpression(genctx);
     os << '\n';
-    ++begin;
   }
 }
 

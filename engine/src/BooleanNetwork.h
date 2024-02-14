@@ -1134,24 +1134,16 @@ public:
   {     
     mp = std::map<NetworkState_Impl, unsigned int>(p.getMap());
     // EV 2021-10-28
-#ifdef EV_OPTIM_2021_10
     hash = 0;
     hash_init = false;
-#else
-    hash = p.getHash(); // wrong: this could lead to compute hash on p, which is not necessary, and hash_init is not set to true
-    hash_init = true; // EV 2021-10-28 added
-#endif
     return *this;
   }
 
   PopNetworkState applyMask(const PopNetworkState& mask) const {
-    // return PopNetworkState(state & mask.getState());
     std::map<NetworkState_Impl, unsigned int> new_map;
     NetworkState networkstate_mask = mask.getMap().begin()->first;
-    
-    
-    
-    for (auto elem: mp) {
+        
+    for (const auto & elem: mp) {
       NetworkState_Impl new_state = elem.first & networkstate_mask.getState();
       new_map[new_state] = elem.second;
     }
@@ -1159,20 +1151,12 @@ public:
   }
 
   void addStatePop(const NetworkState_Impl& state, unsigned int pop) {
-#ifdef EV_OPTIM_2021_10
     auto iter = mp.find(state);
     if (iter == mp.end()) {
       mp[state] = pop;
     } else {
       iter->second += pop;
     }
-#else
-    if (mp.find(state) != mp.end()) {
-      mp[state] += pop;
-    } else {
-      mp[state] = pop;
-    }
-#endif
     // EV 2021-10: the following code was missing
     hash = 0;
     hash_init = false;
@@ -1181,9 +1165,8 @@ public:
   // & operator for applying the mask
   PopNetworkState operator&(const NetworkState_Impl& mask) const { 
     
-    //PopNetworkState masked_pop_state = PopNetworkState();
     PopNetworkState masked_pop_state;
-    for (auto &network_state_pop : mp) {
+    for (const auto &network_state_pop : mp) {
       NetworkState_Impl masked_network_state = network_state_pop.first & mask;
       masked_pop_state.addStatePop(masked_network_state, network_state_pop.second);
     }
@@ -1194,9 +1177,8 @@ public:
   // & operator for applying the mask
   PopNetworkState operator&(const NetworkState& mask) const { 
     
-    //PopNetworkState masked_pop_state = PopNetworkState();
     PopNetworkState masked_pop_state;
-    for (auto &network_state_pop : mp) {
+    for (const auto &network_state_pop : mp) {
       NetworkState_Impl masked_network_state = network_state_pop.first & mask.getState();
       masked_pop_state.addStatePop(masked_network_state, network_state_pop.second);
     }
@@ -1214,8 +1196,9 @@ public:
       return false;
     }
     
-#ifdef EV_OPTIM_2021_10
-    // EV 2021-10-28: std::map are ordered, so it is just necessary to compare
+   // EV 2021-10-28: std::map are ordered, so it is just necessary to compare
+    // return std::equal(mp.begin(), mp.end(), other_mp.begin());
+    
     std::map<NetworkState_Impl, unsigned int>::const_iterator iter = mp.begin();
     std::map<NetworkState_Impl, unsigned int>::const_iterator other_iter = other_mp.begin();
     for ( ; iter != mp.end(); ++iter, ++other_iter) {
@@ -1224,66 +1207,17 @@ public:
       }
     }
     return true;
-#else
-    // If it's identical, we need to look further, so we look at each state
-    for (auto &network_state: other_mp) {
-      
-        auto t_state = mp.find(network_state.first);
-        // Is this state also present ?
-        if (t_state != mp.end()){
-          
-          // And if so, does it have the same population size
-          if (t_state->second != network_state.second) {
-            return false;
-          }
-          
-        } else {
-        //Otherwise we just exit now
-          return false;
-        }
-    }
-    return true;
-#endif
   }
-  
-  // bool operator==(const PopNetworkState& pop_state) const {
-  //   // Version for sorted maps. But perfectly sorted map require a perfect hash function. 
-  //   // So should we just forget it and use the other one ?
-  //   // So when are two PopNetworkState inequals ?
-  //   // First, if they don't have the same length of states in the population
-  //   const std::map<NetworkState_Impl, unsigned int>& other_mp = pop_state.getMap();
-  //   if (mp.size() != other_mp.size()) {
-  //     return false;
-  //   }
-    
-  //   // If it's identical, we need to look at each state, if there is the same at the same position
-  //   auto other_network_state = mp.begin();
-  //   for (auto network_state: other_mp) {
-  //     if (network_state.first != other_network_state->first || network_state.second != other_network_state->second) {
-  //       return false;
-  //     }
-  //     other_network_state++;
-  //   }
-  //   return true;
-  // }
-  
   
   // Increases the population of the state
   void incr(const NetworkState& net_state) {
     NetworkState_Impl t_state = net_state.getState();
-#ifdef EV_OPTIM_2021_10
     auto iter = mp.find(t_state);
     if (iter == mp.end()) {
       mp[t_state] = 1;
     } else {
       iter->second++;
     }
-#else
-    if (mp.find(t_state) != mp.end())
-      mp[t_state]++;
-    else
-      mp[t_state] = 1;
-#endif
     hash = 0;
     hash_init = false;
   }
@@ -1291,7 +1225,6 @@ public:
   // Decreases the population of the state
   void decr(const NetworkState& net_state) {
     NetworkState_Impl t_state = net_state.getState();
-#ifdef EV_OPTIM_2021_10
     auto iter = mp.find(t_state);
     assert(iter != mp.end());
     if (iter->second > 1) {
@@ -1299,12 +1232,6 @@ public:
     } else {
       mp.erase(t_state);
     }
-#else
-    if (mp[t_state] > 1)
-      mp[t_state]--;  
-    else
-      mp.erase(t_state);
-#endif
     hash = 0;
     hash_init = false;
   }
@@ -1328,7 +1255,7 @@ public:
     std::map<NetworkState_Impl, unsigned int>::const_iterator other_iter = other_mp.begin();
     for ( ; iter != mp.end(); ++iter, ++other_iter) {
       if (iter->first != other_iter->first) {
-	return std::less<NetworkState_Impl>{}(iter->first, other_iter->first);//  iter->first < other_iter->first;
+	return std::less<NetworkState_Impl>{}(iter->first, other_iter->first);
       } else if (iter->second != other_iter->second) {
 	return iter->second < other_iter->second;
       }
@@ -1338,23 +1265,19 @@ public:
 
   size_t compute_hash() const {
     
-    //return mp.size(); // for testing
-
-    // return mp.size(); //dans un premier temps ? un peu exagere, mais why not
     // New one : for all state:pop, compute sum_i = state_i * pop_i;
     // Expensive, but should be a good one ?
     
-#ifdef EV_OPTIM_2021_10
     size_t result = 1;
     for (auto &network_state_pop: mp) {
       NetworkState_Impl t_state = network_state_pop.first;
       const unsigned char* p = (const unsigned char*)&t_state;
       for (size_t nn = 0; nn < sizeof(t_state); nn++) {
-	unsigned char val = *p++;
-	if (val) {
-	  result *= val;
-	  result ^= result >> 8;
-	}
+        unsigned char val = *p++;
+        if (val) {
+          result *= val;
+          result ^= result >> 8;
+        }
       }
       p = (const unsigned char*)&network_state_pop.second;
       if (*p) {
@@ -1365,21 +1288,6 @@ public:
     return result;
     // EV: 2021-11-24 note: returning another hash code changes the results, for instance:
     // return (size_t)(result*1.1);
-#else
-    size_t result = 0;
-    for (auto &network_state_pop: mp) {
-      NetworkState_Impl t_state = network_state_pop.first;
-#if defined(USE_STATIC_BITSET)
-      t_state &= ~0ULL; // EV: 2021-08-23: added this line to avoid overflows in t_state.tu_ullong() by keeping only the last 64 bits
-      result += t_state.to_ullong() * network_state_pop.second;
-#elif defined(USE_DYNAMIC_BITSET)
-      result += t_state.to_ulong() * network_state_pop.second;
-#else
-      result += t_state * network_state_pop.second;
-#endif
-    }
-    return result;
-#endif
   }
   
   // Count the population satisfying an expression
@@ -2190,15 +2098,15 @@ public:
 
   ArgumentList* clone() const {
     ArgumentList* arg_list_cloned = new ArgumentList();
-    for (std::vector<Expression*>::const_iterator iter = expr_v.begin(); iter != expr_v.end(); ++iter) {
-      arg_list_cloned->push_back((*iter)->clone());
+    for (const auto * expr : expr_v) {
+      arg_list_cloned->push_back(expr->clone());
     }
     return arg_list_cloned;
   }
 
   bool hasCycle(Node* node) const {
-    for (std::vector<Expression*>::const_iterator iter = expr_v.begin(); iter != expr_v.end(); ++iter) {
-      if ((*iter)->hasCycle(node)) {
+    for (const auto * expr : expr_v) {
+      if (expr->hasCycle(node)) {
 	return true;
       }
     }
@@ -2206,8 +2114,8 @@ public:
   }
 
   bool isConstantExpression() const {
-    for (std::vector<Expression*>::const_iterator iter = expr_v.begin(); iter != expr_v.end(); ++iter) {
-      if (!(*iter)->isConstantExpression()) {
+    for (const auto * expr : expr_v) {
+      if (!expr->isConstantExpression()) {
 	return false;
       }
     }
@@ -2216,9 +2124,9 @@ public:
 
   void display(std::ostream& os) const {
     unsigned int nn = 0;
-    for (std::vector<Expression*>::const_iterator iter = expr_v.begin(); iter != expr_v.end(); ++iter) {
+    for (const auto * expr : expr_v) {
       os << (nn > 0 ? ", " : "");
-      (*iter)->display(os);
+      expr->display(os);
       nn++;
     }
   }
@@ -2227,9 +2135,9 @@ public:
   size_t getExpressionListCount() const { return expr_v.size(); }
 
   ~ArgumentList() {
-    for (std::vector<Expression*>::iterator iter = expr_v.begin(); iter != expr_v.end(); ++iter) {
-      delete *iter;
-    }
+    for (auto * expr : expr_v)
+      delete expr;
+    
   }
 };
 
@@ -2371,14 +2279,13 @@ public:
     ProbaIState(Expression* proba_expr, std::vector<Expression*>* state_expr_list) {
       NetworkState network_state;
       proba_value = proba_expr->eval(NULL, network_state);
-      std::vector<Expression*>::iterator begin = state_expr_list->begin();
-      std::vector<Expression*>::iterator end = state_expr_list->end();
+      
       state_value_list = new std::vector<double>();
-      while (begin != end) {
-	NetworkState network_state;
-	state_value_list->push_back((*begin)->eval(NULL, network_state));
-	++begin;
-      }
+      for (auto * state_expr : *state_expr_list)
+      {
+        NetworkState network_state;
+        state_value_list->push_back(state_expr->eval(NULL, network_state));
+	    }
     }
   
     // only one node
@@ -2411,16 +2318,14 @@ public:
   IStateGroup(Network* network, std::vector<const Node*>* nodes, std::vector<ProbaIState*>* proba_istates, std::string& error_msg) : nodes(nodes), proba_istates(proba_istates) {
     is_random = false;
     size_t node_size = nodes->size();
-    std::vector<IStateGroup::ProbaIState*>::iterator begin = proba_istates->begin();
-    std::vector<IStateGroup::ProbaIState*>::iterator end = proba_istates->end();
-    while (begin != end) {
-      if ((*begin)->getStateValueList()->size() != node_size) {
-	std::ostringstream ostr;
-	ostr << "size inconsistency in istate expression: got " <<  (*begin)->getStateValueList()->size() << " states, has " << node_size << " nodes";
-	error_msg = ostr.str();
-	return;
+    for (auto * proba_istate : *proba_istates)
+    {
+      if (proba_istate->getStateValueList()->size() != node_size) {
+        std::ostringstream ostr;
+        ostr << "size inconsistency in istate expression: got " <<  proba_istate->getStateValueList()->size() << " states, has " << node_size << " nodes";
+        error_msg = ostr.str();
+        return;
       }
-      ++begin;
     }
     epilogue(network);
  }
@@ -2459,9 +2364,9 @@ public:
   
   ~IStateGroup() {
     delete nodes;
-    for (std::vector<IStateGroup::ProbaIState*>::iterator it = proba_istates->begin(); it != proba_istates->end(); ++it) {
-      delete *it;
-    }
+    for (auto * proba_istate : *proba_istates)
+      delete proba_istate;
+
     delete proba_istates;
   }
 
@@ -2472,10 +2377,10 @@ public:
   bool isRandom() const {return is_random;}
 
   bool hasNode(Node * node) {
-    for(std::vector<const Node*>::iterator it = nodes->begin(); it != nodes->end(); it++) {
-      if (node == *it)
+    for (auto * t_node : *nodes)
+      if (node == t_node)
         return true;
-    }
+      
     return false;
   }
 
@@ -2487,12 +2392,8 @@ public:
 
     static void setNodeProba(Network * network, Node * node, double value) {
 
-    std::vector<IStateGroup*>::iterator begin = network->getIStateGroup()->begin();
-    std::vector<IStateGroup*>::iterator end = network->getIStateGroup()->end();
-
-    while (begin != end) {
-      IStateGroup* istate_group = *begin;
-
+    for (auto * istate_group : *(network->getIStateGroup()))
+    {
       if (istate_group->hasNode(node)) {
 
         std::vector<IStateGroup::ProbaIState*>* proba_istates = istate_group->getProbaIStates();
@@ -2528,9 +2429,9 @@ public:
               }
           }
 
-          // Then we erase it from the state_value_list of each proba_istates
-          for(std::vector<IStateGroup::ProbaIState*>::iterator it = proba_istates->begin(); it != proba_istates->end(); it++) {
-            (*it)->state_value_list->erase((*it)->state_value_list->begin() + (std::ptrdiff_t) i);
+          for (auto * proba_istate : *proba_istates)
+          {
+            proba_istate->state_value_list->erase(proba_istate->state_value_list->begin() + (std::ptrdiff_t) i);
           }
 
           // Finally, we add a proba_istate with the desired value
@@ -2553,24 +2454,17 @@ public:
           new IStateGroup(network, new_nodes, new_proba_istates, message);
         }
       }
-      ++begin;
     }
   }
 
 static void setInitialState(Network * network, NetworkState * state) {
 
-  const std::vector<Node *> nodes = network->getNodes();
-
-  std::vector<Node *>::const_iterator it = nodes.begin();
-
-  while(it != nodes.end()) 
+  for (auto * node : network->getNodes())
   {
     // std::cout << "Setting " << (*it)->getLabel() << " to " << (*it)->getNodeState(*state) << std::endl;
-    setNodeProba(network, *it, (*it)->getNodeState(*state));
-
-    it++;
+    setNodeProba(network, node, node->getNodeState(*state));
   }
-
+  
 }
 private:
   std::vector<const Node*>* nodes;
@@ -2578,19 +2472,15 @@ private:
   double proba_sum;
   bool is_random;
 
-  void computeProbaSum() {
-    std::vector<ProbaIState*>::iterator bb = proba_istates->begin();
-    std::vector<ProbaIState*>::iterator ee = proba_istates->end();
+  void computeProbaSum() 
+  {  
     proba_sum = 0;
-    while (bb != ee) {
-      proba_sum += (*bb)->getProbaValue();
-      ++bb;
-    }
-    bb = proba_istates->begin();
-    while (bb != ee) {
-      (*bb)->normalizeProbaValue(proba_sum);
-      ++bb;
-    }
+    for (auto * proba_istate : *proba_istates)
+      proba_sum += proba_istate->getProbaValue();
+    
+    for (auto * proba_istate : *proba_istates)
+      proba_istate->normalizeProbaValue(proba_sum);
+    
   }
 
   void epilogue(Network* network) {

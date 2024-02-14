@@ -87,29 +87,16 @@ public:
 
   ProbTrajEngine(Network* network, RunConfig* runconfig) : FixedPointEngine(network, runconfig) {}
   
-  const std::map<double, STATE_MAP<NetworkState_Impl, double> > getStateDists() const;
-  const STATE_MAP<NetworkState_Impl, double> getNthStateDist(int nn) const;
-  const STATE_MAP<NetworkState_Impl, double> getAsymptoticStateDist() const;
-
   Cumulator<NetworkState>* getMergedCumulator() {
     return merged_cumulator; 
   }
 
-  const std::map<double, std::map<Node *, double> > getNodesDists() const;
-  const std::map<Node*, double> getNthNodesDist(int nn) const;
-  const std::map<Node*, double> getAsymptoticNodesDist() const;
-
-  const std::map<double, double> getNodeDists(Node * node) const;
-  double getNthNodeDist(Node * node, int nn) const;
-  double getAsymptoticNodeDist(Node * node) const;
-  
   int getMaxTickIndex() const {return merged_cumulator->getMaxTickIndex();} 
   const double getFinalTime() const;
 
   void displayStatDist(StatDistDisplayer* output_statdist) const;
   void displayProbTraj(ProbTrajDisplayer<NetworkState>* displayer) const;
-  void displayAsymptotic(std::ostream& output_asymptprob, bool hexfloat = false, bool proba = true) const;
-
+  
   void display(ProbTrajDisplayer<NetworkState>* probtraj_displayer, StatDistDisplayer* statdist_displayer, FixedPointDisplayer* fp_displayer) const;
 
 };

@@ -74,23 +74,16 @@ STATE_MAP<NetworkState_Impl, unsigned int>* FixedPointEngine::mergeFixpointMaps(
   }
 
   STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map = new STATE_MAP<NetworkState_Impl, unsigned int>();
-  std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*>::iterator begin = fixpoint_map_v.begin();
-  std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*>::iterator end = fixpoint_map_v.end();
-  while (begin != end) {
-    STATE_MAP<NetworkState_Impl, unsigned int>* fp_map = *begin;
-    STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator b = fp_map->begin();
-    STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator e = fp_map->end();
-    while (b != e) {
-      //NetworkState_Impl state = (*b).first;
-      const NetworkState_Impl& state = b->first;
-      if (fixpoint_map->find(state) == fixpoint_map->end()) {
-	(*fixpoint_map)[state] = (*b).second;
+  for (auto * fp_map : fixpoint_map_v) {
+    for (const auto & fp : *fp_map) {
+      const NetworkState_Impl& state = fp.first;
+      STATE_MAP<NetworkState_Impl, unsigned int>::iterator iter = fixpoint_map->find(state);
+      if (iter == fixpoint_map->end()) {
+	      (*fixpoint_map)[state] = fp.second;
       } else {
-	(*fixpoint_map)[state] += (*b).second;
+	      iter->second += fp.second;
       }
-      ++b;
     }
-    ++begin;
   }
   return fixpoint_map;
 }
@@ -224,49 +217,13 @@ const std::map<unsigned int, std::pair<NetworkState, double> > FixedPointEngine:
     return res;
   }
 
-  STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator begin = fixpoints.begin();
-  STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator end = fixpoints.end();
-  
-  for (unsigned int nn = 0; begin != end; ++nn) {
-    const NetworkState& network_state = (*begin).first;
-    res[nn] = std::make_pair(network_state,(double) (*begin).second / sample_count);
-    ++begin;
+  int nn = 0;
+  for (const auto & fp : fixpoints) {
+    const NetworkState& network_state = fp.first;
+    res[nn++] = std::make_pair(network_state,(double) fp.second / sample_count);
   }
   return res;
 }
-
-// void FixedPointEngine::displayFixpoints(std::ostream& output_fp, bool hexfloat) const 
-// {
-//   output_fp << "Fixed Points (" << fixpoints.size() << ")\n";
-//   if (0 == fixpoints.size()) {
-//     return;
-//   }
-
-// #ifdef HAS_STD_HEXFLOAT
-//   if (hexfloat) {
-//     output_fp << std::hexfloat;
-//   }
-// #endif
-
-//   STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator begin = fixpoints.begin();
-//   STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator end = fixpoints.end();
-  
-//   output_fp << "FP\tProba\tState\t";
-//   network->displayHeader(output_fp);
-//   for (unsigned int nn = 0; begin != end; ++nn) {
-//     const NetworkState& network_state = (*begin).first;
-//     output_fp << "#" << (nn+1) << "\t";
-//     if (hexfloat) {
-//       output_fp << fmthexdouble((double)(*begin).second / sample_count) <<  "\t";
-//     } else {
-//       output_fp << ((double)(*begin).second / sample_count) <<  "\t";
-//     }
-//     network_state.displayOneLine(output_fp, network);
-//     output_fp << '\t';
-//     network_state.display(output_fp, network);
-//     ++begin;
-//   }
-// }
 
 void FixedPointEngine::displayFixpoints(FixedPointDisplayer* displayer) const 
 {
@@ -275,13 +232,11 @@ if (getWorldRank() == 0) {
 #endif
 
   displayer->begin(fixpoints.size());
-  STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator begin = fixpoints.begin();
-  STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator end = fixpoints.end();
-
-  for (unsigned int nn = 0; begin != end; ++nn) {
-    const NetworkState& network_state = begin->first;
-    displayer->displayFixedPoint(nn+1, network_state, begin->second, sample_count);
-    ++begin;
+  int nn = 0;
+  for (const auto & fp : fixpoints) {
+    const NetworkState& network_state = fp.first;
+    displayer->displayFixedPoint(nn+1, network_state, fp.second, sample_count);
+    nn++;
   }
   displayer->end();
 

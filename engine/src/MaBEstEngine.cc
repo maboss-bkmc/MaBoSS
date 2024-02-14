@@ -69,14 +69,11 @@ MaBEstEngine::MaBEstEngine(Network* network, RunConfig* runconfig) :
   }
 
   const std::vector<Node*>& nodes = network->getNodes();
-  std::vector<Node*>::const_iterator begin = nodes.begin();
-  std::vector<Node*>::const_iterator end = nodes.end();
-
+  
   NetworkState internal_state;
   bool has_internal = false;
   refnode_count = 0;
-  while (begin != end) {
-    Node* node = *begin;
+  for (const auto * node : nodes) {
     if (node->isInternal()) {
       has_internal = true;
       internal_state.setNodeState(node, true);
@@ -86,7 +83,6 @@ MaBEstEngine::MaBEstEngine(Network* network, RunConfig* runconfig) :
       refnode_mask.setNodeState(node, true);
       refnode_count++;
     }
-    ++begin;
   }
 
   merged_cumulator = NULL;
@@ -197,10 +193,11 @@ void MaBEstEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int st
       if (total_rate == 0) {
 	tm = max_time;
 	TH = 0.;
-	if (fixpoint_map->find(network_state.getState()) == fixpoint_map->end()) {
+  STATE_MAP<NetworkState_Impl, unsigned int>::iterator iter = fixpoint_map->find(network_state.getState());
+	if (iter == fixpoint_map->end()) {
 	  (*fixpoint_map)[network_state.getState()] = 1;
 	} else {
-	  (*fixpoint_map)[network_state.getState()]++;
+	  iter->second++;
 	}
 	stable_cnt++;
       } else {

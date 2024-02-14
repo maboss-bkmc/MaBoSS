@@ -233,26 +233,6 @@ class ProbaDist {
     }
   };	
 
-  void display(std::ostream& os, Network* network, bool hexfloat) const 
-  {
-   
-    ProbaDist<S>::Iterator proba_dist_iter = iterator();
-    os << std::setprecision(10);
-    while (proba_dist_iter.hasNext()) {
-        S state;
-        double proba;
-        proba_dist_iter.next(state, proba);
-        os << '\t';
-        state.displayOneLine(os, network);
-        if (hexfloat) {
-        os << '\t' << fmthexdouble(proba);
-        } else {
-        os << '\t' << proba;
-        }
-    }
-    os << '\n';
-  }
-  
   void display(StatDistDisplayer* displayer) const {
     ProbaDist<S>::Iterator proba_dist_iter = iterator();
     while (proba_dist_iter.hasNext()) {
@@ -292,9 +272,6 @@ class ProbaDistCluster {
 
   void complete(double threshold, unsigned int statdist_traj_count);
   void computeStationaryDistribution();
-
-  void display(Network* network, std::ostream& os, bool hexfloat) const;
-  void displayStationaryDistribution(Network* network, std::ostream& os, bool hexfloat) const;
 
   void display(StatDistDisplayer* displayer) const;
   void displayStationaryDistribution(StatDistDisplayer* displayer) const;
@@ -360,9 +337,7 @@ class ProbaDistClusterFactory {
 
   void makeClusters(RunConfig* runconfig);
   void computeStationaryDistribution();
-  void displayStationaryDistribution(Network* network, std::ostream& os, bool hexfloat) const;
-  void display(Network* network, std::ostream& os, bool hexfloat) const;
-
+  
   void displayStationaryDistribution(StatDistDisplayer* displayer) const;
   void display(StatDistDisplayer* displayer) const;
 

@@ -89,15 +89,11 @@ PopMaBEstEngine::PopMaBEstEngine(PopNetwork *pop_network, RunConfig *runconfig) 
   }
 
   const std::vector<Node *> &nodes = pop_network->getNodes();
-  std::vector<Node *>::const_iterator begin = nodes.begin();
-  std::vector<Node *>::const_iterator end = nodes.end();
-
   NetworkState internal_state;
   bool has_internal = false;
   refnode_count = 0;
-  while (begin != end)
+  for (const auto * node : nodes)
   {
-    Node *node = *begin;
     if (node->isInternal())
     {
       has_internal = true;
@@ -108,7 +104,6 @@ PopMaBEstEngine::PopMaBEstEngine(PopNetwork *pop_network, RunConfig *runconfig) 
       refnode_mask.setNodeState(node, true);
       refnode_count++;
     }
-    ++begin;
   }
 
   merged_cumulator = NULL;
@@ -135,26 +130,19 @@ PopMaBEstEngine::PopMaBEstEngine(PopNetwork *pop_network, RunConfig *runconfig) 
   }
 }
 
-#ifdef EV_OPTIM_2021_10
 PopNetworkState PopMaBEstEngine::getTargetNode(RandomGenerator *random_generator, const PopNetworkStateMap& popNodeTransitionRates, double total_rate) const
-#else
-PopNetworkState PopMaBEstEngine::getTargetNode(RandomGenerator *random_generator, const PopNetworkStateMap popNodeTransitionRates, double total_rate) const
-#endif
 {
   double U_rand2 = random_generator->generate();
   double random_rate = U_rand2 * total_rate;
-  auto begin = popNodeTransitionRates.begin();
-  auto end = popNodeTransitionRates.end();
-
-  //PopNetworkState result = PopNetworkState();
   PopNetworkState result;
-  while (begin != end && random_rate > 0.)
+  for (const auto & node_tr_rate : popNodeTransitionRates) 
   {
-    double rate = begin->second;
+    double rate = node_tr_rate.second;
     random_rate -= rate;
-    result = begin->first;
-
-    ++begin;
+    result = node_tr_rate.first;
+    
+    if (random_rate <= 0)
+      break;
   }
 
   return result;
@@ -168,11 +156,11 @@ double PopMaBEstEngine::computeTH(const MAP<NodeIndex, double> &nodeTransitionRa
   }
 
   MAP<NodeIndex, double>::const_iterator begin = nodeTransitionRates.begin();
-  MAP<NodeIndex, double>::const_iterator end = nodeTransitionRates.end();
+
   double TH = 0.;
   double rate_internal = 0.;
 
-  while (begin != end)
+  while (begin != nodeTransitionRates.end())
   {
     NodeIndex index = (*begin).first;
     double rate = (*begin).second;
@@ -187,7 +175,7 @@ double PopMaBEstEngine::computeTH(const MAP<NodeIndex, double> &nodeTransitionRa
 
   begin = nodeTransitionRates.begin();
 
-  while (begin != end)
+  while (begin != nodeTransitionRates.end())
   {
     NodeIndex index = (*begin).first;
     double rate = (*begin).second;
@@ -371,13 +359,14 @@ void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, unsigned 
           
           if (total_pop_rate == 0)
           {
-            if (fixpoint_map->find(t_network_state.getState()) == fixpoint_map->end())
+            STATE_MAP<NetworkState_Impl, unsigned int>::iterator iter = fixpoint_map->find(t_network_state.getState());
+            if (iter == fixpoint_map->end())
             {
               (*fixpoint_map)[t_network_state.getState()] = 1;
             }
             else
             {
-              (*fixpoint_map)[t_network_state.getState()]++;
+              iter->second++;
             }
 
             stable_cnt++;
@@ -493,28 +482,21 @@ STATE_MAP<NetworkState_Impl, unsigned int> *PopMaBEstEngine::mergeFixpointMaps()
   }
 
   STATE_MAP<NetworkState_Impl, unsigned int> *fixpoint_map = new STATE_MAP<NetworkState_Impl, unsigned int>();
-  std::vector<STATE_MAP<NetworkState_Impl, unsigned int> *>::iterator begin = fixpoint_map_v.begin();
-  std::vector<STATE_MAP<NetworkState_Impl, unsigned int> *>::iterator end = fixpoint_map_v.end();
-  while (begin != end)
+  for (auto * fp_map : fixpoint_map_v)
   {
-    STATE_MAP<NetworkState_Impl, unsigned int> *fp_map = *begin;
-    STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator b = fp_map->begin();
-    STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator e = fp_map->end();
-    while (b != e)
+    for (const auto & fp : *fp_map) 
     {
-      //NetworkState_Impl state = (*b).first;
-      const NetworkState_Impl &state = b->first;
-      if (fixpoint_map->find(state) == fixpoint_map->end())
+      const NetworkState_Impl &state = fp.first;
+      STATE_MAP<NetworkState_Impl, unsigned int>::iterator iter = fixpoint_map->find(state);
+      if (iter == fixpoint_map->end())
       {
-        (*fixpoint_map)[state] = (*b).second;
+        (*fixpoint_map)[state] = fp.second;
       }
       else
       {
-        (*fixpoint_map)[state] += (*b).second;
+        iter->second += fp.second;
       }
-      ++b;
-    }
-    ++begin;
+   }
   }
   return fixpoint_map;
 }
@@ -522,14 +504,14 @@ STATE_MAP<NetworkState_Impl, unsigned int> *PopMaBEstEngine::mergeFixpointMaps()
 
 void PopMaBEstEngine::mergePairOfFixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_1, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_2)
 {
-  for (auto& fixpoint: *fixpoints_2) {
+  for (const auto& fixpoint: *fixpoints_2) {
     
-    STATE_MAP<NetworkState_Impl, unsigned int>::iterator t_fixpoint = fixpoints_1->find(fixpoint.first);
-    if (fixpoints_1->find(fixpoint.first) == fixpoints_1->end()) {
+    STATE_MAP<NetworkState_Impl, unsigned int>::iterator iter = fixpoints_1->find(fixpoint.first);
+    if (iter == fixpoints_1->end()) {
       (*fixpoints_1)[fixpoint.first] = fixpoint.second;
     
     } else {
-      t_fixpoint->second += fixpoint.second;
+      iter->second += fixpoint.second;
     
     }
   }
@@ -681,34 +663,13 @@ void PopMaBEstEngine::loadUserFuncs(const char *module)
 void PopMaBEstEngine::displayFixpoints(FixedPointDisplayer *displayer) const
 {
   displayer->begin(fixpoints.size());
-  /*
-  output_fp << "Fixed Points (" << fixpoints.size() << ")\n";
-  if (0 == fixpoints.size()) {
-    return;
-  }
-  */
 
-  STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator begin = fixpoints.begin();
-  STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator end = fixpoints.end();
-
-  //output_fp << "FP\tProba\tState\t";
-  //network->displayHeader(output_fp);
-  for (unsigned int nn = 0; begin != end; ++nn)
+  size_t nn = 0;
+  for (const auto & fp : fixpoints)
   {
-    const NetworkState &network_state = begin->first;
-    displayer->displayFixedPoint(nn + 1, network_state, begin->second, sample_count);
-    /*
-    output_fp << "#" << (nn+1) << "\t";
-    if (hexfloat) {
-      output_fp << fmthexdouble((double)begin->second / sample_count) <<  "\t";
-    } else {
-      output_fp << ((double)begin->second / sample_count) <<  "\t";
-    }
-    network_state.displayOneLine(output_fp, network);
-    output_fp << '\t';
-    network_state.display(output_fp, network);
-    */
-    ++begin;
+    const NetworkState &network_state = fp.first;
+    displayer->displayFixedPoint(nn + 1, network_state, fp.second, sample_count);
+    nn++;
   }
   displayer->end();
 }
@@ -758,13 +719,10 @@ const std::map<unsigned int, std::pair<NetworkState, double> > PopMaBEstEngine::
     return res;
   }
 
-  STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator begin = fixpoints.begin();
-  STATE_MAP<NetworkState_Impl, unsigned int>::const_iterator end = fixpoints.end();
-  
-  for (unsigned int nn = 0; begin != end; ++nn) {
-    const NetworkState& network_state = (*begin).first;
-    res[nn] = std::make_pair(network_state,(double) (*begin).second / sample_count);
-    ++begin;
+  size_t nn = 0;
+  for (const auto & fp : fixpoints) {
+    const NetworkState& network_state = fp.first;
+    res[nn++] = std::make_pair(network_state,(double) fp.second / sample_count);
   }
   return res;
 }

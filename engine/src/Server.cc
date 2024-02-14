@@ -165,13 +165,13 @@ void Server::run(const ClientData& client_data, ServerData& server_data)
     }
 
     const std::vector<std::string>& configs = client_data.getConfigs();
-    for (std::vector<std::string>::const_iterator iter = configs.begin(); iter != configs.end(); ++iter) {
-      runconfig->parseExpression(network, iter->c_str());
+    for (const auto & config : configs) {
+      runconfig->parseExpression(network, config.c_str());
     }
 
     const std::vector<std::string>& config_exprs = client_data.getConfigExprs();
-    for (std::vector<std::string>::const_iterator iter = config_exprs.begin(); iter != config_exprs.end(); ++iter) {
-      runconfig->parseExpression(network, iter->c_str());
+    for (const auto & config_expr : config_exprs) {
+      runconfig->parseExpression(network, config_expr.c_str());
     }
 
     IStateGroup::checkAndComplete(network);
@@ -200,7 +200,10 @@ void Server::run(const ClientData& client_data, ServerData& server_data)
       std::ostream* output_final = new std::ostringstream();
       FinalStateSimulationEngine engine(network, runconfig);
       engine.run(NULL);
-      engine.displayFinal(*output_final, hexfloat);
+      
+      FinalStateDisplayer* final_displayer = new CSVFinalStateDisplayer(network, *output_final, hexfloat);
+      engine.displayFinal(final_displayer);
+      
       server_data.setStatus(0);
       server_data.setFinalProb(ostringstream2str(output_final));
       delete output_final;
@@ -214,13 +217,9 @@ void Server::run(const ClientData& client_data, ServerData& server_data)
       MaBEstEngine mabest(network, runconfig);
       mabest.run(output_traj);
       
-      ProbTrajDisplayer<NetworkState>* probtraj_displayer;
-      StatDistDisplayer* statdist_displayer;
-      FixedPointDisplayer* fp_displayer;
-      
-      probtraj_displayer = new CSVProbTrajDisplayer<NetworkState>(network, *output_probtraj, hexfloat);
-      statdist_displayer = new CSVStatDistDisplayer(network, *output_statdist, hexfloat);
-      fp_displayer = new CSVFixedPointDisplayer(network, *output_fp, hexfloat);
+      ProbTrajDisplayer<NetworkState>* probtraj_displayer = new CSVProbTrajDisplayer<NetworkState>(network, *output_probtraj, hexfloat);
+      StatDistDisplayer* statdist_displayer = new CSVStatDistDisplayer(network, *output_statdist, hexfloat);
+      FixedPointDisplayer* fp_displayer = new CSVFixedPointDisplayer(network, *output_fp, hexfloat);
       
       mabest.display(probtraj_displayer, statdist_displayer, fp_displayer);
       

@@ -592,22 +592,19 @@ public:
 
   void next() {
     if (tick_index < max_size) {
-      auto begin = last_tick_map.begin();
-      auto end = last_tick_map.end();
       CumulMap& mp = get_map();
       double TH = 0.0;
-      while (begin != end) {
-	//S state = (*begin).first;
-	const S& state = (*begin).first;
-	double tm_slice = (*begin).second.tm_slice;
-	TH += (*begin).second.TH;
-	if (COMPUTE_ERRORS) {
-	  mp.cumulTMSliceSquare(state, tm_slice);
-	}
-	++begin;
+      for (const auto & last_tick: last_tick_map)
+      {
+        const S& state = last_tick.first;
+        double tm_slice = last_tick.second.tm_slice;
+        TH += last_tick.second.TH;
+        if (COMPUTE_ERRORS) {
+          mp.cumulTMSliceSquare(state, tm_slice);
+        }
       }
       if (COMPUTE_ERRORS) {
-	TH_square_v[tick_index] += TH * TH;
+	      TH_square_v[tick_index] += TH * TH;
       }
     }
     ++tick_index;
@@ -623,7 +620,6 @@ public:
 #endif    
 
 
-    // S state(network_state & output_mask);
     S state = network_state.applyMask(output_mask);
 
     double time_1 = cumultime(tick_index+1);
@@ -777,66 +773,6 @@ public:
     displayer->end();
     delete clusterFactory;
   }
-  void displayAsymptoticCSV(Network* network, unsigned int refnode_count, std::ostream& os_asymptprob = std::cout, bool hexfloat = false, bool proba = true) const
-  {
-    double ratio;
-    if (proba)
-    {
-      ratio = time_tick * sample_count;
-    }
-    else
-    {
-      ratio = time_tick;
-    }
-
-    // Choosing the last tick
-    int nn = max_tick_index - 1;
-
-  #ifdef HAS_STD_HEXFLOAT
-    if (hexfloat)
-    {
-      os_asymptprob << std::hexfloat;
-    }
-  #endif
-    // TH
-    const CumulMap &mp = get_map(nn);
-    auto iter = mp.iterator();
-
-    while (iter.hasNext())
-    {
-      TickValue tick_value;
-  #ifdef USE_NEXT_OPT
-      const S& state = iter.next2(tick_value);
-  #else
-      S state;
-      iter.next(state, tick_value);
-  #endif
-      double proba = tick_value.tm_slice / ratio;
-      if (proba)
-      {
-        if (hexfloat)
-        {
-          os_asymptprob << std::setprecision(6) << fmthexdouble(proba);
-        }
-        else
-        {
-          os_asymptprob << std::setprecision(6) << proba;
-        }
-      }
-      else
-      {
-        int t_proba = static_cast<int>(round(proba));
-        os_asymptprob << std::fixed << t_proba;
-      }
-
-      os_asymptprob << '\t';
-      state.displayOneLine(os_asymptprob, network);
-
-      os_asymptprob << '\n';
-
-    }
-  }
-
 
 #ifdef PYTHON_API
 
@@ -1104,9 +1040,7 @@ PyObject* getNumpyLastNodesDists(Network* network, std::vector<Node*> output_nod
 }
   
 #endif
-//   const std::map<double, STATE_MAP<S, double> > getStateDists() const;
-//   const STATE_MAP<S, double> getNthStateDist(int nn) const;
-//   const STATE_MAP<S, double> getAsymptoticStateDist() const;
+
   const double getFinalTime() const {
       return time_tick*(getMaxTickIndex()-1);
 

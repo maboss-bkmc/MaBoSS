@@ -77,8 +77,7 @@ static int usage(std::ostream& os = std::cerr)
   os << "  " << prog << " [--augment]\n";
   os << "  " << prog << " [--hexfloat]\n";
   os << "  " << prog << " [--ensemble [--save-individual] [--random-sampling] [--ensemble-istates]]\n";
-  os << "  " << prog << " [--export-asymptotic]\n";
-  os << "  " << prog << " [--counts]\n";
+  os << "  " << prog << " [--final]\n";
   os << "  " << prog << " [--use-sbml-names]\n";
   return 1;
 }
@@ -104,8 +103,6 @@ static int help()
   std::cout << "  -q|--quiet                              : no notices and no warnings will be displayed\n";
   std::cout << "  --check                                 : checks network and configuration files and exits\n";
   std::cout << "  --hexfloat                              : displays double in hexadecimal format\n";
-  std::cout << "  --export-asymptotic                     : create a special file for asymptotic probabilities\n";
-  std::cout << "  --counts                                : exports counts instead of probabilities (only works with asymptotic states)\n";
   std::cout << "  --use-sbml-names                        : use the names of the species when importing sbml\n";
   std::cout << "  -h --help                               : displays this message\n";
   std::cout << "\nEnsembles:\n";
@@ -290,16 +287,12 @@ int run_ensemble(std::vector<char *> ctbndl_files, std::vector<ConfigOpt> runcon
   first_network->parse(ctbndl_files[0]);
   networks.push_back(first_network);
 
-  std::vector<ConfigOpt>::const_iterator begin = runconfig_file_or_expr_v.begin();
-  std::vector<ConfigOpt>::const_iterator end = runconfig_file_or_expr_v.end();
-  while (begin != end) {
-    const ConfigOpt& cfg = *begin;
+  for (const auto & cfg : runconfig_file_or_expr_v) {
     if (cfg.isExpr()) {
       runconfig->parseExpression(networks[0], (cfg.getExpr() + ";").c_str());
     } else {
       runconfig->parse(networks[0], cfg.getFile().c_str());
     }
-    ++begin;
   }
 
   IStateGroup::checkAndComplete(networks[0]);
@@ -363,8 +356,9 @@ nodes[j]->isInternal(first_network_nodes[j]->isInternal());
   delete output_fp;
 
   delete runconfig;
-  for (std::vector<Network*>::iterator it = networks.begin(); it != networks.end(); ++it)
-    delete *it;
+  // for (std::vector<Network*>::iterator it = networks.begin(); it != networks.end(); ++it)
+  for (auto * network : networks)
+    delete network;
 
   Function::destroyFuncMap();  
   return 0;
@@ -388,16 +382,12 @@ int run_single(const char* ctbndl_file, std::vector<std::string> runconfig_var_v
     return 1;
   }      
 
-  std::vector<ConfigOpt>::const_iterator begin = runconfig_file_or_expr_v.begin();
-  std::vector<ConfigOpt>::const_iterator end = runconfig_file_or_expr_v.end();
-  while (begin != end) {
-    const ConfigOpt& cfg = *begin;
+  for (const auto & cfg : runconfig_file_or_expr_v) {
     if (cfg.isExpr()) {
       runconfig->parseExpression(network, (cfg.getExpr() + ";").c_str());
     } else {
       runconfig->parse(network, cfg.getFile().c_str());
     }
-    ++begin;
   }
 
   IStateGroup::checkAndComplete(network);
@@ -443,8 +433,6 @@ int main(int argc, char* argv[])
   bool hexfloat = false;
   bool check = false;
   dont_shrink_logical_expressions = false; // global flag
-  bool export_asymptotic = false;
-  bool counts = false;
   bool use_sbml_names = false;
   OutputFormat format = CSV_FORMAT;
   MaBEstEngine::init();
@@ -523,10 +511,6 @@ int main(int argc, char* argv[])
         } else {
           std::cerr << "\n" << prog << ": --ensemble-istates only usable if --ensemble is used" << std::endl;
         }
-      } else if (!strcmp(s, "--export-asymptotic")) {
-        export_asymptotic = true;
-      } else if (!strcmp(s, "--counts")) {
-        counts = true;
       } else if (!strcmp(s, "--use-sbml-names")) {
         use_sbml_names = true;
       } else if (!strcmp(s, "--load-user-functions")) {
@@ -624,7 +608,6 @@ int main(int argc, char* argv[])
 
   std::ostream* output_run = NULL;
   std::ostream* output_traj = NULL;
-  std::ostream* output_asymptprob = NULL;
   
 #ifdef USE_DYNAMIC_BITSET
   MBDynBitset::init_pthread();
@@ -671,16 +654,12 @@ int main(int argc, char* argv[])
         return 1;
       }      
 
-      std::vector<ConfigOpt>::const_iterator begin = runconfig_file_or_expr_v.begin();
-      std::vector<ConfigOpt>::const_iterator end = runconfig_file_or_expr_v.end();
-      while (begin != end) {
-        const ConfigOpt& cfg = *begin;
+      for (const auto & cfg : runconfig_file_or_expr_v) {
         if (cfg.isExpr()) {
 	  runconfig->parseExpression(network, (cfg.getExpr() + ";").c_str());
         } else {
 	  runconfig->parse(network, cfg.getFile().c_str());
         }
-        ++begin;
       }
 
       IStateGroup::checkAndComplete(network);
@@ -721,28 +700,22 @@ int main(int argc, char* argv[])
 	std::ostream* output_final = new std::ofstream((std::string(output) + "_finalprob" + format_extension(format)).c_str());
 	FinalStateSimulationEngine engine(network, runconfig);
 	engine.run(NULL);
-	if (false) {
-	  engine.displayFinal(*output_final, hexfloat);
-	} else {
-	  FinalStateDisplayer* final_displayer;
-	  if (format == CSV_FORMAT) {
-	    final_displayer = new CSVFinalStateDisplayer(network, *output_final, hexfloat);
-	  } else if (format == JSON_FORMAT) {
-	    final_displayer = new JsonFinalStateDisplayer(network, *output_final, hexfloat);
-	  } else {
-	    final_displayer = NULL;
-	  }
-	  engine.displayFinal(final_displayer);
-	}
+  
+  FinalStateDisplayer* final_displayer;
+  if (format == CSV_FORMAT) {
+    final_displayer = new CSVFinalStateDisplayer(network, *output_final, hexfloat);
+  } else if (format == JSON_FORMAT) {
+    final_displayer = new JsonFinalStateDisplayer(network, *output_final, hexfloat);
+  } else {
+    final_displayer = NULL;
+  }
+  engine.displayFinal(final_displayer);
+
 	((std::ofstream*)output_final)->close();
 	delete output_final;
       } else {
         output_run = new std::ofstream((std::string(output) + "_run.txt").c_str());
  
-        if (export_asymptotic) {
-          output_asymptprob = new std::ofstream((std::string(output) + "_finalprob.csv").c_str());
-        }
-
         time(&start_time);
         MaBEstEngine mabest(network, runconfig);
         mabest.run(output_traj);
@@ -753,11 +726,6 @@ int main(int argc, char* argv[])
 
         mabest.displayRunStats(*output_run, start_time, end_time);
         
-        if (export_asymptotic) {
-          mabest.displayAsymptotic(*output_asymptprob, hexfloat, !counts);
-          ((std::ofstream*)output_asymptprob)->close();
-          delete output_asymptprob;
-        }
         ((std::ofstream*)output_run)->close();
         delete output_run;
         if (NULL != output_traj) {

@@ -202,10 +202,7 @@ int main(int argc, char* argv[])
   }
   client_data.setNetwork(contents);
 
-  std::vector<ConfigOpt>::const_iterator begin = runconfig_file_or_expr_v.begin();
-  std::vector<ConfigOpt>::const_iterator end = runconfig_file_or_expr_v.end();
-  while (begin != end) {
-    const ConfigOpt& cfg = *begin;
+  for (const auto & cfg : runconfig_file_or_expr_v) {
     if (cfg.isExpr()) {
       client_data.addConfigExpr(cfg.getExpr());
     } else {
@@ -215,7 +212,6 @@ int main(int argc, char* argv[])
       }
       client_data.addConfig(contents);
     }
-    ++begin;
   }
 
   client_data.setConfigVars(config_vars);

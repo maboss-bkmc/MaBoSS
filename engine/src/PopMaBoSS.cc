@@ -323,16 +323,12 @@ int main(int argc, char* argv[])
       return 1;
     }      
 
-    std::vector<ConfigOpt>::const_iterator begin = runconfig_file_or_expr_v.begin();
-    std::vector<ConfigOpt>::const_iterator end = runconfig_file_or_expr_v.end();
-    while (begin != end) {
-      const ConfigOpt& cfg = *begin;
+    for (const auto & cfg : runconfig_file_or_expr_v) {
       if (cfg.isExpr()) {
         runconfig->parseExpression(pop_network, (cfg.getExpr() + ";").c_str());
       } else {
         runconfig->parse(pop_network, cfg.getFile().c_str());
       }
-      ++begin;
     }
 
     IStateGroup::checkAndComplete(pop_network);

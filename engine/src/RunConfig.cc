@@ -293,8 +293,8 @@ void RunConfig::dump_perform(Network* network, std::ostream& os, bool is_templat
   }
   const std::vector<Node*>& nodes = network->getNodes();
   std::vector<Node*>::const_iterator begin = nodes.begin();
-  std::vector<Node*>::const_iterator end = nodes.end();
-  while (begin != end) {
+  // std::vector<Node*>::const_iterator end = nodes.end();
+  while (begin != nodes.end()) {
     Node* node = *begin;
     os << node->getLabel() << ".is_internal = " << node->isInternal() << ";\n";
     ++begin;
@@ -306,7 +306,7 @@ void RunConfig::dump_perform(Network* network, std::ostream& os, bool is_templat
     os << "// if node is not a reference node, skip its refstate declaration or set value to -1\n";
   }
   begin = nodes.begin();
-  while (begin != end) {
+  while (begin != nodes.end()) {
     Node* node = *begin;
     if (node->isReference()) {
       os << node->getLabel() << ".refstate = " << node->getReferenceState() << ";\n";

@@ -122,8 +122,11 @@ static PyObject* cMaBoSSResultFinal_display_final_states(cMaBoSSResultFinalObjec
     return NULL;
 
   std::ostream* output_final = new std::ofstream(filename);
+  FinalStateDisplayer * final_displayer = new CSVFinalStateDisplayer(
+    self->network, *output_final, PyObject_IsTrue(PyBool_FromLong(hexfloat))
+  );
 
-  self->engine->displayFinal(*output_final, PyObject_IsTrue(PyBool_FromLong(hexfloat)));
+  self->engine->displayFinal(final_displayer);
 
   ((std::ofstream*) output_final)->close();
   delete output_final;
