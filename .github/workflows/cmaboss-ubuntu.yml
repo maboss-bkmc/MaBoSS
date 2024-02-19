@@ -119,66 +119,77 @@ jobs:
 
     needs: cmaboss
 
+    strategy:
+      matrix:
+        version: [{python: "3.8", numpy: "1.22"}, {python: "3.9", numpy: "1.22"}, {python: "3.10", numpy: "1.22"}, {python: "3.11", numpy: "1.23"}, {python: "3.12", numpy: "1.26"}]
+    
+    defaults:
+      run:
+        shell: bash -el {0}
+                
     steps:
     - uses: actions/checkout@v4
-    - uses: s-weigand/setup-conda@v1
+    - uses: conda-incubator/setup-miniconda@v3
       with:
-        update-conda: true
- 
+        auto-update-conda: true
+        channels: defaults
+        python-version: 3.12
+        miniforge-variant: Mambaforge
+        use-mamba: true
+    
     - name: Install conda-build
       run: |
-        conda update conda
-        conda update conda --all
         conda install conda-build anaconda-client conda-verify
       
     - name: Build cMaBoSS Anaconda package
       run: |
-        conda build -c colomoto --variants "{\"python\": [\"3.8\"], \"numpy\": [\"1.22\"]}" conda/cmaboss;
-        conda build -c colomoto --variants "{\"python\": [\"3.9\"], \"numpy\": [\"1.22\"]}" conda/cmaboss;
-        conda build -c colomoto --variants "{\"python\": [\"3.10\"], \"numpy\": [\"1.22\"]}" conda/cmaboss;
-        conda build -c colomoto --variants "{\"python\": [\"3.11\"], \"numpy\": [\"1.23\"]}" conda/cmaboss;
-        conda build -c colomoto --variants "{\"python\": [\"3.12\"], \"numpy\": [\"1.26\"]}" conda/cmaboss;
+        conda build -c colomoto --variants "{\"python\": [\"${{ matrix.version.python }}\"], \"numpy\": [\"${{ matrix.version.numpy }}\"]}" conda/cmaboss;
+        
     - name: Caching produced conda package
       uses: actions/cache@v4
       with:
         path: |
-          /usr/share/miniconda/conda-bld/linux-64/*
-        key: ${{ runner.os }}-cmaboss-conda-defaults-${{ github.run_id }}
+          /home/runner/miniconda3/envs/test/conda-bld/*
+        key: ${{ runner.os }}-cmaboss-conda-defaults-${{ github.run_id }}-${{ matrix.version.python }}
   
   cmaboss_conda:
     name: Build cMaBoSS Anaconda package (conda-forge)
     runs-on: ubuntu-22.04
 
     needs: cmaboss
-
+    
+    strategy:
+      matrix:
+        version: [{python: "3.8", numpy: "1.22"}, {python: "3.9", numpy: "1.22"}, {python: "3.10", numpy: "1.22"}, {python: "3.11", numpy: "1.23"}, {python: "3.12", numpy: "1.26"}]
+    
+    defaults:
+      run:
+        shell: bash -el {0}
+        
     steps:
     - uses: actions/checkout@v4
-    - uses: s-weigand/setup-conda@v1
+    - uses: conda-incubator/setup-miniconda@v3
       with:
-        update-conda: true
- 
+        auto-update-conda: true
+        channels: conda-forge
+        python-version: 3.12
+        miniforge-variant: Mambaforge
+        use-mamba: true
+    
     - name: Install conda-build
       run: |
-        conda update conda
-        conda config --add channels conda-forge
-        # conda config --set channel_priority strict
-        conda update conda --all
         conda install conda-build anaconda-client conda-verify
       
     - name: Build cMaBoSS Anaconda package
       run: |
-        CUSTOM_BUILD_NUMBER=1 conda build -c conda-forge -c colomoto --variants "{\"python\": [\"3.8\"], \"numpy\": [\"1.22\"]}" conda/cmaboss;
-        CUSTOM_BUILD_NUMBER=1 conda build -c conda-forge -c colomoto --variants "{\"python\": [\"3.9\"], \"numpy\": [\"1.22\"]}" conda/cmaboss;
-        CUSTOM_BUILD_NUMBER=1 conda build -c conda-forge -c colomoto --variants "{\"python\": [\"3.10\"], \"numpy\": [\"1.22\"]}" conda/cmaboss;
-        CUSTOM_BUILD_NUMBER=1 conda build -c conda-forge -c colomoto --variants "{\"python\": [\"3.11\"], \"numpy\": [\"1.23\"]}" conda/cmaboss;
-        CUSTOM_BUILD_NUMBER=1 conda build -c conda-forge -c colomoto --variants "{\"python\": [\"3.12\"], \"numpy\": [\"1.26\"]}" conda/cmaboss;
+        CUSTOM_BUILD_NUMBER=1 conda build -c conda-forge -c colomoto --variants "{\"python\": [\"${{ matrix.version.python }}\"], \"numpy\": [\"${{ matrix.version.numpy }}\"]}" conda/cmaboss;
         
     - name: Caching produced conda package
       uses: actions/cache@v4
       with:
         path: |
-          /usr/share/miniconda/conda-bld/linux-64/*
-        key: ${{ runner.os }}-cmaboss-conda-${{ github.run_id }}
+          /home/runner/miniconda3/envs/test/conda-bld/*
+        key: ${{ runner.os }}-cmaboss-conda-${{ github.run_id }}-${{ matrix.version.python }}
           
         
   cmaboss_conda_defaults_test:
@@ -187,29 +198,39 @@ jobs:
 
     needs: cmaboss_conda_defaults
     
+    strategy:
+      matrix:
+        version: [{python: "3.8", numpy: "1.22"}, {python: "3.9", numpy: "1.22"}, {python: "3.10", numpy: "1.22"}, {python: "3.11", numpy: "1.23"}, {python: "3.12", numpy: "1.26"}]
+    
+    defaults:
+      run:
+        shell: bash -el {0}
+                
     steps:
     - uses: actions/checkout@v4
-    - uses: s-weigand/setup-conda@v1
+    - uses: conda-incubator/setup-miniconda@v3
       with:
-        update-conda: true
+        auto-update-conda: true
+        channels: defaults
+        python-version: ${{ matrix.version.python }}
+        miniforge-variant: Mambaforge
+        use-mamba: true
     
     - name: Caching produced conda package
       uses: actions/cache@v4
       with:
         path: |
-          /usr/share/miniconda/conda-bld/linux-64/*
-        key: ${{ runner.os }}-cmaboss-conda-defaults-${{ github.run_id }}
+          /home/runner/miniconda3/envs/test/conda-bld/*
+        key: ${{ runner.os }}-cmaboss-conda-defaults-${{ github.run_id }}-${{ matrix.version.python }}
         
     - name: Install conda-build
       run: |
-        conda update conda
-        conda update conda --all
-        conda install conda-build
+        conda install conda-build conda-index
      
     - name: Install package
       run: |
-        conda index /usr/share/miniconda/conda-bld
-        conda install --use-local -c colomoto cmaboss
+        python -m conda_index /home/runner/miniconda3/envs/test/conda-bld/
+        conda install -c file:///home/runner/miniconda3/envs/test/conda-bld/ -c colomoto cmaboss
         
     - name: Install test dependencies
       run: |
@@ -227,31 +248,39 @@ jobs:
 
     needs: cmaboss_conda
     
+    strategy:
+      matrix:
+        version: [{python: "3.8", numpy: "1.22"}, {python: "3.9", numpy: "1.22"}, {python: "3.10", numpy: "1.22"}, {python: "3.11", numpy: "1.23"}, {python: "3.12", numpy: "1.26"}]
+       
+    defaults:
+      run:
+        shell: bash -el {0}
+    
     steps:
     - uses: actions/checkout@v4
-    - uses: s-weigand/setup-conda@v1
+    - uses: conda-incubator/setup-miniconda@v3
       with:
-        update-conda: true
+        auto-update-conda: true
+        channels: conda-forge
+        python-version: ${{ matrix.version.python }}
+        miniforge-variant: Mambaforge
+        use-mamba: true
     
     - name: Caching produced conda package
       uses: actions/cache@v4
       with:
         path: |
-          /usr/share/miniconda/conda-bld/linux-64/*
-        key: ${{ runner.os }}-cmaboss-conda-${{ github.run_id }}
+          /home/runner/miniconda3/envs/test/conda-bld/*
+        key: ${{ runner.os }}-cmaboss-conda-${{ github.run_id }}-${{ matrix.version.python }}
         
     - name: Install conda-build
       run: |
-        conda update conda
-        conda config --add channels conda-forge
-        conda config --set channel_priority strict
-        conda update conda --all
-        conda install conda-build
+        conda install conda-build conda-index
      
     - name: Install package
       run: |
-        conda index /usr/share/miniconda/conda-bld
-        conda install --use-local -c colomoto cmaboss
+        python -m conda_index /home/runner/miniconda3/envs/test/conda-bld/
+        conda install -c file:///home/runner/miniconda3/envs/test/conda-bld/ -c colomoto cmaboss
         
     - name: Install test dependencies
       run: |
@@ -269,65 +298,84 @@ jobs:
 
     needs: cmaboss_conda_defaults_test
     
+    strategy:
+      matrix:
+        version: [{python: "3.8", numpy: "1.22"}, {python: "3.9", numpy: "1.22"}, {python: "3.10", numpy: "1.22"}, {python: "3.11", numpy: "1.23"}, {python: "3.12", numpy: "1.26"}]
+       
+    defaults:
+      run:
+        shell: bash -el {0}
+    
     steps:
     - uses: actions/checkout@v4
-    - uses: s-weigand/setup-conda@v1
+    - uses: conda-incubator/setup-miniconda@v3
       with:
-        update-conda: true
+        auto-update-conda: true
+        channels: defaults
+        python-version: 3.12
+        miniforge-variant: Mambaforge
+        use-mamba: true
     
     - name: Caching produced conda package
       uses: actions/cache@v4
       with:
         path: |
-          /usr/share/miniconda/conda-bld/linux-64/*
-        key: ${{ runner.os }}-cmaboss-conda-defaults-${{ github.run_id }}
+          /home/runner/miniconda3/envs/test/conda-bld/*
+        key: ${{ runner.os }}-cmaboss-conda-defaults-${{ github.run_id }}-${{ matrix.version.python }}
               
     - name: Install anaconda-client
       run: |
-        conda update conda
-        conda update --all
         conda install anaconda-client
      
     - name: Upload cMaBoSS Ananconda package on vincent-noel
       run: |
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/share/miniconda/conda-bld/linux-64/*.tar.bz2 --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /home/runner/miniconda3/envs/test/conda-bld/linux-64/*.tar.bz2 --force;
 
     - name: Upload cMaBoSS Ananconda package on colomoto
       if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
       run: |
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/share/miniconda/conda-bld/linux-64/*.tar.bz2 --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /home/runner/miniconda3/envs/test/conda-bld/linux-64/*.tar.bz2 --force;
+        
   cmaboss_conda_publish:
     name: Publish cMaBoSS Anaconda package (conda-forge)
     runs-on: ubuntu-22.04
 
     needs: cmaboss_conda_test
     
+    strategy:
+      matrix:
+        version: [{python: "3.8", numpy: "1.22"}, {python: "3.9", numpy: "1.22"}, {python: "3.10", numpy: "1.22"}, {python: "3.11", numpy: "1.23"}, {python: "3.12", numpy: "1.26"}]
+       
+    defaults:
+      run:
+        shell: bash -el {0}
+    
     steps:
     - uses: actions/checkout@v4
-    - uses: s-weigand/setup-conda@v1
+    - uses: conda-incubator/setup-miniconda@v3
       with:
-        update-conda: true
+        auto-update-conda: true
+        channels: conda-forge
+        python-version: 3.12
+        miniforge-variant: Mambaforge
+        use-mamba: true
     
     - name: Caching produced conda package
       uses: actions/cache@v4
       with:
         path: |
-          /usr/share/miniconda/conda-bld/linux-64/*
-        key: ${{ runner.os }}-cmaboss-conda-${{ github.run_id }}
+          /home/runner/miniconda3/envs/test/conda-bld/*
+        key: ${{ runner.os }}-cmaboss-conda-${{ github.run_id }}-${{ matrix.version.python }}
               
     - name: Install anaconda-client
       run: |
-        conda update conda
-        conda config --add channels conda-forge
-        conda config --set channel_priority strict
-        conda update --all
         conda install anaconda-client
      
     - name: Upload cMaBoSS Ananconda package on vincent-noel
       run: |
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/share/miniconda/conda-bld/linux-64/*.tar.bz2 --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /home/runner/miniconda3/envs/test/conda-bld/linux-64/*.tar.bz2 --force;
 
     - name: Upload cMaBoSS Ananconda package on colomoto
       if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
       run: |
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/share/miniconda/conda-bld/linux-64/*.tar.bz2 --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /home/runner/miniconda3/envs/test/conda-bld/linux-64/*.tar.bz2 --force;

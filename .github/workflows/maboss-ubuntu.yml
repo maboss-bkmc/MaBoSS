@@ -416,16 +416,22 @@ jobs:
 
     needs: [maboss, maboss_llvm, maboss_mpi]
     
+    defaults:
+      run:
+        shell: bash -el {0}
+
     steps:
     - uses: actions/checkout@v4
-    - uses: s-weigand/setup-conda@v1
+    - uses: conda-incubator/setup-miniconda@v3
       with:
-        update-conda: true
-    
+        auto-update-conda: true
+        channels: defaults
+        python-version: 3.12
+        miniforge-variant: Mambaforge
+        use-mamba: true
+        
     - name: Install conda-build
       run: |
-        conda update conda
-        conda update conda --all
         conda install conda-build anaconda-client conda-verify
       
     - name: Build Anaconda package
@@ -436,7 +442,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: |
-          /usr/share/miniconda/conda-bld/linux-64/*
+          /home/runner/miniconda3/envs/test/conda-bld/*
         key: ${{ runner.os }}-maboss-conda-defaults-${{ github.run_id }}
            
   maboss_conda:
@@ -445,18 +451,22 @@ jobs:
 
     needs: [maboss, maboss_llvm, maboss_mpi]
     
+    defaults:
+      run:
+        shell: bash -el {0}
     steps:
     - uses: actions/checkout@v4
-    - uses: s-weigand/setup-conda@v1
+    - uses: conda-incubator/setup-miniconda@v3
       with:
-        update-conda: true
     
+        auto-update-conda: true
+        channels: conda-forge
+        python-version: 3.12
+        miniforge-variant: Mambaforge
+        use-mamba: true
+        
     - name: Install conda-build
       run: |
-        conda update conda
-        conda config --add channels conda-forge
-        conda config --set channel_priority strict
-        conda update conda --all
         conda install conda-build anaconda-client conda-verify
       
     - name: Build Anaconda package
@@ -467,7 +477,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: |
-          /usr/share/miniconda/conda-bld/linux-64/*
+          /home/runner/miniconda3/envs/test/conda-bld/*
         key: ${{ runner.os }}-maboss-conda-${{ github.run_id }}
         
   
@@ -476,40 +486,45 @@ jobs:
     runs-on: ubuntu-22.04
 
     needs: maboss_conda_defaults
-     
+
+    defaults:
+      run:
+        shell: bash -el {0}
+  
     steps:
     - uses: actions/checkout@v4
-    - uses: s-weigand/setup-conda@v1
+    - uses: conda-incubator/setup-miniconda@v3
       with:
-        update-conda: true
-    
+        auto-update-conda: true
+        channels: defaults
+        python-version: 3.12
+        miniforge-variant: Mambaforge
+        use-mamba: true
+               
     - name: Caching produced conda package
       uses: actions/cache@v4
       with:
         path: |
-          /usr/share/miniconda/conda-bld/linux-64/*
+          /home/runner/miniconda3/envs/test/conda-bld/*
         key: ${{ runner.os }}-maboss-conda-defaults-${{ github.run_id }}
         
     - name: Install conda-build
       run: |
-        conda update conda
-        conda config --set channel_priority strict
-        conda update conda --all
         conda install conda-build
-     
+      
     - name: Install package
       run: |
-        conda index /usr/share/miniconda/conda-bld
-        conda install --use-local -c colomoto maboss
-       
+        python -m conda_index /home/runner/miniconda3/envs/test/conda-bld/
+        conda install -c file:///home/runner/miniconda3/envs/test/conda-bld/ -c colomoto maboss
+        
     - name: Test package
       run: |
         pip install numpy
-        export MABOSS=/usr/share/miniconda/bin/MaBoSS
-        export MABOSS_128n=/usr/share/miniconda/bin/MaBoSS_128n
-        export MABOSS_CLIENT=/usr/share/miniconda/bin/MaBoSS-client
-        export MABOSS_SERVER=/usr/share/miniconda/bin/MaBoSS-server
-        export MABOSS_SERVER_128n=/usr/share/miniconda/bin/MaBoSS_128n-server
+        export MABOSS=/home/runner/miniconda3/envs/test/bin/MaBoSS
+        export MABOSS_128n=/home/runner/miniconda3/envs/test/bin/MaBoSS_128n
+        export MABOSS_CLIENT=/home/runner/miniconda3/envs/test/bin/MaBoSS-client
+        export MABOSS_SERVER=/home/runner/miniconda3/envs/test/bin/MaBoSS-server
+        export MABOSS_SERVER_128n=/home/runner/miniconda3/envs/test/bin/MaBoSS_128n-server
         bash -c "cd engine/tests; bash ./test-cellcycle.sh"
         bash -c "cd engine/tests; bash ./test-ensemble.sh"
         bash -c "cd engine/tests; bash ./test-ewing.sh"
@@ -517,46 +532,51 @@ jobs:
         bash -c "cd engine/tests; bash ./test-prngs.sh"
         bash -c "cd engine/tests; bash ./test-rngs.sh"
         bash -c "cd engine/tests; bash ./test-sbml.sh"
+        
   maboss_conda_test:
     name: Test MaBoSS Anaconda package (conda-forge)
     runs-on: ubuntu-22.04
 
     needs: maboss_conda
-     
+      
+    defaults:
+      run:
+        shell: bash -el {0}
+
     steps:
     - uses: actions/checkout@v4
-    - uses: s-weigand/setup-conda@v1
+    - uses: conda-incubator/setup-miniconda@v3
       with:
-        update-conda: true
-    
+        auto-update-conda: true
+        channels: conda-forge
+        python-version: 3.12
+        miniforge-variant: Mambaforge
+        use-mamba: true
+              
     - name: Caching produced conda package
       uses: actions/cache@v4
       with:
         path: |
-          /usr/share/miniconda/conda-bld/linux-64/*
+          /home/runner/miniconda3/envs/test/conda-bld/*
         key: ${{ runner.os }}-maboss-conda-${{ github.run_id }}
         
     - name: Install conda-build
       run: |
-        conda update conda
-        conda config --add channels conda-forge
-        conda config --set channel_priority strict
-        conda update conda --all
-        conda install conda-build
-     
+        conda install conda-build conda-index
+      
     - name: Install package
       run: |
-        conda index /usr/share/miniconda/conda-bld
-        conda install --use-local -c colomoto maboss
-       
+        python -m conda_index /home/runner/miniconda3/envs/test/conda-bld/
+        conda install -c file:///home/runner/miniconda3/envs/test/conda-bld/ -c colomoto maboss
+        
     - name: Test package
       run: |
         pip install numpy
-        export MABOSS=/usr/share/miniconda/bin/MaBoSS
-        export MABOSS_128n=/usr/share/miniconda/bin/MaBoSS_128n
-        export MABOSS_CLIENT=/usr/share/miniconda/bin/MaBoSS-client
-        export MABOSS_SERVER=/usr/share/miniconda/bin/MaBoSS-server
-        export MABOSS_SERVER_128n=/usr/share/miniconda/bin/MaBoSS_128n-server
+        export MABOSS=/home/runner/miniconda3/envs/test/bin/MaBoSS
+        export MABOSS_128n=/home/runner/miniconda3/envs/test/bin/MaBoSS_128n
+        export MABOSS_CLIENT=/home/runner/miniconda3/envs/test/bin/MaBoSS-client
+        export MABOSS_SERVER=/home/runner/miniconda3/envs/test/bin/MaBoSS-server
+        export MABOSS_SERVER_128n=/home/runner/miniconda3/envs/test/bin/MaBoSS_128n-server
         bash -c "cd engine/tests; bash ./test-cellcycle.sh"
         bash -c "cd engine/tests; bash ./test-ensemble.sh"
         bash -c "cd engine/tests; bash ./test-ewing.sh"
@@ -570,69 +590,79 @@ jobs:
     runs-on: ubuntu-22.04
 
     needs: maboss_conda_test_defaults
-     
+  
+    defaults:
+      run:
+        shell: bash -el {0}
+    
     steps:
     - uses: actions/checkout@v4
-    - uses: s-weigand/setup-conda@v1
+    - uses: conda-incubator/setup-miniconda@v3
       with:
-        update-conda: true
+        auto-update-conda: true
+        miniforge-variant: Mambaforge
+        channels: defaults
+        python-version: 3.12
+        use-mamba: true
     
     - name: Restoring cached conda package
       uses: actions/cache@v4
       with:
         path: |
-          /usr/share/miniconda/conda-bld/linux-64/*
+          /home/runner/miniconda3/envs/test/conda-bld/*
         key: ${{ runner.os }}-maboss-conda-defaults-${{ github.run_id }}
     
     - name: Install anaconda-client
       run: |
-        conda update conda
-        conda update --all
         conda install anaconda-client
     
     - name: Upload MaBoSS Ananconda package on vincent-noel
       run: |
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/share/miniconda/conda-bld/linux-64/*.tar.bz2 --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /home/runner/miniconda3/envs/test/conda-bld/linux-64/*.tar.bz2 --force;
     
     - name: Upload MaBoSS Ananconda package on colomoto
       if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
       run: |
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/share/miniconda/conda-bld/linux-64/*.tar.bz2 --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /home/runner/miniconda3/envs/test/conda-bld/linux-64/*.tar.bz2 --force;
     
   maboss_conda_publish:
     name: Publish MaBoSS Anaconda package (conda-forge)
     runs-on: ubuntu-22.04
 
     needs: maboss_conda_test
-     
+    
+    defaults:
+      run:
+        shell: bash -el {0}
+
     steps:
     - uses: actions/checkout@v4
-    - uses: s-weigand/setup-conda@v1
+    - uses: conda-incubator/setup-miniconda@v3
       with:
-        update-conda: true
+        auto-update-conda: true
+        miniforge-variant: Mambaforge
+        channels: conda-forge
+        python-version: 3.12
+        use-mamba: true
     
     - name: Restoring cached conda package
       uses: actions/cache@v4
       with:
         path: |
-          /usr/share/miniconda/conda-bld/linux-64/*
+          /home/runner/miniconda3/envs/test/conda-bld/*
         key: ${{ runner.os }}-maboss-conda-${{ github.run_id }}
     
     - name: Install anaconda-client
       run: |
-        conda update conda
-        conda config --add channels conda-forge
-        conda config --set channel_priority strict
-        conda update --all
         conda install anaconda-client
     
     - name: Upload MaBoSS Ananconda package on vincent-noel
       run: |
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/share/miniconda/conda-bld/linux-64/*.tar.bz2 --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /home/runner/miniconda3/envs/test/conda-bld/linux-64/*.tar.bz2 --force;
     
     - name: Upload MaBoSS Ananconda package on colomoto
       if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
       run: |
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/share/miniconda/conda-bld/linux-64/*.tar.bz2 --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /home/runner/miniconda3/envs/test/conda-bld/linux-64/*.tar.bz2 --force;
     
   
