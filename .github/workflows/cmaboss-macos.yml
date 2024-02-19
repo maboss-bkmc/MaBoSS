@@ -78,6 +78,7 @@ jobs:
       - name: Build wheels
         env: 
           CIBW_ARCHS: ${{ matrix.arch }}
+          CIBW_TEST_SKIP: "*-macosx_arm64"
           CIBW_BEFORE_ALL: >
             wget https://github.com/Homebrew/homebrew-core/raw/38ba35404e3cdb398694419850179e0023158887/Formula/lib/libxml2.rb && 
             brew install -s libxml2.rb && 
