@@ -28,7 +28,6 @@ jobs:
 
     - name: Manually install libxml2 2.11
       run: |
-        brew uninstall --ignore-dependencies libxml2
         wget https://github.com/Homebrew/homebrew-core/raw/38ba35404e3cdb398694419850179e0023158887/Formula/lib/libxml2.rb
         brew install -s libxml2.rb
         
@@ -78,7 +77,6 @@ jobs:
 
     - name: Manually install libxml2 2.11
       run: |
-        brew uninstall --ignore-dependencies libxml2
         wget https://github.com/Homebrew/homebrew-core/raw/38ba35404e3cdb398694419850179e0023158887/Formula/lib/libxml2.rb
         brew install -s libxml2.rb
         
@@ -144,8 +142,13 @@ jobs:
     - uses: actions/checkout@v4
     - name: Install dependencies
       run : |
-        brew install flex bison libxml2 cmake gcc@11
+        brew install flex bison cmake gcc@11
       
+    - name: Manually install libxml2 2.11
+      run: |
+        wget https://github.com/Homebrew/homebrew-core/raw/38ba35404e3cdb398694419850179e0023158887/Formula/lib/libxml2.rb
+        brew install -s libxml2.rb
+    
     - name: Cache compiled libSBML
       id: cache-libsbml-clang
       uses: actions/cache@v4
@@ -301,8 +304,13 @@ jobs:
     - uses: actions/checkout@v4
     - name: Install dependencies
       run : |
-        brew install flex bison gcc@11 libxml2 cmake
-    
+        brew install flex bison gcc@11 cmake
+        
+    - name: Manually install libxml2 2.11
+      run: |
+        wget https://github.com/Homebrew/homebrew-core/raw/38ba35404e3cdb398694419850179e0023158887/Formula/lib/libxml2.rb
+        brew install -s libxml2.rb
+      
     - name: Cache compiled libSBML
       id: cache-libsbml-gcc11
       uses: actions/cache@v4

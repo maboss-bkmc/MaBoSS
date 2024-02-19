@@ -26,7 +26,6 @@ jobs:
 
     - name: Manually install libxml2 2.11
       run: |
-        brew uninstall --ignore-dependencies libxml2
         wget https://github.com/Homebrew/homebrew-core/raw/38ba35404e3cdb398694419850179e0023158887/Formula/lib/libxml2.rb
         brew install -s libxml2.rb
         
@@ -80,7 +79,6 @@ jobs:
         env: 
           CIBW_ARCHS: ${{ matrix.arch }}
           CIBW_BEFORE_ALL: >
-            brew uninstall --ignore-dependencies libxml2 &&
             wget https://github.com/Homebrew/homebrew-core/raw/38ba35404e3cdb398694419850179e0023158887/Formula/lib/libxml2.rb && 
             brew install -s libxml2.rb && 
             GCC=clang CXX=clang++ INSTALL_PATH=/usr/local/ BUILD_PATH=/tmp/ \
