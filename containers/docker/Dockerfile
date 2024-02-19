@@ -5,7 +5,9 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Installing dependencies
 RUN apt-get -qq update
-RUN apt-get install -yq git flex bison gcc g++ make libxml2-dev cmake wget
+RUN apt-get install -yq git flex bison gcc g++ make libxml2-dev cmake wget \
+    && apt clean -y \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN wget https://github.com/sbmlteam/libsbml/archive/refs/tags/v5.20.2.tar.gz \
     && tar -zxf v5.20.2.tar.gz \
@@ -33,7 +35,8 @@ RUN wget https://github.com/sbmlteam/libsbml/archive/refs/tags/v5.20.2.tar.gz \
     && make \
     && make install \
     && cd ../../ \
-    && rm -fr libsbml-5.20.2
+    && rm -fr libsbml-5.20.2 \
+    && rm -fr /opt/MaBoSS-env-2.0/.git
     
 # Installing MaBoSS
 ADD engine/src /opt/MaBoSS-env-2.0/engine/src

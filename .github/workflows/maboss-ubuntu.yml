@@ -299,7 +299,6 @@ jobs:
   test_docker:
     name: Docker MaBoSS Server
     runs-on: ubuntu-22.04
-
     needs: [maboss, maboss_llvm, maboss_mpi]
     
     steps:
@@ -318,18 +317,73 @@ jobs:
     - name: Test MaBoSS docker server
       run: |
         bash -c "cd engine/tests; bash ./test-container.sh"
-  
+        
+    - name: Cache Docker images.
+      uses: ScribeMD/docker-cache@0.3.7
+      with:
+        key: docker-${{ runner.os }}-${{ github.run_id }}
+
+  publish_docker_hub:
+    name: Docker MaBoSS Server
+    runs-on: ubuntu-22.04
+    needs: [test_docker]
+    if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'sysbio-curie/MaBoSS-env-2.0'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Cache Docker images.
+      uses: ScribeMD/docker-cache@0.3.7
+      with:
+        key: docker-${{ runner.os }}-${{ github.run_id }}
+
     - name: Connect Docker Hub
-      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'sysbio-curie/MaBoSS-env-2.0'
       run: |
         echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
         
     - name: Upload Docker Hub
-      if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'sysbio-curie/MaBoSS-env-2.0'
       run: | 
-          docker tag maboss-server:latest vnoel/maboss-server:latest
-          docker push vnoel/maboss-server:latest
+          docker tag maboss:${{ github.event.release.tag_name }} vnoel/maboss:${{ github.event.release.tag_name }}
+          docker push vnoel/maboss:${{ github.event.release.tag_name }}
+            
+  publish_docker_github:
+    name: Publishing MaBoSS docker container to GitHub
+    runs-on: ubuntu-22.04
+    needs: [test_docker]
+    if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'sysbio-curie/MaBoSS-env-2.0'
     
+    env:
+        REGISTRY: ghcr.io
+        IMAGE_NAME: ${{ github.repository }}
+
+    permissions:
+        contents: read
+        packages: write
+    steps:
+    - uses: actions/checkout@v4
+          
+    - name: Log in to the Container registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata (tags, labels) for Docker
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: containers/docker/Dockerfile
+        push: true
+        tags: ${{ github.event.release.tag_name }}
+        labels: ${{ steps.meta.outputs.labels }}
+      
   test_singularity:
     name: Singularity MaBoSS Server
     runs-on: ubuntu-22.04

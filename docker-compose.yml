@@ -7,8 +7,8 @@ services:
       context: ./
       dockerfile: containers/docker/Dockerfile
 
-    image: maboss-server
-    container_name: maboss-server
+    image: maboss
+    container_name: maboss
     ports:
       - "7777:7777"
       - "7778:7778"
