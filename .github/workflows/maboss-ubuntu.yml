@@ -19,7 +19,7 @@ jobs:
       LIBXML_INCLUDEDIR: /usr/include/libxml2/
       
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Install dependencies
       run: |
@@ -28,7 +28,7 @@ jobs:
     
     - name: Cache compiled libSBML
       id: cache-libsbml-gcc
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: /tmp/libsbml-5.20.2
         key: ${{ runner.os }}-libSBML-5.20.2-gcc-namespace
@@ -61,7 +61,7 @@ jobs:
       LIBXML_LIBDIR: /usr/lib/x86_64-linux-gnu/libxml2.so
       LIBXML_INCLUDEDIR: /usr/include/libxml2/
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Install dependencies
       run : |
         sudo apt-get install flex bison clang
@@ -69,7 +69,7 @@ jobs:
         
     - name: Cache compiled libSBML
       id: cache-libsbml-clang
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: /tmp/libsbml-5.20.2
         key: ${{ runner.os }}-libSBML-5.20.2-clang-namespace
@@ -96,7 +96,7 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Install dependencies
       run: |
@@ -127,7 +127,7 @@ jobs:
     # if: github.event.workflow_run.conclusion == 'success' && (github.ref == 'refs/heads/master' || github.event_name == 'release')
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Install dependencies
       run: |
@@ -136,7 +136,7 @@ jobs:
     
     - name: Cache compiled libSBML
       id: cache-libsbml-gcc
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: /tmp/libsbml-5.20.2
         key: ${{ runner.os }}-libSBML-5.20.2-gcc-namespace
@@ -163,7 +163,7 @@ jobs:
         cd ../pub
         zip MaBoSS-linux64.zip *
         
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       if: github.event_name != 'release'
       with:
         name: MaBoSS-linux64
@@ -186,7 +186,7 @@ jobs:
     needs: [maboss, maboss_llvm, maboss_mpi]
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Install dependencies
       run: |
@@ -211,7 +211,7 @@ jobs:
         cd ../../../
         tar -zcvf libMaBoSS-linux64.tar.gz MaBoSS/README.md MaBoSS/LICENSE MaBoSS/engine/src MaBoSS/engine/include MaBoSS/engine/lib
         
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       if: github.event_name != 'release'
       with:
         name: libMaBoSS-linux64
@@ -241,7 +241,7 @@ jobs:
     # if: github.event.workflow_run.conclusion == 'success' && (github.ref == 'refs/heads/master' || github.event_name == 'release')
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Install dependencies
       run: |
@@ -249,7 +249,7 @@ jobs:
     
     - name: Cache compiled libSBML
       id: cache-libsbml-gcc
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: /tmp/libsbml-5.20.2
         key: ${{ runner.os }}-libSBML-5.20.2-gcc-namespace
@@ -280,7 +280,7 @@ jobs:
         cd ../../../
         tar -zcvf libMaBoSS-sbml-linux64.tar.gz MaBoSS/README.md MaBoSS/LICENSE MaBoSS/engine/src MaBoSS/engine/include MaBoSS/engine/lib
         
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       if: github.event_name != 'release'
       with:
         name: libMaBoSS-sbml-linux64
@@ -302,7 +302,7 @@ jobs:
     needs: [maboss, maboss_llvm, maboss_mpi]
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Install dependencies
       run: |
@@ -391,7 +391,7 @@ jobs:
     needs: [maboss, maboss_llvm, maboss_mpi]
    
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Install dependencies
       run: |
@@ -417,7 +417,7 @@ jobs:
     needs: [maboss, maboss_llvm, maboss_mpi]
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: s-weigand/setup-conda@v1
       with:
         update-conda: true
@@ -433,7 +433,7 @@ jobs:
         conda build -c colomoto conda/maboss
 
     - name: Caching produced conda package
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           /usr/share/miniconda/conda-bld/linux-64/*
@@ -446,7 +446,7 @@ jobs:
     needs: [maboss, maboss_llvm, maboss_mpi]
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: s-weigand/setup-conda@v1
       with:
         update-conda: true
@@ -464,7 +464,7 @@ jobs:
         CUSTOM_BUILD_NUMBER=1 conda build -c colomoto conda/maboss
 
     - name: Caching produced conda package
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           /usr/share/miniconda/conda-bld/linux-64/*
@@ -478,13 +478,13 @@ jobs:
     needs: maboss_conda_defaults
      
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: s-weigand/setup-conda@v1
       with:
         update-conda: true
     
     - name: Caching produced conda package
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           /usr/share/miniconda/conda-bld/linux-64/*
@@ -524,13 +524,13 @@ jobs:
     needs: maboss_conda
      
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: s-weigand/setup-conda@v1
       with:
         update-conda: true
     
     - name: Caching produced conda package
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           /usr/share/miniconda/conda-bld/linux-64/*
@@ -572,13 +572,13 @@ jobs:
     needs: maboss_conda_test_defaults
      
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: s-weigand/setup-conda@v1
       with:
         update-conda: true
     
     - name: Restoring cached conda package
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           /usr/share/miniconda/conda-bld/linux-64/*
@@ -606,13 +606,13 @@ jobs:
     needs: maboss_conda_test
      
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: s-weigand/setup-conda@v1
       with:
         update-conda: true
     
     - name: Restoring cached conda package
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           /usr/share/miniconda/conda-bld/linux-64/*

@@ -23,7 +23,7 @@ jobs:
       LIBXML_INCLUDEDIR: /mingw64/include/libxml2/
           
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - uses: msys2/setup-msys2@v2
       with:
@@ -42,7 +42,7 @@ jobs:
        
     - name: Cache compiled libSBML
       id: cache-libsbml-gcc
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: D:/a/_temp/msys64/tmp/libsbml-5.20.2
         key: ${{ runner.os }}-libSBML-5.20.2-namespace
@@ -82,7 +82,7 @@ jobs:
       LIBXML_INCLUDEDIR: /mingw64/include/libxml2/
           
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - uses: msys2/setup-msys2@v2
       with:
@@ -100,7 +100,7 @@ jobs:
        
     - name: Cache compiled libSBML
       id: cache-libsbml-gcc
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: D:/a/_temp/msys64/tmp/libsbml-5.20.2
         key: ${{ runner.os }}-libSBML-5.20.2-namespace
@@ -127,7 +127,7 @@ jobs:
         cd ../pub
         zip MaBoSS-win64.zip *
     
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       if: github.event_name != 'release'
       with:
         name: MaBoSS-win64
@@ -153,7 +153,7 @@ jobs:
         shell: msys2 {0}
         
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - uses: msys2/setup-msys2@v2
       with:
@@ -183,7 +183,7 @@ jobs:
         tar -zcvf libMaBoSS-win64.tar.gz MaBoSS/README.md MaBoSS/LICENSE MaBoSS/engine/src MaBoSS/engine/include MaBoSS/engine/lib
         
       
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       if: github.event_name != 'release'
       with:
         name: libMaBoSS-win64
@@ -218,7 +218,7 @@ jobs:
       LIBXML_INCLUDEDIR: /mingw64/include/libxml2/
           
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - uses: msys2/setup-msys2@v2
       with:
@@ -236,7 +236,7 @@ jobs:
        
     - name: Cache compiled libSBML
       id: cache-libsbml-gcc
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: D:/a/_temp/msys64/tmp/libsbml-5.20.2
         key: ${{ runner.os }}-libSBML-5.20.2-namespace
@@ -270,7 +270,7 @@ jobs:
         tar -zcvf libMaBoSS-sbml-win64.tar.gz MaBoSS/README.md MaBoSS/LICENSE MaBoSS/engine/src MaBoSS/engine/include MaBoSS/engine/lib
         
       
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       if: github.event_name != 'release'
       with:
         name: libMaBoSS-sbml-win64

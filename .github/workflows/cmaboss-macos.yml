@@ -18,7 +18,7 @@ jobs:
       LIBXML_LIBDIR: /usr/local/opt/libxml2/lib/libxml2.dylib
       LIBXML_INCLUDEDIR: /usr/local/opt/libxml2/include/libxml2/
     steps:
-    - uses: actions/checkout@v3 
+    - uses: actions/checkout@v4 
     - name: Install dependencies
       run: |
         brew install flex bison python3 cmake
@@ -32,7 +32,7 @@ jobs:
         
     - name: Cache compiled libSBML
       id: cache-libsbml-clang
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: /tmp/libsbml-5.20.2
         key: ${{ runner.os }}-libSBML-5.20.2-clang++-namespace
@@ -68,8 +68,8 @@ jobs:
     needs: cmaboss_macos
     
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.10' 
 
@@ -98,8 +98,9 @@ jobs:
           cp -r engine/src engine/python/cmaboss/
           python -m cibuildwheel --output-dir wheelhouse engine/python
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
+          name: wheels-${{ matrix.arch }}
           path: wheelhouse/*.whl
           
       - name: Upload cMaBoSS to test Pypi
@@ -126,7 +127,7 @@ jobs:
     needs: cmaboss_macos
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: s-weigand/setup-conda@v1
     
     - name: Install conda-build
@@ -153,7 +154,7 @@ jobs:
         conda build -c colomoto --variants "{\"python\": [\"3.12\"], \"numpy\": [\"1.26\"]}" conda/cmaboss;
         
     - name: Caching produced conda package
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           /usr/local/miniconda/conda-bld/osx-64/*
@@ -165,7 +166,7 @@ jobs:
     needs: cmaboss_macos
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: s-weigand/setup-conda@v1
     
     - name: Install conda-build
@@ -194,7 +195,7 @@ jobs:
         CUSTOM_BUILD_NUMBER=1 conda build -c conda-forge -c colomoto --variants "{\"python\": [\"3.12\"], \"numpy\": [\"1.26\"]}" conda/cmaboss;
         
     - name: Caching produced conda package
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           /usr/local/miniconda/conda-bld/osx-64/*
@@ -207,7 +208,7 @@ jobs:
     needs: conda_cmaboss_macosx
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: s-weigand/setup-conda@v1
     
     - name: Install conda-build
@@ -217,7 +218,7 @@ jobs:
         conda install conda-build anaconda-client
       
     - name: Caching produced conda package
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           /usr/local/miniconda/conda-bld/osx-64/*
@@ -244,7 +245,7 @@ jobs:
     needs: conda_cmaboss_conda_forge_macosx
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: s-weigand/setup-conda@v1
     
     - name: Install conda-build
@@ -256,7 +257,7 @@ jobs:
         conda install conda-build anaconda-client
       
     - name: Caching produced conda package
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           /usr/local/miniconda/conda-bld/osx-64/*
@@ -283,7 +284,7 @@ jobs:
     needs: cmaboss_conda_test_macosx
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: s-weigand/setup-conda@v1
     
     - name: Install conda-build
@@ -293,7 +294,7 @@ jobs:
         conda install conda-build anaconda-client
       
     - name: Caching produced conda package
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           /usr/local/miniconda/conda-bld/osx-64/*
@@ -315,7 +316,7 @@ jobs:
     needs: cmaboss_conda_test_conda_forge_macosx
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: s-weigand/setup-conda@v1
     
     - name: Install conda-build
@@ -327,7 +328,7 @@ jobs:
         conda install conda-build anaconda-client
       
     - name: Caching produced conda package
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           /usr/local/miniconda/conda-bld/osx-64/*

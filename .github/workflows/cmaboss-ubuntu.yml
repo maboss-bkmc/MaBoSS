@@ -20,7 +20,7 @@ jobs:
       LIBXML_INCLUDEDIR: /usr/include/libxml2
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Install dependencies
       run: |
@@ -29,7 +29,7 @@ jobs:
 
     - name: Cache compiled libSBML
       id: cache-libsbml-gcc
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: /tmp/libsbml-5.20.2
         key: ${{ runner.os }}-libSBML-5.20.2-gcc-namespace
@@ -61,8 +61,8 @@ jobs:
         build: ["cp*-manylinux_x86_64", "pp*-manylinux_x86_64"]
     needs: cmaboss
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.10' 
 
@@ -85,8 +85,16 @@ jobs:
           cp -r engine/src engine/python/cmaboss/
           python -m cibuildwheel --output-dir wheelhouse engine/python
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
+        if: matrix.build == 'cp*-manylinux_x86_64'
         with:
+          name: wheels-cpython
+          path: wheelhouse/*.whl
+          
+      - uses: actions/upload-artifact@v4
+        if: matrix.build == 'pp*-manylinux_x86_64'
+        with:
+          name: wheels-pypy
           path: wheelhouse/*.whl
           
       - name: Upload cMaBoSS to test Pypi
@@ -112,7 +120,7 @@ jobs:
     needs: cmaboss
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: s-weigand/setup-conda@v1
       with:
         update-conda: true
@@ -131,7 +139,7 @@ jobs:
         conda build -c colomoto --variants "{\"python\": [\"3.11\"], \"numpy\": [\"1.23\"]}" conda/cmaboss;
         conda build -c colomoto --variants "{\"python\": [\"3.12\"], \"numpy\": [\"1.26\"]}" conda/cmaboss;
     - name: Caching produced conda package
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           /usr/share/miniconda/conda-bld/linux-64/*
@@ -144,7 +152,7 @@ jobs:
     needs: cmaboss
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: s-weigand/setup-conda@v1
       with:
         update-conda: true
@@ -166,7 +174,7 @@ jobs:
         CUSTOM_BUILD_NUMBER=1 conda build -c conda-forge -c colomoto --variants "{\"python\": [\"3.12\"], \"numpy\": [\"1.26\"]}" conda/cmaboss;
         
     - name: Caching produced conda package
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           /usr/share/miniconda/conda-bld/linux-64/*
@@ -180,13 +188,13 @@ jobs:
     needs: cmaboss_conda_defaults
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: s-weigand/setup-conda@v1
       with:
         update-conda: true
     
     - name: Caching produced conda package
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           /usr/share/miniconda/conda-bld/linux-64/*
@@ -220,13 +228,13 @@ jobs:
     needs: cmaboss_conda
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: s-weigand/setup-conda@v1
       with:
         update-conda: true
     
     - name: Caching produced conda package
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           /usr/share/miniconda/conda-bld/linux-64/*
@@ -262,13 +270,13 @@ jobs:
     needs: cmaboss_conda_defaults_test
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: s-weigand/setup-conda@v1
       with:
         update-conda: true
     
     - name: Caching produced conda package
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           /usr/share/miniconda/conda-bld/linux-64/*
@@ -295,13 +303,13 @@ jobs:
     needs: cmaboss_conda_test
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: s-weigand/setup-conda@v1
       with:
         update-conda: true
     
     - name: Caching produced conda package
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           /usr/share/miniconda/conda-bld/linux-64/*

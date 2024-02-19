@@ -19,7 +19,7 @@ jobs:
       LIBXML_INCLUDEDIR: /usr/local/opt/libxml2/include/libxml2/
       
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Install dependencies
       run : |
         brew install flex bison gcc cmake
@@ -34,7 +34,7 @@ jobs:
         
     - name: Cache compiled libSBML
       id: cache-libsbml-gcc
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: /tmp/libsbml-5.20.2
         key: ${{ runner.os }}-libSBML-5.20.2-g++11-namespace
@@ -70,7 +70,7 @@ jobs:
       LIBXML_INCLUDEDIR: /usr/local/opt/libxml2/include/libxml2/
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Install dependencies
       run : |
         brew install flex bison cmake
@@ -84,7 +84,7 @@ jobs:
         
     - name: Cache compiled libSBML
       id: cache-libsbml-clang
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: /tmp/libsbml-5.20.2
         key: ${{ runner.os }}-libSBML-5.20.2-clang++-namespace
@@ -112,7 +112,7 @@ jobs:
     runs-on: macos-11
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Install dependencies
       run : |
         brew install flex bison gcc@10 libxml2 cmake openmpi
@@ -141,14 +141,14 @@ jobs:
       LIBXML_INCLUDEDIR: /usr/local/opt/libxml2/include/libxml2/
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Install dependencies
       run : |
         brew install flex bison libxml2 cmake gcc@11
       
     - name: Cache compiled libSBML
       id: cache-libsbml-clang
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: /tmp/libsbml-5.20.2
         key: ${{ runner.os }}-libSBML-5.20.2-clang++-namespace
@@ -173,7 +173,7 @@ jobs:
         cd ../pub
         zip MaBoSS-osx64.zip *
     
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       if: github.event_name != 'release'
       with:
         name: MaBoSS-osx64
@@ -195,7 +195,7 @@ jobs:
     needs: [maboss_macos, maboss_llvm_macos, maboss_mpi_macos]
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Install dependencies
       run : |
         brew install flex bison gcc@11
@@ -219,7 +219,7 @@ jobs:
         cd ../../../
         tar -zcvf libMaBoSS-osx64.tar.gz MaBoSS/README.md MaBoSS/LICENSE MaBoSS/engine/src MaBoSS/engine/include MaBoSS/engine/lib
         
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       if: github.event_name != 'release'
       with:
         name: libMaBoSS-osx64
@@ -269,7 +269,7 @@ jobs:
         cd ../../../
         tar -zcvf libMaBoSS-macos-arm64.tar.gz MaBoSS/README.md MaBoSS/LICENSE MaBoSS/engine/src MaBoSS/engine/include MaBoSS/engine/lib
         
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       if: github.event_name != 'release'
       with:
         name: libMaBoSS-macos-arm64
@@ -298,14 +298,14 @@ jobs:
       LIBXML_INCLUDEDIR: /usr/local/opt/libxml2/include/libxml2
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Install dependencies
       run : |
         brew install flex bison gcc@11 libxml2 cmake
     
     - name: Cache compiled libSBML
       id: cache-libsbml-gcc11
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: /tmp/libsbml-5.20.2
         key: ${{ runner.os }}-libSBML-5.20.2-g++11-namespace
@@ -339,7 +339,7 @@ jobs:
         cd ../../../
         tar -zcvf libMaBoSS-sbml-osx64.tar.gz MaBoSS/README.md MaBoSS/LICENSE MaBoSS/engine/src MaBoSS/engine/include MaBoSS/engine/lib
         
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       if: github.event_name != 'release'
       with:
         name: libMaBoSS-sbml-osx64
@@ -363,7 +363,7 @@ jobs:
     needs: [maboss_macos, maboss_llvm_macos, maboss_mpi_macos]
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: s-weigand/setup-conda@v1
     
     - name: Installing conda-build      
@@ -386,7 +386,7 @@ jobs:
         conda build -c colomoto conda/maboss
           
     - name: Caching produced conda package
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           /usr/local/miniconda/conda-bld/osx-64/*
@@ -398,7 +398,7 @@ jobs:
     needs: [maboss_macos, maboss_llvm_macos, maboss_mpi_macos]
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: s-weigand/setup-conda@v1
 
     - name: Installing conda-build      
@@ -423,7 +423,7 @@ jobs:
         CUSTOM_BUILD_NUMBER=1 conda build -c colomoto conda/maboss
           
     - name: Caching produced conda package
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           /usr/local/miniconda/conda-bld/osx-64/*
@@ -435,7 +435,7 @@ jobs:
     needs: conda_maboss_macosx
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: s-weigand/setup-conda@v1
     
     - name: Install conda-build
@@ -446,7 +446,7 @@ jobs:
         conda install conda-build anaconda-client
       
     - name: Caching produced conda package
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           /usr/local/miniconda/conda-bld/osx-64/*
@@ -479,7 +479,7 @@ jobs:
     needs: conda_maboss_conda_forge_macosx
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: s-weigand/setup-conda@v1
     
     - name: Install conda-build
@@ -491,7 +491,7 @@ jobs:
         conda install conda-build anaconda-client
       
     - name: Caching produced conda package
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           /usr/local/miniconda/conda-bld/osx-64/*
@@ -524,7 +524,7 @@ jobs:
     needs: maboss_conda_test_macosx
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: s-weigand/setup-conda@v1
     
     - name: Install conda-build
@@ -534,7 +534,7 @@ jobs:
         conda install conda-build anaconda-client
       
     - name: Caching produced conda package
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           /usr/local/miniconda/conda-bld/osx-64/*
@@ -557,7 +557,7 @@ jobs:
     needs: maboss_conda_test_conda_forge_macosx
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: s-weigand/setup-conda@v1
     
     - name: Install conda-build
@@ -569,7 +569,7 @@ jobs:
         conda install conda-build anaconda-client
       
     - name: Caching produced conda package
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           /usr/local/miniconda/conda-bld/osx-64/*
