@@ -104,32 +104,11 @@ jobs:
         
     - name: Test MaBoSS
       run: bash scripts/run_tests.sh
-  
-  maboss_mpi_macos:
-    name: MaBoSS MPI
-    runs-on: macos-11
-
-    steps:
-    - uses: actions/checkout@v4
-    - name: Install dependencies
-      run : |
-        brew install flex bison gcc@10 libxml2 cmake openmpi
-        pip install numpy
-        
-    - name: Build MaBoSS
-      run: |
-        cd engine/src
-        make clean
-        make CXX=mpic++ install MPI_COMPAT=1
-        make CXX=mpic++ install MPI_COMPAT=1 MAXNODES=128
-        
-    - name: Test MaBoSS
-      run: bash scripts/run_mpi_tests.sh
    
   maboss_binary_macos:
     name: MaBoSS MacOSX 64 bits binary
     runs-on: macos-11
-    needs: [maboss_macos, maboss_llvm_macos, maboss_mpi_macos]
+    needs: [maboss_macos, maboss_llvm_macos]
     env:
       GCC: clang
       CXX: clang++
@@ -195,7 +174,7 @@ jobs:
   maboss_library_macos:
     name: Building MaBoSS osx library
     runs-on: macos-11
-    needs: [maboss_macos, maboss_llvm_macos, maboss_mpi_macos]
+    needs: [maboss_macos, maboss_llvm_macos]
 
     steps:
     - uses: actions/checkout@v4
@@ -241,7 +220,7 @@ jobs:
   maboss_library_macos_m1:
     name: Building MaBoSS osx library for arm64 
     runs-on: flyci-macos-large-latest-m1
-    needs: [maboss_macos, maboss_llvm_macos, maboss_mpi_macos]
+    needs: [maboss_macos, maboss_llvm_macos]
 
     steps:
     - uses: actions/checkout@v4
@@ -291,7 +270,7 @@ jobs:
   maboss_library_sbml_macos:
     name: Building MaBoSS osx library with libSBML
     runs-on: macos-11
-    needs: [maboss_macos, maboss_llvm_macos, maboss_mpi_macos]
+    needs: [maboss_macos, maboss_llvm_macos]
     env:  
       GCC: gcc-11
       CXX: g++-11
@@ -368,7 +347,7 @@ jobs:
   conda_maboss_macosx:
     name: Build Conda MaBoSS package
     runs-on: macos-12
-    needs: [maboss_macos, maboss_llvm_macos, maboss_mpi_macos]
+    needs: [maboss_macos, maboss_llvm_macos]
 
     defaults:
       run:
@@ -411,7 +390,7 @@ jobs:
   conda_maboss_conda_forge_macosx:
     name: Build Conda MaBoSS package (conda-forge)
     runs-on: macos-12
-    needs: [maboss_macos, maboss_llvm_macos, maboss_mpi_macos]
+    needs: [maboss_macos, maboss_llvm_macos]
 
     defaults:
       run:
