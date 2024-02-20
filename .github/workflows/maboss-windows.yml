@@ -131,7 +131,7 @@ jobs:
       if: github.event_name != 'release'
       with:
         name: MaBoSS-win64
-        path: D:\a\MaBoSS-env-2.0/MaBoSS-env-2.0/engine/pub/MaBoSS-win64.zip
+        path: D:\a\MaBoSS/MaBoSS/engine/pub/MaBoSS-win64.zip
       
     - uses: actions/upload-release-asset@v1
       if: github.event_name == 'release'
@@ -140,7 +140,7 @@ jobs:
       with:
         upload_url: ${{ github.event.release.upload_url }}
         asset_name: MaBoSS-win64.zip
-        asset_path: D:\a\MaBoSS-env-2.0/MaBoSS-env-2.0/engine/pub/MaBoSS-win64.zip
+        asset_path: D:\a\MaBoSS/MaBoSS/engine/pub/MaBoSS-win64.zip
         asset_content_type: application/zip
         
   maboss_library_windows:
@@ -180,14 +180,14 @@ jobs:
         make install_alib MAXNODES=1024
         make clean
         cd ../../../
-        tar -zcvf libMaBoSS-win64.tar.gz MaBoSS-env-2.0/README.md MaBoSS-env-2.0/LICENSE MaBoSS-env-2.0/engine/src MaBoSS-env-2.0/engine/include MaBoSS-env-2.0/engine/lib
+        tar -zcvf libMaBoSS-win64.tar.gz MaBoSS/README.md MaBoSS/LICENSE MaBoSS/engine/src MaBoSS/engine/include MaBoSS/engine/lib
         
       
     - uses: actions/upload-artifact@v3
       if: github.event_name != 'release'
       with:
         name: libMaBoSS-win64
-        path: D:\a\MaBoSS-env-2.0/libMaBoSS-win64.tar.gz
+        path: D:\a\MaBoSS/libMaBoSS-win64.tar.gz
         
     - uses: actions/upload-release-asset@v1
       if: github.event_name == 'release'
@@ -197,7 +197,7 @@ jobs:
       with:
         upload_url: ${{ github.event.release.upload_url }}
         asset_name: libMaBoSS-win64.tar.gz
-        asset_path: D:\a\MaBoSS-env-2.0/libMaBoSS-win64.tar.gz
+        asset_path: D:\a\MaBoSS/libMaBoSS-win64.tar.gz
         asset_content_type: application/gzip
       
   maboss_sbml_library_windows:
@@ -267,14 +267,14 @@ jobs:
         make install_alib MAXNODES=1024 SBML_COMPAT=1
         make clean
         cd ../../../
-        tar -zcvf libMaBoSS-sbml-win64.tar.gz MaBoSS-env-2.0/README.md MaBoSS-env-2.0/LICENSE MaBoSS-env-2.0/engine/src MaBoSS-env-2.0/engine/include MaBoSS-env-2.0/engine/lib
+        tar -zcvf libMaBoSS-sbml-win64.tar.gz MaBoSS/README.md MaBoSS/LICENSE MaBoSS/engine/src MaBoSS/engine/include MaBoSS/engine/lib
         
       
     - uses: actions/upload-artifact@v3
       if: github.event_name != 'release'
       with:
         name: libMaBoSS-sbml-win64
-        path: D:\a\MaBoSS-env-2.0/libMaBoSS-sbml-win64.tar.gz
+        path: D:\a\MaBoSS/libMaBoSS-sbml-win64.tar.gz
         
     - uses: actions/upload-release-asset@v1
       if: github.event_name == 'release'
@@ -284,6 +284,6 @@ jobs:
       with:
         upload_url: ${{ github.event.release.upload_url }}
         asset_name: libMaBoSS-sbml-win64.tar.gz
-        asset_path: D:\a\MaBoSS-env-2.0/libMaBoSS-sbml-win64.tar.gz
+        asset_path: D:\a\MaBoSS/libMaBoSS-sbml-win64.tar.gz
         asset_content_type: application/gzip
   

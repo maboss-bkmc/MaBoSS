@@ -103,7 +103,7 @@ jobs:
           path: wheelhouse/*.whl
           
       - name: Upload cMaBoSS to test Pypi
-        if: github.repository == 'vincent-noel/MaBoSS-env-2.0' && github.ref == 'refs/heads/master'
+        if: github.repository == 'vincent-noel/MaBoSS' && github.ref == 'refs/heads/master'
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TEST_TOKEN }}
@@ -111,7 +111,7 @@ jobs:
           python -m twine upload --repository testpypi --skip-existing wheelhouse/cmaboss*
           
       - name: Upload cMaBoSS to Pypi
-        if: github.repository == 'sysbio-curie/MaBoSS-env-2.0' && github.event_name == 'release'
+        if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
@@ -305,7 +305,7 @@ jobs:
  
     
     - name: Upload MaBoSS to Anaconda cloud on colomoto
-      if: github.repository == 'sysbio-curie/MaBoSS-env-2.0' && github.event_name == 'release'
+      if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
       run: |   
         anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/local/miniconda/conda-bld/osx-64/*.tar.bz2 --force;
  
@@ -339,7 +339,7 @@ jobs:
  
     
     - name: Upload MaBoSS to Anaconda cloud on colomoto
-      if: github.repository == 'sysbio-curie/MaBoSS-env-2.0' && github.event_name == 'release'
+      if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
       run: |   
         anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/local/miniconda/conda-bld/osx-64/*.tar.bz2 --force;
             

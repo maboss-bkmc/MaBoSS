@@ -167,7 +167,7 @@ jobs:
       if: github.event_name != 'release'
       with:
         name: MaBoSS-linux64
-        path: /home/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/engine/pub/MaBoSS-linux64.zip
+        path: /home/runner/work/MaBoSS/MaBoSS/engine/pub/MaBoSS-linux64.zip
         
     - uses: actions/upload-release-asset@v1
       if: github.event_name == 'release'
@@ -176,7 +176,7 @@ jobs:
       with:
         upload_url: ${{ github.event.release.upload_url }}
         asset_name: MaBoSS-linux64.zip
-        asset_path: /home/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/engine/pub/MaBoSS-linux64.zip
+        asset_path: /home/runner/work/MaBoSS/MaBoSS/engine/pub/MaBoSS-linux64.zip
         asset_content_type: application/zip
   
   
@@ -209,13 +209,13 @@ jobs:
         make install_alib MAXNODES=1024
         make clean
         cd ../../../
-        tar -zcvf libMaBoSS-linux64.tar.gz MaBoSS-env-2.0/README.md MaBoSS-env-2.0/LICENSE MaBoSS-env-2.0/engine/src MaBoSS-env-2.0/engine/include MaBoSS-env-2.0/engine/lib
+        tar -zcvf libMaBoSS-linux64.tar.gz MaBoSS/README.md MaBoSS/LICENSE MaBoSS/engine/src MaBoSS/engine/include MaBoSS/engine/lib
         
     - uses: actions/upload-artifact@v3
       if: github.event_name != 'release'
       with:
         name: libMaBoSS-linux64
-        path: /home/runner/work/MaBoSS-env-2.0/libMaBoSS-linux64.tar.gz
+        path: /home/runner/work/MaBoSS/libMaBoSS-linux64.tar.gz
         
     - uses: actions/upload-release-asset@v1
       if: github.event_name == 'release'
@@ -224,7 +224,7 @@ jobs:
       with:
         upload_url: ${{ github.event.release.upload_url }}
         asset_name: libMaBoSS-linux64.tar.gz
-        asset_path: /home/runner/work/MaBoSS-env-2.0/libMaBoSS-linux64.tar.gz
+        asset_path: /home/runner/work/MaBoSS/libMaBoSS-linux64.tar.gz
         asset_content_type: application/gzip
   
   maboss_library_sbml:
@@ -278,13 +278,13 @@ jobs:
         make install_alib SBML_COMPAT=1 MAXNODES=1024
         make clean
         cd ../../../
-        tar -zcvf libMaBoSS-sbml-linux64.tar.gz MaBoSS-env-2.0/README.md MaBoSS-env-2.0/LICENSE MaBoSS-env-2.0/engine/src MaBoSS-env-2.0/engine/include MaBoSS-env-2.0/engine/lib
+        tar -zcvf libMaBoSS-sbml-linux64.tar.gz MaBoSS/README.md MaBoSS/LICENSE MaBoSS/engine/src MaBoSS/engine/include MaBoSS/engine/lib
         
     - uses: actions/upload-artifact@v3
       if: github.event_name != 'release'
       with:
         name: libMaBoSS-sbml-linux64
-        path: /home/runner/work/MaBoSS-env-2.0/libMaBoSS-sbml-linux64.tar.gz
+        path: /home/runner/work/MaBoSS/libMaBoSS-sbml-linux64.tar.gz
         
     - uses: actions/upload-release-asset@v1
       if: github.event_name == 'release'
@@ -293,7 +293,7 @@ jobs:
       with:
         upload_url: ${{ github.event.release.upload_url }}
         asset_name: libMaBoSS-sbml-linux64.tar.gz
-        asset_path: /home/runner/work/MaBoSS-env-2.0/libMaBoSS-sbml-linux64.tar.gz
+        asset_path: /home/runner/work/MaBoSS/libMaBoSS-sbml-linux64.tar.gz
         asset_content_type: application/gzip
         
   test_docker:
@@ -327,7 +327,7 @@ jobs:
     name: Docker MaBoSS Server
     runs-on: ubuntu-22.04
     needs: [test_docker]
-    if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'sysbio-curie/MaBoSS-env-2.0'
+    if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'sysbio-curie/MaBoSS'
     
     steps:
     - uses: actions/checkout@v4
@@ -350,7 +350,7 @@ jobs:
     name: Publishing MaBoSS docker container to GitHub
     runs-on: ubuntu-22.04
     needs: [test_docker]
-    if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'sysbio-curie/MaBoSS-env-2.0'
+    if: github.event_name == 'release' && github.event.action == 'created' && github.repository == 'sysbio-curie/MaBoSS'
     
     env:
         REGISTRY: ghcr.io
@@ -595,7 +595,7 @@ jobs:
         anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/share/miniconda/conda-bld/linux-64/*.tar.bz2 --force;
     
     - name: Upload MaBoSS Ananconda package on colomoto
-      if: github.repository == 'sysbio-curie/MaBoSS-env-2.0' && github.event_name == 'release'
+      if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
       run: |
         anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/share/miniconda/conda-bld/linux-64/*.tar.bz2 --force;
     
@@ -631,7 +631,7 @@ jobs:
         anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/share/miniconda/conda-bld/linux-64/*.tar.bz2 --force;
     
     - name: Upload MaBoSS Ananconda package on colomoto
-      if: github.repository == 'sysbio-curie/MaBoSS-env-2.0' && github.event_name == 'release'
+      if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
       run: |
         anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/share/miniconda/conda-bld/linux-64/*.tar.bz2 --force;
     

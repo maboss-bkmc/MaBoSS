@@ -1,5 +1,5 @@
 # MaBoSS : Markovian Boolean Stochastic Simulator 
-[![Linux Workflow](https://github.com/sysbio-curie/MaBoSS-env-2.0/actions/workflows/maboss-ubuntu.yml/badge.svg)](https://github.com/sysbio-curie/MaBoSS-env-2.0/actions/workflows/maboss-ubuntu.yml) [![MacOS Workflow](https://github.com/sysbio-curie/MaBoSS-env-2.0/actions/workflows/maboss-macos.yml/badge.svg)](https://github.com/sysbio-curie/MaBoSS-env-2.0/actions/workflows/maboss-macos.yml) [![Linux Workflow](https://github.com/sysbio-curie/MaBoSS-env-2.0/actions/workflows/maboss-windows.yml/badge.svg)](https://github.com/sysbio-curie/MaBoSS-env-2.0/actions/workflows/maboss-windows.yml)
+[![Linux Workflow](https://github.com/sysbio-curie/MaBoSS/actions/workflows/maboss-ubuntu.yml/badge.svg)](https://github.com/sysbio-curie/MaBoSS/actions/workflows/maboss-ubuntu.yml) [![MacOS Workflow](https://github.com/sysbio-curie/MaBoSS/actions/workflows/maboss-macos.yml/badge.svg)](https://github.com/sysbio-curie/MaBoSS/actions/workflows/maboss-macos.yml) [![Linux Workflow](https://github.com/sysbio-curie/MaBoSS/actions/workflows/maboss-windows.yml/badge.svg)](https://github.com/sysbio-curie/MaBoSS/actions/workflows/maboss-windows.yml)
 
 [![Anaconda-Server Badge](https://anaconda.org/sysbio-curie/maboss/badges/version.svg)](https://anaconda.org/sysbio-curie/maboss) [![PyPI version](https://badge.fury.io/py/cmaboss.svg)](https://badge.fury.io/py/cmaboss) <img align="right" height="100" src="https://maboss.curie.fr/images/maboss_logo.jpg">
 
@@ -26,8 +26,8 @@ Web Site: [https://maboss.curie.fr](https://maboss.curie.fr)
 
 The directory tutorial contains two tutorials: 
 
-- [MaBoSS 2.0 Tutorial](https://github.com/sysbio-curie/MaBoSS-env-2.0/tree/master/tutorial/MaBoSS-2.0), describing MaBoSS environment tools usage on model describing DNA damage effects on p53 pathway.
-- [MaBoSS 2.5.0 Tutorial](https://github.com/sysbio-curie/MaBoSS-env-2.0/tree/master/tutorial/Montagud_2021_Prostate_Cancer), describing usage of MaBoSS command line, pyMaBoSS (python bindings) and WebMaBoSS (web interface) on a prostate cancer model.
+- [MaBoSS 2.0 Tutorial](https://github.com/sysbio-curie/MaBoSS/tree/master/tutorial/MaBoSS-2.0), describing MaBoSS environment tools usage on model describing DNA damage effects on p53 pathway.
+- [MaBoSS 2.5.0 Tutorial](https://github.com/sysbio-curie/MaBoSS/tree/master/tutorial/Montagud_2021_Prostate_Cancer), describing usage of MaBoSS command line, pyMaBoSS (python bindings) and WebMaBoSS (web interface) on a prostate cancer model.
 
 ### Conda repository
 
@@ -38,7 +38,7 @@ To install it, run
     conda install -c colomoto maboss
 
 ### Package Contents
-MaBoSS-env-2.0 is composed of:
+MaBoSS is composed of:
 - MaBoSS engine 2.5.3: C++ core program simulating continuous/discrete time Markov processes, applied on a Boolean network.
 - MaBoSS tools 2.0: perl and python scripts using MaBoSS engine 2.0
 - cMaBoSS: python bindings using Python C API.
@@ -131,7 +131,7 @@ Finally, it you need the MPI compatible version, you need to have a MPI library 
     ./MaBoSS_100n --version
     MaBoSS version 2.5.3 [networks up to 100 nodes]
 
-The usage is described in the [reference card](https://github.com/sysbio-curie/MaBoSS-env-2.0/blob/master/engine/doc/MaBoSS-RefCard.pdf).
+The usage is described in the [reference card](https://github.com/sysbio-curie/MaBoSS/blob/master/engine/doc/MaBoSS-RefCard.pdf).
 
 To use the engine compiled with MPI capability : 
 
@@ -140,9 +140,9 @@ To use the engine compiled with MPI capability :
 ### Binary Distribution
 
 To avoid installing compilation tools, we provide binary versions for linux x86, MacOS X x86 and Windows x86:
-- linux   : [MaBoSS-linux64.zip](https://github.com/sysbio-curie/MaBoSS-env-2.0/releases/latest/download/MaBoSS-linux64.zip)
-- MacOS X : [MaBoSS-osx64.zip](https://github.com/sysbio-curie/MaBoSS-env-2.0/releases/latest/download/MaBoSS-osx64.zip)
-- Windows : [MaBoSS-win64.zip](https://github.com/sysbio-curie/MaBoSS-env-2.0/releases/latest/download/MaBoSS-win64.zip)
+- linux   : [MaBoSS-linux64.zip](https://github.com/sysbio-curie/MaBoSS/releases/latest/download/MaBoSS-linux64.zip)
+- MacOS X : [MaBoSS-osx64.zip](https://github.com/sysbio-curie/MaBoSS/releases/latest/download/MaBoSS-osx64.zip)
+- Windows : [MaBoSS-win64.zip](https://github.com/sysbio-curie/MaBoSS/releases/latest/download/MaBoSS-win64.zip)
 
 All these binary versions are provided "as is", they may not work on your OS. In such a case, you need to compile MaBoSS.
 
@@ -178,7 +178,7 @@ This will simulate a toy example available in the engine/example/popmaboss direc
 
 ### Environment
 
-Go to the directory of MaBoSS-env-2.0 and perform:
+Go to the directory of MaBoSS and perform:
     
     source MaBoSS.env
 

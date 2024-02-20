@@ -177,7 +177,7 @@ jobs:
       if: github.event_name != 'release'
       with:
         name: MaBoSS-osx64
-        path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/engine/pub/MaBoSS-osx64.zip
+        path: /Users/runner/work/MaBoSS/MaBoSS/engine/pub/MaBoSS-osx64.zip
             
     - uses: actions/upload-release-asset@v1
       if: github.event_name == 'release'
@@ -186,7 +186,7 @@ jobs:
       with:
         upload_url: ${{ github.event.release.upload_url }}
         asset_name: MaBoSS-osx64.zip
-        asset_path: /Users/runner/work/MaBoSS-env-2.0/MaBoSS-env-2.0/engine/pub/MaBoSS-osx64.zip
+        asset_path: /Users/runner/work/MaBoSS/MaBoSS/engine/pub/MaBoSS-osx64.zip
         asset_content_type: application/zip
         
   maboss_library_macos:
@@ -217,13 +217,13 @@ jobs:
         make install_alib MAXNODES=1024 GCC=gcc-11 CXX=g++-11
         make clean
         cd ../../../
-        tar -zcvf libMaBoSS-osx64.tar.gz MaBoSS-env-2.0/README.md MaBoSS-env-2.0/LICENSE MaBoSS-env-2.0/engine/src MaBoSS-env-2.0/engine/include MaBoSS-env-2.0/engine/lib
+        tar -zcvf libMaBoSS-osx64.tar.gz MaBoSS/README.md MaBoSS/LICENSE MaBoSS/engine/src MaBoSS/engine/include MaBoSS/engine/lib
         
     - uses: actions/upload-artifact@v3
       if: github.event_name != 'release'
       with:
         name: libMaBoSS-osx64
-        path: /Users/runner/work/MaBoSS-env-2.0/libMaBoSS-osx64.tar.gz
+        path: /Users/runner/work/MaBoSS/libMaBoSS-osx64.tar.gz
         
     - uses: actions/upload-release-asset@v1
       if: github.event_name == 'release'
@@ -232,7 +232,7 @@ jobs:
       with:
         upload_url: ${{ github.event.release.upload_url }}
         asset_name: libMaBoSS-osx64.tar.gz
-        asset_path: /Users/runner/work/MaBoSS-env-2.0/libMaBoSS-osx64.tar.gz
+        asset_path: /Users/runner/work/MaBoSS/libMaBoSS-osx64.tar.gz
         asset_content_type: application/gzip     
         
   maboss_library_macos_m1:
@@ -267,13 +267,13 @@ jobs:
         make install_alib MAXNODES=1024 GCC=gcc-13 CXX=g++-13
         make clean
         cd ../../../
-        tar -zcvf libMaBoSS-macos-arm64.tar.gz MaBoSS-env-2.0/README.md MaBoSS-env-2.0/LICENSE MaBoSS-env-2.0/engine/src MaBoSS-env-2.0/engine/include MaBoSS-env-2.0/engine/lib
+        tar -zcvf libMaBoSS-macos-arm64.tar.gz MaBoSS/README.md MaBoSS/LICENSE MaBoSS/engine/src MaBoSS/engine/include MaBoSS/engine/lib
         
     - uses: actions/upload-artifact@v3
       if: github.event_name != 'release'
       with:
         name: libMaBoSS-macos-arm64
-        path: /opt/actions-runner/_work/MaBoSS-env-2.0/libMaBoSS-macos-arm64.tar.gz
+        path: /opt/actions-runner/_work/MaBoSS/libMaBoSS-macos-arm64.tar.gz
         
     - uses: actions/upload-release-asset@v1
       if: github.event_name == 'release'
@@ -282,7 +282,7 @@ jobs:
       with:
         upload_url: ${{ github.event.release.upload_url }}
         asset_name: libMaBoSS-macos-arm64.tar.gz
-        asset_path: /Users/runner/work/MaBoSS-env-2.0/libMaBoSS-macos-arm64.tar.gz
+        asset_path: /Users/runner/work/MaBoSS/libMaBoSS-macos-arm64.tar.gz
         asset_content_type: application/gzip     
         
   maboss_library_sbml_macos:
@@ -337,13 +337,13 @@ jobs:
         make install_alib SBML_COMPAT=1 GCC=gcc-11 MAXNODES=1024 CXX=g++-11
         make clean
         cd ../../../
-        tar -zcvf libMaBoSS-sbml-osx64.tar.gz MaBoSS-env-2.0/README.md MaBoSS-env-2.0/LICENSE MaBoSS-env-2.0/engine/src MaBoSS-env-2.0/engine/include MaBoSS-env-2.0/engine/lib
+        tar -zcvf libMaBoSS-sbml-osx64.tar.gz MaBoSS/README.md MaBoSS/LICENSE MaBoSS/engine/src MaBoSS/engine/include MaBoSS/engine/lib
         
     - uses: actions/upload-artifact@v3
       if: github.event_name != 'release'
       with:
         name: libMaBoSS-sbml-osx64
-        path: /Users/runner/work/MaBoSS-env-2.0/libMaBoSS-sbml-osx64.tar.gz
+        path: /Users/runner/work/MaBoSS/libMaBoSS-sbml-osx64.tar.gz
         
     - uses: actions/upload-release-asset@v1
       if: github.event_name == 'release'
@@ -352,7 +352,7 @@ jobs:
       with:
         upload_url: ${{ github.event.release.upload_url }}
         asset_name: libMaBoSS-sbml-osx64.tar.gz
-        asset_path: /Users/runner/work/MaBoSS-env-2.0/libMaBoSS-sbml-osx64.tar.gz
+        asset_path: /Users/runner/work/MaBoSS/libMaBoSS-sbml-osx64.tar.gz
         asset_content_type: application/gzip
         
  
@@ -547,7 +547,7 @@ jobs:
  
     
     - name: Upload MaBoSS to Anaconda cloud on colomoto
-      if: github.repository == 'sysbio-curie/MaBoSS-env-2.0' && github.event_name == 'release'
+      if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
       run: |   
         anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/local/miniconda/conda-bld/osx-64/*.tar.bz2 --force;
  
@@ -582,7 +582,7 @@ jobs:
  
     
     - name: Upload MaBoSS to Anaconda cloud on colomoto
-      if: github.repository == 'sysbio-curie/MaBoSS-env-2.0' && github.event_name == 'release'
+      if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
       run: |   
         anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/local/miniconda/conda-bld/osx-64/*.tar.bz2 --force;
  

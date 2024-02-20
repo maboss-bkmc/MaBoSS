@@ -19,7 +19,7 @@ Once installed, we need to use a version of MaBoSS supporting at least 133 nodes
 
 Alternatively, MaBoSS_256n can be compiled from source after downloading it from the official GitHub repository : 
 
-    git clone https://github.com/sysbio-curie/MaBoSS-env-2.0
+    git clone https://github.com/sysbio-curie/MaBoSS
     cd engine/src
     make MAXNODES=256 install
 

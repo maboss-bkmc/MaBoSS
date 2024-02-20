@@ -36,16 +36,16 @@ RUN wget https://github.com/sbmlteam/libsbml/archive/refs/tags/v5.20.2.tar.gz \
     && make install \
     && cd ../../ \
     && rm -fr libsbml-5.20.2 \
-    && rm -fr /opt/MaBoSS-env-2.0/.git
+    && rm -fr /opt/MaBoSS/.git
     
 # Installing MaBoSS
-ADD engine/src /opt/MaBoSS-env-2.0/engine/src
-RUN bash -c "rm -fr /opt/MaBoSS-env-2.0/.git"
-RUN bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; make install SBML_COMPAT=1"
-RUN bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; make MAXNODES=128 install SBML_COMPAT=1"
-RUN bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; make MAXNODES=256 install SBML_COMPAT=1"
-RUN bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; make MAXNODES=512 install SBML_COMPAT=1"
-RUN bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; make MAXNODES=1024 install SBML_COMPAT=1"
+ADD engine/src /opt/MaBoSS/engine/src
+RUN bash -c "rm -fr /opt/MaBoSS/.git"
+RUN bash -c "cd /opt/MaBoSS/engine/src/; make install SBML_COMPAT=1"
+RUN bash -c "cd /opt/MaBoSS/engine/src/; make MAXNODES=128 install SBML_COMPAT=1"
+RUN bash -c "cd /opt/MaBoSS/engine/src/; make MAXNODES=256 install SBML_COMPAT=1"
+RUN bash -c "cd /opt/MaBoSS/engine/src/; make MAXNODES=512 install SBML_COMPAT=1"
+RUN bash -c "cd /opt/MaBoSS/engine/src/; make MAXNODES=1024 install SBML_COMPAT=1"
 
 # Exposing port 7777
 EXPOSE 7777
@@ -55,8 +55,8 @@ EXPOSE 7780
 EXPOSE 7781
 
 # Running MaBoSS server
-CMD /opt/MaBoSS-env-2.0/engine/pub/MaBoSS-server -q --host 0.0.0.0 --port 7777 \
- & /opt/MaBoSS-env-2.0/engine/pub/MaBoSS_128n-server -q --host 0.0.0.0 --port 7778 \
- & /opt/MaBoSS-env-2.0/engine/pub/MaBoSS_256n-server -q --host 0.0.0.0 --port 7779 \
- & /opt/MaBoSS-env-2.0/engine/pub/MaBoSS_512n-server -q --host 0.0.0.0 --port 7780 \
- & /opt/MaBoSS-env-2.0/engine/pub/MaBoSS_1024n-server -q --host 0.0.0.0 --port 7781
+CMD /opt/MaBoSS/engine/pub/MaBoSS-server -q --host 0.0.0.0 --port 7777 \
+ & /opt/MaBoSS/engine/pub/MaBoSS_128n-server -q --host 0.0.0.0 --port 7778 \
+ & /opt/MaBoSS/engine/pub/MaBoSS_256n-server -q --host 0.0.0.0 --port 7779 \
+ & /opt/MaBoSS/engine/pub/MaBoSS_512n-server -q --host 0.0.0.0 --port 7780 \
+ & /opt/MaBoSS/engine/pub/MaBoSS_1024n-server -q --host 0.0.0.0 --port 7781

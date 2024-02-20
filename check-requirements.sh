@@ -40,7 +40,7 @@
 # Author: Eric Viara
 # Date: Jan 2017
 #
-# Check MaBoSS-env-2.0 requirements
+# Check MaBoSS requirements
 #
 
 typeset -i error=0
@@ -70,7 +70,7 @@ check_prog()
     fi
 }
 
-tbchecked="MaBoSS engine 2.0 requirements"
+tbchecked="MaBoSS requirements"
 echo Checking ${tbchecked}...
 echo
 
@@ -79,7 +79,7 @@ check_prog bison
 check_prog gcc
 check_prog g++
 
-tmpfile=/tmp/MaBoSS-env-2-0
+tmpfile=/tmp/MaBoSS
 trap "rm -f $tmpfile ${tmpfile}.cpp ${tmpfile}.py" 0 1 2 3
 
 cat > ${tmpfile}.cpp <<EOF
@@ -112,7 +112,7 @@ fi
 echo
 
 error=0
-tbchecked="MaBoSS-env-2.0 tools requirements"
+tbchecked="MaBoSS tools requirements"
 echo Checking ${tbchecked}...
 echo
 

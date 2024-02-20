@@ -2,7 +2,7 @@ Bootstrap: docker
 from: ubuntu:22.04
 
 %files
-    . /opt/MaBoSS-env-2.0
+    . /opt/MaBoSS
 
 %post
     apt-get --quiet update
@@ -37,18 +37,18 @@ from: ubuntu:22.04
     make install
     cd ../../
     rm -fr libsbml-5.20.2
-    rm -fr /opt/MaBoSS-env-2.0/.git
+    rm -fr /opt/MaBoSS/.git
     
-    bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; make install SBML_COMPAT=1"
-    bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; make MAXNODES=128 install SBML_COMPAT=1"
-    bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; make MAXNODES=256 install SBML_COMPAT=1"
-    bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; make MAXNODES=512 install SBML_COMPAT=1"
-    bash -c "cd /opt/MaBoSS-env-2.0/engine/src/; make MAXNODES=1024 install SBML_COMPAT=1"
+    bash -c "cd /opt/MaBoSS/engine/src/; make install SBML_COMPAT=1"
+    bash -c "cd /opt/MaBoSS/engine/src/; make MAXNODES=128 install SBML_COMPAT=1"
+    bash -c "cd /opt/MaBoSS/engine/src/; make MAXNODES=256 install SBML_COMPAT=1"
+    bash -c "cd /opt/MaBoSS/engine/src/; make MAXNODES=512 install SBML_COMPAT=1"
+    bash -c "cd /opt/MaBoSS/engine/src/; make MAXNODES=1024 install SBML_COMPAT=1"
 
 
 %runscript
-    /opt/MaBoSS-env-2.0/engine/pub/MaBoSS-server -q --host 0.0.0.0 --port 7777 \
-    & /opt/MaBoSS-env-2.0/engine/pub/MaBoSS_128n-server -q --host 0.0.0.0 --port 7778 \
-    & /opt/MaBoSS-env-2.0/engine/pub/MaBoSS_256n-server -q --host 0.0.0.0 --port 7779 \
-    & /opt/MaBoSS-env-2.0/engine/pub/MaBoSS_512n-server -q --host 0.0.0.0 --port 7780 \
-    & /opt/MaBoSS-env-2.0/engine/pub/MaBoSS_1024n-server -q --host 0.0.0.0 --port 7781
+    /opt/MaBoSS/engine/pub/MaBoSS-server -q --host 0.0.0.0 --port 7777 \
+    & /opt/MaBoSS/engine/pub/MaBoSS_128n-server -q --host 0.0.0.0 --port 7778 \
+    & /opt/MaBoSS/engine/pub/MaBoSS_256n-server -q --host 0.0.0.0 --port 7779 \
+    & /opt/MaBoSS/engine/pub/MaBoSS_512n-server -q --host 0.0.0.0 --port 7780 \
+    & /opt/MaBoSS/engine/pub/MaBoSS_1024n-server -q --host 0.0.0.0 --port 7781
