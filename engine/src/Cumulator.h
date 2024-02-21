@@ -1141,7 +1141,9 @@ PyObject* getNumpyLastNodesDists(Network* network, std::vector<Node*> output_nod
     }
 
     //std::cout << "Trajepilogue #" << (sample_num+1) << " " << proba_max_time << '\n';
+#ifdef DEBUG
     double proba = 0;
+#endif
     curtraj_proba_dist_iter.rewind();
 
     ProbaDist<S>& proba_dist = proba_dist_v[sample_num++];
@@ -1152,7 +1154,9 @@ PyObject* getNumpyLastNodesDists(Network* network, std::vector<Node*> output_nod
       //assert(proba_dist.find(state) == proba_dist.end());
       double new_tm_slice = tm_slice / proba_max_time;
       proba_dist.set(state, new_tm_slice);
+#ifdef DEBUG      
       proba += new_tm_slice;
+#endif
     }
 
     assert(proba >= 0.9999 && proba <= 1.0001);
