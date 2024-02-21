@@ -152,7 +152,6 @@ void FinalStateSimulationEngine::runThread(unsigned int start_count_thread, unsi
 
     network->initStates(network_state, random_generator);
     double tm = 0.;
-    unsigned int step = 0;
     if (NULL != output_traj) {
       (*output_traj) << "\nTrajectory #" << (nn+1) << '\n';
       (*output_traj) << " istate\t";
@@ -210,7 +209,6 @@ void FinalStateSimulationEngine::runThread(unsigned int start_count_thread, unsi
 
       NodeIndex node_idx = getTargetNode(random_generator, nodeTransitionRates, total_rate);
       network_state.flipState(network->getNode(node_idx));
-      step++;
     }
 
     NetworkState_Impl final_state = network_state.getState();

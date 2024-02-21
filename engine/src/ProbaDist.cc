@@ -185,7 +185,6 @@ double ProbaDistCluster::similarity(unsigned int nn1, const ProbaDist<NetworkSta
   ProbaDist<NetworkState>::Iterator proba_dist1_iter = proba_dist1.iterator();
   double simil1 = 0.0;
   double simil2 = 0.0;
-  unsigned int out_of_support = 0;
   while (proba_dist1_iter.hasNext()) {
     double proba1, proba2;
     const NetworkState& state = proba_dist1_iter.next2(proba1);
@@ -193,9 +192,7 @@ double ProbaDistCluster::similarity(unsigned int nn1, const ProbaDist<NetworkSta
     if (proba_dist2.hasState(state, proba2)) {
       simil1 += proba1;
       simil2 += proba2;
-    } else {
-      out_of_support++;
-    }
+    } 
   }
 
   return simil1 * simil2;

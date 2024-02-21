@@ -227,7 +227,6 @@ void *PopMaBEstEngine::threadWrapper(void *arg)
 void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory *randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int> *fixpoint_map, std::ostream *output_traj)
 {
   const std::vector<Node *> &nodes = pop_network->getNodes();
-  unsigned int stable_cnt = 0;
   PopNetworkState pop_network_state;
 
   RandomGenerator *random_generator = randgen_factory->generateRandomGenerator(seed);
@@ -247,7 +246,6 @@ void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, unsigned 
     }
       
     double tm = 0.;
-    unsigned int step = 0;
     if (NULL != output_traj) {
       (*output_traj) << "\nTrajectory #" << (nn+1) << '\n';
       (*output_traj) << " istate\t";
@@ -368,8 +366,6 @@ void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, unsigned 
             {
               iter->second++;
             }
-
-            stable_cnt++;
           }
         }
       }
@@ -423,7 +419,6 @@ void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, unsigned 
 
       pop_network_state = getTargetNode(random_generator, popNodeTransitionRates, total_rate);
 
-      step++;
       if (verbose > 0) 
         std::cout << "> time = " << tm << std::endl;
         

@@ -83,7 +83,6 @@ NetworkState StochasticSimulationEngine::run(NetworkState& initial_state, std::o
   network_state = initial_state;
   
   double tm = 0.;
-  unsigned int step = 0;
   if (NULL != output_traj)
   {
     (*output_traj) << " istate\t";
@@ -152,7 +151,6 @@ NetworkState StochasticSimulationEngine::run(NetworkState& initial_state, std::o
 
     NodeIndex node_idx = getTargetNode(random_generator, nodeTransitionRates, total_rate);
     network_state.flipState(network->getNode(node_idx));
-    step++;
   }
   
   return network_state;

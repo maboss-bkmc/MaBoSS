@@ -145,7 +145,6 @@ void MaBEstEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int st
   const std::vector<Node*>& nodes = network->getNodes();
   std::vector<Node*>::const_iterator begin = nodes.begin();
   std::vector<Node*>::const_iterator end = nodes.end();
-  unsigned int stable_cnt = 0;
   NetworkState network_state; 
   Probe probe;
   probe.start();
@@ -157,7 +156,6 @@ void MaBEstEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int st
     cumulator->rewind();
     network->initStates(network_state, random_generator);
     double tm = 0.;
-    unsigned int step = 0;
     if (NULL != output_traj) {
       (*output_traj) << "\nTrajectory #" << (nn+1) << '\n';
       (*output_traj) << " istate\t";
@@ -199,7 +197,6 @@ void MaBEstEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int st
 	} else {
 	  iter->second++;
 	}
-	stable_cnt++;
       } else {
 	double transition_time ;
 	if (discrete_time) {
@@ -227,7 +224,6 @@ void MaBEstEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int st
 
       NodeIndex node_idx = getTargetNode(network, random_generator, nodeTransitionRates, total_rate);
       network_state.flipState(network->getNode(node_idx));
-      step++;
     }
     cumulator->trajectoryEpilogue();
   }

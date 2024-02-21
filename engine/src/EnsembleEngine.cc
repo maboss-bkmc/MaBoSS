@@ -387,7 +387,6 @@ void EnsembleEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int 
   RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj, 
   std::vector<unsigned int> simulation_ind, std::vector<Cumulator<NetworkState>*> t_models_cumulators, std::vector<STATE_MAP<NetworkState_Impl, unsigned int>* > t_models_fixpoints)
 {
-  unsigned int stable_cnt = 0;
   NetworkState network_state; 
   
   int model_ind = 0;
@@ -419,7 +418,6 @@ void EnsembleEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int 
     
     network->initStates(network_state, random_generator);
     double tm = 0.;
-    unsigned int step = 0;
     if (NULL != output_traj) {
       (*output_traj) << "\nTrajectory #" << (nn+1) << '\n';
       (*output_traj) << " istate\t";
@@ -471,7 +469,6 @@ void EnsembleEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int 
           }
         }
 
-        stable_cnt++;
             } else {
         double transition_time ;
         if (discrete_time) {
@@ -502,7 +499,6 @@ void EnsembleEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int 
 
       NodeIndex node_idx = getTargetNode(network, random_generator, nodeTransitionRates, total_rate);
       network_state.flipState(network->getNode(node_idx));
-      step++;
     }
 
     cumulator->trajectoryEpilogue();
