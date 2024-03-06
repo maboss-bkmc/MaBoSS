@@ -89,10 +89,16 @@ static PyObject * cMaBoSSConfig_new(PyTypeObject* type, PyObject *args, PyObject
   pyconfig = (cMaBoSSConfigObject *) type->tp_alloc(type, 0);
   pyconfig->config = new RunConfig();
   
-  for (Py_ssize_t i = 1; i < nb_args; i++) {
-    PyObject* bytes = PyUnicode_AsUTF8String(PyTuple_GetItem(args, i));
-    pyconfig->config->parse(network->network, PyBytes_AsString(bytes));
-    Py_DECREF(bytes);
+  try {
+    for (Py_ssize_t i = 1; i < nb_args; i++) {
+      PyObject* bytes = PyUnicode_AsUTF8String(PyTuple_GetItem(args, i));
+      pyconfig->config->parse(network->network, PyBytes_AsString(bytes));
+      Py_DECREF(bytes);
+    }
+
+  } catch (BNException& e) {
+    PyErr_SetString(PyBNException, e.getMessage().c_str());
+    return NULL;
   }
 
   return (PyObject*) pyconfig;

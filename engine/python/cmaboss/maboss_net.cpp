@@ -96,7 +96,15 @@ static PyObject * cMaBoSSNetwork_new(PyTypeObject* type, PyObject *args, PyObjec
   cMaBoSSNetworkObject* pynetwork;
   pynetwork = (cMaBoSSNetworkObject *) type->tp_alloc(type, 0);
   pynetwork->network = new Network();
-  pynetwork->network->parse(network_file);
+  
+  try{
+    pynetwork->network->parse(network_file);
+  
+  } catch (BNException& e) {
+    PyErr_SetString(PyBNException, e.getMessage().c_str());
+    return NULL;
+  }
+  
   return (PyObject*) pynetwork;
 }
 

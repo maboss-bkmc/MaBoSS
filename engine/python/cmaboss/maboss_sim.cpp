@@ -128,7 +128,8 @@ static PyObject * cMaBoSSSim_new(PyTypeObject* type, PyObject *args, PyObject* k
 
       // Error checking
       IStateGroup::checkAndComplete(network);
-      
+      network->getSymbolTable()->checkSymbols();
+
       cMaBoSSSimObject* simulation;
       simulation = (cMaBoSSSimObject *) type->tp_alloc(type, 0);
       simulation->network = network;
@@ -192,9 +193,13 @@ static PyObject* cMaBoSSSim_run(cMaBoSSSimObject* self, PyObject *args, PyObject
 
 
 static PyObject* cMaBoSSSim_check(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs) {
-
-  IStateGroup::checkAndComplete(self->network);
-  self->network->getSymbolTable()->checkSymbols();
+  try {
+    IStateGroup::checkAndComplete(self->network);
+    self->network->getSymbolTable()->checkSymbols();
+  } catch (BNException& e) {
+    PyErr_SetString(PyBNException, e.getMessage().c_str());
+    return NULL;
+  }
   return Py_None;
 }
 
