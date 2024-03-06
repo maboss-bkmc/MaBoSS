@@ -40,7 +40,7 @@ MaBoSS can also be used via WebMaBoSS, a web interface, at [https://maboss.curie
 MaBoSS is composed of:
 - MaBoSS engine 2.5.5: C++ core program simulating continuous/discrete time Markov processes, applied on a Boolean network.
 - MaBoSS tools 2.0: perl and python scripts using MaBoSS engine 2.0
-- cMaBoSS 1.0.0b20: python bindings using Python C API.
+- cMaBoSS 1.0.0b21: python bindings using Python C API.
 - PopMaBoSS engine 0.0.1: Simulating continuous/discrete time Markov processes, applied on a Population of Boolean network state.
 
 ### Tested platforms
