@@ -13,29 +13,28 @@ Stoll, G., Viara, E., Barillot, E., & Calzone, L. (2012). Continuous time Boolea
 
 Stoll, G., Caron, B., Viara, E., Dugourd, A., Zinovyev, A., Naldi, A., ... & Calzone, L. (2017). MaBoSS 2.0: an environment for stochastic Boolean modeling. *Bioinformatics, 33(14), 2226-2228.* DOI : [10.1093/bioinformatics/btx123](https://academic.oup.com/bioinformatics/article/33/14/2226/3059141)
 
-### Contact
-Institut Curie 
-
-26 rue d'Ulm 75248 PARIS CEDEX 05 
-
-Contact: [maboss.bkmc@gmail.com](mailto://maboss.bkmc@gmail.com) 
-
-Web Site: [https://maboss.curie.fr](https://maboss.curie.fr)
-
 ### Tutorials
 
 The directory tutorial contains two tutorials: 
 
 - [MaBoSS 2.0 Tutorial](https://github.com/sysbio-curie/MaBoSS/tree/master/tutorial/MaBoSS-2.0), describing MaBoSS environment tools usage on model describing DNA damage effects on p53 pathway.
-- [MaBoSS 2.5.0 Tutorial](https://github.com/sysbio-curie/MaBoSS/tree/master/tutorial/Montagud_2021_Prostate_Cancer), describing usage of MaBoSS command line, pyMaBoSS (python bindings) and WebMaBoSS (web interface) on a prostate cancer model.
+- [MaBoSS 2.5.0 Tutorial](https://github.com/sysbio-curie/MaBoSS/tree/master/tutorial/Montagud_2022_Prostate_Cancer), describing usage of MaBoSS command line, pyMaBoSS (python bindings) and WebMaBoSS (web interface) on a prostate cancer model.
 
 ### Conda repository
 
-MaBoSS is available as a conda package for Linux and MacOSX in the [CoLoMoTo repository](https://anaconda.org/colomoto/maboss)
+MaBoSS is available as a conda package for Linux and MacOSX in the [CoLoMoTo repository](https://anaconda.org/colomoto/maboss).
 
 To install it, run 
 
     conda install -c colomoto maboss
+
+### Python bindings
+
+MaBoSS is accessible via pyMaBoSS, its python bindings, which are available on [the GitHub of the CoLoMoTo organisation](https://github.com/colomoto/pyMaBoSS).
+
+### Web interface
+
+MaBoSS can also be used via WebMaBoSS, a web interface, at [https://maboss.curie.fr/webmaboss/](https://maboss.curie.fr/webmaboss/).
 
 ### Package Contents
 MaBoSS is composed of:
@@ -64,35 +63,6 @@ MaBoSS is composed of:
 ##### MaBoSS engine 2.5.0 and higher with MPI compatibility
 
 - MPI library, such as OpenMPI.
-##### MaBoSS tools:
-
-- perl
-- python3
-- python3 modules: matplotlib (matplotlib.cm, matplotlib.gridspec, matplotlib.patches, matplotlib.pylab), numpy, pandas, seaborn, xlsxwriter
-
-To check requirements on a Unix platform (Linux, MacOS X), you can launch the script check-requirements.sh as follows:
-./check-requirements
-
-MaBoSS engine requirements are checked first.
-
-The output must be:
-
-Checking MaBoSS engine 2.0 requirements...
-
-  flex: OK
-  bison: OK
-  gcc: OK
-  g++: OK
-
-MaBoSS engine 2.0 requirements: OK
-
-If an error is displayed, you have to fix it, as neither the engine, nor the tools will be able to be launched.
-
-MaBoSS tools requirements are then checked.
-
-The most frequent errors are that the following python3 modules are missing: matplotlib, numpy, pandas, seaborn, xlsxwriter.
-
-You must install the missing modules if you want to use: MBSSf_DrugSim.py, MBSS_PieChart.py, MBSS_PrepareProjectFilePieChart.py, MBSS_PrepareProjectFileTrajectoryFig.py or MBSS_TrajectoryFig.py.
 
 ### Engine Compilation
 
@@ -176,7 +146,37 @@ This will simulate a toy example available in the engine/example/popmaboss direc
 - res_pop_probtraj.csv : Population states probability distribution trajectories (as with MaBoSS, but this time on populations of boolean states) 
 - res_simple_pop_probtraj.csv : Simplified population output, with an average population size for every boolean state.
 
-### Environment
+##### MaBoSS tools:
+
+- perl
+- python3
+- python3 modules: matplotlib (matplotlib.cm, matplotlib.gridspec, matplotlib.patches, matplotlib.pylab), numpy, pandas, seaborn, xlsxwriter
+
+To check requirements on a Unix platform (Linux, MacOS X), you can launch the script check-requirements.sh as follows:
+./check-requirements
+
+MaBoSS engine requirements are checked first.
+
+The output must be:
+
+Checking MaBoSS engine 2.0 requirements...
+
+  flex: OK
+  bison: OK
+  gcc: OK
+  g++: OK
+
+MaBoSS engine 2.0 requirements: OK
+
+If an error is displayed, you have to fix it, as neither the engine, nor the tools will be able to be launched.
+
+MaBoSS tools requirements are then checked.
+
+The most frequent errors are that the following python3 modules are missing: matplotlib, numpy, pandas, seaborn, xlsxwriter.
+
+You must install the missing modules if you want to use: MBSSf_DrugSim.py, MBSS_PieChart.py, MBSS_PrepareProjectFilePieChart.py, MBSS_PrepareProjectFileTrajectoryFig.py or MBSS_TrajectoryFig.py.
+
+### Environment for MaBoSS tools
 
 Go to the directory of MaBoSS and perform:
     
@@ -206,6 +206,15 @@ To test an example (for instance p53_Mdm2):
 - ../../pub/MaBoSS -c p53_Mdm2_runcfg.cfg -o p53_Mdm2_out p53_Mdm2.bnd
 - the files p53_Mdm2_out_probtraj.csv and p53_Mdm2_out_statdist.csv will be created.
 The description of these files can be found at https://maboss.curie.fr/pub/DescriptionOutputFile.pdf
+
+### Contact
+Institut Curie 
+
+26 rue d'Ulm 75248 PARIS CEDEX 05 
+
+Contact: [maboss.bkmc@gmail.com](mailto://maboss.bkmc@gmail.com) 
+
+Web Site: [https://maboss.curie.fr](https://maboss.curie.fr)
 
 ### Copyright
 
