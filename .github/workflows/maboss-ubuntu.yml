@@ -303,7 +303,7 @@ jobs:
         asset_content_type: application/gzip
         
   test_docker:
-    name: Docker MaBoSS Server
+    name: Test Docker MaBoSS Server
     runs-on: ubuntu-22.04
     needs: [maboss, maboss_llvm, maboss_mpi]
     
@@ -315,7 +315,11 @@ jobs:
         sudo apt-get update
         sudo apt-get install flex bison
         pip install numpy
-      
+    - name: Cache Docker images.
+      uses: ScribeMD/docker-cache@0.3.7
+      with:
+        key: docker-${{ runner.os }}-${{ github.run_id }}  
+        
     - name: Start MaBoSS docker server
       run: |
         docker-compose up -d maboss-server
@@ -325,11 +329,6 @@ jobs:
       run: |
         bash -c "cd engine/tests; bash ./test-container.sh"
         
-    - name: Cache Docker images.
-      uses: ScribeMD/docker-cache@0.3.7
-      with:
-        key: docker-${{ runner.os }}-${{ github.run_id }}
-
   publish_docker_hub:
     name: Docker MaBoSS Server
     runs-on: ubuntu-22.04
@@ -350,8 +349,15 @@ jobs:
         
     - name: Upload Docker Hub
       run: | 
+          docker tag maboss:latest maboss:${{ github.event.release.tag_name }}
+          docker tag maboss:latest vnoel/maboss:latest
           docker tag maboss:${{ github.event.release.tag_name }} vnoel/maboss:${{ github.event.release.tag_name }}
+          docker push vnoel/maboss:latest
           docker push vnoel/maboss:${{ github.event.release.tag_name }}
+          docker tag maboss:latest sysbiocurie/maboss:latest
+          docker tag maboss:${{ github.event.release.tag_name }} sysbiocurie/maboss:${{ github.event.release.tag_name }}
+          docker push sysbiocurie/maboss:latest
+          docker push sysbiocurie/maboss:${{ github.event.release.tag_name }}
             
   publish_docker_github:
     name: Publishing MaBoSS docker container to GitHub
@@ -361,7 +367,7 @@ jobs:
     
     env:
         REGISTRY: ghcr.io
-        IMAGE_NAME: ${{ github.repository }}
+        IMAGE_NAME: maboss
 
     permissions:
         contents: read
@@ -380,7 +386,7 @@ jobs:
       id: meta
       uses: docker/metadata-action@v5
       with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
 
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
@@ -388,7 +394,7 @@ jobs:
         context: .
         file: containers/docker/Dockerfile
         push: true
-        tags: ${{ github.event.release.tag_name }}
+        tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ github.event.release.tag_name }},${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
         labels: ${{ steps.meta.outputs.labels }}
       
 
