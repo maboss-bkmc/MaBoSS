@@ -32,7 +32,9 @@ To compile MaBoSS with MPI compatibility, we need to add MPI_COMPAT=1 flag to th
 
     make MAXNODES=256 SBML_COMPAT=1 MPI_COMPAT=1 CXX=mpic++
 
-To add MaBoSS_256 to the path, you then need to activate MaBoSS environment via :
+This will produce a binary called MaBoSS_256n.MPI.
+
+To add MaBoSS_256n to the path, you then need to activate MaBoSS environment via :
 
     cd ../..
     source MaBoSS.env
@@ -49,7 +51,7 @@ Note that with the newly developed SBML-qual compatibility, we can also use the 
 
 To use MaBoSS MPI capabilitiy, for example using two MPI nodes, you need to run MaBoSS (correctly compiled with MPI flag) via mpirun, as such : 
 
-    mpirun -np 2 MaBoSS_256n -c Montagud2022_Prostate_Cancer.cfg Montagud2022_Prostate_Cancer.sbml -o results
+    mpirun -np 2 MaBoSS_256n.MPI -c Montagud2022_Prostate_Cancer.cfg Montagud2022_Prostate_Cancer.sbml -o results
 
 
 ##### Raw result files

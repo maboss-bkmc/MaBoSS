@@ -135,7 +135,7 @@ The usage is described in the [reference card](https://github.com/sysbio-curie/M
 
 To use the engine compiled with MPI capability : 
 
-    mpirun -np 2 ./MaBoSS --version
+    mpirun -np 2 ./MaBoSS.MPI --version
 
 ### Binary Distribution
 
