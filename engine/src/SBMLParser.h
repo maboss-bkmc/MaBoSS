@@ -330,6 +330,10 @@ class SBMLParser
     switch(tree->getType()) {
         case AST_LOGICAL_AND:
         {
+            if (tree->getNumChildren() == 1) {
+                return parseASTNode(tree->getChild(0));
+            }
+            
             AndLogicalExpression* children = new AndLogicalExpression(
                 parseASTNode(tree->getChild(0)),
                 parseASTNode(tree->getChild(1))
@@ -347,6 +351,10 @@ class SBMLParser
         
         case AST_LOGICAL_OR:
         {  
+            if (tree->getNumChildren() == 1) {
+                return parseASTNode(tree->getChild(0));
+            }
+            
             OrLogicalExpression* children = new OrLogicalExpression(
                 parseASTNode(tree->getChild(0)),
                 parseASTNode(tree->getChild(1))
@@ -364,6 +372,10 @@ class SBMLParser
         
         case AST_LOGICAL_XOR:
         {
+            if (tree->getNumChildren() == 1) {
+                return parseASTNode(tree->getChild(0));
+            }
+            
             XorLogicalExpression* children = new XorLogicalExpression(
                 parseASTNode(tree->getChild(0)),
                 parseASTNode(tree->getChild(1))
