@@ -26,6 +26,10 @@ jobs:
         python3 -m pip install --upgrade pip
         pip3 install numpy wheel delocate pandas
 
+    - name: Set cmake version variable
+      run: |
+        echo "CMAKE_VERSION=$(cmake --version | head -n 1)" >> $GITHUB_ENV
+
     - name: Manually install libxml2 2.11
       run: |
         wget https://github.com/Homebrew/homebrew-core/raw/38ba35404e3cdb398694419850179e0023158887/Formula/lib/libxml2.rb
@@ -36,7 +40,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: /tmp/libsbml-5.20.2
-        key: ${{ runner.os }}-libSBML-5.20.2-clang++-namespace
+        key: ${{ runner.os }}-${{ env.CMAKE_VERSION }}-libSBML-5.20.2-clang++-namespace
 
     - name: Compiling libSBML
       if: steps.cache-libsbml-clang.outputs.cache-hit != 'true'

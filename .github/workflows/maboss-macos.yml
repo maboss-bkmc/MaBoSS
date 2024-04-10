@@ -32,12 +32,16 @@ jobs:
         wget https://github.com/Homebrew/homebrew-core/raw/38ba35404e3cdb398694419850179e0023158887/Formula/lib/libxml2.rb
         brew install -s libxml2.rb
         
+    - name: Set cmake version variable
+      run: |
+        echo "CMAKE_VERSION=$(cmake --version | head -n 1)" >> $GITHUB_ENV
+  
     - name: Cache compiled libSBML
       id: cache-libsbml-gcc
       uses: actions/cache@v4
       with:
         path: /tmp/libsbml-5.20.2
-        key: ${{ runner.os }}-libSBML-5.20.2-g++11-namespace
+        key: ${{ runner.os }}-${{ env.CMAKE_VERSION }}.libSBML-5.20.2-g++11-namespace
 
     - name: Compiling libSBML
       if: steps.cache-libsbml-gcc.outputs.cache-hit != 'true'
@@ -82,12 +86,16 @@ jobs:
         wget https://github.com/Homebrew/homebrew-core/raw/38ba35404e3cdb398694419850179e0023158887/Formula/lib/libxml2.rb
         brew install -s libxml2.rb
         
+    - name: Set cmake version variable
+      run: |
+        echo "CMAKE_VERSION=$(cmake --version | head -n 1)" >> $GITHUB_ENV
+    
     - name: Cache compiled libSBML
       id: cache-libsbml-clang
       uses: actions/cache@v4
       with:
         path: /tmp/libsbml-5.20.2
-        key: ${{ runner.os }}-libSBML-5.20.2-clang++-namespace
+        key: ${{ runner.os }}-${{ env.CMAKE_VERSION }}-libSBML-5.20.2-clang++-namespace
 
     - name: Compiling libSBML
       if: steps.cache-libsbml-clang.outputs.cache-hit != 'true'
@@ -131,12 +139,16 @@ jobs:
         wget https://github.com/Homebrew/homebrew-core/raw/38ba35404e3cdb398694419850179e0023158887/Formula/lib/libxml2.rb
         brew install -s libxml2.rb
     
+    - name: Set cmake version variable
+      run: |
+        echo "CMAKE_VERSION=$(cmake --version | head -n 1)" >> $GITHUB_ENV
+    
     - name: Cache compiled libSBML
       id: cache-libsbml-clang
       uses: actions/cache@v4
       with:
         path: /tmp/libsbml-5.20.2
-        key: ${{ runner.os }}-libSBML-5.20.2-clang++-namespace
+        key: ${{ runner.os }}-${{ env.CMAKE_VERSION }}-libSBML-5.20.2-clang++-namespace
 
     - name: Compiling libSBML
       if: steps.cache-libsbml-gcc11.outputs.cache-hit != 'true'
@@ -293,13 +305,17 @@ jobs:
       run: |
         wget https://github.com/Homebrew/homebrew-core/raw/38ba35404e3cdb398694419850179e0023158887/Formula/lib/libxml2.rb
         brew install -s libxml2.rb
-      
+    
+    - name: Set cmake version variable
+      run: |
+        echo "CMAKE_VERSION=$(cmake --version | head -n 1)" >> $GITHUB_ENV  
+         
     - name: Cache compiled libSBML
       id: cache-libsbml-gcc11
       uses: actions/cache@v4
       with:
         path: /tmp/libsbml-5.20.2
-        key: ${{ runner.os }}-libSBML-5.20.2-g++11-namespace
+        key: ${{ runner.os }}-${{ env.CMAKE_VERSION }}-libSBML-5.20.2-g++11-namespace
 
     - name: Compiling libSBML
       if: steps.cache-libsbml-gcc11.outputs.cache-hit != 'true'
