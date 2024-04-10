@@ -431,7 +431,7 @@ void FinalStateSimulationEngine::displayRunStats(std::ostream& os, time_t start_
   char bufstr[1024];
 
   os << '\n';
-  sprintf(bufstr, sepfmt, "--- Run ---");
+  snprintf(bufstr, 1024, sepfmt, "--- Run ---");
   os << bufstr;
 
   os << "MaBoSS version: " << VERSION << " [networks up to " << MAXNODES << " nodes]\n";

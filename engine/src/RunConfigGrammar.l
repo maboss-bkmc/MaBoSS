@@ -123,7 +123,7 @@ void yy_set_expr(const char* _expr)
 static void yyerror(const char *)
 {
   char tok[32];
-  sprintf(tok, "%u", input_lineno);
+  snprintf(tok, 32, "%u", input_lineno);
   if (file) {
     throw BNException("configuration syntax error at line #" + std::string(tok) + " in file \"" + file + "\"");
   } else {

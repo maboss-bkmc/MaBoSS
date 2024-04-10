@@ -167,19 +167,19 @@ void RunConfig::display(Network* network, time_t start_time, time_t end_time, st
   }
   os << "Generated Number Count: " << RandomGenerator::getGeneratedNumberCount() << "\n\n";
 
-  sprintf(bufstr, sepfmt, "-----------");
+  snprintf(bufstr, 1024, sepfmt, "-----------");
   os << bufstr << '\n';
 
-  sprintf(bufstr, sepfmt, "- Network -");
+  snprintf(bufstr, 1024, sepfmt, "- Network -");
   os << bufstr;
   network->display(os);
-  sprintf(bufstr, sepfmt, "-----------");
+  snprintf(bufstr, 1024, sepfmt, "-----------");
   os << bufstr << '\n';
 
-  sprintf(bufstr, sepfmt, " Variables ");
+  snprintf(bufstr, 1024, sepfmt, " Variables ");
   os << bufstr;
   network->getSymbolTable()->display(os);
-  sprintf(bufstr, sepfmt, "-----------");
+  snprintf(bufstr, 1024, sepfmt, "-----------");
   os << bufstr << '\n';
 }
 

@@ -146,9 +146,9 @@ const char* fmthexdouble(double d, bool add_quotes)
     buf_ind = 0;
   }
   if (add_quotes) {
-    sprintf(buf[buf_ind], "\"%a\"", d);
+    snprintf(buf[buf_ind], 64, "\"%a\"", d);
   } else {
-    sprintf(buf[buf_ind], "%a", d);
+    snprintf(buf[buf_ind], 64, "%a", d);
   }
   return buf[buf_ind++];
 }

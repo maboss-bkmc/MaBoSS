@@ -227,7 +227,7 @@ int yywrap(void)
 static void yyerror(const char *)
 {
   char tok[32];
-  sprintf(tok, "%u", input_lineno);
+  snprintf(tok, 32, "%u", input_lineno);
   throw BNException("BND syntax error at line #" + std::string(tok));
 }
 
