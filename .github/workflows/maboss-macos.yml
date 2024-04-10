@@ -219,7 +219,7 @@ jobs:
         
   maboss_library_macos_m1:
     name: Building MaBoSS osx library for arm64 
-    runs-on: flyci-macos-large-latest-m1
+    runs-on: macos-14
     needs: [maboss_macos, maboss_llvm_macos]
 
     steps:
@@ -255,7 +255,7 @@ jobs:
       if: github.event_name != 'release'
       with:
         name: libMaBoSS-macos-arm64
-        path: /Users/runner/_work/MaBoSS/libMaBoSS-macos-arm64.tar.gz
+        path: /Users/runner/work/MaBoSS/libMaBoSS-macos-arm64.tar.gz
         
     - uses: actions/upload-release-asset@v1
       if: github.event_name == 'release'
@@ -264,7 +264,7 @@ jobs:
       with:
         upload_url: ${{ github.event.release.upload_url }}
         asset_name: libMaBoSS-macos-arm64.tar.gz
-        asset_path: /Users/runner/_work/MaBoSS/libMaBoSS-macos-arm64.tar.gz
+        asset_path: /Users/runner/work/MaBoSS/libMaBoSS-macos-arm64.tar.gz
         asset_content_type: application/gzip     
         
   maboss_library_sbml_macos:
