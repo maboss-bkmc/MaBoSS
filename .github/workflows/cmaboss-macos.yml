@@ -257,7 +257,8 @@ jobs:
     - name: Install package
       run: |
         python -m conda_index /Users/runner/miniconda3/envs/test/conda-bld/
-        conda install -c file:///Users/runner/miniconda3/envs/test/conda-bld/ -c colomoto cmaboss
+        conda install -c colomoto libsbml-plus-packages
+        conda install -c file:///Users/runner/miniconda3/envs/test/conda-bld/ cmaboss
         
     - name: Install test dependencies
       run: |
@@ -306,7 +307,8 @@ jobs:
     - name: Install package
       run: |
         python -m conda_index /Users/runner/miniconda3/envs/test/conda-bld/
-        conda install -c file:///Users/runner/miniconda3/envs/test/conda-bld/ -c colomoto cmaboss
+        conda install -c colomoto libsbml-plus-packages
+        conda install -c file:///Users/runner/miniconda3/envs/test/conda-bld/ cmaboss
         
     - name: Install test dependencies
       run: |
