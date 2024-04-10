@@ -17,11 +17,13 @@ jobs:
       BUILD_PATH: /tmp/
       LIBXML_LIBDIR: /usr/local/opt/libxml2/lib/libxml2.dylib
       LIBXML_INCLUDEDIR: /usr/local/opt/libxml2/include/libxml2/
+      MACOSX_DEPLOYMENT_TARGET: 12.0
     steps:
     - uses: actions/checkout@v4 
     - name: Install dependencies
       run: |
         brew install flex bison python3 cmake
+        python3 -m pip install --upgrade pip
         pip3 install numpy wheel delocate pandas
 
     - name: Manually install libxml2 2.11
@@ -50,7 +52,6 @@ jobs:
         cd ../python
         cp -r ../src cmaboss
         python3 -m pip wheel -w wheelhouse .
-        cp /usr/local/lib/libsbml*.dylib .
         delocate-wheel -w fixed_wheels -v `ls wheelhouse/cmaboss*.whl`
         pip3 install `ls fixed_wheels/cmaboss*.whl` 
         

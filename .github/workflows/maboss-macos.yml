@@ -17,7 +17,8 @@ jobs:
       BUILD_PATH: /tmp/
       LIBXML_LIBDIR: /usr/local/opt/libxml2/lib/libxml2.dylib
       LIBXML_INCLUDEDIR: /usr/local/opt/libxml2/include/libxml2/
-      
+      MACOSX_DEPLOYMENT_TARGET: 12.0
+
     steps:
     - uses: actions/checkout@v4
     - name: Install dependencies
@@ -67,7 +68,8 @@ jobs:
       BUILD_PATH: /tmp/
       LIBXML_LIBDIR: /usr/local/opt/libxml2/lib/libxml2.dylib
       LIBXML_INCLUDEDIR: /usr/local/opt/libxml2/include/libxml2/
-    
+      MACOSX_DEPLOYMENT_TARGET: 12.0
+
     steps:
     - uses: actions/checkout@v4
     - name: Install dependencies
@@ -116,6 +118,7 @@ jobs:
       BUILD_PATH: /tmp/
       LIBXML_LIBDIR: /usr/local/opt/libxml2/lib/libxml2.dylib
       LIBXML_INCLUDEDIR: /usr/local/opt/libxml2/include/libxml2/
+      MACOSX_DEPLOYMENT_TARGET: 12.0
 
     steps:
     - uses: actions/checkout@v4
@@ -278,6 +281,7 @@ jobs:
       BUILD_PATH: /tmp/
       LIBXML_LIBDIR: /usr/local/opt/libxml2/lib/libxml2.dylib
       LIBXML_INCLUDEDIR: /usr/local/opt/libxml2/include/libxml2
+      MACOSX_DEPLOYMENT_TARGET: 12.0
 
     steps:
     - uses: actions/checkout@v4
