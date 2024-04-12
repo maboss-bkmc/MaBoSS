@@ -27,7 +27,7 @@ class TestCMaBoSS(TestCase):
             'Metastasis': 0.3, 'Invasion': 0.3, 'Migration': 0.3, 'Apoptosis': 0.426, 'CellCycleArrest': 0.794
         }
 
-        sim = cmaboss_128n.MaBoSSSim(network="../examples/metastasis.bnd", config="../examples/metastasis.cfg")
+        sim = cmaboss_128n.MaBoSSSim(network="../tests/metastasis/metastasis.bnd", config="../tests/metastasis/metastasis.cfg")
         res = sim.run(only_last_state=False)
         
         raw_res, _, states = res.get_last_probtraj()
@@ -38,7 +38,7 @@ class TestCMaBoSS(TestCase):
         for i, value in enumerate(np.nditer(raw_nodes_res)):
             self.assertAlmostEqual(value, expected_nodes[nodes[i]])
         
-        simfinal = cmaboss_128n.MaBoSSSim(network="../examples/metastasis.bnd", config="../examples/metastasis.cfg")
+        simfinal = cmaboss_128n.MaBoSSSim(network="../tests/metastasis/metastasis.bnd", config="../tests/metastasis/metastasis.cfg")
         resfinal = simfinal.run(only_last_state=True)    
         
         raw_res, _, states = res.get_last_probtraj()

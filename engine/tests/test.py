@@ -7,8 +7,8 @@ from sys import platform
 class TestCMaBoSS(TestCase):
 
     def test_load_model(self):
-        net = cmaboss.MaBoSSNet(network="../examples/metastasis.bnd")
-        cfg = cmaboss.MaBoSSCfg(net, "../examples/metastasis.cfg")
+        net = cmaboss.MaBoSSNet(network="../tests/metastasis/metastasis.bnd")
+        cfg = cmaboss.MaBoSSCfg(net, "../tests/metastasis/metastasis.cfg")
         sim = cmaboss.MaBoSSSim(net=net, cfg=cfg)
         res = sim.run()
 
@@ -19,7 +19,7 @@ class TestCMaBoSS(TestCase):
         res = sim.run()
 
     def test_simulate(self):
-        sim = cmaboss.MaBoSSSim(network="../examples/metastasis.bnd", config="../examples/metastasis.cfg")
+        sim = cmaboss.MaBoSSSim(network="../tests/metastasis/metastasis.bnd", config="../tests/metastasis/metastasis.cfg")
         res = sim.run()
         res.get_probtraj()
         res.get_last_probtraj()
@@ -29,7 +29,7 @@ class TestCMaBoSS(TestCase):
         
     def test_load_model_error(self):
         with self.assertRaises(cmaboss.BNException):
-            cmaboss.MaBoSSSim(network="../examples/metastasis-error.bnd", config="../examples/metastasis.cfg")
+            cmaboss.MaBoSSSim(network="../tests/metastasis/metastasis-error.bnd", config="../tests/metastasis/metastasis.cfg")
 
     def test_last_states(self):
         expected = {
@@ -41,7 +41,7 @@ class TestCMaBoSS(TestCase):
             'Metastasis': 0.3, 'Invasion': 0.3, 'Migration': 0.3, 'Apoptosis': 0.426, 'CellCycleArrest': 0.794
         }
 
-        sim = cmaboss.MaBoSSSim(network="../examples/metastasis.bnd", config="../examples/metastasis.cfg")
+        sim = cmaboss.MaBoSSSim(network="../tests/metastasis/metastasis.bnd", config="../tests/metastasis/metastasis.cfg")
         res = sim.run(only_last_state=False)
         raw_res, _, states = res.get_last_probtraj()
         for i, value in enumerate(np.nditer(raw_res)):
@@ -51,7 +51,7 @@ class TestCMaBoSS(TestCase):
         for i, value in enumerate(np.nditer(raw_nodes_res)):
             self.assertAlmostEqual(value, expected_nodes[nodes[i]])
         
-        simfinal = cmaboss.MaBoSSSim(network="../examples/metastasis.bnd", config="../examples/metastasis.cfg")
+        simfinal = cmaboss.MaBoSSSim(network="../tests/metastasis/metastasis.bnd", config="../tests/metastasis/metastasis.cfg")
         resfinal = simfinal.run(only_last_state=True)
     
         raw_res, _, states = res.get_last_probtraj()
@@ -63,7 +63,7 @@ class TestCMaBoSS(TestCase):
             self.assertAlmostEqual(value, expected_nodes[nodes[i]])
            
     def test_load_model_str(self):
-        with open("../examples/metastasis.bnd", "r") as bnd, open("../examples/metastasis.cfg", "r") as cfg:    
+        with open("../tests/metastasis/metastasis.bnd", "r") as bnd, open("../tests/metastasis/metastasis.cfg", "r") as cfg:    
             sim = cmaboss.MaBoSSSim(network_str=bnd.read(),config_str=cfg.read())
             res = sim.run()
             res.get_probtraj()
@@ -73,7 +73,7 @@ class TestCMaBoSS(TestCase):
             res.get_fp_table()
 
     def test_load_model_str_error(self):
-        with open("../examples/metastasis-error.bnd", "r") as bnd, open("../examples/metastasis.cfg", "r") as cfg:    
+        with open("../tests/metastasis/metastasis-error.bnd", "r") as bnd, open("../tests/metastasis/metastasis.cfg", "r") as cfg:    
             with self.assertRaises(cmaboss.BNException):
                 cmaboss.MaBoSSSim(network_str=bnd.read(),config_str=cfg.read())
 
@@ -83,19 +83,19 @@ class TestCMaBoSS(TestCase):
 
     def test_load_sbml_error(self):
         with self.assertRaises(cmaboss.BNException):
-            sim = cmaboss.MaBoSSSim("../examples/sbml/BIOMD0000000562_url.xml")
+            sim = cmaboss.MaBoSSSim("../tests/sbml/BIOMD0000000562_url.xml")
             
     def test_use_sbml_names(self):
-        sim = cmaboss.MaBoSSSim("../examples/sbml/Cohen.sbml")
+        sim = cmaboss.MaBoSSSim("../tests/sbml/Cohen.sbml")
         nodes = ",".join(sorted([s.split(" ")[1] for s in sim.str_bnd().split("\n") if s.lower().startswith("node")]))
         self.assertEqual(nodes, "S_1,S_10,S_11,S_12,S_13,S_14,S_15,S_16,S_17,S_18,S_19,S_2,S_20,S_21,S_22,S_23,S_24,S_25,S_26,S_27,S_28,S_29,S_3,S_30,S_31,S_32,S_4,S_5,S_6,S_7,S_8,S_9")
         
-        sim = cmaboss.MaBoSSSim("../examples/sbml/Cohen.sbml", use_sbml_names=True)        
+        sim = cmaboss.MaBoSSSim("../tests/sbml/Cohen.sbml", use_sbml_names=True)        
         nodes = ",".join(sorted([s.split(" ")[1] for s in sim.str_bnd().split("\n") if s.lower().startswith("node")]))
         self.assertEqual(nodes, "AKT1,AKT2,Apoptosis,CDH1,CDH2,CTNNB1,CellCycleArrest,DKK1,DNAdamage,ECM,EMT,ERK,GF,Invasion,Metastasis,Migration,NICD,SMAD,SNAI1,SNAI2,TGFbeta,TWIST1,VIM,ZEB1,ZEB2,miR200,miR203,miR34,p21,p53,p63,p73")
 
 def test_popmaboss(self):
-        sim = cmaboss.PopMaBoSSSim("../examples/popmaboss/Fork.bnd", "../examples/popmaboss/Fork.cfg")
+        sim = cmaboss.PopMaBoSSSim("../tests/popmaboss/Fork.bnd", "../tests/popmaboss/Fork.cfg")
         res = sim.run()
 
         table = pd.DataFrame(*res.get_probtraj())

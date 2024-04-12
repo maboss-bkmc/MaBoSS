@@ -36,6 +36,13 @@ requirements:
     - {{ pin_compatible('numpy') }}
     - libsbml-plus-packages
 
+test:
+  requires:
+    - numpy
+    - pandas
+  commands:
+    - cd ${PREFIX}/tests; python -m unittest test; python -m unittest test_128n
+    
 about:
   home:  https://maboss.curie.fr
 
