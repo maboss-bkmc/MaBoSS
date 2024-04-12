@@ -400,8 +400,8 @@ int run_single(const char* ctbndl_file, std::vector<std::string> runconfig_var_v
   
   NetworkState initial_state;
   network->initStates(initial_state, single_simulation.random_generator);
-  [[maybe_unused]] NetworkState final_state = single_simulation.run(initial_state, output_run);
-
+  NetworkState final_state = single_simulation.run(initial_state, output_run);
+  std::cout << final_state.getName(network) << std::endl;
   ((std::ofstream*)output_run)->close();
   delete output_run;
 
