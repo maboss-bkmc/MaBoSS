@@ -26,7 +26,7 @@ check_file()
 echo
 echo "PopMaBoSS test"
 rm -rf tmp; mkdir -p tmp
-/usr/bin/time -p $LAUNCHER $POPMABOSS -c ../examples/popmaboss/Fork.cfg -o tmp/res_fork ../examples/popmaboss/Fork.bnd > /dev/null
+/usr/bin/time -p $LAUNCHER $POPMABOSS -c popmaboss/Fork.cfg -o tmp/res_fork popmaboss/Fork.bnd > /dev/null
 
 if [ $? != 0 ]; then exit 1; fi
 
@@ -36,7 +36,7 @@ python compare_probtrajs.py popmaboss/refer/res_fork_pop_probtraj_old.csv tmp/re
 check_file "pop_projtraj_old"
 
 
-/usr/bin/time -p $LAUNCHER $POPMABOSS -c ../examples/popmaboss/Fork.pcfg -o tmp/res_fork ../examples/popmaboss/Fork.bnd > /dev/null
+/usr/bin/time -p $LAUNCHER $POPMABOSS -c popmaboss/Fork.pcfg -o tmp/res_fork popmaboss/Fork.bnd > /dev/null
 
 if [ $? != 0 ]; then exit 1; fi
 
@@ -46,7 +46,7 @@ python compare_probtrajs.py popmaboss/refer/res_fork_pop_probtraj_old.csv tmp/re
 check_file "pop_projtraj_old"
 
 
-/usr/bin/time -p $LAUNCHER $POPMABOSS -c ../examples/popmaboss/Log_Growth.cfg -o tmp/res_log_growth ../examples/popmaboss/Log_Growth.pbnd >/dev/null
+/usr/bin/time -p $LAUNCHER $POPMABOSS -c popmaboss/Log_Growth.cfg -o tmp/res_log_growth popmaboss/Log_Growth.pbnd >/dev/null
 
 if [ $? != 0 ]; then exit 1; fi
 
@@ -54,7 +54,7 @@ python compare_probtrajs.py popmaboss/refer/res_log_growth_pop_probtraj.csv tmp/
 check_file "pop_projtraj"
 
 
-/usr/bin/time -p $LAUNCHER $POPMABOSS -c ../examples/popmaboss/Assymetric.cfg -o tmp/res_assymetric ../examples/popmaboss/Assymetric.pbnd > /dev/null
+/usr/bin/time -p $LAUNCHER $POPMABOSS -c popmaboss/Assymetric.cfg -o tmp/res_assymetric popmaboss/Assymetric.pbnd > /dev/null
 
 if [ $? != 0 ]; then exit 1; fi
 

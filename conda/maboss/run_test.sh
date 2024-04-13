@@ -16,6 +16,8 @@ export MABOSS_128n=${PREFIX}/bin/MaBoSS_128n
 export MABOSS_CLIENT=${PREFIX}/bin/MaBoSS-client
 export MABOSS_SERVER=${PREFIX}/bin/MaBoSS-server
 export MABOSS_SERVER_128n=${PREFIX}/bin/MaBoSS_128n-server
+export POPMABOSS=${PREFIX}/bin/PopMaBoSS
+
 cd ${PREFIX}/tests
 
 bash ./test-cellcycle.sh
