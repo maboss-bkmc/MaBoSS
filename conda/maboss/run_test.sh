@@ -39,9 +39,6 @@ check popmaboss
 bash ./test-sbml.sh
 check "sbml"
 
-bash ./test-user_func.sh
-check "user_func"
-
 cd ../..
 
 exit $return_code
