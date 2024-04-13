@@ -146,49 +146,6 @@ jobs:
     - name: Build cMaBoSS Anaconda package
       run: |
         CUSTOM_BUILD_NUMBER=${{ matrix.repo.id }} conda build -c colomoto --variants "{\"python\": [\"${{ matrix.version.python }}\"], \"numpy\": [\"${{ matrix.version.numpy }}\"]}" conda/cmaboss;
-        
-    - name: Caching produced conda package
-      uses: actions/cache@v4
-      with:
-        path: |
-          /home/runner/miniconda3/envs/test/conda-bld/*
-        key: ${{ runner.os }}-cmaboss-${{ matrix.repo.name }}-${{ github.run_id }}-${{ matrix.version.python }}
-     
-  cmaboss_conda_publish_defaults:
-    name: Publish cMaBoSS Anaconda package
-    runs-on: ubuntu-22.04
-
-    needs: cmaboss_conda_defaults
-    
-    strategy:
-      matrix:
-        repo: [{id: 0, name: "defaults"}, {id: 1, name: "conda-forge"}]
-        version: [{python: "3.8", numpy: "1.22"}, {python: "3.9", numpy: "1.22"}, {python: "3.10", numpy: "1.22"}, {python: "3.11", numpy: "1.23"}, {python: "3.12", numpy: "1.26"}]
-       
-    defaults:
-      run:
-        shell: bash -el {0}
-    
-    steps:
-    - uses: actions/checkout@v4
-    - uses: conda-incubator/setup-miniconda@v3
-      with:
-        auto-update-conda: true
-        channels: ${{ matrix.repo.name }}
-        python-version: 3.12
-        miniforge-variant: Mambaforge
-        use-mamba: true
-    
-    - name: Caching produced conda package
-      uses: actions/cache@v4
-      with:
-        path: |
-          /home/runner/miniconda3/envs/test/conda-bld/*
-        key: ${{ runner.os }}-cmaboss-${{ matrix.repo.name }}-${{ github.run_id }}-${{ matrix.version.python }}
-              
-    - name: Install anaconda-client
-      run: |
-        conda install anaconda-client
      
     - name: Upload cMaBoSS Ananconda package on vincent-noel
       run: |
