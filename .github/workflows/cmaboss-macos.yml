@@ -127,14 +127,15 @@ jobs:
 
   conda_cmaboss_macosx:
     name: cMaBoSS Conda package
-    runs-on: macos-12
     needs: cmaboss_macos
 
     strategy:
       matrix:
         repo: [{id: 0, name: "defaults"}, {id: 1, name: "conda-forge"}]
         version: [{python: "3.8", numpy: "1.22"}, {python: "3.9", numpy: "1.22"}, {python: "3.10", numpy: "1.22"}, {python: "3.11", numpy: "1.23"}, {python: "3.12", numpy: "1.26"}]
-    
+        os: [{version: macos-12, name: osx-64, sdk: MacOSX10.10.sdk}, {version: macos-14, name: osx-arm64, sdk: MacOSX11.0.sdk}]
+    runs-on: ${{ matrix.os.version }}
+
     defaults:
       run:
         shell: sh -l {0}
@@ -155,12 +156,12 @@ jobs:
     
     - name: Installing MacOSX10.10 SDK
       run: |
-        wget https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX10.10.sdk.tar.xz
-        sudo tar xf MacOSX10.10.sdk.tar.xz -C /opt
+        wget https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/${{ matrix.os.sdk }}.tar.xz
+        sudo tar xf ${{ matrix.os.sdk }}.tar.xz -C /opt
         echo "conda_build:" > ~/.condarc
         echo "  config_file: ~/.conda/conda_build_config.yaml" >> ~/.condarc
         echo "CONDA_BUILD_SYSROOT:" > ~/.conda/conda_build_config.yaml
-        echo "  - /opt/MacOSX10.10.sdk        # [osx]" >> ~/.conda/conda_build_config.yaml
+        echo "  - /opt/${{ matrix.os.sdk }}        # [osx]" >> ~/.conda/conda_build_config.yaml
       
     - name: Build cMaBoSS Anaconda package
       run: |
@@ -168,10 +169,10 @@ jobs:
        
     - name: Upload MaBoSS to Anaconda cloud on vincent-noel
       run: |   
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /Users/runner/miniconda3/envs/test/conda-bld/osx-64/*.tar.bz2 --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /Users/runner/miniconda3/envs/test/conda-bld/${{ matrix.os.name }}/*.tar.bz2 --force;
     
     - name: Upload MaBoSS to Anaconda cloud on colomoto
       if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
       run: |   
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /Users/runner/miniconda3/envs/test/conda-bld/osx-64/*.tar.bz2 --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /Users/runner/miniconda3/envs/test/conda-bld/${{ matrix.os.name }}/*.tar.bz2 --force;
  
