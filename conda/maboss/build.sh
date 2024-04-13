@@ -10,6 +10,7 @@ make SBML_COMPAT=1 MAXNODES=512 install
 make SBML_COMPAT=1 MAXNODES=1024 install
 mkdir -p ${PREFIX}/bin
 mv ../pub/MaBoSS  ../pub/MaBoSS_*n ${PREFIX}/bin
+mv ../pub/PopMaBoSS  ../pub/PopMaBoSS_*n ${PREFIX}/bin
 mv ../pub/MaBoSS-server  ../pub/MaBoSS_*n-server ${PREFIX}/bin
 mv ../pub/MaBoSS-client ${PREFIX}/bin
 cd ../..
