@@ -31,6 +31,10 @@ requirements:
   run:
     - libsbml-plus-packages
 
+test:
+  requires:
+    - numpy
+
 about:
   home:  https://maboss.curie.fr
 
