@@ -11,7 +11,7 @@ jobs:
     name: MaBoSS (gcc)
     runs-on: ubuntu-22.04
     env:
-      GCC: gcc
+      CC: gcc
       CXX: g++
       INSTALL_PATH: /usr/
       BUILD_PATH: /tmp/
@@ -55,7 +55,7 @@ jobs:
     name: MaBoSS (clang)
     runs-on: ubuntu-22.04
     env:
-      GCC: clang
+      CC: clang
       CXX: clang++
       INSTALL_PATH: /usr/
       BUILD_PATH: /tmp/
@@ -87,8 +87,8 @@ jobs:
       run: |
         cd engine/src
         make clean
-        make GCC=clang CXX=clang++ install SBML_COMPAT=1
-        make GCC=clang CXX=clang++ MAXNODES=128 install SBML_COMPAT=1
+        make CC=clang CXX=clang++ install SBML_COMPAT=1
+        make CC=clang CXX=clang++ MAXNODES=128 install SBML_COMPAT=1
     
     - name: Test MaBoSS
       run: bash scripts/run_tests.sh
@@ -110,8 +110,8 @@ jobs:
       run: |
         cd engine/src
         make clean
-        make install CXX=mpic++ MPI_COMPAT=1
-        make install CXX=mpic++ MPI_COMPAT=1 MAXNODES=128
+        make install CC=mpicc CXX=mpic++ MPI_COMPAT=1
+        make install CC=mpicc CXX=mpic++ MPI_COMPAT=1 MAXNODES=128
        
     - name: Test MaBoSS
       run: bash scripts/run_mpi_tests.sh
@@ -121,7 +121,7 @@ jobs:
     runs-on: ubuntu-22.04
     needs: [maboss, maboss_llvm, maboss_mpi]
     env:  
-      GCC: gcc
+      CC: gcc
       CXX: g++
       INSTALL_PATH: /usr/
       BUILD_PATH: /tmp/
@@ -237,7 +237,7 @@ jobs:
     runs-on: ubuntu-22.04
     needs: [maboss, maboss_llvm, maboss_mpi]
     env:
-      GCC: gcc
+      CC: gcc
       CXX: g++
       INSTALL_PATH: /usr/
       BUILD_PATH: /tmp/

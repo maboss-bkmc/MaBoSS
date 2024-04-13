@@ -80,8 +80,8 @@ ifeq ($(shell grep @HAS_UNORDERED_MAP maboss-config.h > /dev/null 2> /dev/null &
 EXTRA_FLAGS = -std=c++11 -Wpedantic
 endif
 
-ifndef GCC
-GCC = gcc
+ifndef CC
+CC = gcc
 endif
 
 ifndef CXX
@@ -90,8 +90,8 @@ endif
 
 ifdef MPI_COMPAT
 MPI_FLAG = -DMPI_COMPAT
-ifndef GCC
-GCC = mpicc
+ifndef CC
+CC = mpicc
 endif
 ifndef CXX
 CXX = mpic++
@@ -101,7 +101,7 @@ endif
 EXTRA_CXXOPT = -O2
 EXTRA_CXXFLAGS = $(EXTRA_CXXOPT) -Wall -DMAXNODES=$(MAXNODES) $(MPI_FLAG) $(BITSET_FLAG) $(USER_FLAGS) $(EXTRA_FLAGS) -fpic -DNDEBUG 
 
-MAKEDEPEND = $(GCC) -M $(EXTRA_FLAGS)
+MAKEDEPEND = $(CC) -M $(EXTRA_FLAGS)
 
 FLEX = flex
 BISON = bison
@@ -202,7 +202,7 @@ force-init:
 	@CXX=$(CXX) sh init-config.sh force
 
 depend: $(CORE_LIB_SRC)
-	@$(MAKEDEPEND) $(BITSET_FLAG) -DMAXNODES=$(MAXNODES) $(WINDOWS_FLAG) $(CORE_LIB_SRC) $(POP_LIB_SRC) $(LIB_SRC) MaBoSS.cc PopMaBoSS.cc > depend_tmp.mk
+	@$(MAKEDEPEND) $(BITSET_FLAG) -DMAXNODES=$(MAXNODES) $(CXXFLAGS) $(EXTRA_CXXFLAGS) $(WINDOWS_FLAG) $(SBML_FLAG) $(CORE_LIB_SRC) $(POP_LIB_SRC) $(LIB_SRC) MaBoSS.cc PopMaBoSS.cc > depend_tmp.mk
 	@sed -e "s/\.o:/$(INFIX).o:/g" depend_tmp.mk > depend.mk
 	@rm -f depend_tmp.mk
 

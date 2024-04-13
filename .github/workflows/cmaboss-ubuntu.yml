@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-22.04
 
     env:
-      GCC: gcc
+      CC: gcc
       CXX: g++
       INSTALL_PATH: /usr/
       BUILD_PATH: /tmp/
@@ -75,7 +75,7 @@ jobs:
           CIBW_BUILD: ${{ matrix.build }}
           CIBW_BEFORE_ALL: >
             yum install wget libxml2-devel -y &&
-            GCC=gcc CXX=g++ INSTALL_PATH=/usr/ BUILD_PATH=/tmp/ \
+            CC=gcc CXX=g++ INSTALL_PATH=/usr/ BUILD_PATH=/tmp/ \
               LIBXML_LIBDIR=/usr/lib64/libxml2.so \
               LIBXML_INCLUDEDIR=/usr/include/libxml2 bash scripts/build_libsbml.sh &&
             BUILD_PATH=/tmp/ bash scripts/install_libsbml.sh

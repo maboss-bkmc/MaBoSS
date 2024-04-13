@@ -11,7 +11,7 @@ jobs:
     name: cMaBoSS
     runs-on: macos-12
     env:
-      GCC: clang
+      CC: clang
       CXX: clang++
       INSTALL_PATH: /usr/local/
       BUILD_PATH: /tmp/
@@ -87,7 +87,7 @@ jobs:
           CIBW_BEFORE_ALL: >
             wget https://github.com/Homebrew/homebrew-core/raw/38ba35404e3cdb398694419850179e0023158887/Formula/lib/libxml2.rb && 
             brew install -s libxml2.rb && 
-            GCC=clang CXX=clang++ INSTALL_PATH=/usr/local/ BUILD_PATH=/tmp/ \
+            CC=clang CXX=clang++ INSTALL_PATH=/usr/local/ BUILD_PATH=/tmp/ \
               LIBXML_LIBDIR=/usr/local/opt/libxml2/lib/libxml2.dylib \
               LIBXML_INCLUDEDIR=/usr/local/opt/libxml2/include/libxml2/ \
               bash scripts/build_libsbml.sh && 

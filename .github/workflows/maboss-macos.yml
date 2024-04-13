@@ -11,7 +11,7 @@ jobs:
     name: MaBoSS
     runs-on: macos-12
     env:
-      GCC: gcc-11
+      CC: gcc-11
       CXX: g++-11
       INSTALL_PATH: /usr/local
       BUILD_PATH: /tmp/
@@ -56,8 +56,8 @@ jobs:
         make clean
         export CXXFLAGS="${CXXFLAGS} -I/usr/local/include -I/usr/local/include/libxml2"
         export LDFLAGS="${LDFLAGS} -L/usr/local/lib -lxml2"
-        make CXX=g++-11 GCC=gcc-11 install SBML_COMPAT=1
-        make CXX=g++-11 GCC=gcc-11 MAXNODES=128 install SBML_COMPAT=1
+        make CXX=g++-11 CC=gcc-11 install SBML_COMPAT=1
+        make CXX=g++-11 CC=gcc-11 MAXNODES=128 install SBML_COMPAT=1
         
     - name: Test MaBoSS
       run: bash scripts/run_tests.sh
@@ -66,7 +66,7 @@ jobs:
     name: MaBoSS (clang)
     runs-on: macos-12
     env:
-      GCC: clang
+      CC: clang
       CXX: clang++
       INSTALL_PATH: /usr/local
       BUILD_PATH: /tmp/
@@ -120,7 +120,7 @@ jobs:
     runs-on: macos-12
     needs: [maboss_macos, maboss_llvm_macos]
     env:
-      GCC: clang
+      CC: clang
       CXX: clang++
       INSTALL_PATH: /usr/local
       BUILD_PATH: /tmp/
@@ -162,11 +162,11 @@ jobs:
         rm -fr engine/pub/*
         cd engine/src
         make clean
-        make install_static GCC=clang CXX=clang++ SBML_COMPAT=1
-        make install_static GCC=clang CXX=clang++ MAXNODES=128 SBML_COMPAT=1
-        make install_static GCC=clang CXX=clang++ MAXNODES=256 SBML_COMPAT=1
-        make install_static GCC=clang CXX=clang++ MAXNODES=512 SBML_COMPAT=1
-        make install_static GCC=clang CXX=clang++ MAXNODES=1024 SBML_COMPAT=1
+        make install_static CC=clang CXX=clang++ SBML_COMPAT=1
+        make install_static CC=clang CXX=clang++ MAXNODES=128 SBML_COMPAT=1
+        make install_static CC=clang CXX=clang++ MAXNODES=256 SBML_COMPAT=1
+        make install_static CC=clang CXX=clang++ MAXNODES=512 SBML_COMPAT=1
+        make install_static CC=clang CXX=clang++ MAXNODES=1024 SBML_COMPAT=1
         cd ../pub
         zip MaBoSS-osx64.zip *
     
@@ -202,16 +202,16 @@ jobs:
         rm -fr engine/pub/*
         cd engine/src
         make clean
-        make install_lib GCC=gcc-11 CXX=g++-11
-        make install_lib MAXNODES=128 GCC=gcc-11 CXX=g++-11
-        make install_lib MAXNODES=256 GCC=gcc-11 CXX=g++-11
-        make install_lib MAXNODES=512 GCC=gcc-11 CXX=g++-11
-        make install_lib MAXNODES=1024 GCC=gcc-11 CXX=g++-11
-        make install_alib GCC=gcc-11 CXX=g++-11
-        make install_alib MAXNODES=128 GCC=gcc-11 CXX=g++-11
-        make install_alib MAXNODES=256 GCC=gcc-11 CXX=g++-11
-        make install_alib MAXNODES=512 GCC=gcc-11 CXX=g++-11
-        make install_alib MAXNODES=1024 GCC=gcc-11 CXX=g++-11
+        make install_lib CC=gcc-11 CXX=g++-11
+        make install_lib MAXNODES=128 CC=gcc-11 CXX=g++-11
+        make install_lib MAXNODES=256 CC=gcc-11 CXX=g++-11
+        make install_lib MAXNODES=512 CC=gcc-11 CXX=g++-11
+        make install_lib MAXNODES=1024 CC=gcc-11 CXX=g++-11
+        make install_alib CC=gcc-11 CXX=g++-11
+        make install_alib MAXNODES=128 CC=gcc-11 CXX=g++-11
+        make install_alib MAXNODES=256 CC=gcc-11 CXX=g++-11
+        make install_alib MAXNODES=512 CC=gcc-11 CXX=g++-11
+        make install_alib MAXNODES=1024 CC=gcc-11 CXX=g++-11
         make clean
         cd ../../../
         tar -zcvf libMaBoSS-osx64.tar.gz MaBoSS/README.md MaBoSS/LICENSE MaBoSS/engine/src MaBoSS/engine/include MaBoSS/engine/lib
@@ -252,16 +252,16 @@ jobs:
         rm -fr engine/pub/*
         cd engine/src
         make clean
-        make install_lib GCC=gcc-13 CXX=g++-13
-        make install_lib MAXNODES=128 GCC=gcc-13 CXX=g++-13
-        make install_lib MAXNODES=256 GCC=gcc-13 CXX=g++-13
-        make install_lib MAXNODES=512 GCC=gcc-13 CXX=g++-13
-        make install_lib MAXNODES=1024 GCC=gcc-13 CXX=g++-13
-        make install_alib GCC=gcc-13 CXX=g++-13
-        make install_alib MAXNODES=128 GCC=gcc-13 CXX=g++-13
-        make install_alib MAXNODES=256 GCC=gcc-13 CXX=g++-13
-        make install_alib MAXNODES=512 GCC=gcc-13 CXX=g++-13
-        make install_alib MAXNODES=1024 GCC=gcc-13 CXX=g++-13
+        make install_lib CC=gcc-13 CXX=g++-13
+        make install_lib MAXNODES=128 CC=gcc-13 CXX=g++-13
+        make install_lib MAXNODES=256 CC=gcc-13 CXX=g++-13
+        make install_lib MAXNODES=512 CC=gcc-13 CXX=g++-13
+        make install_lib MAXNODES=1024 CC=gcc-13 CXX=g++-13
+        make install_alib CC=gcc-13 CXX=g++-13
+        make install_alib MAXNODES=128 CC=gcc-13 CXX=g++-13
+        make install_alib MAXNODES=256 CC=gcc-13 CXX=g++-13
+        make install_alib MAXNODES=512 CC=gcc-13 CXX=g++-13
+        make install_alib MAXNODES=1024 CC=gcc-13 CXX=g++-13
         make clean
         cd ../../../
         tar -zcvf libMaBoSS-macos-arm64.tar.gz MaBoSS/README.md MaBoSS/LICENSE MaBoSS/engine/src MaBoSS/engine/include MaBoSS/engine/lib
@@ -287,7 +287,7 @@ jobs:
     runs-on: macos-12
     needs: [maboss_macos, maboss_llvm_macos]
     env:  
-      GCC: gcc-11
+      CC: gcc-11
       CXX: g++-11
       INSTALL_PATH: /usr/local/
       BUILD_PATH: /tmp/
@@ -331,17 +331,17 @@ jobs:
         rm -fr engine/pub/*
         cd engine/src
         make clean
-        make install GCC=gcc-11 CXX=g++-11
-        make install_lib SBML_COMPAT=1 GCC=gcc-11 CXX=g++-11
-        make install_lib SBML_COMPAT=1 GCC=gcc-11 MAXNODES=128 CXX=g++-11
-        make install_lib SBML_COMPAT=1 GCC=gcc-11 MAXNODES=256 CXX=g++-11
-        make install_lib SBML_COMPAT=1 GCC=gcc-11 MAXNODES=512 CXX=g++-11
-        make install_lib SBML_COMPAT=1 GCC=gcc-11 MAXNODES=1024 CXX=g++-11
-        make install_alib SBML_COMPAT=1 GCC=gcc-11 CXX=g++-11
-        make install_alib SBML_COMPAT=1 GCC=gcc-11 MAXNODES=128 CXX=g++-11
-        make install_alib SBML_COMPAT=1 GCC=gcc-11 MAXNODES=256 CXX=g++-11
-        make install_alib SBML_COMPAT=1 GCC=gcc-11 MAXNODES=512 CXX=g++-11
-        make install_alib SBML_COMPAT=1 GCC=gcc-11 MAXNODES=1024 CXX=g++-11
+        make install CC=gcc-11 CXX=g++-11
+        make install_lib SBML_COMPAT=1 CC=gcc-11 CXX=g++-11
+        make install_lib SBML_COMPAT=1 CC=gcc-11 MAXNODES=128 CXX=g++-11
+        make install_lib SBML_COMPAT=1 CC=gcc-11 MAXNODES=256 CXX=g++-11
+        make install_lib SBML_COMPAT=1 CC=gcc-11 MAXNODES=512 CXX=g++-11
+        make install_lib SBML_COMPAT=1 CC=gcc-11 MAXNODES=1024 CXX=g++-11
+        make install_alib SBML_COMPAT=1 CC=gcc-11 CXX=g++-11
+        make install_alib SBML_COMPAT=1 CC=gcc-11 MAXNODES=128 CXX=g++-11
+        make install_alib SBML_COMPAT=1 CC=gcc-11 MAXNODES=256 CXX=g++-11
+        make install_alib SBML_COMPAT=1 CC=gcc-11 MAXNODES=512 CXX=g++-11
+        make install_alib SBML_COMPAT=1 CC=gcc-11 MAXNODES=1024 CXX=g++-11
         make clean
         cd ../../../
         tar -zcvf libMaBoSS-sbml-osx64.tar.gz MaBoSS/README.md MaBoSS/LICENSE MaBoSS/engine/src MaBoSS/engine/include MaBoSS/engine/lib
