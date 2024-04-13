@@ -368,6 +368,10 @@ jobs:
     name: Build Conda MaBoSS package
     runs-on: macos-12
     needs: [maboss_macos, maboss_llvm_macos]
+    strategy:
+      matrix:
+        repo: [{id: 0, name: "defaults"}, {id: 1, name: "conda-forge"}]
+        # os: [{version: macos-13, name: osx-64}, {version: macos-14, name: osx-arm64}]
 
     defaults:
       run:
@@ -378,14 +382,14 @@ jobs:
     - uses: conda-incubator/setup-miniconda@v3
       with:
         auto-update-conda: true
-        channels: defaults
+        channels: ${{ matrix.repo.name }}
         python-version: 3.12
         miniforge-variant: Mambaforge
         use-mamba: true
               
     - name: Installing conda-build      
       run: |
-        conda install conda-build conda-verify
+        conda install conda-build conda-verify anaconda-client
     
     - name: Installing MacOSX10.10 SDK
       run: |
@@ -398,233 +402,7 @@ jobs:
         
     - name: Build MaBoSS Anaconda package
       run: |
-        conda build -c colomoto conda/maboss
-          
-    - name: Caching produced conda package
-      uses: actions/cache@v4
-      with:
-        path: |
-          /Users/runner/miniconda3/envs/test/conda-bld/*
-        key: ${{ runner.os }}-maboss-conda-${{ github.run_id }}
-        
-  conda_maboss_conda_forge_macosx:
-    name: Build Conda MaBoSS package (conda-forge)
-    runs-on: macos-12
-    needs: [maboss_macos, maboss_llvm_macos]
-
-    defaults:
-      run:
-        shell: sh -l {0}
-            
-    steps:
-    - uses: actions/checkout@v4
-    - uses: conda-incubator/setup-miniconda@v3
-      with:
-        auto-update-conda: true
-        channels: conda-forge
-        python-version: 3.12
-        miniforge-variant: Mambaforge
-        use-mamba: true
-              
-    - name: Installing conda-build      
-      run: |
-        conda install conda-build conda-verify
-    
-    - name: Installing MacOSX10.10 SDK
-      run: |
-        wget https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX10.10.sdk.tar.xz
-        sudo tar xf MacOSX10.10.sdk.tar.xz -C /opt
-        echo "conda_build:" > ~/.condarc
-        echo "  config_file: ~/.conda/conda_build_config.yaml" >> ~/.condarc
-        echo "CONDA_BUILD_SYSROOT:" > ~/.conda/conda_build_config.yaml
-        echo "  - /opt/MacOSX10.10.sdk        # [osx]" >> ~/.conda/conda_build_config.yaml
-    
-    - name: Build MaBoSS Anaconda package
-      run: |
-        CUSTOM_BUILD_NUMBER=1 conda build -c colomoto conda/maboss
-          
-    - name: Caching produced conda package
-      uses: actions/cache@v4
-      with:
-        path: |
-          /Users/runner/miniconda3/envs/test/conda-bld/*
-        key: ${{ runner.os }}-maboss-conda-forge-${{ github.run_id }}
-   
-  maboss_conda_test_macosx:
-    name: MaBoSS Anaconda package test
-    runs-on: macos-12
-    needs: conda_maboss_macosx
-    
-    defaults:
-      run:
-        shell: sh -l {0}
-            
-    steps:
-    - uses: actions/checkout@v4
-    - uses: conda-incubator/setup-miniconda@v3
-      with:
-        auto-update-conda: true
-        channels: defaults
-        python-version: 3.12
-        miniforge-variant: Mambaforge
-        use-mamba: true
-              
-    - name: Install conda-build
-      run: |
-        conda install conda-build anaconda-client
-      
-    - name: Caching produced conda package
-      uses: actions/cache@v4
-      with:
-        path: |
-          /Users/runner/miniconda3/envs/test/conda-bld/*
-        key: ${{ runner.os }}-maboss-conda-${{ github.run_id }}
-        
-    - name: Install package
-      run: |
-        python -m conda_index /Users/runner/miniconda3/envs/test/conda-bld/
-        conda install -c colomoto libsbml-plus-packages
-        conda install -c file:///Users/runner/miniconda3/envs/test/conda-bld/ maboss
-
-    - name: Test package
-      run: |
-        pip install numpy
-        export MABOSS=/Users/runner/miniconda3/envs/test/bin/MaBoSS
-        export MABOSS_128n=/Users/runner/miniconda3/envs/test/bin/MaBoSS_128n
-        export MABOSS_CLIENT=/Users/runner/miniconda3/envs/test/bin/MaBoSS-client
-        export MABOSS_SERVER=/Users/runner/miniconda3/envs/test/bin/MaBoSS-server
-        export MABOSS_SERVER_128n=/Users/runner/miniconda3/envs/test/bin/MaBoSS_128n-server
-        bash -c "cd engine/tests; bash ./test-cellcycle.sh"
-        bash -c "cd engine/tests; bash ./test-ensemble.sh"
-        bash -c "cd engine/tests; bash ./test-ewing.sh"
-        bash -c "cd engine/tests; bash ./test-server.sh"
-        bash -c "cd engine/tests; bash ./test-prngs.sh"
-        bash -c "cd engine/tests; bash ./test-rngs.sh"
-        bash -c "cd engine/tests; bash ./test-sbml.sh"
-  
-  maboss_conda_test_conda_forge_macosx:
-    name: MaBoSS Anaconda package test (conda-forge)
-    runs-on: macos-12
-    needs: conda_maboss_conda_forge_macosx
-    
-    defaults:
-      run:
-        shell: sh -l {0}
-            
-    steps:
-    - uses: actions/checkout@v4
-    - uses: conda-incubator/setup-miniconda@v3
-      with:
-        auto-update-conda: true
-        channels: conda-forge
-        python-version: 3.12
-        miniforge-variant: Mambaforge
-        use-mamba: true
-              
-    - name: Install conda-build
-      run: |
-        conda install conda-build anaconda-client
-      
-    - name: Caching produced conda package
-      uses: actions/cache@v4
-      with:
-        path: |
-          /Users/runner/miniconda3/envs/test/conda-bld/*
-        key: ${{ runner.os }}-maboss-conda-forge-${{ github.run_id }}
-        
-    - name: Install package
-      run: |
-        python -m conda_index /Users/runner/miniconda3/envs/test/conda-bld/
-        conda install -c colomoto libsbml-plus-packages
-        conda install -c file:///Users/runner/miniconda3/envs/test/conda-bld/ maboss
-      
-    - name: Test package
-      run: |
-        pip install numpy
-        export MABOSS=/Users/runner/miniconda3/envs/test/bin/MaBoSS
-        export MABOSS_128n=/Users/runner/miniconda3/envs/test/bin/MaBoSS_128n
-        export MABOSS_CLIENT=/Users/runner/miniconda3/envs/test/bin/MaBoSS-client
-        export MABOSS_SERVER=/Users/runner/miniconda3/envs/test/bin/MaBoSS-server
-        export MABOSS_SERVER_128n=/Users/runner/miniconda3/envs/test/bin/MaBoSS_128n-server
-        bash -c "cd engine/tests; bash ./test-cellcycle.sh"
-        bash -c "cd engine/tests; bash ./test-ensemble.sh"
-        bash -c "cd engine/tests; bash ./test-ewing.sh"
-        bash -c "cd engine/tests; bash ./test-server.sh"
-        bash -c "cd engine/tests; bash ./test-prngs.sh"
-        bash -c "cd engine/tests; bash ./test-rngs.sh"
-        bash -c "cd engine/tests; bash ./test-sbml.sh"
-    
-  maboss_conda_publish_macosx:
-    name: MaBoSS Anaconda package publication
-    runs-on: macos-12
-    needs: maboss_conda_test_macosx
-    
-    defaults:
-      run:
-        shell: sh -l {0}
-            
-    steps:
-    - uses: actions/checkout@v4
-    - uses: conda-incubator/setup-miniconda@v3
-      with:
-        auto-update-conda: true
-        channels: defaults
-        python-version: 3.12
-        miniforge-variant: Mambaforge
-        use-mamba: true
-              
-    - name: Install conda-build
-      run: |
-        conda install conda-build anaconda-client
-      
-    - name: Caching produced conda package
-      uses: actions/cache@v4
-      with:
-        path: |
-          /Users/runner/miniconda3/envs/test/conda-bld/*
-        key: ${{ runner.os }}-maboss-conda-${{ github.run_id }}
-        
-    
-    - name: Upload MaBoSS to Anaconda cloud on vincent-noel
-      run: |   
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /Users/runner/miniconda3/envs/test/conda-bld/osx-64/*.tar.bz2 --force;
- 
-    
-    - name: Upload MaBoSS to Anaconda cloud on colomoto
-      if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
-      run: |   
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /Users/runner/miniconda3/envs/test/conda-bld/osx-64/*.tar.bz2 --force;
- 
-  maboss_conda_publish_conda_forge_macosx:
-    name: MaBoSS Anaconda package publication (conda-forge)
-    runs-on: macos-12
-    needs: maboss_conda_test_conda_forge_macosx
-    
-    defaults:
-      run:
-        shell: sh -l {0}
-            
-    steps:
-    - uses: actions/checkout@v4
-    - uses: conda-incubator/setup-miniconda@v3
-      with:
-        auto-update-conda: true
-        channels: conda-forge
-        python-version: 3.12
-        miniforge-variant: Mambaforge
-        use-mamba: true
-              
-    - name: Install conda-build
-      run: |
-        conda install conda-build anaconda-client
-      
-    - name: Caching produced conda package
-      uses: actions/cache@v4
-      with:
-        path: |
-          /Users/runner/miniconda3/envs/test/conda-bld/*
-        key: ${{ runner.os }}-maboss-conda-forge-${{ github.run_id }}
-        
+        CUSTOM_BUILD_NUMBER=${{ matrix.repo.id }} conda build -c ${{ matrix.repo.name }} -c colomoto conda/maboss
     
     - name: Upload MaBoSS to Anaconda cloud on vincent-noel
       run: |   
