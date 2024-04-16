@@ -132,13 +132,13 @@ jobs:
     - uses: actions/checkout@v4
     - name: Install dependencies
       run : |
-        brew install flex bison cmake gcc@11
-      
+        brew install flex bison cmake
+        
     - name: Manually install libxml2 2.11
       run: |
         wget https://github.com/Homebrew/homebrew-core/raw/38ba35404e3cdb398694419850179e0023158887/Formula/lib/libxml2.rb
         brew install -s libxml2.rb
-    
+
     - name: Set cmake version variable
       run: |
         echo "CMAKE_VERSION=$(cmake --version | head -n 1)" >> $GITHUB_ENV
@@ -151,7 +151,7 @@ jobs:
         key: ${{ runner.os }}-${{ env.CMAKE_VERSION }}-libSBML-5.20.2-clang++-namespace
 
     - name: Compiling libSBML
-      if: steps.cache-libsbml-gcc11.outputs.cache-hit != 'true'
+      if: steps.cache-libsbml-clang.outputs.cache-hit != 'true'
       run: bash scripts/build_libsbml.sh
         
     - name: Install libSBML
@@ -174,7 +174,7 @@ jobs:
       if: github.event_name != 'release'
       with:
         name: MaBoSS-osx64
-        path: /Users/runner/work/MaBoSS/MaBoSS/engine/pub/MaBoSS-osx64.zip
+        path: /Users/runner/work/MaBoSS/MaBoSS/engine/pub/MaBoSS-osx-64.zip
             
     - uses: actions/upload-release-asset@v1
       if: github.event_name == 'release'
@@ -182,8 +182,79 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ github.event.release.upload_url }}
-        asset_name: MaBoSS-osx64.zip
-        asset_path: /Users/runner/work/MaBoSS/MaBoSS/engine/pub/MaBoSS-osx64.zip
+        asset_name: MaBoSS-osx-64.zip
+        asset_path: /Users/runner/work/MaBoSS/MaBoSS/engine/pub/MaBoSS-osx-64.zip
+        asset_content_type: application/zip
+        
+  maboss_binary_macos_m1:
+    name: MaBoSS MacOSX 64 bits binary
+    needs: [maboss_macos, maboss_llvm_macos]
+    runs-on: macos-14
+    env:
+      CC: clang
+      CXX: clang++
+      INSTALL_PATH: /usr/local
+      BUILD_PATH: /tmp/
+      LIBXML_LIBDIR: /opt/homebrew/opt/libxml2/lib/libxml2.dylib
+      LIBXML_INCLUDEDIR: /opt/homebrew/opt/libxml2/include/
+      MACOSX_DEPLOYMENT_TARGET: 12.0
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install dependencies
+      run : |
+        brew install flex bison cmake
+
+    - name: Manually install libxml2 2.11
+      run: |
+        wget https://github.com/Homebrew/homebrew-core/raw/38ba35404e3cdb398694419850179e0023158887/Formula/lib/libxml2.rb
+        brew install -s libxml2.rb
+      
+    - name: Set cmake version variable
+      run: |
+        echo "CMAKE_VERSION=$(cmake --version | head -n 1)" >> $GITHUB_ENV
+    
+    - name: Cache compiled libSBML
+      id: cache-libsbml-clang
+      uses: actions/cache@v4
+      with:
+        path: /tmp/libsbml-5.20.2
+        key: ${{ runner.os }}-m1-${{ env.CMAKE_VERSION }}-libSBML-5.20.2-clang++-namespace
+
+    - name: Compiling libSBML
+      if: steps.cache-libsbml-clang.outputs.cache-hit != 'true'
+      run: bash scripts/build_libsbml.sh
+        
+    - name: Install libSBML
+      run: sudo bash scripts/install_libsbml.sh
+          
+    - name: Build binary
+      run: |
+        rm -fr engine/pub/*
+        cd engine/src
+        make clean
+        make install_static CC=clang CXX=clang++ SBML_COMPAT=1
+        make install_static CC=clang CXX=clang++ MAXNODES=128 SBML_COMPAT=1
+        make install_static CC=clang CXX=clang++ MAXNODES=256 SBML_COMPAT=1
+        make install_static CC=clang CXX=clang++ MAXNODES=512 SBML_COMPAT=1
+        make install_static CC=clang CXX=clang++ MAXNODES=1024 SBML_COMPAT=1
+        cd ../pub
+        zip MaBoSS-osx-arm64.zip *
+    
+    - uses: actions/upload-artifact@v4
+      if: github.event_name != 'release'
+      with:
+        name: MaBoSS-osx-arm64
+        path: /Users/runner/work/MaBoSS/MaBoSS/engine/pub/MaBoSS-osx-arm64.zip
+            
+    - uses: actions/upload-release-asset@v1
+      if: github.event_name == 'release'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_name: MaBoSS-osx-arm64.zip
+        asset_path: /Users/runner/work/MaBoSS/MaBoSS/engine/pub/MaBoSS-osx-arm64.zip
         asset_content_type: application/zip
         
   maboss_library_macos:
