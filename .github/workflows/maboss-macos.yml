@@ -169,7 +169,14 @@ jobs:
         make install_static CC=clang CXX=clang++ MAXNODES=1024 SBML_COMPAT=1
         cd ../pub
         zip MaBoSS-osx64.zip *
-    
+      
+    - name: Caching produced project binaries
+      uses: actions/cache@v4
+      with:
+        path: |
+          ${{ github.workspace }}/engine/pub/MaBoSS-osx64.zip
+        key: ${{ runner.os }}-macos-MaBoSS-${{ github.run_id }}
+        
     - uses: actions/upload-artifact@v4
       if: github.event_name != 'release'
       with:
@@ -241,6 +248,13 @@ jobs:
         cd ../pub
         zip MaBoSS-osx-arm64.zip *
     
+    - name: Caching produced project binaries
+      uses: actions/cache@v4
+      with:
+        path: |
+          ${{ github.workspace }}/engine/pub/MaBoSS-osx-arm64.zip
+        key: ${{ runner.os }}-macosarm64-MaBoSS-${{ github.run_id }}
+        
     - uses: actions/upload-artifact@v4
       if: github.event_name != 'release'
       with:
@@ -255,6 +269,68 @@ jobs:
         upload_url: ${{ github.event.release.upload_url }}
         asset_name: MaBoSS-osx-arm64.zip
         asset_path: /Users/runner/work/MaBoSS/MaBoSS/engine/pub/MaBoSS-osx-arm64.zip
+        asset_content_type: application/zip
+        
+  maboss_binary_macos_universal:
+    name: MaBoSS MacOSX 64 bits binary
+    needs: [maboss_binary_macos, maboss_binary_macos_m1]
+    runs-on: macos-12
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install dependencies
+      run : |
+        brew install unzip
+
+    - name: Caching produced project binaries
+      uses: actions/cache@v4
+      with:
+        path: |
+          ${{ github.workspace }}/engine/pub/MaBoSS-osx-arm64.zip
+        key: ${{ runner.os }}-macosarm64-MaBoSS-${{ github.run_id }}
+        
+    - name: Caching produced project binaries
+      uses: actions/cache@v4
+      with:
+        path: |
+          ${{ github.workspace }}/engine/pub/MaBoSS-osx64.zip
+        key: ${{ runner.os }}-macos-MaBoSS-${{ github.run_id }}  
+    
+    - name: Extract produced project binaries
+      run : |
+        cd engine/pub
+        unzip MaBoSS-osx64.zip -d MaBoSS-osx64
+        unzip MaBoSS-osx-arm64.zip -d MaBoSS-osx-arm64
+        ls -al
+          
+    - name: Create universal binary
+      run: |
+        lipo -create -output MaBoSS MaBoSS-osx64/MaBoSS MaBoSS-osx-arm64/MaBoSS
+        lipo -create -output MaBoSS_128n MaBoSS-osx64/MaBoSS_128n MaBoSS-osx-arm64/MaBoSS_128n
+        lipo -create -output MaBoSS_256n MaBoSS-osx64/MaBoSS_256n MaBoSS-osx-arm64/MaBoSS_256n
+        lipo -create -output MaBoSS_512n MaBoSS-osx64/MaBoSS_512n MaBoSS-osx-arm64/MaBoSS_512n
+        lipo -create -output MaBoSS_1024n MaBoSS-osx64/MaBoSS_1024n MaBoSS-osx-arm64/MaBoSS_1024n
+        lipo -create -output PopMaBoSS MaBoSS-osx64/PopMaBoSS MaBoSS-osx-arm64/PopMaBoSS
+        lipo -create -output PopMaBoSS_128n MaBoSS-osx64/PopMaBoSS_128n MaBoSS-osx-arm64/PopMaBoSS_128n
+        lipo -create -output PopMaBoSS_256n MaBoSS-osx64/PopMaBoSS_256n MaBoSS-osx-arm64/PopMaBoSS_256n
+        lipo -create -output PopMaBoSS_512n MaBoSS-osx64/PopMaBoSS_512n MaBoSS-osx-arm64/PopMaBoSS_512n
+        lipo -create -output PopMaBoSS_1024n MaBoSS-osx64/PopMaBoSS_1024n MaBoSS-osx-arm64/PopMaBoSS_1024n
+        zip MaBoSS-osx-universal.zip MaBoSS MaBoSS_128n MaBoSS_256n MaBoSS_512n MaBoSS_1024n PopMaBoSS PopMaBoSS_128n PopMaBoSS_256n PopMaBoSS_512n PopMaBoSS_1024n
+        
+    - uses: actions/upload-artifact@v4
+      if: github.event_name != 'release'
+      with:
+        name: MaBoSS-osx-universal
+        path: /Users/runner/work/MaBoSS/MaBoSS/engine/pub/MaBoSS-osx-universal.zip
+            
+    - uses: actions/upload-release-asset@v1
+      if: github.event_name == 'release'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_name: MaBoSS-osx-universal.zip
+        asset_path: /Users/runner/work/MaBoSS/MaBoSS/engine/pub/MaBoSS-osx-universal.zip
         asset_content_type: application/zip
         
   maboss_library_macos:
