@@ -116,7 +116,7 @@ jobs:
       run: bash scripts/run_tests.sh
    
   maboss_binary_macos:
-    name: MaBoSS MacOSX 64 bits binary
+    name: MaBoSS MacOSX x86_64 binary
     runs-on: macos-12
     needs: [maboss_macos, maboss_llvm_macos]
     env:
@@ -194,7 +194,7 @@ jobs:
         asset_content_type: application/zip
         
   maboss_binary_macos_m1:
-    name: MaBoSS MacOSX 64 bits binary
+    name: MaBoSS MacOSX arm64 binary
     needs: [maboss_macos, maboss_llvm_macos]
     runs-on: macos-14
     env:
@@ -272,7 +272,7 @@ jobs:
         asset_content_type: application/zip
         
   maboss_binary_macos_universal:
-    name: MaBoSS MacOSX 64 bits binary
+    name: MaBoSS MacOSX universal binary
     needs: [maboss_binary_macos, maboss_binary_macos_m1]
     runs-on: macos-12
 
