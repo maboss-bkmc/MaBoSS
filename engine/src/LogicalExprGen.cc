@@ -99,7 +99,7 @@ Expression* Node::rewriteLogicalExpression(Expression* ref_rateUpExpr, Expressio
      );
 }
 
-void Node::generateLogicalExpression(LogicalExprGenContext& genctx) const
+Expression* Node::generateRawLogicalExpression() const
 {
   Expression* rewrited_expr = NULL;
   if (NULL != rateUpExpr && NULL != rateDownExpr) {
@@ -123,6 +123,12 @@ void Node::generateLogicalExpression(LogicalExprGenContext& genctx) const
   }
 
   Expression* shrinked_expr = Expression::cloneAndShrinkRecursive(rewrited_expr);
+  return shrinked_expr;
+}
+
+void Node::generateLogicalExpression(LogicalExprGenContext& genctx) const
+{
+  Expression* shrinked_expr = generateRawLogicalExpression();
   
   std::ostream& os = genctx.getOStream();
   os << label << " : ";

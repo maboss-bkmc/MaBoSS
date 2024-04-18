@@ -76,9 +76,12 @@
 #endif
 
 
-// #ifdef SBML_COMPAT
-// #include <sbml/SBMLTypes.h>
-// #endif
+#ifdef SBML_COMPAT
+#include <sbml/SBMLTypes.h>
+#include "sbml/packages/qual/common/QualExtensionTypes.h"
+ 
+LIBSBML_CPP_NAMESPACE_USE
+#endif
 
 
 #define MAP std::map
@@ -87,6 +90,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <algorithm>
 #include <assert.h>
 #include <sstream>
 #include <iostream>
@@ -462,6 +466,7 @@ class Node {
   }
 
   void display(std::ostream& os) const;
+  Expression* generateRawLogicalExpression() const;
   void generateLogicalExpression(LogicalExprGenContext& gen) const;
 
   static void setOverride(bool override) {
@@ -475,6 +480,18 @@ class Node {
   }
 
   static bool isAugment() {return augment;}
+
+#ifdef SBML_COMPAT
+  void writeSBML(QualitativeSpecies* qs) 
+  {
+    qs->setId(this->getLabel());
+    qs->setCompartment("c");
+    qs->setConstant(false);
+    qs->setInitialLevel(1);
+    qs->setMaxLevel(1);
+    qs->setName(this->getLabel());
+  }
+#endif
 
   void reset();
 
@@ -1343,7 +1360,10 @@ public:
   virtual void display(std::ostream& os) const = 0;
   virtual bool isConstantExpression() const {return false;}
   virtual bool isLogicalExpression() const {return false;}
-
+  virtual std::vector<Node*> getNodes() const{return std::vector<Node*>(); }
+#ifdef SBML_COMPAT
+  virtual ASTNode* writeSBML(LogicalExprGenContext& genctx) const { return new ASTNode(AST_CONSTANT_TRUE); }
+#endif
   virtual void generateLogicalExpression(LogicalExprGenContext& genctx) const = 0;
   virtual bool generationWillAddParenthesis() const {return false;}
 
@@ -1383,7 +1403,27 @@ public:
   }
 
   bool isLogicalExpression() const {return true;}
+  
+  std::vector<Node*> getNodes() const{
+    std::vector<Node*> vec;
+    vec.push_back(node);
+    return vec;
+  }
 
+#ifdef SBML_COMPAT
+  ASTNode* writeSBML(LogicalExprGenContext& genctx) const {
+    ASTNode* equ = new ASTNode(AST_RELATIONAL_EQ);
+    ASTNode* a_node = new ASTNode(AST_NAME);
+    a_node->setId(node->getLabel());
+    a_node->setName(node->getLabel().c_str());
+    ASTNode* one = new ASTNode(AST_INTEGER);
+    one->setValue(1);
+    
+    equ->addChild(a_node);
+    equ->addChild(one);
+    return equ;
+  }
+#endif
   void generateLogicalExpression(LogicalExprGenContext& genctx) const;
 
   ~NodeExpression() {
@@ -1418,7 +1458,9 @@ public:
   }
 
   bool isLogicalExpression() const {return true;}
-
+  std::vector<Node*> getNodes() const{
+    return std::vector<Node*>();
+  }
   void generateLogicalExpression(LogicalExprGenContext& genctx) const;
 
   ~PopExpression() {
@@ -1442,7 +1484,19 @@ public:
   virtual bool isConstantExpression() const {
     return left->isConstantExpression() && right->isConstantExpression();
   }
-
+ 
+  std::vector<Node*> getNodes() const{
+    std::vector<Node*> vec1 = left->getNodes();
+    std::vector<Node*> vec2 = right->getNodes();
+    std::vector<Node*> vec(vec1.begin(), vec1.end());
+    for (auto* node : vec2) {
+      if (std::find(vec.begin(), vec.end(), node) == vec.end()) {
+        vec.push_back(node);
+      }
+    }
+    return vec;
+  }
+  
   virtual ~BinaryExpression() {
     delete left;
     delete right;
@@ -1810,7 +1864,11 @@ public:
   bool isConstantExpression() const {return true;}
 
   bool isLogicalExpression() const {return value == 0 || value == 1;}
-
+  
+  std::vector<Node*> getNodes() const{
+    return std::vector<Node*>();
+  }
+  
   void generateLogicalExpression(LogicalExprGenContext& genctx) const;
 
 };
@@ -1854,7 +1912,11 @@ public:
   }
 
   bool isConstantExpression() const {return true;}
-
+  
+  std::vector<Node*> getNodes() const{
+    return std::vector<Node*>();
+  }
+  
   void generateLogicalExpression(LogicalExprGenContext& genctx) const;
 
   void unset() { value_set = false; }
@@ -1911,7 +1973,15 @@ public:
   void display(std::ostream& os) const {
     os << '@' << identifier;
   }
-
+#ifdef SBML_COMPAT
+  ASTNode* writeSBML(LogicalExprGenContext& genctx) const {
+    alias_expr = getAliasExpression(genctx.getNode());
+    if (NULL != alias_expr) {
+      return alias_expr->writeSBML(genctx);
+    }
+    else return new ASTNode(AST_CONSTANT_FALSE);
+  }
+#endif
   void generateLogicalExpression(LogicalExprGenContext& genctx) const;
 };
 
@@ -1943,6 +2013,15 @@ public:
 
   virtual bool isLogicalExpression() const {return true;}
 
+#ifdef SBML_COMPAT
+  ASTNode* writeSBML(LogicalExprGenContext& genctx) const {
+    ASTNode* op = new ASTNode(AST_LOGICAL_OR);
+    
+    op->addChild(left->writeSBML(genctx));
+    op->addChild(right->writeSBML(genctx));
+    return op;
+  }
+#endif
   void generateLogicalExpression(LogicalExprGenContext& genctx) const;
 };
 
@@ -1973,7 +2052,15 @@ public:
   }
 
   bool isLogicalExpression() const {return true;}
-
+#ifdef SBML_COMPAT
+  ASTNode* writeSBML(LogicalExprGenContext& genctx) const {
+    ASTNode* op = new ASTNode(AST_LOGICAL_AND);
+    
+    op->addChild(left->writeSBML(genctx));
+    op->addChild(right->writeSBML(genctx));
+    return op;
+  }
+#endif
   void generateLogicalExpression(LogicalExprGenContext& genctx) const;
 };
 
@@ -2003,7 +2090,15 @@ public:
   }
 
   bool isLogicalExpression() const {return true;}
-
+#ifdef SBML_COMPAT
+  ASTNode* writeSBML(LogicalExprGenContext& genctx) const {
+    ASTNode* op = new ASTNode(AST_LOGICAL_XOR);
+    
+    op->addChild(left->writeSBML(genctx));
+    op->addChild(right->writeSBML(genctx));
+    return op;
+  }
+#endif
   void generateLogicalExpression(LogicalExprGenContext& genctx) const;
 };
 
@@ -2038,7 +2133,14 @@ public:
   bool isLogicalExpression() const {return true;}
 
   void generateLogicalExpression(LogicalExprGenContext& genctx) const;
-
+#ifdef SBML_COMPAT
+  ASTNode* writeSBML(LogicalExprGenContext& genctx) const {
+    ASTNode* op = new ASTNode(AST_LOGICAL_NOT);
+    
+    op->addChild(expr->writeSBML(genctx));
+    return op;
+  }
+#endif
   ~NotLogicalExpression() {
     delete expr;
   }
@@ -2082,6 +2184,13 @@ public:
   bool isLogicalExpression() const {return expr->isLogicalExpression();}
 
   void generateLogicalExpression(LogicalExprGenContext& genctx) const;
+
+#ifdef SBML_COMPAT
+  ASTNode* writeSBML(LogicalExprGenContext& genctx) const {
+
+    return expr->writeSBML(genctx);
+  }
+#endif
 
   virtual ~ParenthesisExpression() {
     delete expr;

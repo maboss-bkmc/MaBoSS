@@ -59,6 +59,7 @@
 #include "ProbTrajDisplayer.h"
 #include "StatDistDisplayer.h"
 #include "RandomGenerator.h"
+#include "SBMLExporter.h"
 
 const char* prog = "MaBoSS";
 
@@ -69,6 +70,7 @@ static int usage(std::ostream& os = std::cerr)
   os << "  " << prog << " [-V|--version]\n\n";
   os << "  " << prog << " [-c|--config CONF_FILE] [-v|--config-vars VAR1=NUMERICzC[,VAR2=...]] [-e|--config-expr CONFIG_EXPR] -d|--dump-config BOOLEAN_NETWORK_FILE\n\n";
   os << "  " << prog << " [-c|--config CONF_FILE] [-v|--config-vars VAR1=NUMERIC[,VAR2=...]] [-e|--config-expr CONFIG_EXPR] -l|--generate-logical-expressions BOOLEAN_NETWORK_FILE\n\n";
+  os << "  " << prog << " [-c|--config CONF_FILE] [-v|--config-vars VAR1=NUMERIC[,VAR2=...]] [-e|--config-expr CONFIG_EXPR] -x|--export-sbml SBML_FILE BOOLEAN_NETWORK_FILE\n\n";
   os << "  " << prog << " -t|--generate-config-template BOOLEAN_NETWORK_FILE\n";
   os << "  " << prog << " [-q|--quiet]\n";
   os << "  " << prog << " [--format csv|json]\n";
@@ -104,6 +106,7 @@ static int help()
   std::cout << "  --check                                 : checks network and configuration files and exits\n";
   std::cout << "  --hexfloat                              : displays double in hexadecimal format\n";
   std::cout << "  --use-sbml-names                        : use the names of the species when importing sbml\n";
+  std::cout << "  -x|--export-sbml SBML_FILE              : export the model to sbml\n";
   std::cout << "  -h --help                               : displays this message\n";
   std::cout << "\nEnsembles:\n";
   std::cout << "  --ensemble                             : simulate ensembles\n";
@@ -434,6 +437,7 @@ int main(int argc, char* argv[])
   bool check = false;
   dont_shrink_logical_expressions = false; // global flag
   bool use_sbml_names = false;
+  const char* sbml_file = NULL;
   OutputFormat format = CSV_FORMAT;
   MaBEstEngine::init();
 
@@ -511,6 +515,9 @@ int main(int argc, char* argv[])
         } else {
           std::cerr << "\n" << prog << ": --ensemble-istates only usable if --ensemble is used" << std::endl;
         }
+      } else if (!strcmp(s, "-x") || !strcmp(s, "--export-sbml")) {
+        if (nn == argc-1) {std::cerr << '\n' << prog << ": missing value after option " << s << '\n'; return usage();}
+        sbml_file = argv[++nn];
       } else if (!strcmp(s, "--use-sbml-names")) {
         use_sbml_names = true;
       } else if (!strcmp(s, "--load-user-functions")) {
@@ -566,7 +573,7 @@ int main(int argc, char* argv[])
     return usage();
   }
     
-  if (!dump_config && !generate_config_template && !generate_logical_expressions && !check && !generate_bnd_file && output == NULL) {
+  if (!dump_config && !generate_config_template && !generate_logical_expressions && !check && !generate_bnd_file && sbml_file == NULL && output == NULL) {
     std::cerr << '\n' << prog << ": ouput option is not set\n";
     return usage();
   }
@@ -680,7 +687,16 @@ int main(int argc, char* argv[])
         return 0;
       }
 
-
+      if (sbml_file != NULL)
+      {
+#ifdef SBML_COMPAT
+        SBMLExporter sbml_exporter(network, runconfig, sbml_file);
+        return 0;
+#else
+        std::cerr << '\n' << prog << ": SBML support not enabled\n";
+        return 1;
+#endif
+      }
       if (dump_config) {
         runconfig->dump(network, std::cout, MaBEstEngine::VERSION);
         return 0;
