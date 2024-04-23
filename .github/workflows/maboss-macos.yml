@@ -181,7 +181,7 @@ jobs:
       if: github.event_name != 'release'
       with:
         name: MaBoSS-osx64
-        path: /Users/runner/work/MaBoSS/MaBoSS/engine/pub/MaBoSS-osx-64.zip
+        path: /Users/runner/work/MaBoSS/MaBoSS/engine/pub/MaBoSS-osx64.zip
             
     - uses: actions/upload-release-asset@v1
       if: github.event_name == 'release'
@@ -189,8 +189,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ github.event.release.upload_url }}
-        asset_name: MaBoSS-osx-64.zip
-        asset_path: /Users/runner/work/MaBoSS/MaBoSS/engine/pub/MaBoSS-osx-64.zip
+        asset_name: MaBoSS-osx64.zip
+        asset_path: /Users/runner/work/MaBoSS/MaBoSS/engine/pub/MaBoSS-osx64.zip
         asset_content_type: application/zip
         
   maboss_binary_macos_m1:
