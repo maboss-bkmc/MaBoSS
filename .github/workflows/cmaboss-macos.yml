@@ -66,24 +66,20 @@ jobs:
   build_wheels_macos:
     name: Build MacOS wheels
     runs-on: macos-12
-    strategy:
-      matrix:
-        arch: ["x86_64", "arm64"]
     needs: cmaboss_macos
     
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.10' 
+          python-version: '3.12' 
 
       - name: Install cibuildwheel
         run: python -m pip install cibuildwheel numpy twine
 
       - name: Build wheels
         env: 
-          CIBW_ARCHS: ${{ matrix.arch }}
-          CIBW_TEST_SKIP: "*-macosx_arm64"
+          CIBW_ARCHS: x86_64
           CIBW_BEFORE_ALL: >
             wget https://github.com/Homebrew/homebrew-core/raw/38ba35404e3cdb398694419850179e0023158887/Formula/lib/libxml2.rb && 
             brew install -s libxml2.rb && 
@@ -104,7 +100,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: wheels-${{ matrix.arch }}
+          name: wheels-macos-x86_64
           path: wheelhouse/*.whl
           
       - name: Upload cMaBoSS to test Pypi
@@ -123,7 +119,62 @@ jobs:
         run: |
           python -m twine upload --skip-existing wheelhouse/cmaboss*
           
+  build_wheels_macos_arm64:
+    name: Build MacOS wheels
+    runs-on: macos-14
+    needs: cmaboss_macos
+    
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12' 
+
+      - name: Install cibuildwheel
+        run: python -m pip install cibuildwheel numpy twine
+
+      - name: Build wheels
+        env: 
+          CIBW_ARCHS: arm64
+          CIBW_BEFORE_ALL: >
+            wget https://github.com/Homebrew/homebrew-core/raw/38ba35404e3cdb398694419850179e0023158887/Formula/lib/libxml2.rb && 
+            brew install -s libxml2.rb && 
+            CC=clang CXX=clang++ INSTALL_PATH=/usr/local/ BUILD_PATH=/tmp/ \
+              LIBXML_LIBDIR=/opt/homebrew/opt/libxml2/lib/libxml2.dylib \
+              LIBXML_INCLUDEDIR=/opt/homebrew/opt/libxml2/include/ \
+              bash scripts/build_libsbml.sh && 
+            BUILD_PATH=/tmp/ sudo bash scripts/install_libsbml.sh
+          CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
+            DYLD_LIBRARY_PATH=/usr/local/lib/ delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}
+
+        run: |
+          cd engine/src
+          make grammars
+          cd ../../
+          cp -r engine/src engine/python/cmaboss/
+          python -m cibuildwheel --output-dir wheelhouse engine/python
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels-macos-arm64
+          path: wheelhouse/*.whl
           
+      - name: Upload cMaBoSS to test Pypi
+        if: github.repository == 'vincent-noel/MaBoSS' && github.ref == 'refs/heads/master'
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TEST_TOKEN }}
+        run: |
+          python -m twine upload --repository testpypi --skip-existing wheelhouse/cmaboss*
+          
+      - name: Upload cMaBoSS to Pypi
+        if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          python -m twine upload --skip-existing wheelhouse/cmaboss*
+                  
 
   conda_cmaboss_macosx:
     name: cMaBoSS Conda package
