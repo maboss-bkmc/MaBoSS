@@ -182,7 +182,10 @@ jobs:
 
     strategy:
       matrix:
-        repo: [{id: 0, name: "defaults"}, {id: 1, name: "conda-forge"}]
+        repo: [
+          {id: 0, name: "defaults", miniforge-variant: ""}, 
+          {id: 1, name: "conda-forge", miniforge-variant: "Mambaforge"}
+        ]
         version: [{python: "3.8", numpy: "1.22"}, {python: "3.9", numpy: "1.22"}, {python: "3.10", numpy: "1.22"}, {python: "3.11", numpy: "1.23"}, {python: "3.12", numpy: "1.26"}]
         os: [{version: macos-12, name: osx-64, sdk: MacOSX10.10.sdk}, {version: macos-14, name: osx-arm64, sdk: MacOSX11.0.sdk}]
     runs-on: ${{ matrix.os.version }}
@@ -198,7 +201,7 @@ jobs:
         auto-update-conda: true
         channels: ${{ matrix.repo.name }}
         python-version: 3.12
-        miniforge-variant: Mambaforge
+        miniforge-variant: ${{ matrix.repo.miniforge-variant }}
         use-mamba: true
         
     - name: Install conda-build
@@ -220,10 +223,10 @@ jobs:
        
     - name: Upload MaBoSS to Anaconda cloud on vincent-noel
       run: |   
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /Users/runner/miniconda3/envs/test/conda-bld/${{ matrix.os.name }}/*.tar.bz2 --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel ${{ env.CONDA }}/envs/test/conda-bld/${{ matrix.os.name }}/*.tar.bz2 --force;
     
     - name: Upload MaBoSS to Anaconda cloud on colomoto
       if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
       run: |   
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /Users/runner/miniconda3/envs/test/conda-bld/${{ matrix.os.name }}/*.tar.bz2 --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto ${{ env.CONDA }}/envs/test/conda-bld/${{ matrix.os.name }}/*.tar.bz2 --force;
  
