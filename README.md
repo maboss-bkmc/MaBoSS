@@ -27,6 +27,8 @@ MaBoSS is available as a conda package for Linux and MacOSX in the [CoLoMoTo rep
 To install it, run 
 
     conda install -c colomoto maboss
+    
+Note that this package doesn't include the MPI version of MaBoSS, which still needs to be built manually from source. 
 
 ### Python bindings
 
