@@ -20,6 +20,11 @@ jobs:
       MACOSX_DEPLOYMENT_TARGET: 12.0
     steps:
     - uses: actions/checkout@v4 
+
+    - name: Downgrading to XCode 13.1
+      run: |
+        sudo xcode-select -s /Applications/Xcode_13.1.app/Contents/Developer
+    
     - name: Install dependencies
       run: |
         brew install flex bison python3 cmake
@@ -70,6 +75,9 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
+      - name: Downgrading to XCode 13.1
+        run: |
+          sudo xcode-select -s /Applications/Xcode_13.1.app/Contents/Developer
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12' 
