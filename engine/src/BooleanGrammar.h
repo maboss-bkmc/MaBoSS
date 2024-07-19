@@ -137,13 +137,13 @@ class DivisionDecl {
     if (get_pop_network() == NULL)    
       throw BNException("Please use PopMaBoSS to simulate PopMaBoSS models");
 
-    DivisionRule new_rule = DivisionRule();
+    DivisionRule * new_rule = new DivisionRule();
     
-    new_rule.setRate(rate);
+    new_rule->setRate(rate);
     
     if (daughters != NULL){
       for (auto daughter: *daughters) {
-        new_rule.addDaughterNode(daughter->daughter, daughter->node, daughter->expr);
+        new_rule->addDaughterNode(daughter->daughter, daughter->node, daughter->expr);
       }
     }
     

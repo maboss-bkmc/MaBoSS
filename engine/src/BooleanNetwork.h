@@ -737,79 +737,6 @@ public:
   ~Network();
 };
 
-class DivisionRule {
-  
-  public:
-
-  //During a division, you remove the cell and create two new cells
-  static const int DAUGHTER_1;
-  // and 
-  static const int DAUGHTER_2;
-  
-  // Each one has it's own map which will change a node value according to an expression
-  std::map<Node*, Expression*> daughter1;
-  std::map<Node*, Expression*> daughter2;
-  
-  // And we have an map to select the map of each daughter
-  std::map<int, std::map<Node*, Expression*> > daughters = {{DAUGHTER_1, daughter1}, {DAUGHTER_2, daughter2}};
-  
-  // Division also have a rate
-  Expression* rate;
-  
-  
-  DivisionRule() {
-    daughter1.clear();
-    daughter2.clear();
-    rate = NULL;
-  }
-  
-  void setRate(Expression* rate);
-  double getRate(const NetworkState& state, const PopNetworkState& pop);
-  
-  void addDaughterNode(int daughter, Node* node, Expression* expression) {
-    daughters[daughter][node] = expression;
-  }
-  
-  // This will return a new state based on the mother cell, properly modified according to the maps
-  NetworkState applyRules(int daughter, const NetworkState& state, const PopNetworkState& pop);
-};
-
-
-class PopNetwork : public Network {
-  public:
-  
-  // Population networks have two extra fields :
-  
-  // Rules for division (speed, state modifications)
-  std::vector<DivisionRule> divisionRules;
-  
-  // Death rate
-  Expression* deathRate;
-  
-  std::vector<PopIStateGroup*>* pop_istate_group_list;
-
-  PopNetwork();
-  ~PopNetwork() { delete pop_istate_group_list; }
-  PopNetwork(const PopNetwork& network);
-  PopNetwork& operator=(const PopNetwork& network);
-
-  int parse(const char* file = NULL, std::map<std::string, NodeIndex>* nodes_indexes = NULL, bool is_temp_file = false);
-  int parseExpression(const char* content, std::map<std::string, NodeIndex>* nodes_indexes);
-
-  void initPopStates(PopNetworkState& initial_pop_state, RandomGenerator* randgen, unsigned int pop);
-
-  void addDivisionRule(DivisionRule rule) { divisionRules.push_back(rule); }
-  void setDeathRate(Expression* expr) { deathRate = expr; }
-  
-  const std::vector<DivisionRule> getDivisionRules() const { return divisionRules; }
-  const Expression* getDeathRate() const { return deathRate; }
-  
-  // Evaluation of the death rate according to the state
-  double getDeathRate(const NetworkState& state, const PopNetworkState& pop) const;
-  
-  std::vector<PopIStateGroup*>* getPopIStateGroup() { return pop_istate_group_list; }
-};
-
 // global state of the boolean network
 class NetworkState {
   NetworkState_Impl state;
@@ -1453,7 +1380,11 @@ public:
 
   void display(std::ostream& os) const {
     os << "#cell(";
-    expr->display(os);
+    if (expr != NULL) {
+      expr->display(os);
+    } else {
+      os << "1";
+    }
     os << ")";
   }
 
@@ -2311,7 +2242,53 @@ public:
 
 
 
+class DivisionRule {
+  
+  public:
 
+  //During a division, you remove the cell and create two new cells
+  static const int DAUGHTER_1;
+  // and 
+  static const int DAUGHTER_2;
+  
+  // Each one has it's own map which will change a node value according to an expression
+  std::map<Node*, Expression*> daughter1;
+  std::map<Node*, Expression*> daughter2;
+  
+  // And we have an map to select the map of each daughter
+  std::map<int, std::map<Node*, Expression*> > daughters = {{DAUGHTER_1, daughter1}, {DAUGHTER_2, daughter2}};
+  
+  // Division also have a rate
+  Expression* rate;
+  
+  
+  DivisionRule() {
+    daughter1.clear();
+    daughter2.clear();
+    rate = NULL;
+  }
+  
+  ~DivisionRule() {
+    for (auto& daughter : daughters) {        
+      for (auto node_expr : daughter.second) {
+        delete node_expr.second;
+      }      
+    }
+    delete rate;
+  }
+  
+  void setRate(Expression* rate);
+  double getRate(const NetworkState& state, const PopNetworkState& pop);
+  
+  void addDaughterNode(int daughter, Node* node, Expression* expression) {
+    daughters[daughter][node] = expression;
+  }
+  
+  // This will return a new state based on the mother cell, properly modified according to the maps
+  NetworkState applyRules(int daughter, const NetworkState& state, const PopNetworkState& pop);
+};
+
+class PopNetwork;
 class PopIStateGroup {
   
 public:
@@ -2354,22 +2331,29 @@ public:
     }
     std::vector<PopIStateGroupIndividual*>* getIndividualList() { return individual_list; }
     double getProbaValue() { return proba_value; }
-    
+    ~PopProbaIState() {
+      delete proba_expr;
+      for (auto individual: *individual_list) {
+        delete individual;
+      }
+      delete individual_list;
+    }
   };
   
   std::vector<const Node*>* nodes;
   std::vector<PopProbaIState*>* proba_istates;
   
-  PopIStateGroup(Network* network, std::vector<const Node*>* nodes, std::vector<PopProbaIState*>* proba_istates, std::string& error_msg) : nodes(nodes), proba_istates(proba_istates) 
+  PopIStateGroup(PopNetwork* network, std::vector<const Node*>* nodes, std::vector<PopProbaIState*>* proba_istates, std::string& error_msg) : nodes(nodes), proba_istates(proba_istates) 
   {
     epilogue(network); 
   }
-    
-  void epilogue(Network* network) 
-  {
-    PopNetwork* pop_network = static_cast<PopNetwork*>(network);
-    pop_network->getPopIStateGroup()->push_back(this);
+  ~PopIStateGroup() {
+    delete nodes;
+    for (auto * proba_istate : *proba_istates)
+      delete proba_istate;
+    delete proba_istates;
   }
+  void epilogue(PopNetwork* network);
   
   std::vector<const Node*>* getNodes() { return nodes; }
   std::vector<PopProbaIState*>* getPopProbaIStates() { return proba_istates; }
@@ -2377,6 +2361,52 @@ public:
   static void initPopStates(PopNetwork* network, PopNetworkState& initial_state, RandomGenerator* randgen, unsigned int pop);
 
 };
+
+
+class PopNetwork : public Network {
+  public:
+  
+  // Population networks have two extra fields :
+  
+  // Rules for division (speed, state modifications)
+  std::vector<DivisionRule*> divisionRules;
+  
+  // Death rate
+  Expression* deathRate;
+  
+  std::vector<PopIStateGroup*>* pop_istate_group_list;
+
+  PopNetwork();
+  ~PopNetwork() { 
+    delete deathRate; 
+    for (auto division_rule: divisionRules) {
+      delete division_rule;
+    }
+    for (auto * pop_istate_group: *pop_istate_group_list) {
+      delete pop_istate_group;
+    }
+    delete pop_istate_group_list; 
+  }
+  PopNetwork(const PopNetwork& network);
+  PopNetwork& operator=(const PopNetwork& network);
+
+  int parse(const char* file = NULL, std::map<std::string, NodeIndex>* nodes_indexes = NULL, bool is_temp_file = false);
+  int parseExpression(const char* content, std::map<std::string, NodeIndex>* nodes_indexes);
+
+  void initPopStates(PopNetworkState& initial_pop_state, RandomGenerator* randgen, unsigned int pop);
+
+  void addDivisionRule(DivisionRule* rule) { divisionRules.push_back(rule); }
+  void setDeathRate(Expression* expr) { deathRate = expr; }
+  
+  const std::vector<DivisionRule*> getDivisionRules() const { return divisionRules; }
+  const Expression* getDeathRate() const { return deathRate; }
+  
+  // Evaluation of the death rate according to the state
+  double getDeathRate(const NetworkState& state, const PopNetworkState& pop) const;
+  
+  std::vector<PopIStateGroup*>* getPopIStateGroup() { return pop_istate_group_list; }
+};
+
 
 class IStateGroup {
 

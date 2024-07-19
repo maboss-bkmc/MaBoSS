@@ -199,17 +199,30 @@ node_decl_item: IDENTIFIER '=' expression ';'
 
 division_decl: DIVISION '{' division_decl_rate division_list_daughter '}'
 {
-  $$ = new DivisionDecl($4, $3);
+  DivisionDecl* div_decl = new DivisionDecl($4, $3);
+  delete $3;
+  for (auto * div_daughter_decl : *($4)) {
+    delete div_daughter_decl;
+  }
+  delete $4;
+  delete div_decl;
 }
 | DIVISION '{' division_decl_rate '}'
 {
   std::vector<DivisionDaughterDecl*>* empty_daughters = NULL;
-  $$ = new DivisionDecl(empty_daughters, $3);
+  DivisionDecl* div_decl = new DivisionDecl(empty_daughters, $3);
+  delete $3;
+  delete div_decl;
 }
 | DIVISION '{' division_list_daughter '}'
 {
   Expression* empty_rate = NULL;
-  $$ = new DivisionDecl($3, empty_rate);
+  DivisionDecl* div_decl = new DivisionDecl($3, empty_rate);
+  for (auto * div_daughter_decl : *($3)) {
+    delete div_daughter_decl;
+  }
+  delete $3;
+  delete div_decl;
 }
 ;
 
@@ -234,10 +247,12 @@ division_list_daughter: division_decl_daughter
 division_decl_daughter: IDENTIFIER '.' DAUGHTER1 '=' expression ';'
 {  
   $$ = new DivisionDaughterDecl(current_network->getOrMakeNode($1), DivisionRule::DAUGHTER_1, $5);
+  free($1);
 }
 | IDENTIFIER '.' DAUGHTER2 '=' expression ';'
 {
   $$ = new DivisionDaughterDecl(current_network->getOrMakeNode($1), DivisionRule::DAUGHTER_2, $5);  
+  free($1);
 }
 ;
 

@@ -1073,12 +1073,7 @@ PyObject* getNumpyLastNodesDists(Network* network, std::vector<Node*> output_nod
       TH_v[nn] = 0.;
       while (iter.hasNext()) {
         TickValue tick_value;
-  #ifdef USE_NEXT_OPT
         const S &state = iter.next2(tick_value);
-  #else
-        S state;
-        iter.next(state, tick_value);
-  #endif
         if (isPopCumulator) {
           std::set<NetworkState_Impl>* t_network_states = state.getNetworkStates();
           network_states.insert(t_network_states->begin(), t_network_states->end());
@@ -1109,12 +1104,7 @@ PyObject* getNumpyLastNodesDists(Network* network, std::vector<Node*> output_nod
       MAP<unsigned int, double>& hd_m = HD_v[nn];
       while (iter.hasNext()) {
         double tm_slice;
-  #ifdef USE_NEXT_OPT
         const S &state = iter.next2(tm_slice);
-  #else
-        S state;
-        iter.next(state, tm_slice);
-  #endif
         double proba = tm_slice / ratio;      
         int hd = state.hamming(network, reference_state);
         if (hd_m.find(hd) == hd_m.end()) {
@@ -1193,6 +1183,7 @@ static void mergePairOfCumulators(Cumulator<S>* cumulator_1, Cumulator<S>* cumul
     cumulator_1->proba_dist_v[rr++] = cumulator_2->proba_dist_v[ii];
   }
   delete cumulator_2;
+  cumulator_2 = NULL;
 }
 
 #ifdef MPI_COMPAT

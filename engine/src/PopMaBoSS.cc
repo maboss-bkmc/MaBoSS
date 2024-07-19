@@ -405,6 +405,9 @@ int main(int argc, char* argv[])
     ((std::ofstream*)output_simple_pop_probtraj)->close();
     delete output_simple_pop_probtraj;
     
+    delete pop_probtraj_displayer;
+    delete fp_displayer;
+    
     delete runconfig;
     delete pop_network;
 

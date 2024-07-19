@@ -280,7 +280,10 @@ double PopNetwork::getDeathRate(const NetworkState& state, const PopNetworkState
     return 0.;
 } 
 
-
+void PopIStateGroup::epilogue(PopNetwork* network) 
+  {
+    network->getPopIStateGroup()->push_back(this);
+  }
 void SymbolTable::display(std::ostream& os, bool check) const
 {
   for (const auto & symb_entry : symb_map) {
