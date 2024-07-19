@@ -915,7 +915,7 @@ public:
   bool computeNodeState(const Node* node, NodeState& node_state);
 
   static bool isPopState() { return false; }
-  std::set<NetworkState_Impl>* getNetworkStates() {
+  std::set<NetworkState_Impl>* getNetworkStates() const {
     return new std::set<NetworkState_Impl>({state});
   }
   
@@ -1317,7 +1317,7 @@ public:
   unsigned int hamming(Network* network, const NetworkState& state) const;
   
   static bool isPopState() { return true; }
-  std::set<NetworkState_Impl>* getNetworkStates() {
+  std::set<NetworkState_Impl>* getNetworkStates() const {
     std::set<NetworkState_Impl>* result = new std::set<NetworkState_Impl>();
     for (auto network_state_pop : mp) {
       result->insert(network_state_pop.first);
