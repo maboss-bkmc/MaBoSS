@@ -171,12 +171,17 @@ public:
     }
     
     // Total population
-    os_simple_probtraj << '\t' << pop;
-    os_simple_probtraj << '\t' << network_state_variance;
-    os_simple_probtraj << '\t' << network_state_entropy;
+    if (this->hexfloat) {
+      os_simple_probtraj << '\t' << fmthexdouble(pop);
+      os_simple_probtraj << '\t' << fmthexdouble(network_state_variance);
+      os_simple_probtraj << '\t' << fmthexdouble(network_state_entropy);
+    } else {
+      os_simple_probtraj << '\t' << pop;
+      os_simple_probtraj << '\t' << network_state_variance;
+      os_simple_probtraj << '\t' << network_state_entropy;
+    }
 
     // Computing
-
     for (auto &network_state_proba : network_state_probas)
     {
       os_simple_probtraj << '\t';
