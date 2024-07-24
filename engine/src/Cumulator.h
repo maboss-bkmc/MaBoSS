@@ -810,13 +810,13 @@ std::vector<S> getLastStates() const
   return result_states;
 }
 
-
 PyObject* getNumpyStatesDists(Network* network) const 
 {
   std::set<S> result_states = getStates();
   
   npy_intp dims[2] = {(npy_intp) getMaxTickIndex(), (npy_intp) result_states.size()};
   PyArrayObject* result = (PyArrayObject *) PyArray_ZEROS(2,dims,NPY_DOUBLE, 0); 
+  PyArrayObject* errors = (PyArrayObject *) PyArray_ZEROS(2,dims,NPY_DOUBLE, 0); 
 
   std::vector<S> list_states(result_states.begin(), result_states.end());
   STATE_MAP<S, unsigned int> pos_states;
@@ -825,6 +825,7 @@ PyObject* getNumpyStatesDists(Network* network) const
   }
 
   double ratio = time_tick*sample_count;
+  double time_tick2 = time_tick * time_tick;
 
   for (int nn=0; nn < getMaxTickIndex(); nn++) {
     const CumulMap& mp = get_map(nn);
@@ -833,13 +834,31 @@ PyObject* getNumpyStatesDists(Network* network) const
     while (iter.hasNext()) {
       TickValue tick_value;
       const S& state = iter.next2(tick_value);
-      
+      double proba = tick_value.tm_slice / ratio;
       void* ptr = PyArray_GETPTR2(result, nn, pos_states[state]);
       PyArray_SETITEM(
         result, 
         (char*) ptr,
-        PyFloat_FromDouble(tick_value.tm_slice / ratio)
+        PyFloat_FromDouble(proba)
       );
+      
+      if (COMPUTE_ERRORS) {
+        double tm_slice_square = tick_value.tm_slice_square;
+        double variance_proba = (tm_slice_square / ((sample_count-1) * time_tick2)) - (proba*proba*sample_count/(sample_count-1));
+        double err_proba;
+        double variance_proba_sample_count = variance_proba/sample_count;
+        if (variance_proba_sample_count >= DBL_MIN) {
+          err_proba = sqrt(variance_proba_sample_count);
+        } else {
+          err_proba = 0.;
+        }
+        void* ptr = PyArray_GETPTR2(errors, nn, pos_states[state]);
+        PyArray_SETITEM(
+          errors, 
+          (char*) ptr,
+          PyFloat_FromDouble(err_proba)
+        );
+      }
     }
   }
   PyObject* pylist_state = PyList_New(list_states.size());
@@ -855,7 +874,7 @@ PyObject* getNumpyStatesDists(Network* network) const
     PyList_SetItem(timepoints, i, PyFloat_FromDouble(((double) i) * time_tick));
   }
 
-  return PyTuple_Pack(3, PyArray_Return(result), timepoints, pylist_state);
+  return PyTuple_Pack(4, PyArray_Return(result), timepoints, pylist_state, PyArray_Return(errors));
 }
 
 
@@ -865,6 +884,7 @@ PyObject* getNumpyLastStatesDists(Network* network) const
   
   npy_intp dims[2] = {(npy_intp) 1, (npy_intp) result_last_states.size()};
   PyArrayObject* result = (PyArrayObject *) PyArray_ZEROS(2,dims,NPY_DOUBLE, 0); 
+  PyArrayObject* errors = (PyArrayObject *) PyArray_ZEROS(2,dims,NPY_DOUBLE, 0); 
 
   STATE_MAP<S, unsigned int> pos_states;
   for(unsigned int i=0; i < result_last_states.size(); i++) {
@@ -872,6 +892,7 @@ PyObject* getNumpyLastStatesDists(Network* network) const
   }
 
   double ratio = time_tick*sample_count;
+  double time_tick2 = time_tick * time_tick;
 
   const CumulMap& mp = get_map(getMaxTickIndex()-1);
   auto iter = mp.iterator();
@@ -879,13 +900,32 @@ PyObject* getNumpyLastStatesDists(Network* network) const
   while (iter.hasNext()) {
     TickValue tick_value;
     const S& state = iter.next2(tick_value);
-    
+    double proba = tick_value.tm_slice / ratio;
+
     void* ptr = PyArray_GETPTR2(result, 0, pos_states[state]);
     PyArray_SETITEM(
       result, 
       (char*) ptr,
-      PyFloat_FromDouble(tick_value.tm_slice / ratio)
+      PyFloat_FromDouble(proba)
     );
+    
+    if (COMPUTE_ERRORS) {
+      double tm_slice_square = tick_value.tm_slice_square;
+      double variance_proba = (tm_slice_square / ((sample_count-1) * time_tick2)) - (proba*proba*sample_count/(sample_count-1));
+      double err_proba;
+      double variance_proba_sample_count = variance_proba/sample_count;
+      if (variance_proba_sample_count >= DBL_MIN) {
+        err_proba = sqrt(variance_proba_sample_count);
+      } else {
+        err_proba = 0.;
+      }
+      void* ptr = PyArray_GETPTR2(errors, 0, pos_states[state]);
+      PyArray_SETITEM(
+        errors, 
+        (char*) ptr,
+        PyFloat_FromDouble(err_proba)
+      );
+    }
   }
 
   PyObject* pylist_state = PyList_New(result_last_states.size());
@@ -906,11 +946,8 @@ PyObject* getNumpyLastStatesDists(Network* network) const
     )
   );
 
-  return PyTuple_Pack(3, PyArray_Return(result), timepoints, pylist_state);
+  return PyTuple_Pack(4, PyArray_Return(result), timepoints, pylist_state, PyArray_Return(errors));
 }
-
-
-
 
 std::vector<Node*> getNodes(Network* network) const {
   std::vector<Node*> result_nodes;
