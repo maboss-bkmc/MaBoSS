@@ -1075,6 +1075,355 @@ PyObject* getNumpyLastNodesDists(Network* network, std::vector<Node*> output_nod
   
   return PyTuple_Pack(3, PyArray_Return(result), timepoints, pylist_nodes);
 }
+
+
+
+
+
+std::set<NetworkState_Impl> getSimpleStates() const
+{
+  std::set<NetworkState_Impl> result_states;
+
+  if (isPopCumulator) {
+
+    for (int nn=0; nn < getMaxTickIndex(); nn++) {
+      const CumulMap& mp = get_map(nn);
+      auto iter = mp.iterator();
+
+      while (iter.hasNext()) {
+        TickValue tick_value;
+        const S& state = iter.next2(tick_value);
+        std::set<NetworkState_Impl>* t_network_states = state.getNetworkStates();
+        result_states.insert(t_network_states->begin(), t_network_states->end());
+        delete t_network_states;
+        
+      }
+    }
+  }
+  
+  return result_states;
+}
+
+std::set<NetworkState_Impl> getSimpleLastStates() const
+{
+  std::set<NetworkState_Impl> result_states;
+
+  if (isPopCumulator) {
+
+    const CumulMap& mp = get_map(getMaxTickIndex()-1);
+    auto iter = mp.iterator();
+
+    while (iter.hasNext()) {
+      TickValue tick_value;
+      const S& state = iter.next2(tick_value);
+      std::set<NetworkState_Impl>* t_network_states = state.getNetworkStates();
+      result_states.insert(t_network_states->begin(), t_network_states->end());
+      delete t_network_states;
+      
+    }
+  }
+  
+  return result_states;
+}
+
+PyObject* getNumpySimpleStatesDists(Network* network) const 
+{
+  if (!isPopCumulator) { return Py_None; }
+ 
+  std::set<NetworkState_Impl> result_states = getSimpleStates();
+  
+  npy_intp dims[2] = {(npy_intp) getMaxTickIndex(), (npy_intp) (1+result_states.size())};
+  PyArrayObject* result = (PyArrayObject *) PyArray_ZEROS(2,dims,NPY_DOUBLE, 0); 
+  PyArrayObject* errors = (PyArrayObject *) PyArray_ZEROS(2,dims,NPY_DOUBLE, 0); 
+
+  std::vector<NetworkState_Impl> list_states(result_states.begin(), result_states.end());
+  STATE_MAP<NetworkState_Impl, unsigned int> pos_states;
+  for(unsigned int i=0; i < list_states.size(); i++) {
+    pos_states[list_states[i]] = i+1;
+  }
+
+  double ratio = time_tick*sample_count;
+  double time_tick2 = time_tick * time_tick;
+
+  for (int nn=0; nn < getMaxTickIndex(); nn++) {
+    const CumulMap& mp = get_map(nn);
+    auto iter = mp.iterator();
+
+    double pop = 0;
+    std::map<NetworkState_Impl, double> network_state_probas;
+    std::map<NetworkState_Impl, double> network_state_errors;
+    std::map<unsigned int, double> pop_size_distrib;
+
+    while (iter.hasNext()) {
+      TickValue tick_value;
+      const S& state = iter.next2(tick_value);
+      double proba = tick_value.tm_slice / ratio;
+      
+      pop += proba * state.count(NULL);
+      
+      if (COMPUTE_ERRORS)
+      {
+        std::map<unsigned int, double>::iterator it = pop_size_distrib.find(state.count(NULL));
+        if (it != pop_size_distrib.end()) 
+        { 
+          it->second += proba;
+        }
+        else 
+        {
+          pop_size_distrib[state.count(NULL)] = proba;
+        }
+      }
+      
+      for (const auto& network_state : state.getMap()) 
+      {
+        std::map<NetworkState_Impl, double>::iterator it = network_state_probas.find(network_state.first);
+        if (it != network_state_probas.end())
+        {
+          it->second += proba * network_state.second;
+        }
+        else
+        {
+          network_state_probas[network_state.first] = proba * network_state.second;
+        }
+        
+        if (COMPUTE_ERRORS)
+        {
+          double state_proba = proba;// * network_state.second;
+          double tm_slice_square = tick_value.tm_slice_square;
+          double variance_proba = (tm_slice_square / ((sample_count-1) * time_tick2)) - (state_proba*state_proba*sample_count/(sample_count-1));
+          double err_proba;
+          double variance_proba_sample_count = variance_proba/sample_count;
+          if (variance_proba_sample_count >= DBL_MIN) {
+            err_proba = sqrt(variance_proba_sample_count);
+          } else {
+            err_proba = 0.;
+          }
+          
+          std::map<NetworkState_Impl, double>::iterator it = network_state_errors.find(network_state.first);
+          if (it != network_state_errors.end())
+          {
+            it->second += err_proba;
+          }
+          else
+          {
+            network_state_errors[network_state.first] = err_proba;
+          }
+        }
+      }
+    }
+     
+    void* ptr = PyArray_GETPTR2(result, nn, 0);
+    PyArray_SETITEM(
+      result, 
+      (char*) ptr,
+      PyFloat_FromDouble(pop)
+    );
+     
+    if (COMPUTE_ERRORS)
+    {
+      double network_state_variance = - pop*pop;
+      // double network_state_entropy = 0;
+        
+      for (const auto &size_proba: pop_size_distrib) 
+      {
+        network_state_variance += size_proba.second * (size_proba.first * size_proba.first);
+        // network_state_entropy -= log2(size_proba.second)*size_proba.second;
+      }
+      void* ptr = PyArray_GETPTR2(errors, nn, 0);
+      PyArray_SETITEM(
+        errors, 
+        (char*) ptr,
+        PyFloat_FromDouble(network_state_variance)
+      );
+    }
+    
+    for (const auto& network_state : network_state_probas) 
+    {
+      void* ptr = PyArray_GETPTR2(result, nn, pos_states[network_state.first]);
+      PyArray_SETITEM(
+        result, 
+        (char*) ptr,
+        PyFloat_FromDouble(network_state.second/pop)
+      );
+    
+      if (COMPUTE_ERRORS) {      
+        void* ptr = PyArray_GETPTR2(errors, nn, pos_states[network_state.first]);
+        PyArray_SETITEM(
+          errors, 
+          (char*) ptr,
+          PyFloat_FromDouble(network_state_errors[network_state.first])
+        );
+      }
+    }
+  }
+
+  PyObject* pylist_state = PyList_New(list_states.size()+1);
+  PyList_SetItem(
+    pylist_state, 0, 
+    PyUnicode_FromString("Population")
+  );
+  for (unsigned int i=0; i < list_states.size(); i++) {
+    PyList_SetItem(
+      pylist_state, i+1, 
+      PyUnicode_FromString(NetworkState(list_states[i]).getName(network).c_str())
+    );
+  }
+  
+  PyObject* timepoints = PyList_New(getMaxTickIndex());
+  for (int i=0; i < getMaxTickIndex(); i++) {
+    PyList_SetItem(timepoints, i, PyFloat_FromDouble(((double) i) * time_tick));
+  }
+
+  return PyTuple_Pack(4, PyArray_Return(result), timepoints, pylist_state, PyArray_Return(errors));
+}
+
+PyObject* getNumpySimpleLastStatesDists(Network* network) const 
+{
+  if (!isPopCumulator) { return Py_None; }
+ 
+  std::set<NetworkState_Impl> result_states = getSimpleLastStates();
+  
+  npy_intp dims[2] = {(npy_intp) 1, (npy_intp) (1+result_states.size())};
+  PyArrayObject* result = (PyArrayObject *) PyArray_ZEROS(2,dims,NPY_DOUBLE, 0); 
+  PyArrayObject* errors = (PyArrayObject *) PyArray_ZEROS(2,dims,NPY_DOUBLE, 0); 
+
+  std::vector<NetworkState_Impl> list_states(result_states.begin(), result_states.end());
+  STATE_MAP<NetworkState_Impl, unsigned int> pos_states;
+  for(unsigned int i=0; i < list_states.size(); i++) {
+    pos_states[list_states[i]] = i+1;
+  }
+
+  double ratio = time_tick*sample_count;
+  double time_tick2 = time_tick * time_tick;
+
+  const CumulMap& mp = get_map(getMaxTickIndex()-1);
+  auto iter = mp.iterator();
+
+  double pop = 0;
+  std::map<NetworkState_Impl, double> network_state_probas;
+  std::map<NetworkState_Impl, double> network_state_errors;
+  std::map<unsigned int, double> pop_size_distrib;
+
+  while (iter.hasNext()) {
+    TickValue tick_value;
+    const S& state = iter.next2(tick_value);
+    double proba = tick_value.tm_slice / ratio;
+    
+    pop += proba * state.count(NULL);
+    
+    if (COMPUTE_ERRORS)
+    {
+      std::map<unsigned int, double>::iterator it = pop_size_distrib.find(state.count(NULL));
+      if (it != pop_size_distrib.end()) 
+      { 
+        it->second += proba;
+      }
+      else 
+      {
+        pop_size_distrib[state.count(NULL)] = proba;
+      }
+    }
+    
+    for (const auto& network_state : state.getMap()) 
+    {
+      std::map<NetworkState_Impl, double>::iterator it = network_state_probas.find(network_state.first);
+      if (it != network_state_probas.end())
+      {
+        it->second += proba * network_state.second;
+      }
+      else
+      {
+        network_state_probas[network_state.first] = proba * network_state.second;
+      }
+      
+      if (COMPUTE_ERRORS)
+      {
+        double state_proba = proba;// * network_state.second;
+        double tm_slice_square = tick_value.tm_slice_square;
+        double variance_proba = (tm_slice_square / ((sample_count-1) * time_tick2)) - (state_proba*state_proba*sample_count/(sample_count-1));
+        double err_proba;
+        double variance_proba_sample_count = variance_proba/sample_count;
+        if (variance_proba_sample_count >= DBL_MIN) {
+          err_proba = sqrt(variance_proba_sample_count);
+        } else {
+          err_proba = 0.;
+        }
+        
+        std::map<NetworkState_Impl, double>::iterator it = network_state_errors.find(network_state.first);
+        if (it != network_state_errors.end())
+        {
+          it->second += err_proba;
+        }
+        else
+        {
+          network_state_errors[network_state.first] = err_proba;
+        }
+      }
+    }
+  }
+  
+  void* ptr = PyArray_GETPTR2(result, 0, 0);
+  PyArray_SETITEM(
+    result, 
+    (char*) ptr,
+    PyFloat_FromDouble(pop)
+  );
+    
+  if (COMPUTE_ERRORS)
+  {
+    double network_state_variance = - pop*pop;
+    // double network_state_entropy = 0;
+      
+    for (const auto &size_proba: pop_size_distrib) 
+    {
+      network_state_variance += size_proba.second * (size_proba.first * size_proba.first);
+      // network_state_entropy -= log2(size_proba.second)*size_proba.second;
+    }
+    void* ptr = PyArray_GETPTR2(errors, 0, 0);
+    PyArray_SETITEM(
+      errors, 
+      (char*) ptr,
+      PyFloat_FromDouble(network_state_variance)
+    );
+  }
+  
+  for (const auto& network_state : network_state_probas) 
+  {
+    void* ptr = PyArray_GETPTR2(result, 0, pos_states[network_state.first]);
+    PyArray_SETITEM(
+      result, 
+      (char*) ptr,
+      PyFloat_FromDouble(network_state.second/pop)
+    );
+  
+    if (COMPUTE_ERRORS) {      
+      void* ptr = PyArray_GETPTR2(errors, 0, pos_states[network_state.first]);
+      PyArray_SETITEM(
+        errors, 
+        (char*) ptr,
+        PyFloat_FromDouble(network_state_errors[network_state.first])
+      );
+    }
+  }
+
+  PyObject* pylist_state = PyList_New(list_states.size()+1);
+  PyList_SetItem(
+    pylist_state, 0, 
+    PyUnicode_FromString("Population")
+  );
+  for (unsigned int i=0; i < list_states.size(); i++) {
+    PyList_SetItem(
+      pylist_state, i+1, 
+      PyUnicode_FromString(NetworkState(list_states[i]).getName(network).c_str())
+    );
+  }
+  
+  PyObject* timepoints = PyList_New(1);
+  PyList_SetItem(timepoints, 0, PyFloat_FromDouble(((double) (getMaxTickIndex()-1)) * time_tick));
+
+  return PyTuple_Pack(4, PyArray_Return(result), timepoints, pylist_state, PyArray_Return(errors));
+}
+
   
 #endif
 
