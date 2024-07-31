@@ -55,6 +55,10 @@
 // #include "maboss_commons.h"
 // #include "maboss_net.cpp"
 // #include "maboss_cfg.cpp"
+#include <stdlib.h>
+#ifdef __GLIBC__
+#include <malloc.h>
+#endif
 
 typedef struct {
   PyObject_HEAD
@@ -229,6 +233,11 @@ static PyObject* cPopMaBoSSSim_run(cPopMaBoSSSimObject* self, PyObject *args, Py
   PopMaBEstEngine* simulation = new PopMaBEstEngine(self->network, self->runconfig);
   time(&start_time);
   simulation->run(NULL);
+
+#ifdef __GLIBC__
+  malloc_trim(0);
+#endif
+
   time(&end_time);
   
   cPopMaBoSSResultObject* res = (cPopMaBoSSResultObject*) PyObject_New(cPopMaBoSSResultObject, &cPopMaBoSSResult);

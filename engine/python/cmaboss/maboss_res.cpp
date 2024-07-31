@@ -59,6 +59,10 @@
 #include "src/ProbTrajDisplayer.h"
 #include "src/StatDistDisplayer.h"
 
+#ifdef __GLIBC__
+#include <malloc.h>
+#endif
+
 typedef struct {
   PyObject_HEAD
   Network* network;
@@ -73,6 +77,11 @@ typedef struct {
 static void cMaBoSSResult_dealloc(cMaBoSSResultObject *self)
 {
   delete self->engine;
+  
+#ifdef __GLIBC__
+  malloc_trim(0);
+#endif 
+
   Py_TYPE(self)->tp_free((PyObject *) self);
 }
 

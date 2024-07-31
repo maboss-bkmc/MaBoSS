@@ -56,6 +56,10 @@
 #include "src/FinalStateSimulationEngine.h"
 #include "maboss_commons.h"
 
+#ifdef __GLIBC__
+#include <malloc.h>
+#endif
+
 typedef struct {
   PyObject_HEAD
   Network* network;
@@ -69,6 +73,11 @@ typedef struct {
 static void cMaBoSSResultFinal_dealloc(cMaBoSSResultFinalObject *self)
 {
   delete self->engine;
+  
+#ifdef __GLIBC__
+  malloc_trim(0);
+#endif
+
   Py_TYPE(self)->tp_free((PyObject *) self);
 }
 

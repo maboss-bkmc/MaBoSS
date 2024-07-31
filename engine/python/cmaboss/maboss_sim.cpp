@@ -58,6 +58,11 @@
 #include "maboss_net.cpp"
 #include "maboss_cfg.cpp"
 #include <sstream>
+
+#ifdef __GLIBC__
+#include <malloc.h>
+#endif
+
 typedef struct {
   PyObject_HEAD
   Network* network;
@@ -163,6 +168,11 @@ static PyObject* cMaBoSSSim_run(cMaBoSSSimObject* self, PyObject *args, PyObject
     FinalStateSimulationEngine* simulation = new FinalStateSimulationEngine(self->network, self->runconfig);
     time(&start_time);
     simulation->run(NULL);
+
+#ifdef __GLIBC__
+  malloc_trim(0);
+#endif
+
     time(&end_time);
     cMaBoSSResultFinalObject* res = (cMaBoSSResultFinalObject*) PyObject_New(cMaBoSSResultFinalObject, &cMaBoSSResultFinal);
     res->network = self->network;
@@ -177,6 +187,11 @@ static PyObject* cMaBoSSSim_run(cMaBoSSSimObject* self, PyObject *args, PyObject
     MaBEstEngine* simulation = new MaBEstEngine(self->network, self->runconfig);
     time(&start_time);
     simulation->run(NULL);
+    
+#ifdef __GLIBC__
+  malloc_trim(0);
+#endif
+
     time(&end_time);
     
     cMaBoSSResultObject* res = (cMaBoSSResultObject*) PyObject_New(cMaBoSSResultObject, &cMaBoSSResult);

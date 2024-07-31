@@ -55,6 +55,10 @@
 #include "src/PopMaBEstEngine.h"
 #include "src/PopProbTrajDisplayer.h"
 
+#ifdef __GLIBC__
+#include <malloc.h>
+#endif
+
 typedef struct {
   PyObject_HEAD
   PopNetwork* network;
@@ -67,6 +71,11 @@ typedef struct {
 static void cPopMaBoSSResult_dealloc(cPopMaBoSSResultObject *self)
 {
   delete self->engine;
+  
+#ifdef __GLIBC__
+  malloc_trim(0);
+#endif
+
   Py_TYPE(self)->tp_free((PyObject *) self);
 }
 
