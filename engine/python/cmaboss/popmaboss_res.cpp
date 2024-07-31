@@ -98,17 +98,17 @@ static PyObject* cPopMaBoSSResult_get_probtraj(cPopMaBoSSResultObject* self) {
   return self->engine->getMergedCumulator()->getNumpyStatesDists(self->network);
 }
 
-// static PyObject* cMaBoSSResult_get_last_probtraj(cMaBoSSResultObject* self) {
-//   return self->engine->getMergedCumulator()->getNumpyLastStatesDists(self->network);
-// }
+static PyObject* cPopMaBoSSResult_get_last_probtraj(cPopMaBoSSResultObject* self) {
+  return self->engine->getMergedCumulator()->getNumpyLastStatesDists(self->network);
+}
 
-// static PyObject* cMaBoSSResult_get_nodes_probtraj(cMaBoSSResultObject* self) {
-//   return self->engine->getMergedCumulator()->getNumpyNodesDists(self->network);
-// }
+static PyObject* cPopMaBoSSResult_get_simple_probtraj(cPopMaBoSSResultObject* self) {
+  return self->engine->getMergedCumulator()->getNumpySimpleStatesDists(self->network);
+}
 
-// static PyObject* cMaBoSSResult_get_last_nodes_probtraj(cMaBoSSResultObject* self) {
-//   return self->engine->getMergedCumulator()->getNumpyLastNodesDists(self->network);
-// }
+static PyObject* cPopMaBoSSResult_get_simple_last_probtraj(cPopMaBoSSResultObject* self) {
+  return self->engine->getMergedCumulator()->getNumpySimpleLastStatesDists(self->network);
+}
 
 static PyObject* cPopMaBoSSResult_display_fp(cPopMaBoSSResultObject* self, PyObject *args) 
 {
@@ -132,8 +132,9 @@ static PyObject* cPopMaBoSSResult_display_fp(cPopMaBoSSResultObject* self, PyObj
 static PyObject* cPopMaBoSSResult_display_probtraj(cPopMaBoSSResultObject* self, PyObject *args) 
 {
   char * filename = NULL;
+  char * simple_filename = NULL;
   int hexfloat = 0;
-  if (!PyArg_ParseTuple(args, "s|i", &filename, &hexfloat))
+  if (!PyArg_ParseTuple(args, "ss|i", &filename, &simple_filename, &hexfloat))
     return NULL;
     
   std::ostream* output_probtraj = new std::ofstream(filename);
@@ -185,9 +186,9 @@ static PyObject* cPopMaBoSSResult_display_run(cPopMaBoSSResultObject* self, PyOb
 static PyMethodDef cPopMaBoSSResult_methods[] = {
     {"get_fp_table", (PyCFunction) cPopMaBoSSResult_get_fp_table, METH_NOARGS, "gets the fixpoints table"},
     {"get_probtraj", (PyCFunction) cPopMaBoSSResult_get_probtraj, METH_NOARGS, "gets the raw states probability trajectories of the simulation"},
-    // {"get_last_probtraj", (PyCFunction) cMaBoSSResult_get_last_probtraj, METH_NOARGS, "gets the raw states probability trajectories of the simulation"},
-    // {"get_nodes_probtraj", (PyCFunction) cMaBoSSResult_get_nodes_probtraj, METH_NOARGS, "gets the raw states probability trajectories of the simulation"},
-    // {"get_last_nodes_probtraj", (PyCFunction) cMaBoSSResult_get_last_nodes_probtraj, METH_NOARGS, "gets the raw states probability trajectories of the simulation"},
+    {"get_last_probtraj", (PyCFunction) cPopMaBoSSResult_get_last_probtraj, METH_NOARGS, "gets the last raw states probability of the simulation"},
+    {"get_simple_probtraj", (PyCFunction) cPopMaBoSSResult_get_simple_probtraj, METH_NOARGS, "gets the raw simple states probability trajectories of the simulation"},
+    {"get_simple_last_probtraj", (PyCFunction) cPopMaBoSSResult_get_simple_last_probtraj, METH_NOARGS, "gets the last raw simple states probability of the simulation"},
     {"display_fp", (PyCFunction) cPopMaBoSSResult_display_fp, METH_VARARGS, "prints the fixpoints to a file"},
     {"display_probtraj", (PyCFunction) cPopMaBoSSResult_display_probtraj, METH_VARARGS, "prints the probtraj to a file"},
     // {"display_statdist", (PyCFunction) cMaBoSSResult_display_statdist, METH_VARARGS, "prints the statdist to a file"},
