@@ -517,7 +517,6 @@ jobs:
           {id: 0, name: "defaults", miniforge-variant: "", path: "/usr/local/miniconda"}, 
           {id: 1, name: "conda-forge", miniforge-variant: "Mambaforge", path: "/Users/runner/miniconda3"}
         ]
-        # os: [{version: macos-12, name: osx-64, sdk: MacOSX10.10.sdk}, {version: macos-14, name: osx-arm64, sdk: MacOSX11.0.sdk}]
     runs-on: macos-12
     defaults:
       run:
@@ -569,7 +568,6 @@ jobs:
           {id: 0, name: "defaults", miniforge-variant: "", path: "/Users/runner/miniconda3"}, 
           {id: 1, name: "conda-forge", miniforge-variant: "Mambaforge", path: "/Users/runner/miniconda3"}
         ]
-        # os: [{version: macos-12, name: osx-64, sdk: MacOSX10.10.sdk}, {version: macos-14, name: osx-arm64, sdk: MacOSX11.0.sdk}]
     runs-on: macos-14
     defaults:
       run:

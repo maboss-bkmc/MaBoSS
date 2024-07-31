@@ -186,18 +186,13 @@ jobs:
           python -m twine upload --skip-existing wheelhouse/cmaboss*
                   
 
-  conda_cmaboss_macosx:
-    name: cMaBoSS Conda package
+  conda_cmaboss_macosx_defaults:
+    name: cMaBoSS Conda package (defaults)
     needs: cmaboss_macos
 
     strategy:
       matrix:
-        repo: [
-          {id: 0, name: "defaults", miniforge-variant: "", path: "/usr/local/miniconda"}, 
-          {id: 1, name: "conda-forge", miniforge-variant: "Mambaforge", path: "/Users/runner/miniconda3"}
-        ]
-        version: [{python: "3.8", numpy: "1.22"}, {python: "3.9", numpy: "1.22"}, {python: "3.10", numpy: "1.22"}, {python: "3.11", numpy: "1.23"}, {python: "3.12", numpy: "1.26"}]
-        # os: [{version: macos-12, name: osx-64, sdk: MacOSX10.10.sdk}, {version: macos-14, name: osx-arm64, sdk: MacOSX11.0.sdk}]
+        version: [{python: "3.8", numpy: "1.24"}, {python: "3.9", numpy: "1.26"}, {python: "3.10", numpy: "1.26"}, {python: "3.11", numpy: "1.26"}, {python: "3.12", numpy: "1.26"}]
     runs-on: macos-12
 
     defaults:
@@ -209,9 +204,59 @@ jobs:
     - uses: conda-incubator/setup-miniconda@v3
       with:
         auto-update-conda: true
-        channels: ${{ matrix.repo.name }}
+        channels: defaults
         python-version: 3.12
-        miniforge-variant: ${{ matrix.repo.miniforge-variant }}
+        use-mamba: true
+        
+    - name: Install conda-build
+      run: |
+        conda install conda-build conda-verify anaconda-client
+    
+    - name: Installing MacOSX10.9 SDK
+      run: |
+        wget https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX10.9.sdk.tar.xz
+        sudo tar xf MacOSX10.9.sdk.tar.xz -C /opt
+        echo "conda_build:" > ~/.condarc
+        echo "  config_file: ~/.conda/conda_build_config.yaml" >> ~/.condarc
+        echo "CONDA_BUILD_SYSROOT:" > ~/.conda/conda_build_config.yaml
+        echo "  - /opt/MacOSX10.9.sdk        # [osx]" >> ~/.conda/conda_build_config.yaml
+      
+    - name: Build cMaBoSS Anaconda package
+      env:
+        MACOSX_DEPLOYMENT_TARGET: 10.9
+      run: |
+        CUSTOM_BUILD_NUMBER=0 conda build -c defaults -c colomoto --variants "{\"python\": [\"${{ matrix.version.python }}\"], \"numpy\": [\"${{ matrix.version.numpy }}\"]}" conda/cmaboss;
+       
+    - name: Upload MaBoSS to Anaconda cloud on vincent-noel
+      run: |   
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/local/miniconda/envs/test/conda-bld/osx-64/*.tar.bz2 --force;
+    
+    - name: Upload MaBoSS to Anaconda cloud on colomoto
+      if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
+      run: |   
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/local/miniconda/envs/test/conda-bld/osx-64/*.tar.bz2 --force;
+
+  conda_cmaboss_macosx_condaforge:
+    name: cMaBoSS Conda package (conda-forge)
+    needs: cmaboss_macos
+
+    strategy:
+      matrix:
+        version: [{python: "3.8", numpy: "1.24"}, {python: "3.9", numpy: "2.0"}, {python: "3.10", numpy: "2.0"}, {python: "3.11", numpy: "2.0"}, {python: "3.12", numpy: "2.0"}]
+    runs-on: macos-12
+
+    defaults:
+      run:
+        shell: sh -l {0}
+            
+    steps:
+    - uses: actions/checkout@v4
+    - uses: conda-incubator/setup-miniconda@v3
+      with:
+        auto-update-conda: true
+        channels: conda-forge
+        python-version: 3.12
+        miniforge-variant: Mambaforge
         use-mamba: true
         
     - name: Install conda-build
@@ -228,30 +273,28 @@ jobs:
         echo "  - /opt/MacOSX10.13.sdk        # [osx]" >> ~/.conda/conda_build_config.yaml
       
     - name: Build cMaBoSS Anaconda package
+      env:
+        MACOSX_DEPLOYMENT_TARGET: 10.13
       run: |
-        CUSTOM_BUILD_NUMBER=${{ matrix.repo.id }} conda build -c ${{ matrix.repo.name }} -c colomoto --variants "{\"python\": [\"${{ matrix.version.python }}\"], \"numpy\": [\"${{ matrix.version.numpy }}\"]}" conda/cmaboss;
-       
+        CUSTOM_BUILD_NUMBER=1 conda build -c conda-forge -c colomoto --variants "{\"python\": [\"${{ matrix.version.python }}\"], \"numpy\": [\"${{ matrix.version.numpy }}\"]}" conda/cmaboss;
+    
     - name: Upload MaBoSS to Anaconda cloud on vincent-noel
       run: |   
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel ${{ matrix.repo.path }}/envs/test/conda-bld/osx-64/*.tar.bz2 --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /Users/runner/miniconda3/envs/test/conda-bld/osx-64/*.tar.bz2 --force;
     
     - name: Upload MaBoSS to Anaconda cloud on colomoto
       if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
       run: |   
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto ${{ matrix.repo.path }}/envs/test/conda-bld/osx-64/*.tar.bz2 --force;
- 
-  conda_cmaboss_macosx_M1:
-    name: cMaBoSS Conda package for arm64
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /Users/runner/miniconda3/envs/test/conda-bld/osx-64/*.tar.bz2 --force;
+  
+        
+  conda_cmaboss_macosx_M1_defaults:
+    name: cMaBoSS Conda package for arm64 (defaults)
     needs: cmaboss_macos
 
     strategy:
       matrix:
-        repo: [
-          {id: 0, name: "defaults", miniforge-variant: "", path: "/Users/runner/miniconda3"}, 
-          {id: 1, name: "conda-forge", miniforge-variant: "Mambaforge", path: "/Users/runner/miniconda3"}
-        ]
         version: [{python: "3.8", numpy: "1.22"}, {python: "3.9", numpy: "1.22"}, {python: "3.10", numpy: "1.22"}, {python: "3.11", numpy: "1.23"}, {python: "3.12", numpy: "1.26"}]
-        # os: [{version: macos-12, name: osx-64, sdk: MacOSX10.10.sdk}, {version: macos-14, name: osx-arm64, sdk: MacOSX11.0.sdk}]
     runs-on: macos-14
 
     defaults:
@@ -263,16 +306,66 @@ jobs:
     - uses: conda-incubator/setup-miniconda@v3
       with:
         auto-update-conda: true
-        channels: ${{ matrix.repo.name }}
+        channels: defaults
         python-version: 3.12
-        miniforge-variant: ${{ matrix.repo.miniforge-variant }}
         use-mamba: true
         
     - name: Install conda-build
       run: |
         conda install conda-build conda-verify anaconda-client
     
-    - name: Installing MacOSX10.10 SDK
+    - name: Installing MacOSX11.1 SDK
+      run: |
+        wget https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX11.1.sdk.tar.xz
+        sudo tar xf MacOSX11.1.sdk.tar.xz -C /opt
+        echo "conda_build:" > ~/.condarc
+        echo "  config_file: ~/.conda/conda_build_config.yaml" >> ~/.condarc
+        echo "CONDA_BUILD_SYSROOT:" > ~/.conda/conda_build_config.yaml
+        echo "  - /opt/MacOSX11.1.sdk        # [osx]" >> ~/.conda/conda_build_config.yaml
+      
+    - name: Build cMaBoSS Anaconda package
+      env:
+        MACOSX_DEPLOYMENT_TARGET: 11.1
+      run: |
+        CUSTOM_BUILD_NUMBER=0 conda build -c defaults -c colomoto --variants "{\"python\": [\"${{ matrix.version.python }}\"], \"numpy\": [\"${{ matrix.version.numpy }}\"]}" conda/cmaboss;
+        
+    - name: Upload MaBoSS to Anaconda cloud on vincent-noel
+      run: |   
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /Users/runner/miniconda3/envs/test/conda-bld/osx-arm64/*.tar.bz2 --force;
+    
+    - name: Upload MaBoSS to Anaconda cloud on colomoto
+      if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
+      run: |   
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /Users/runner/miniconda3/envs/test/conda-bld/osx-arm64/*.tar.bz2 --force;
+
+  conda_cmaboss_macosx_M1_condaforge:
+    name: cMaBoSS Conda package for arm64 (conda-forge)
+    needs: cmaboss_macos
+
+    strategy:
+      matrix:
+        version: [{python: "3.8", numpy: "1.22"}, {python: "3.9", numpy: "1.22"}, {python: "3.10", numpy: "1.22"}, {python: "3.11", numpy: "1.23"}, {python: "3.12", numpy: "1.26"}]
+    runs-on: macos-14
+
+    defaults:
+      run:
+        shell: sh -l {0}
+            
+    steps:
+    - uses: actions/checkout@v4
+    - uses: conda-incubator/setup-miniconda@v3
+      with:
+        auto-update-conda: true
+        channels: conda-forge
+        python-version: 3.12
+        miniforge-variant: Mambaforge
+        use-mamba: true
+        
+    - name: Install conda-build
+      run: |
+        conda install conda-build conda-verify anaconda-client
+    
+    - name: Installing MacOSX11.0 SDK
       run: |
         wget https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX11.0.sdk.tar.xz
         sudo tar xf MacOSX11.0.sdk.tar.xz -C /opt
@@ -282,15 +375,17 @@ jobs:
         echo "  - /opt/MacOSX11.0.sdk        # [osx]" >> ~/.conda/conda_build_config.yaml
       
     - name: Build cMaBoSS Anaconda package
+      env:
+        MACOSX_DEPLOYMENT_TARGET: 11.0
       run: |
-        CUSTOM_BUILD_NUMBER=${{ matrix.repo.id }} conda build -c ${{ matrix.repo.name }} -c colomoto --variants "{\"python\": [\"${{ matrix.version.python }}\"], \"numpy\": [\"${{ matrix.version.numpy }}\"]}" conda/cmaboss;
+        CUSTOM_BUILD_NUMBER=1 conda build -c conda-forge -c colomoto --variants "{\"python\": [\"${{ matrix.version.python }}\"], \"numpy\": [\"${{ matrix.version.numpy }}\"]}" conda/cmaboss;
         
     - name: Upload MaBoSS to Anaconda cloud on vincent-noel
       run: |   
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel ${{ matrix.repo.path }}/envs/test/conda-bld/osx-arm64/*.tar.bz2 --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /Users/runner/miniconda3/envs/test/conda-bld/osx-arm64/*.tar.bz2 --force;
     
     - name: Upload MaBoSS to Anaconda cloud on colomoto
       if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
       run: |   
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto ${{ matrix.repo.path }}/envs/test/conda-bld/osx-arm64/*.tar.bz2 --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /Users/runner/miniconda3/envs/test/conda-bld/osx-arm64/*.tar.bz2 --force;
   
