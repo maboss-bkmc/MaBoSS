@@ -63,28 +63,30 @@ public:
   virtual ~FixedPointDisplayer(){};
 };
 
-class CSVFixedPointDisplayer : public FixedPointDisplayer {
+class CSVFixedPointDisplayer final : public FixedPointDisplayer {
 
   std::ostream& os;
   Network* network;
   bool hexfloat;
 public:
   CSVFixedPointDisplayer(Network* network, std::ostream& os, bool hexfloat) : os(os), network(network), hexfloat(hexfloat) {}
-  virtual void begin(size_t size);
-  virtual void displayFixedPoint(size_t num, const NetworkState& state, unsigned int val, unsigned int sample_count);
-  virtual void end();
+  void begin(size_t size);
+  void displayFixedPoint(size_t num, const NetworkState& state, unsigned int val, unsigned int sample_count);
+  void end();
+  ~CSVFixedPointDisplayer(){};
 };
 
-class JsonFixedPointDisplayer : public FixedPointDisplayer {
+class JsonFixedPointDisplayer final : public FixedPointDisplayer {
 
   std::ostream& os;
   Network* network;
   bool hexfloat;
 public:
   JsonFixedPointDisplayer(Network* network, std::ostream& os, bool hexfloat) : os(os), network(network), hexfloat(hexfloat) {}
-  virtual void begin(size_t size);
-  virtual void displayFixedPoint(size_t num, const NetworkState& state, unsigned int val, unsigned int sample_count);
-  virtual void end();
+  void begin(size_t size);
+  void displayFixedPoint(size_t num, const NetworkState& state, unsigned int val, unsigned int sample_count);
+  void end();
+  ~JsonFixedPointDisplayer(){};
 };
 
 #endif

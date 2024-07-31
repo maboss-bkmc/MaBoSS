@@ -57,7 +57,7 @@
 #include "Utils.h"
 #include "ProbTrajDisplayer.h"
 
-class CSVSimplePopProbTrajDisplayer : public CSVProbTrajDisplayer<PopNetworkState>
+class CSVSimplePopProbTrajDisplayer final : public CSVProbTrajDisplayer<PopNetworkState>
 {
 
 public:
@@ -66,7 +66,7 @@ public:
 
   CSVSimplePopProbTrajDisplayer(Network* network, std::ostream& os_probtraj, std::ostream& os_simple_probtraj, bool hexfloat = false) : CSVProbTrajDisplayer<PopNetworkState>(network, os_probtraj, hexfloat), os_simple_probtraj(os_simple_probtraj) { }
   
-  virtual void beginDisplay()
+  void beginDisplay()
   {
     CSVProbTrajDisplayer<PopNetworkState>::beginDisplay();
     
@@ -86,8 +86,8 @@ public:
 
   }
   
-  virtual void beginTimeTickDisplay() {}
-  virtual void endTimeTickDisplay()
+  void beginTimeTickDisplay() {}
+  void endTimeTickDisplay()
   {
     CSVProbTrajDisplayer<PopNetworkState>::endTimeTickDisplay();
     
@@ -199,22 +199,22 @@ public:
     }
     os_simple_probtraj << '\n';
   }
-  virtual void endDisplay() {}
+  void endDisplay() {}
 };
 
-class JSONSimpleProbTrajDisplayer : public JSONProbTrajDisplayer<PopNetworkState> {
+class JSONSimpleProbTrajDisplayer final : public JSONProbTrajDisplayer<PopNetworkState> {
 
 
 public:
   std::ostream& os_simple_probtraj;
   JSONSimpleProbTrajDisplayer(Network* network, std::ostream& os_probtraj, std::ostream& os_simple_probtraj, bool hexfloat = false) : JSONProbTrajDisplayer<PopNetworkState>(network, os_probtraj, hexfloat), os_simple_probtraj(os_simple_probtraj) { }
 
-  virtual void beginDisplay() {
+  void beginDisplay() {
     JSONProbTrajDisplayer<PopNetworkState>::beginDisplay();
     os_simple_probtraj << '[';
   }
 
-  virtual void beginTimeTickDisplay() {
+  void beginTimeTickDisplay() {
     JSONProbTrajDisplayer<PopNetworkState>::beginTimeTickDisplay();
 
     if (this->current_line > 0) {
@@ -223,7 +223,7 @@ public:
     os_simple_probtraj << '{';
   }
 
-  virtual void endTimeTickDisplay() {
+  void endTimeTickDisplay() {
     
     JSONProbTrajDisplayer<PopNetworkState>::endTimeTickDisplay();
 
@@ -320,7 +320,7 @@ public:
     os_simple_probtraj << "]";
     os_simple_probtraj << '}';
   }
-  virtual void endDisplay() {
+  void endDisplay() {
     JSONProbTrajDisplayer<PopNetworkState>::endDisplay();
     os_simple_probtraj << ']';
   }

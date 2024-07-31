@@ -60,9 +60,10 @@ public:
   virtual void begin() = 0;
   virtual void displayFinalState(const NetworkState_Impl& state, double value) = 0;
   virtual void end() = 0;
+  virtual ~FinalStateDisplayer(){};
 };
 
-class CSVFinalStateDisplayer : public FinalStateDisplayer {
+class CSVFinalStateDisplayer final : public FinalStateDisplayer {
 
   std::ostream& os;
   Network* network;
@@ -70,12 +71,13 @@ class CSVFinalStateDisplayer : public FinalStateDisplayer {
 
 public:
   CSVFinalStateDisplayer(Network* network, std::ostream& os, bool hexfloat) : os(os), network(network), hexfloat(hexfloat) {}
-  virtual void begin();
-  virtual void displayFinalState(const NetworkState_Impl& state, double value);
-  virtual void end();
+  void begin();
+  void displayFinalState(const NetworkState_Impl& state, double value);
+  void end();
+  ~CSVFinalStateDisplayer(){};
 };
 
-class JsonFinalStateDisplayer : public FinalStateDisplayer {
+class JsonFinalStateDisplayer final : public FinalStateDisplayer {
 
   std::ostream& os;
   Network* network;
@@ -83,9 +85,10 @@ class JsonFinalStateDisplayer : public FinalStateDisplayer {
   unsigned int state_cnt;
 public:
   JsonFinalStateDisplayer(Network* network, std::ostream& os, bool hexfloat) : os(os), network(network), hexfloat(hexfloat), state_cnt(0) {}
-  virtual void begin();
-  virtual void displayFinalState(const NetworkState_Impl& state, double value);
-  virtual void end();
+  void begin();
+  void displayFinalState(const NetworkState_Impl& state, double value);
+  void end();
+  ~JsonFinalStateDisplayer(){};
 };
 
 #endif
