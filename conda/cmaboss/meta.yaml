@@ -18,6 +18,8 @@ build:
 
 requirements:
   build:
+    - setuptools
+    - {{ compiler('c') }}
     - {{ compiler('cxx') }}
     - flex
     - bison
@@ -27,13 +29,13 @@ requirements:
     - libsbml-plus-packages
     
   host: 
+    - setuptools
     - python {{ python }}
     - numpy
     - libsbml-plus-packages
   
   run: 
     - python {{ python }}
-    - {{ pin_compatible('numpy') }}
     - libsbml-plus-packages
 
 test:
