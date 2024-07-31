@@ -129,6 +129,87 @@ static PyObject * cPopMaBoSSSim_new(PyTypeObject* type, PyObject *args, PyObject
     return NULL;
   }
 }
+static PyObject* cPopMaBoSSSim_update_parameters(cPopMaBoSSSimObject* self, PyObject *args, PyObject* kwargs) 
+{
+  PyObject * time_tick = NULL;
+  PyObject * max_time = NULL;
+  PyObject * sample_count = NULL;
+  PyObject * init_pop = NULL;
+  PyObject * discrete_time = NULL;
+  PyObject * use_physrandgen = NULL;
+  PyObject * use_glibcrandgen = NULL;
+  PyObject * use_mtrandgen = NULL;
+  PyObject * seed_pseudorandom = NULL;
+  PyObject * display_traj = NULL;
+  PyObject * statdist_traj_count = NULL;
+  PyObject * statdist_cluster_threshold = NULL;
+  PyObject * thread_count = NULL;
+  PyObject * statdist_similarity_cache_max_size = NULL; 
+ 
+  static const char *kwargs_list[] = {
+    "time_tick", "max_time", "sample_count", "init_pop",
+    "discrete_time", "use_physrandgen", "use_glibcrandgen",
+    "use_mtrandgen", "seed_pseudorandom", "display_traj", 
+    "statdist_traj_count", "statdist_cluster_threshold", 
+    "thread_count", "statdist_similarity_cache_max_size",
+    NULL
+  };
+  
+  if (!PyArg_ParseTupleAndKeywords(
+    args, kwargs, "|OOOOOOOOOOOOOO", const_cast<char **>(kwargs_list), 
+    &time_tick, &max_time, &sample_count, &init_pop, 
+    &discrete_time, &use_physrandgen, &use_glibcrandgen, 
+    &use_mtrandgen, &seed_pseudorandom, &display_traj, 
+    &statdist_traj_count, &statdist_cluster_threshold, 
+    &thread_count, &statdist_similarity_cache_max_size
+  ))
+    return NULL;
+    
+  if (time_tick != NULL) {
+    self->runconfig->setParameter("time_tick", PyFloat_AsDouble(time_tick));
+  }
+  if (max_time != NULL) {
+    self->runconfig->setParameter("max_time", PyFloat_AsDouble(max_time));
+  }
+  if (sample_count != NULL) {
+    self->runconfig->setParameter("sample_count", PyLong_AsLong(sample_count));
+  }
+  if (init_pop != NULL) {
+    self->runconfig->setParameter("init_pop", PyLong_AsLong(init_pop));
+  }
+  if (discrete_time != NULL) {
+    self->runconfig->setParameter("discrete_time", PyLong_AsLong(discrete_time));
+  }
+  if (use_physrandgen != NULL) {
+    self->runconfig->setParameter("use_physrandgen", PyLong_AsLong(use_physrandgen));
+  }
+  if (use_glibcrandgen != NULL) {
+    self->runconfig->setParameter("use_glibcrandgen", PyLong_AsLong(use_glibcrandgen));
+  }
+  if (use_mtrandgen != NULL) {
+    self->runconfig->setParameter("use_mtrandgen", PyLong_AsLong(use_mtrandgen));
+  }
+  if (seed_pseudorandom != NULL) {
+    self->runconfig->setParameter("seed_pseudorandom", PyFloat_AsDouble(seed_pseudorandom));
+  }
+  if (display_traj != NULL) {
+    self->runconfig->setParameter("display_traj", PyLong_AsLong(display_traj));
+  }
+  if (statdist_traj_count != NULL) {
+    self->runconfig->setParameter("statdist_traj_count", PyLong_AsLong(statdist_traj_count));
+  }
+  if (statdist_cluster_threshold != NULL) {
+    self->runconfig->setParameter("statdist_cluster_threshold", PyFloat_AsDouble(statdist_cluster_threshold));
+  }
+  if (thread_count != NULL) {
+    self->runconfig->setParameter("thread_count", PyLong_AsLong(thread_count));
+  }
+  if (statdist_similarity_cache_max_size != NULL) {
+    self->runconfig->setParameter("statdist_similarity_cache_max_size", PyLong_AsLong(statdist_similarity_cache_max_size));
+  }
+  
+  return Py_None;
+}
 
 static PyObject* cPopMaBoSSSim_run(cPopMaBoSSSimObject* self, PyObject *args, PyObject* kwargs) {
   
@@ -160,8 +241,24 @@ static PyObject* cPopMaBoSSSim_run(cPopMaBoSSSimObject* self, PyObject *args, Py
   return (PyObject*) res;
 }
 
+static PyObject* cPopMaBoSSSim_get_nodes(cPopMaBoSSSimObject* self) {
+
+  PyObject *list = PyList_New(self->network->getNodes().size());
+
+  size_t index = 0;
+  for (auto* node: self->network->getNodes()) {
+    PyList_SetItem(list, index, PyUnicode_FromString(node->getLabel().c_str()));
+    index++;
+  }
+
+  return list;
+}
+
 static PyMethodDef cPopMaBoSSSim_methods[] = {
+
+    {"get_nodes", (PyCFunction) cPopMaBoSSSim_get_nodes, METH_NOARGS, "gets the list of nodes"},
     {"run", (PyCFunction) cPopMaBoSSSim_run, METH_VARARGS | METH_KEYWORDS, "runs the simulation"},
+    {"update_parameters", (PyCFunction) cPopMaBoSSSim_update_parameters, METH_VARARGS | METH_KEYWORDS, "changes the parameters of the simulation"},
     {NULL}  /* Sentinel */
 };
 
