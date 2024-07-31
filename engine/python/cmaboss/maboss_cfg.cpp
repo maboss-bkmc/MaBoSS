@@ -61,7 +61,7 @@ typedef struct {
 
 static void cMaBoSSConfig_dealloc(cMaBoSSConfigObject *self)
 {
-    free(self->config);
+    delete self->config;
     Py_TYPE(self)->tp_free((PyObject *) self);
 }
 

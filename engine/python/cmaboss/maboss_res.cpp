@@ -72,8 +72,8 @@ typedef struct {
 
 static void cMaBoSSResult_dealloc(cMaBoSSResultObject *self)
 {
-    free(self->engine);
-    Py_TYPE(self)->tp_free((PyObject *) self);
+  delete self->engine;
+  Py_TYPE(self)->tp_free((PyObject *) self);
 }
 
 static PyObject * cMaBoSSResult_new(PyTypeObject* type, PyObject *args, PyObject* kwargs) 

@@ -68,8 +68,8 @@ typedef struct {
 
 static void cMaBoSSResultFinal_dealloc(cMaBoSSResultFinalObject *self)
 {
-    free(self->engine);
-    Py_TYPE(self)->tp_free((PyObject *) self);
+  delete self->engine;
+  Py_TYPE(self)->tp_free((PyObject *) self);
 }
 
 static PyObject * cMaBoSSResultFinal_new(PyTypeObject* type, PyObject *args, PyObject* kwargs) 
@@ -122,13 +122,14 @@ static PyObject* cMaBoSSResultFinal_display_final_states(cMaBoSSResultFinalObjec
     return NULL;
 
   std::ostream* output_final = new std::ofstream(filename);
-  FinalStateDisplayer * final_displayer = new CSVFinalStateDisplayer(
+  CSVFinalStateDisplayer * final_displayer = new CSVFinalStateDisplayer(
     self->network, *output_final, PyObject_IsTrue(PyBool_FromLong(hexfloat))
   );
 
   self->engine->displayFinal(final_displayer);
 
   ((std::ofstream*) output_final)->close();
+  delete final_displayer;
   delete output_final;
 
   return Py_None;

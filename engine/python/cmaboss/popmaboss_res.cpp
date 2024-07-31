@@ -53,7 +53,7 @@
 #include <set>
 #include "src/BooleanNetwork.h"
 #include "src/PopMaBEstEngine.h"
-// #include "src/PopProbTrajDisplayer.h"
+#include "src/PopProbTrajDisplayer.h"
 
 typedef struct {
   PyObject_HEAD
@@ -66,8 +66,8 @@ typedef struct {
 
 static void cPopMaBoSSResult_dealloc(cPopMaBoSSResultObject *self)
 {
-    free(self->engine);
-    Py_TYPE(self)->tp_free((PyObject *) self);
+  delete self->engine;
+  Py_TYPE(self)->tp_free((PyObject *) self);
 }
 
 static PyObject * cPopMaBoSSResult_new(PyTypeObject* type, PyObject *args, PyObject* kwargs) 
@@ -122,6 +122,8 @@ static PyObject* cPopMaBoSSResult_display_fp(cPopMaBoSSResultObject* self, PyObj
 
   self->engine->displayFixpoints(fp_displayer);
   ((std::ofstream*) output_fp)->close();
+  
+  delete fp_displayer;
   delete output_fp;
 
   return Py_None;
@@ -135,13 +137,18 @@ static PyObject* cPopMaBoSSResult_display_probtraj(cPopMaBoSSResultObject* self,
     return NULL;
     
   std::ostream* output_probtraj = new std::ofstream(filename);
+  std::ostream* output_simple_probtraj = new std::ofstream(simple_filename);
   
-  CSVProbTrajDisplayer<PopNetworkState> * pop_probtraj_displayer = new CSVProbTrajDisplayer<PopNetworkState>(self->network, *output_probtraj, hexfloat);
+  CSVSimplePopProbTrajDisplayer * pop_probtraj_displayer = new CSVSimplePopProbTrajDisplayer(self->network, *output_probtraj, *output_simple_probtraj, hexfloat);
   self->engine->displayPopProbTraj(pop_probtraj_displayer);
   
   ((std::ofstream*) output_probtraj)->close();
+  ((std::ofstream*) output_simple_probtraj)->close();
+  
+  delete pop_probtraj_displayer;
   delete output_probtraj;
-
+  delete output_simple_probtraj;
+  
   return Py_None;
 }
 

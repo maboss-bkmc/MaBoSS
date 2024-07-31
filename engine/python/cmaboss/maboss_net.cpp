@@ -61,7 +61,7 @@ typedef struct {
 
 static void cMaBoSSNetwork_dealloc(cMaBoSSNetworkObject *self)
 {
-    free(self->network);
+    delete self->network;
     Py_TYPE(self)->tp_free((PyObject *) self);
 }
 
