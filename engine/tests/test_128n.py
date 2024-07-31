@@ -30,22 +30,22 @@ class TestCMaBoSS(TestCase):
         sim = cmaboss_128n.MaBoSSSim(network="../tests/metastasis/metastasis.bnd", config="../tests/metastasis/metastasis.cfg")
         res = sim.run(only_last_state=False)
         
-        raw_res, _, states = res.get_last_probtraj()
+        raw_res, _, states, _ = res.get_last_probtraj()
         for i, value in enumerate(np.nditer(raw_res)):
             self.assertAlmostEqual(value, expected[states[i]])
         
-        raw_nodes_res, _, nodes = res.get_last_nodes_probtraj()
+        raw_nodes_res, _, nodes, _ = res.get_last_nodes_probtraj()
         for i, value in enumerate(np.nditer(raw_nodes_res)):
             self.assertAlmostEqual(value, expected_nodes[nodes[i]])
         
         simfinal = cmaboss_128n.MaBoSSSim(network="../tests/metastasis/metastasis.bnd", config="../tests/metastasis/metastasis.cfg")
         resfinal = simfinal.run(only_last_state=True)    
         
-        raw_res, _, states = res.get_last_probtraj()
+        raw_res, _, states, _ = res.get_last_probtraj()
         for i, value in enumerate(np.nditer(raw_res)):
             self.assertAlmostEqual(value, expected[states[i]])
         
-        raw_nodes_res, _, nodes = res.get_last_nodes_probtraj()
+        raw_nodes_res, _, nodes, _ = res.get_last_nodes_probtraj()
         for i, value in enumerate(np.nditer(raw_nodes_res)):
             self.assertAlmostEqual(value, expected_nodes[nodes[i]])
         
