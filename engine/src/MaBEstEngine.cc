@@ -54,7 +54,7 @@
 #include <iomanip>
 #include <iostream>
 
-const std::string MaBEstEngine::VERSION = "2.5.6";
+const std::string MaBEstEngine::VERSION = "2.5.7";
 
 MaBEstEngine::MaBEstEngine(Network* network, RunConfig* runconfig) :
   ProbTrajEngine(network, runconfig)

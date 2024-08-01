@@ -40,9 +40,9 @@ MaBoSS can also be used via WebMaBoSS, a web interface, at [https://maboss.curie
 
 ### Package Contents
 MaBoSS is composed of:
-- MaBoSS engine 2.5.6: C++ core program simulating continuous/discrete time Markov processes, applied on a Boolean network.
+- MaBoSS engine 2.5.7: C++ core program simulating continuous/discrete time Markov processes, applied on a Boolean network.
 - MaBoSS tools 2.0: perl and python scripts using MaBoSS engine 2.0
-- cMaBoSS 1.0.0b23: python bindings using Python C API.
+- cMaBoSS 1.0.0b24: python bindings using Python C API.
 - PopMaBoSS engine 0.0.1: Simulating continuous/discrete time Markov processes, applied on a Population of Boolean network state.
 
 ### Tested platforms
@@ -98,10 +98,10 @@ Finally, it you need the MPI compatible version, you need to have a MPI library 
     cd engine/pub
 
     ./MaBoSS --version
-    MaBoSS version 2.5.6 [networks up to 64 nodes]
+    MaBoSS version 2.5.7 [networks up to 64 nodes]
 
     ./MaBoSS_100n --version
-    MaBoSS version 2.5.6 [networks up to 100 nodes]
+    MaBoSS version 2.5.7 [networks up to 100 nodes]
 
 The usage is described in the [reference card](https://github.com/sysbio-curie/MaBoSS/blob/master/engine/doc/MaBoSS-RefCard.pdf).
 
