@@ -59,8 +59,6 @@
 #include <windows.h>
 #endif
 
-static const char *MABOSS_USER_FUNC_INIT = "maboss_user_func_init";
-
 const std::string PopMaBEstEngine::VERSION = "0.0.1";
 int PopMaBEstEngine::verbose = 0;
 // extern size_t RandomGenerator::generated_number_count;
