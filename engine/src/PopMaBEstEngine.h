@@ -53,7 +53,7 @@
 #include <vector>
 #include <assert.h>
 
-// #include "MetaEngine.h"
+#include "MetaEngine.h"
 #include "BooleanNetwork.h"
 #include "Cumulator.h"
 #include "RandomGenerator.h"
@@ -70,23 +70,10 @@ typedef std::map<PopNetworkState, double> PopNetworkStateMap;
 typedef STATE_MAP<PopNetworkState, double> PopNetworkStateMap;
 #endif
 
-class PopMaBEstEngine {
+class PopMaBEstEngine : public MetaEngine {
 
   PopNetwork* pop_network;
-  RunConfig* runconfig;
-
-  double time_tick;
-  double max_time;
-  unsigned int sample_count;
-  unsigned int statdist_trajcount;
-  bool discrete_time;
-  unsigned int thread_count;
   
-  NetworkState reference_state;
-  NetworkState refnode_mask;
-  unsigned int refnode_count;
-
-  mutable long long elapsed_core_runtime, user_core_runtime, elapsed_statdist_runtime, user_statdist_runtime, elapsed_epilogue_runtime, user_epilogue_runtime;
   STATE_MAP<NetworkState_Impl, unsigned int> fixpoints;
   std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*> fixpoint_map_v;
   
@@ -105,18 +92,6 @@ public:
   void run(std::ostream* output_traj);
 
   ~PopMaBEstEngine();
-  
-  static void init();
-  static void loadUserFuncs(const char* module);
-
-  long long getElapsedCoreRunTime() const {return elapsed_core_runtime;}
-  long long getUserCoreRunTime() const {return user_core_runtime;}
-
-  long long getElapsedEpilogueRunTime() const {return elapsed_epilogue_runtime;}
-  long long getUserEpilogueRunTime() const {return user_epilogue_runtime;}
-
-  long long getElapsedStatDistRunTime() const {return elapsed_statdist_runtime;}
-  long long getUserStatDistRunTime() const {return user_statdist_runtime;}
 
   bool converges() const {return fixpoints.size() > 0;}
   const STATE_MAP<NetworkState_Impl, unsigned int>& getFixpoints() const {return fixpoints;}
@@ -145,6 +120,18 @@ public:
   static void mergePairOfFixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_1, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_2);
   static void* threadMergeWrapper(void *arg);
   std::pair<Cumulator<PopNetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> mergeResults(std::vector<Cumulator<PopNetworkState>*> cumulator_v, std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*> fixpoint_map_v);
+  
+#ifdef MPI_COMPAT
+  static std::pair<Cumulator<PopNetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> mergeMPIResults(RunConfig* runconfig, Cumulator<PopNetworkState>* ret_cumul, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints, int world_size, int world_rank, bool pack=true);  
+  
+  static void mergePairOfMPIFixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints, int world_rank, int dest, int origin, bool pack=true);
+  static void MPI_Unpack_Fixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, char* buff, unsigned int buff_size);
+  static char* MPI_Pack_Fixpoints(const STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, int dest, unsigned int * buff_size);
+  static void MPI_Send_Fixpoints(const STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, int dest);
+  static void MPI_Recv_Fixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, int origin);
+  
+#endif
+
 };
 
 #endif

@@ -869,7 +869,7 @@ public:
 
 
 #ifdef MPI_COMPAT
-  static size_t my_MPI_Pack_Size() {
+  size_t my_MPI_Pack_Size() const {
 #ifdef USE_STATIC_BITSET
     return (MAXNODES/64 + (MAXNODES%64 > 0 ? 1 : 0)) * sizeof(unsigned long long) + sizeof(size_t);
 
@@ -1251,6 +1251,65 @@ public:
     }
     return result;
   }
+  
+#ifdef MPI_COMPAT
+  size_t my_MPI_Pack_Size() const {
+    return sizeof(size_t) + mp.size() * (sizeof(NetworkState_Impl) + sizeof(unsigned int));
+  }
+
+  void my_MPI_Pack(void* buff, unsigned int size_pack, int* position) const {
+
+    size_t nb_populations = mp.size();
+    MPI_Pack(&nb_populations, 1, my_MPI_SIZE_T, buff, size_pack, position, MPI_COMM_WORLD);
+    
+    for (auto &network_state_pop : mp) {
+      NetworkState s(network_state_pop.first); 
+      s.my_MPI_Pack(buff, size_pack, position);
+      MPI_Pack(&(network_state_pop.second), 1, MPI_UNSIGNED, buff, size_pack, position, MPI_COMM_WORLD);
+    }
+  }
+  
+  void my_MPI_Unpack(void* buff, unsigned int buff_size, int* position) {
+    mp.clear();
+    size_t nb_populations;
+    MPI_Unpack(buff, buff_size, position, &nb_populations, 1, my_MPI_SIZE_T, MPI_COMM_WORLD);
+    
+    for (size_t i = 0; i < nb_populations; i++) {
+      NetworkState t_state;
+      t_state.my_MPI_Unpack(buff, buff_size, position);
+      unsigned int pop;
+      MPI_Unpack(buff, buff_size, position, &pop, 1, MPI_UNSIGNED, MPI_COMM_WORLD);
+      mp[t_state.getState()] = pop;
+    }
+  }
+  
+  void my_MPI_Recv(int source) 
+  {
+    mp.clear();
+    size_t nb_populations;
+    MPI_Recv(&nb_populations, 1, my_MPI_SIZE_T, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    
+    for (size_t i = 0; i < nb_populations; i++) {
+      NetworkState t_state;
+      t_state.my_MPI_Recv(source);
+      unsigned int pop;
+      MPI_Recv(&pop, 1, MPI_UNSIGNED, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      mp[t_state.getState()] = pop;
+    }
+  }
+  
+  void my_MPI_Send(int dest) const
+  {
+    size_t nb_populations = mp.size();
+    MPI_Send(&nb_populations, 1, my_MPI_SIZE_T, dest, 0, MPI_COMM_WORLD);
+    
+    for (auto &network_state_pop : mp) {
+      NetworkState s(network_state_pop.first);
+      s.my_MPI_Send(dest);
+      MPI_Send(&(network_state_pop.second), 1, MPI_UNSIGNED, dest, 0, MPI_COMM_WORLD);
+    }
+  }
+#endif  
 };
 
 namespace std {

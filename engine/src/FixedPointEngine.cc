@@ -119,7 +119,11 @@ void FixedPointEngine::MPI_Unpack_Fixpoints(STATE_MAP<NetworkState_Impl, unsigne
 char* FixedPointEngine::MPI_Pack_Fixpoints(const STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, int dest, unsigned int * buff_size)
 {
   unsigned int nb_fixpoints = fp_map == NULL ? 0 : fp_map->size();
-  *buff_size = sizeof(unsigned int) + (sizeof(unsigned int) + NetworkState::my_MPI_Pack_Size()) * nb_fixpoints;
+  *buff_size = sizeof(unsigned int);
+  for (auto& fixpoint: *fp_map) {
+    NetworkState state(fixpoint.first);
+    *buff_size += state.my_MPI_Pack_Size() + sizeof(unsigned int);
+  }
   char* buff = new char[*buff_size];
   int position = 0;
   
@@ -184,7 +188,7 @@ void FixedPointEngine::mergePairOfMPIFixpoints(STATE_MAP<NetworkState_Impl, unsi
       MPI_Recv( buff, buff_size, MPI_PACKED, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
           
       MPI_Unpack_Fixpoints(fixpoints, buff, buff_size);
-      delete buff;
+      delete [] buff;
       
     } else {
       MPI_Recv_Fixpoints(fixpoints, origin);
@@ -199,7 +203,7 @@ void FixedPointEngine::mergePairOfMPIFixpoints(STATE_MAP<NetworkState_Impl, unsi
 
       MPI_Send(&buff_size, 1, MPI_UNSIGNED, dest, 0, MPI_COMM_WORLD);
       MPI_Send( buff, buff_size, MPI_PACKED, dest, 0, MPI_COMM_WORLD); 
-      delete buff;            
+      delete [] buff;            
       
     } else {
      

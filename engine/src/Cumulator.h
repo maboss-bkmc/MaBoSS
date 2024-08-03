@@ -156,8 +156,12 @@ class Cumulator {
     }
     
 #ifdef MPI_COMPAT
-    size_t my_MPI_Size() {
-      return sizeof(size_t) + size() * (sizeof(double)*2 + S::my_MPI_Pack_Size());
+    size_t my_MPI_Size() const {
+      size_t res = sizeof(size_t);
+      for (auto& elem: mp) {
+        res += elem.first.my_MPI_Pack_Size() + 2*sizeof(double);
+      }
+      return res;
     }
 
     void my_MPI_Pack(void* buff, unsigned int size_pack, int* position) {
@@ -196,7 +200,7 @@ class Cumulator {
         MPI_Unpack(buff, buff_size, position, &t_TH, 1, MPI_DOUBLE, MPI_COMM_WORLD);
 
         TickValue t_tick_value(t_tm_slice, t_TH);
-        add(t_state.getState(), t_tick_value); 
+        add(t_state, t_tick_value); 
       }
 
     }
@@ -216,7 +220,7 @@ class Cumulator {
         MPI_Recv(&t_TH, 1, MPI_DOUBLE, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         
         TickValue t_tick_value(t_tm_slice, t_TH);
-        add(t_state.getState(), t_tick_value); 
+        add(t_state, t_tick_value); 
       }
     }
     
@@ -305,8 +309,12 @@ class Cumulator {
     }
 
 #ifdef MPI_COMPAT
-    size_t my_MPI_Size() {
-      return sizeof(size_t) + size() * (sizeof(double) + S::my_MPI_Pack_Size());
+    size_t my_MPI_Size() const {
+      size_t res = sizeof(size_t);
+      for (auto& elem: mp) {
+        res += elem.first.my_MPI_Pack_Size() + sizeof(double);
+      }
+      return res;
     }
     
     void my_MPI_Pack(void* buff, unsigned int size_pack, int* position) 
@@ -340,7 +348,7 @@ class Cumulator {
         double t_tm_slice;
         MPI_Unpack(buff, buff_size, position, &t_tm_slice, 1, MPI_DOUBLE, MPI_COMM_WORLD);
       
-        add(t_state.getState(), t_tm_slice);  
+        add(t_state, t_tm_slice);  
       }
     }
     
@@ -356,7 +364,7 @@ class Cumulator {
         double t_tm_slice;
         MPI_Recv(&t_tm_slice, 1, MPI_DOUBLE, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         
-        add(t_state.getState(), t_tm_slice);  
+        add(t_state, t_tm_slice);  
       }
     }
     
@@ -1824,7 +1832,7 @@ static Cumulator<S>* mergePairOfMPICumulators(Cumulator<S>* ret_cumul, int world
       MPI_Recv( buff, buff_size, MPI_PACKED, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
       
       MPI_Unpack_Cumulator(ret_cumul, buff, buff_size);
-      delete buff;
+      delete [] buff;
       
     } else {
       MPI_Recv_Cumulator(ret_cumul, origin);
@@ -1854,7 +1862,7 @@ static Cumulator<S>* mergePairOfMPICumulators(Cumulator<S>* ret_cumul, int world
       char* buff = MPI_Pack_Cumulator(ret_cumul, 0, &buff_size);
       MPI_Send(&buff_size, 1, MPI_UNSIGNED, dest, 0, MPI_COMM_WORLD);
       MPI_Send( buff, buff_size, MPI_PACKED, dest, 0, MPI_COMM_WORLD); 
-      delete buff;
+      delete [] buff;
       
     } else {
      

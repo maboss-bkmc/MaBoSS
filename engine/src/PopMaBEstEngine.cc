@@ -46,6 +46,7 @@
 */
 
 #include "PopMaBEstEngine.h"
+#include "MetaEngine.h"
 #include "Probe.h"
 #include <stdlib.h>
 #include <math.h>
@@ -68,14 +69,9 @@ void PopMaBEstEngine::setVerbose(int level) {
   PopMaBEstEngine::verbose = level;
 }
 
-PopMaBEstEngine::PopMaBEstEngine(PopNetwork *pop_network, RunConfig *runconfig) : pop_network(pop_network), runconfig(runconfig),
-                                                                           time_tick(runconfig->getTimeTick()),
-                                                                           max_time(runconfig->getMaxTime()),
-                                                                           sample_count(runconfig->getSampleCount()),
-                                                                           statdist_trajcount(runconfig->getStatDistTrajCount()),
-                                                                           discrete_time(runconfig->isDiscreteTime()),
-                                                                           thread_count(runconfig->getThreadCount())
+PopMaBEstEngine::PopMaBEstEngine(PopNetwork *pop_network, RunConfig *runconfig) : MetaEngine(pop_network, runconfig), pop_network(pop_network)
 {
+  
   elapsed_core_runtime = user_core_runtime = elapsed_statdist_runtime = user_statdist_runtime = elapsed_epilogue_runtime = user_epilogue_runtime = 0;
 
   if (thread_count > sample_count)
@@ -592,6 +588,165 @@ size_t size = cumulator_v.size();
 
 }
 
+
+#ifdef MPI_COMPAT
+
+
+std::pair<Cumulator<PopNetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> PopMaBEstEngine::mergeMPIResults(RunConfig* runconfig, Cumulator<PopNetworkState>* ret_cumul, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints, int world_size, int world_rank, bool pack)
+{  
+  if (world_size> 1) {
+    
+    int lvl=1;
+    int max_lvl = ceil(log2(world_size));
+
+    while(lvl <= max_lvl) {
+    
+      int step_lvl = pow(2, lvl-1);
+      
+      for(int i=0; i < world_size; i+=(step_lvl*2)) {
+        
+        if (i+step_lvl < world_size) {
+          if (world_rank == i || world_rank == (i+step_lvl)){
+            ret_cumul = Cumulator<PopNetworkState>::mergePairOfMPICumulators(ret_cumul, world_rank, i, i+step_lvl, runconfig, pack);
+            mergePairOfMPIFixpoints(fixpoints, world_rank, i, i+step_lvl, pack);
+          }
+        } 
+      }
+      
+      lvl++;
+    }
+  }
+  
+  return std::make_pair(ret_cumul, fixpoints); 
+  
+}
+
+void PopMaBEstEngine::MPI_Unpack_Fixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, char* buff, unsigned int buff_size)
+{
+        
+  int position = 0;
+  unsigned int nb_fixpoints;
+  MPI_Unpack(buff, buff_size, &position, &nb_fixpoints, 1, MPI_UNSIGNED, MPI_COMM_WORLD);
+  
+  if (nb_fixpoints > 0) {
+    if (fp_map == NULL) {
+      fp_map = new STATE_MAP<NetworkState_Impl, unsigned int>();
+    }
+    for (unsigned int j=0; j < nb_fixpoints; j++) {
+      NetworkState state;
+      state.my_MPI_Unpack(buff, buff_size, &position);
+      unsigned int count = 0;
+      MPI_Unpack(buff, buff_size, &position, &count, 1, MPI_UNSIGNED, MPI_COMM_WORLD);
+      
+      if (fp_map->find(state.getState()) == fp_map->end()) {
+        (*fp_map)[state.getState()] = count;
+      } else {
+        (*fp_map)[state.getState()] += count;
+      }
+    }
+  }
+}
+
+char* PopMaBEstEngine::MPI_Pack_Fixpoints(const STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, int dest, unsigned int * buff_size)
+{
+  unsigned int nb_fixpoints = fp_map == NULL ? 0 : fp_map->size();
+  *buff_size = sizeof(unsigned int);
+  for (auto& fixpoint: *fp_map) {
+    NetworkState state(fixpoint.first);
+    *buff_size += state.my_MPI_Pack_Size() + sizeof(unsigned int);
+  }
+  char* buff = new char[*buff_size];
+  int position = 0;
+  
+  MPI_Pack(&nb_fixpoints, 1, MPI_UNSIGNED, buff, *buff_size, &position, MPI_COMM_WORLD);
+
+  if (nb_fixpoints > 0) {
+    for (auto& fixpoint: *fp_map) {  
+      NetworkState state(fixpoint.first);
+      unsigned int count = fixpoint.second;
+      state.my_MPI_Pack(buff, *buff_size, &position);
+      MPI_Pack(&count, 1, MPI_UNSIGNED, buff, *buff_size, &position, MPI_COMM_WORLD);
+    }
+  }
+  return buff;
+}
+
+void PopMaBEstEngine::MPI_Send_Fixpoints(const STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, int dest) 
+{
+  int nb_fixpoints = fp_map->size();
+  MPI_Send(&nb_fixpoints, 1, MPI_INT, dest, 0, MPI_COMM_WORLD);
+  
+  for (auto& fixpoint: *fp_map) {
+    NetworkState state(fixpoint.first);
+    unsigned int count = fixpoint.second;
+    
+    state.my_MPI_Send(dest);
+    MPI_Send(&count, 1, MPI_UNSIGNED, dest, 0, MPI_COMM_WORLD);
+    
+  } 
+}
+
+void PopMaBEstEngine::MPI_Recv_Fixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, int origin) 
+{
+  int nb_fixpoints = -1;
+  MPI_Recv(&nb_fixpoints, 1, MPI_INT, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+  
+  for (int j = 0; j < nb_fixpoints; j++) {
+    NetworkState state;
+    state.my_MPI_Recv(origin);
+    
+    unsigned int count = -1;
+    MPI_Recv(&count, 1, MPI_UNSIGNED, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    
+    if (fp_map->find(state.getState()) == fp_map->end()) {
+      (*fp_map)[state.getState()] = count;
+    } else {
+      (*fp_map)[state.getState()] += count;
+    }
+  }
+}
+
+void PopMaBEstEngine::mergePairOfMPIFixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints, int world_rank, int dest, int origin, bool pack) 
+{
+   if (world_rank == dest) 
+   {
+   
+    if (pack) {
+      unsigned int buff_size;
+      MPI_Recv( &buff_size, 1, MPI_UNSIGNED, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        
+      char* buff = new char[buff_size];
+      MPI_Recv( buff, buff_size, MPI_PACKED, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
+          
+      MPI_Unpack_Fixpoints(fixpoints, buff, buff_size);
+      delete [] buff;
+      
+    } else {
+      MPI_Recv_Fixpoints(fixpoints, origin);
+    }
+    
+  } else if (world_rank == origin) {
+
+    if (pack) {
+
+      unsigned int buff_size;
+      char* buff = MPI_Pack_Fixpoints(fixpoints, dest, &buff_size);
+
+      MPI_Send(&buff_size, 1, MPI_UNSIGNED, dest, 0, MPI_COMM_WORLD);
+      MPI_Send( buff, buff_size, MPI_PACKED, dest, 0, MPI_COMM_WORLD); 
+      delete [] buff;            
+      
+    } else {
+     
+      MPI_Send_Fixpoints(fixpoints, dest);
+    }
+  }
+}
+
+#endif
+
+
+
 void PopMaBEstEngine::epilogue()
 {
   std::pair<Cumulator<PopNetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> res = mergeResults(cumulator_v, fixpoint_map_v);
@@ -612,51 +767,11 @@ PopMaBEstEngine::~PopMaBEstEngine()
   delete merged_cumulator;
 }
 
-void PopMaBEstEngine::init()
-{
-  extern void builtin_functions_init();
-  builtin_functions_init();
-}
-
-void PopMaBEstEngine::loadUserFuncs(const char *module)
-{
-  init();
-
-#ifndef WINDOWS
-  void *dl = dlopen(module, RTLD_LAZY);
-#else
-  void *dl = LoadLibrary(module);
-#endif
-
-  if (NULL == dl)
-  {
-#ifndef WINDOWS
-    std::cerr << dlerror() << std::endl;
-#else
-    std::cerr << GetLastError() << std::endl;
-#endif
-    exit(1);
-  }
-
-#ifndef WINDOWS
-  void *sym = dlsym(dl, MABOSS_USER_FUNC_INIT);
-#else
-  typedef void(__cdecl * MYPROC)(std::map<std::string, Function *> *);
-  MYPROC sym = (MYPROC)GetProcAddress((HINSTANCE)dl, MABOSS_USER_FUNC_INIT);
-#endif
-
-  if (sym == NULL)
-  {
-    std::cerr << "symbol " << MABOSS_USER_FUNC_INIT << "() not found in user func module: " << module << "\n";
-    exit(1);
-  }
-  typedef void (*init_t)(std::map<std::string, Function *> *);
-  init_t init_fun = (init_t)sym;
-  init_fun(Function::getFuncMap());
-}
-
 void PopMaBEstEngine::displayFixpoints(FixedPointDisplayer *displayer) const
 {
+#ifdef MPI_COMPAT
+if (getWorldRank() == 0) {
+#endif
   displayer->begin(fixpoints.size());
 
   size_t nn = 0;
@@ -667,21 +782,39 @@ void PopMaBEstEngine::displayFixpoints(FixedPointDisplayer *displayer) const
     nn++;
   }
   displayer->end();
+#ifdef MPI_COMPAT
+}
+#endif
 }
 
 void PopMaBEstEngine::displayPopProbTraj(ProbTrajDisplayer<PopNetworkState> *displayer) const
 {
+#ifdef MPI_COMPAT
+if (getWorldRank() == 0) {
+#endif
   merged_cumulator->displayProbTraj(pop_network, refnode_count, displayer);
+#ifdef MPI_COMPAT
+}
+#endif
 }
 
 void PopMaBEstEngine::display(ProbTrajDisplayer<PopNetworkState> *pop_probtraj_displayer, FixedPointDisplayer *fp_displayer) const
 {
+#ifdef MPI_COMPAT
+if (getWorldRank() == 0) {
+#endif
   displayPopProbTraj(pop_probtraj_displayer);
   displayFixpoints(fp_displayer);
+#ifdef MPI_COMPAT
+}
+#endif
 }
 
 
 void PopMaBEstEngine::displayRunStats(std::ostream& os, time_t start_time, time_t end_time) const {
+#ifdef MPI_COMPAT
+if (getWorldRank() == 0) {
+#endif
   const char sepfmt[] = "-----------------------------------------------%s-----------------------------------------------\n";
   char bufstr[1024];
 
@@ -705,6 +838,9 @@ void PopMaBEstEngine::displayRunStats(std::ostream& os, time_t start_time, time_
   // os << "Number of PopNetworkState_Impl created : " << PopNetworkState_Impl::generated_number_count << std::endl << std::endl;
   
   runconfig->display(pop_network, start_time, end_time, os);
+#ifdef MPI_COMPAT
+}
+#endif
 }
 
 const std::map<unsigned int, std::pair<NetworkState, double> > PopMaBEstEngine::getFixPointsDists() const {

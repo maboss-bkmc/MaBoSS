@@ -123,7 +123,11 @@ class ProbaDist {
 
 #ifdef MPI_COMPAT
   size_t my_MPI_Size() {
-    return sizeof(size_t) + size() * (NetworkState::my_MPI_Pack_Size() + sizeof(double));
+    size_t res = sizeof(size_t);
+    for (auto& elem: mp) {
+      res += elem.first.my_MPI_Pack_Size() + sizeof(double);
+    }
+    return res;
   }
     
   void my_MPI_Pack(void* buff, unsigned int size_pack, int* position) 
@@ -134,7 +138,7 @@ class ProbaDist {
     ProbaDist::Iterator t_proba_dist1_iter = iterator();
     while (t_proba_dist1_iter.hasNext()) {
       double proba;
-      const NetworkState& state = t_proba_dist1_iter.next2(proba);
+      const S& state = t_proba_dist1_iter.next2(proba);
       state.my_MPI_Pack(buff, size_pack, position);
       MPI_Pack(&proba, 1, MPI_DOUBLE, buff, size_pack, position, MPI_COMM_WORLD);
     } 
@@ -147,12 +151,12 @@ class ProbaDist {
 
     for (size_t iii = 0; iii < t_proba_dist_map_size; iii++) {
       
-      NetworkState state;
+      S state;
       double value = 0;
       state.my_MPI_Unpack(buff, buff_size, position);
       MPI_Unpack(buff, buff_size, position, &value, 1, MPI_DOUBLE, MPI_COMM_WORLD);
 
-      set(state.getState(), value);      
+      set(state, value);      
     }
   }
 
@@ -163,14 +167,14 @@ class ProbaDist {
 
     for (size_t iii = 0; iii < t_proba_dist_map_size; iii++) {
       
-      NetworkState state;
+      S state;
       double value;
       
       // MPI_Recv(&state, 1, MPI_UNSIGNED_LONG_LONG, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       state.my_MPI_Recv(source);
       MPI_Recv(&value, 1, MPI_DOUBLE, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       
-      set(state.getState(), value);      
+      set(state, value);      
     }
   }
   void my_MPI_Send(int dest) 
@@ -181,7 +185,7 @@ class ProbaDist {
     ProbaDist::Iterator t_proba_dist1_iter = iterator();
     while (t_proba_dist1_iter.hasNext()) {
       double proba;
-      const NetworkState& state = t_proba_dist1_iter.next2(proba);
+      const S& state = t_proba_dist1_iter.next2(proba);
       state.my_MPI_Send(dest);
       // MPI_Send(&state, 1, MPI_UNSIGNED_LONG_LONG, dest, 0, MPI_COMM_WORLD);
       MPI_Send(&proba, 1, MPI_DOUBLE, dest, 0, MPI_COMM_WORLD);  
