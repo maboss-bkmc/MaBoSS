@@ -26,7 +26,10 @@ bash ./test-mpi-ensemble.sh 2
 check "ensemble 2 nodes"
 bash ./test-mpi-ensemble.sh 4
 check "ensemble 4 nodes"
-
+bash ./test-mpi-popmaboss.sh 2
+check "popmaboss 2 nodes"
+bash ./test-mpi-popmaboss.sh 4
+check "popmaboss 4 nodes"
 cd ../..
 
 exit $return_code
