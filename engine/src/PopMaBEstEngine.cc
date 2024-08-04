@@ -191,11 +191,12 @@ struct ArgWrapper
   unsigned int sample_count_thread;
   Cumulator<PopNetworkState> *cumulator;
   RandomGeneratorFactory *randgen_factory;
+  long long int* elapsed_time;
   int seed;
   STATE_MAP<NetworkState_Impl, unsigned int> *fixpoint_map;
   std::ostream *output_traj;
 
-  ArgWrapper(PopMaBEstEngine *mabest, unsigned int start_count_thread, unsigned int sample_count_thread, Cumulator<PopNetworkState> *cumulator, RandomGeneratorFactory *randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int> *fixpoint_map, std::ostream *output_traj) : mabest(mabest), start_count_thread(start_count_thread), sample_count_thread(sample_count_thread), cumulator(cumulator), randgen_factory(randgen_factory), seed(seed), fixpoint_map(fixpoint_map), output_traj(output_traj) {}
+  ArgWrapper(PopMaBEstEngine *mabest, unsigned int start_count_thread, unsigned int sample_count_thread, Cumulator<PopNetworkState> *cumulator, RandomGeneratorFactory *randgen_factory, long long int * elapsed_time, int seed, STATE_MAP<NetworkState_Impl, unsigned int> *fixpoint_map, std::ostream *output_traj) : mabest(mabest), start_count_thread(start_count_thread), sample_count_thread(sample_count_thread), cumulator(cumulator), randgen_factory(randgen_factory), elapsed_time(elapsed_time), seed(seed), fixpoint_map(fixpoint_map), output_traj(output_traj) {}
 };
 
 void *PopMaBEstEngine::threadWrapper(void *arg)
@@ -442,13 +443,12 @@ void PopMaBEstEngine::run(std::ostream *output_traj)
 #else
   unsigned int start_sample_count = 0;
 #endif
-  // unsigned int start_sample_count = 0;
   
-// #ifdef MPI_COMPAT
-//   thread_elapsed_runtimes[world_rank].resize(thread_count);
-// #else
-//   thread_elapsed_runtimes.resize(thread_count);
-// #endif
+#ifdef MPI_COMPAT
+  thread_elapsed_runtimes[world_rank].resize(thread_count);
+#else
+  thread_elapsed_runtimes.resize(thread_count);
+#endif
   
   Probe probe;
   for (unsigned int nn = 0; nn < thread_count; ++nn)
@@ -457,12 +457,11 @@ void PopMaBEstEngine::run(std::ostream *output_traj)
     fixpoint_map_v.push_back(fixpoint_map);
     
 #ifdef MPI_COMPAT
-    ArgWrapper* warg = new ArgWrapper(this, start_sample_count, cumulator_v[nn]->getSampleCount(), cumulator_v[nn], randgen_factory, seed, fixpoint_map, output_traj);
+    ArgWrapper* warg = new ArgWrapper(this, start_sample_count, cumulator_v[nn]->getSampleCount(), cumulator_v[nn], randgen_factory, &(thread_elapsed_runtimes[world_rank][nn]), seed, fixpoint_map, output_traj);
 #else
-    ArgWrapper* warg = new ArgWrapper(this, start_sample_count, cumulator_v[nn]->getSampleCount(), cumulator_v[nn], randgen_factory, seed, fixpoint_map, output_traj);
+    ArgWrapper* warg = new ArgWrapper(this, start_sample_count, cumulator_v[nn]->getSampleCount(), cumulator_v[nn], randgen_factory, &(thread_elapsed_runtimes[nn]), seed, fixpoint_map, output_traj);
 #endif
 
-    // ArgWrapper *warg = new ArgWrapper(this, start_sample_count, cumulator_v[nn]->getSampleCount(), cumulator_v[nn], randgen_factory, seed, fixpoint_map, output_traj);
     pthread_create(&tid[nn], NULL, PopMaBEstEngine::threadWrapper, warg);
     arg_wrapper_v.push_back(warg);
 
