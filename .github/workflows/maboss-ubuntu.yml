@@ -313,7 +313,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install flex bison
+        sudo apt-get install flex bison docker-compose
         pip install numpy
     - name: Cache Docker images.
       uses: ScribeMD/docker-cache@0.3.7
