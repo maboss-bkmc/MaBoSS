@@ -750,9 +750,23 @@ void PopMaBEstEngine::epilogue()
   std::pair<Cumulator<PopNetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> res = mergeResults(cumulator_v, fixpoint_map_v);
 
   merged_cumulator = res.first;
+  fixpoints = *(res.second);
+  
+#ifdef MPI_COMPAT
+  
+  std::pair<Cumulator<PopNetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> mpi_results = mergeMPIResults(runconfig, merged_cumulator, &fixpoints, world_size, world_rank);
+  merged_cumulator = mpi_results.first;
+  fixpoints = *(mpi_results.second);
+  
+  if (world_rank == 0)
+  {
+#endif
   merged_cumulator->epilogue(pop_network, reference_state);
 
-  fixpoints = *(res.second);
+#ifdef MPI_COMPAT
+  }
+#endif 
+  
 }
 
 PopMaBEstEngine::~PopMaBEstEngine()
