@@ -436,13 +436,33 @@ void PopMaBEstEngine::run(std::ostream *output_traj)
   pthread_t *tid = new pthread_t[thread_count];
   RandomGeneratorFactory *randgen_factory = runconfig->getRandomGeneratorFactory();
   int seed = runconfig->getSeedPseudoRandom();
+  
+#ifdef MPI_COMPAT
+  unsigned int start_sample_count = sample_count * world_rank;
+#else
   unsigned int start_sample_count = 0;
+#endif
+  // unsigned int start_sample_count = 0;
+  
+// #ifdef MPI_COMPAT
+//   thread_elapsed_runtimes[world_rank].resize(thread_count);
+// #else
+//   thread_elapsed_runtimes.resize(thread_count);
+// #endif
+  
   Probe probe;
   for (unsigned int nn = 0; nn < thread_count; ++nn)
   {
     STATE_MAP<NetworkState_Impl, unsigned int> *fixpoint_map = new STATE_MAP<NetworkState_Impl, unsigned int>();
     fixpoint_map_v.push_back(fixpoint_map);
-    ArgWrapper *warg = new ArgWrapper(this, start_sample_count, cumulator_v[nn]->getSampleCount(), cumulator_v[nn], randgen_factory, seed, fixpoint_map, output_traj);
+    
+#ifdef MPI_COMPAT
+    ArgWrapper* warg = new ArgWrapper(this, start_sample_count, cumulator_v[nn]->getSampleCount(), cumulator_v[nn], randgen_factory, seed, fixpoint_map, output_traj);
+#else
+    ArgWrapper* warg = new ArgWrapper(this, start_sample_count, cumulator_v[nn]->getSampleCount(), cumulator_v[nn], randgen_factory, seed, fixpoint_map, output_traj);
+#endif
+
+    // ArgWrapper *warg = new ArgWrapper(this, start_sample_count, cumulator_v[nn]->getSampleCount(), cumulator_v[nn], randgen_factory, seed, fixpoint_map, output_traj);
     pthread_create(&tid[nn], NULL, PopMaBEstEngine::threadWrapper, warg);
     arg_wrapper_v.push_back(warg);
 
@@ -461,6 +481,24 @@ void PopMaBEstEngine::run(std::ostream *output_traj)
   elapsed_epilogue_runtime = probe.elapsed_msecs();
   user_epilogue_runtime = probe.user_msecs();
   delete[] tid;
+  
+#ifdef MPI_COMPAT
+  
+  if (world_rank == 0)
+  {
+    elapsed_core_runtimes.resize(world_size);
+    user_core_runtimes.resize(world_size);
+    elapsed_epilogue_runtimes.resize(world_size);
+    user_epilogue_runtimes.resize(world_size);
+  
+  }
+  
+  MPI_Gather(&elapsed_core_runtime, 1, MPI_LONG_LONG_INT, elapsed_core_runtimes.data(), 1, MPI_LONG_LONG_INT, 0, MPI_COMM_WORLD);
+  MPI_Gather(&user_core_runtime, 1, MPI_LONG_LONG_INT, user_core_runtimes.data(), 1, MPI_LONG_LONG_INT, 0, MPI_COMM_WORLD);  
+  MPI_Gather(&elapsed_epilogue_runtime, 1, MPI_LONG_LONG_INT, elapsed_epilogue_runtimes.data(), 1, MPI_LONG_LONG_INT, 0, MPI_COMM_WORLD);
+  MPI_Gather(&user_epilogue_runtime, 1, MPI_LONG_LONG_INT, user_epilogue_runtimes.data(), 1, MPI_LONG_LONG_INT, 0, MPI_COMM_WORLD);
+  
+#endif
 }
 
 STATE_MAP<NetworkState_Impl, unsigned int> *PopMaBEstEngine::mergeFixpointMaps()
