@@ -664,8 +664,6 @@ public:
 
   void displayProbTraj(Network* network, unsigned int refnode_count, ProbTrajDisplayer<S>* displayer) const 
   {
-    std::vector<Node*>::const_iterator begin_network;
-
     displayer->begin(COMPUTE_ERRORS, maxcols, max_simplecols, refnode_count);
 
     double time_tick2 = time_tick * time_tick;
