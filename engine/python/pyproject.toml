@@ -13,12 +13,12 @@ build-backend = "setuptools.build_meta"
 # Install libSBML with all packages
 [tool.cibuildwheel.linux]
 skip = [
-    "cp36-*","cp37-*", "pp37-*",
+    "cp36-*","cp37-*", "pp37-*", "cp313-*"
 ]
 
 [tool.cibuildwheel.macos]
 skip = [
-    "cp36-*","cp37-*", "pp*"
+    "cp36-*","cp37-*", "pp*", "cp313-*"
 ]
 
 [tool.cibuildwheel]
