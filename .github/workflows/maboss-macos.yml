@@ -23,7 +23,7 @@ jobs:
     - uses: actions/checkout@v4
     - name: Install dependencies
       run : |
-        brew install flex bison gcc cmake
+        brew install flex bison gcc cmake hdf5
         pip install numpy
         pwd
 
@@ -78,7 +78,7 @@ jobs:
     - uses: actions/checkout@v4
     - name: Install dependencies
       run : |
-        brew install flex bison cmake
+        brew install flex bison cmake hdf5
         pip install numpy
 
     - name: Manually install libxml2 2.11

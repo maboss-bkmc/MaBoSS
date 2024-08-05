@@ -24,7 +24,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install flex bison
+        sudo apt-get install flex bison libhdf5-dev
         pip install numpy
     
     - name: Cache compiled libSBML
@@ -66,7 +66,7 @@ jobs:
     - name: Install dependencies
       run : |
         sudo apt-get update
-        sudo apt-get install flex bison clang
+        sudo apt-get install flex bison clang libhdf5-dev
         pip install numpy
         
     - name: Cache compiled libSBML
@@ -103,7 +103,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install flex bison libopenmpi-dev
+        sudo apt-get install flex bison libopenmpi-dev libhdf5-dev
         pip install numpy
     
     - name: Build MaBoSS

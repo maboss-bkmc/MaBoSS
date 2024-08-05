@@ -32,7 +32,7 @@ jobs:
           mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-binutils 
           mingw-w64-x86_64-gcc mingw-w64-x86_64-headers-git mingw-w64-x86_64-gcc-libs 
           mingw-w64-x86_64-libwinpthread-git mingw-w64-x86_64-winpthreads-git mingw-w64-x86_64-bzip2 
-          mingw-w64-x86_64-lapack mingw-w64-x86_64-openblas
+          mingw-w64-x86_64-lapack mingw-w64-x86_64-openblas mingw-w64-x86_64-hdf5
           mingw-w64-x86_64-python-pip mingw-w64-x86_64-python-numpy
      
     - name: Manually install libxml2 2.11
