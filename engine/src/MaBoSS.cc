@@ -48,6 +48,7 @@
 */
 
 #include <ctime>
+#include <hdf5/serial/hdf5.h>
 #include "MaBEstEngine.h"
 #include "EnsembleEngine.h"
 #include "StochasticSimulationEngine.h"
@@ -73,7 +74,7 @@ static int usage(std::ostream& os = std::cerr)
   os << "  " << prog << " [-c|--config CONF_FILE] [-v|--config-vars VAR1=NUMERIC[,VAR2=...]] [-e|--config-expr CONFIG_EXPR] -x|--export-sbml SBML_FILE BOOLEAN_NETWORK_FILE\n\n";
   os << "  " << prog << " -t|--generate-config-template BOOLEAN_NETWORK_FILE\n";
   os << "  " << prog << " [-q|--quiet]\n";
-  os << "  " << prog << " [--format csv|json]\n";
+  os << "  " << prog << " [--format csv|json|hdf5]\n";
   os << "  " << prog << " [--check]\n";
   os << "  " << prog << " [--override]\n";
   os << "  " << prog << " [--augment]\n";
@@ -130,7 +131,8 @@ static int help()
 
 enum OutputFormat {
   CSV_FORMAT = 1,
-  JSON_FORMAT
+  JSON_FORMAT = 2,
+  HDF5_FORMAT = 3
 };
 
 static std::string format_extension(OutputFormat format) {
@@ -139,6 +141,8 @@ static std::string format_extension(OutputFormat format) {
     return ".csv";
   case JSON_FORMAT:
     return ".json";
+  case HDF5_FORMAT:
+    return ".hdf5";
   default:
     return NULL;
   }
@@ -164,6 +168,9 @@ static void display(ProbTrajEngine* engine, Network* network, const char* prefix
     probtraj_displayer =  new JSONProbTrajDisplayer<NetworkState>(network, *output_probtraj, hexfloat);
     statdist_displayer = new JSONStatDistDisplayer(network, *output_statdist, *output_statdist_cluster, *output_statdist_distrib, hexfloat);
     fp_displayer = new JsonFixedPointDisplayer(network, *output_fp, hexfloat);
+  } else if (format == HDF5_FORMAT) {
+    hid_t file = H5Fcreate("test.hdf5", H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    herr_t status = H5Fclose(file);
   } else {
     probtraj_displayer = NULL;
     statdist_displayer = NULL;

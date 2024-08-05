@@ -164,9 +164,9 @@ $(FUNC_MODULE): $(FUNC_MODULE).o $(CORE_LIB_OBJS) $(LIB_OBJS)
 
 $(MABOSS): MaBoSS$(INFIX).o $(MABOSS_OBJS)
 ifdef USE_LIB
-	$(CXX) -o $(MABOSS) MaBoSS$(INFIX).o -l$(MABOSS_LIBNAME) -lpthread -L. $(LDL_FLAG) $(SBML_LIB) $(LDFLAGS) $(EXTRA_LDFLAGS)
+	$(CXX) -o $(MABOSS) MaBoSS$(INFIX).o -l$(MABOSS_LIBNAME) -lpthread -L. $(LDL_FLAG) $(SBML_LIB) $(LDFLAGS) $(EXTRA_LDFLAGS) -lhdf5_serial
 else
-	$(CXX) -o $(MABOSS) $+ -lpthread $(LDL_FLAG) $(SBML_LIB) $(LDFLAGS) $(EXTRA_LDFLAGS)
+	$(CXX) -o $(MABOSS) $+ -lpthread $(LDL_FLAG) $(SBML_LIB) $(LDFLAGS) $(EXTRA_LDFLAGS) -lhdf5_serial
 endif
 
 $(POPMABOSS): PopMaBoSS$(INFIX).o $(POPMABOSS_OBJS)
