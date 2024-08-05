@@ -57,7 +57,7 @@ jobs:
     - name: Build cMaBoSS
       run: |
         cd engine/src
-        make
+        make grammars
         cd ../python
         cp -r ../src cmaboss
         python3 -m pip wheel -w wheelhouse .
