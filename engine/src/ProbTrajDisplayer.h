@@ -55,6 +55,12 @@
 #include "BooleanNetwork.h"
 #include "Utils.h"
 #include <iomanip>
+#include <cstring>
+
+#ifdef HDF5_COMPAT
+#include <hdf5/serial/hdf5.h>
+#include <hdf5/serial/hdf5_hl.h>
+#endif
 
 template <typename S>
 class ProbTrajDisplayer {
@@ -66,6 +72,11 @@ public:
   size_t maxcols;
   size_t max_simplecols;
   size_t refnode_count;
+  std::vector<S> states;
+  std::map<S, size_t> state_to_index;
+
+  std::vector<NetworkState_Impl> simple_states;
+  std::map<NetworkState_Impl, size_t> simple_state_to_index;
 
   size_t current_line;
   // current line
@@ -86,12 +97,23 @@ public:
   ProbTrajDisplayer(Network* network, bool hexfloat = false) : network(network), hexfloat(hexfloat), current_line(0), HD_v(NULL) { }
 
 // public:
-  void begin(bool compute_errors, size_t maxcols, size_t max_simplecols, size_t refnode_count) {
+  void begin(bool compute_errors, size_t maxcols, size_t max_simplecols, size_t refnode_count, std::vector<S>& states, std::vector<NetworkState_Impl>& simple_states) {
     this->compute_errors = compute_errors;
     this->refnode_count = refnode_count;
     this->maxcols = maxcols;
     this->max_simplecols = max_simplecols;
     this->HD_v = new double[refnode_count+1];
+    this->states = states;
+    this->simple_states = simple_states;
+    
+    for (size_t i = 0; i < states.size(); ++i) {
+      state_to_index[states[i]] = i;
+    }
+    
+    for (size_t i = 0; i < simple_states.size(); ++i) {
+      simple_state_to_index[simple_states[i]] = i;
+    }
+
     beginDisplay();
   }
 
@@ -275,22 +297,76 @@ public:
   }
 };
 
-/*
-class NumPyProbTrajDisplayer : public ProbTrajDisplayer {
+#ifdef HDF5_COMPAT
+template <typename S>
+class HDF5ProbTrajDisplayer : public ProbTrajDisplayer<S> {
 
-  std::ostream& os_probtraj;
-  std::ostream& os_probtraj_summary;
-  NumPyInfo* info;
-  std::map<...> cumul_info;
-
+  size_t dst_size;
+  size_t * dst_offset;
+  size_t * dst_sizes;
+  
 public:
-  NumPyProbTrajDisplayer(Network* network, NumPyInfo* info, std::ostream& os_probtraj, std::ostream& os_probtraj_summary, bool hexfloat = false) : ProbTrajDisplayer(network, hexfloat), os_probtraj(os_probtraj) { }
+  
+  hid_t file;
+  double * probas;
+  
+  HDF5ProbTrajDisplayer(Network* network, hid_t& file) : ProbTrajDisplayer<S>(network, false), file(file) { 
+  }
 
-  virtual void beginDisplay();
-  virtual void beginTimeTickDisplay();
-  virtual void endTimeTickDisplay();
-  virtual void endDisplay();
+  virtual void beginDisplay(){
+    dst_size =  sizeof( double ) * this->states.size();
+    dst_offset = (size_t*) malloc( sizeof( size_t ) * this->states.size() );
+    dst_sizes = (size_t*) malloc( sizeof( size_t ) * this->states.size() );
+    
+    const char ** field_names = (const char**) calloc( this->states.size(), sizeof( const char * ) );
+    char ** column_names = (char**) calloc(this->states.size(), sizeof(char *));
+    hid_t * field_type = (hid_t*) malloc( sizeof( hid_t ) * this->states.size() );
+    
+    for (size_t i = 0; i < this->states.size(); i++) {
+      dst_offset[i] = i * sizeof( double );
+      dst_sizes[i] = sizeof( double );
+      std::string state_name = this->states[i].getName(this->network);
+      column_names[i] = (char*) malloc( sizeof( char ) * (state_name.size() +1) );
+      strcpy(column_names[i], state_name.c_str());
+      field_names[i] = column_names[i];
+      field_type[i] = H5T_NATIVE_DOUBLE;
+    }
+    
+    hsize_t    chunk_size = 10;
+    int        compress  = 0;
+    int        *fill_data = NULL;
+    
+    H5TBmake_table( "probas",file ,"probas",this->states.size(),0,
+                         dst_size,field_names, dst_offset, field_type,
+                         chunk_size, fill_data, compress, NULL  );
+                         
+    probas = (double*) malloc(sizeof(double) * this->states.size());
+    
+    free(column_names);
+    free(field_names);
+    free(field_type);
+  }
+  
+  virtual void beginTimeTickDisplay(){   
+  }
+  
+  virtual void endTimeTickDisplay(){
+
+    for (size_t i = 0; i < this->states.size(); i++) {
+      probas[i] = 0.0;
+    }
+    for (const typename ProbTrajDisplayer<S>::Proba &proba : this->proba_v) {
+      probas[this->state_to_index[proba.state]] = proba.proba;
+    }
+    H5TBappend_records(file, "probas", 1, dst_size, dst_offset, dst_sizes, probas);
+  }
+  virtual void endDisplay(){
+    free(dst_offset);
+    free(dst_sizes);
+    free(probas);
+  }
+
 };
-*/
+#endif
 
 #endif

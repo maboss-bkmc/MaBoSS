@@ -48,7 +48,6 @@
 */
 
 #include <ctime>
-#include <hdf5/serial/hdf5.h>
 #include "MaBEstEngine.h"
 #include "EnsembleEngine.h"
 #include "StochasticSimulationEngine.h"
@@ -74,7 +73,11 @@ static int usage(std::ostream& os = std::cerr)
   os << "  " << prog << " [-c|--config CONF_FILE] [-v|--config-vars VAR1=NUMERIC[,VAR2=...]] [-e|--config-expr CONFIG_EXPR] -x|--export-sbml SBML_FILE BOOLEAN_NETWORK_FILE\n\n";
   os << "  " << prog << " -t|--generate-config-template BOOLEAN_NETWORK_FILE\n";
   os << "  " << prog << " [-q|--quiet]\n";
+#ifdef HDF5_COMPAT
   os << "  " << prog << " [--format csv|json|hdf5]\n";
+#else
+  os << "  " << prog << " [--format csv|json]\n";
+#endif
   os << "  " << prog << " [--check]\n";
   os << "  " << prog << " [--override]\n";
   os << "  " << prog << " [--augment]\n";
@@ -96,7 +99,11 @@ static int help()
   //  std::cout << "                                        the VAR value in the configuration file (if present) will be overriden\n";
   std::cout << "  -e --config-expr CONFIG_EXPR            : evaluates the configuration expression; may have multiple expressions\n";
   std::cout << "                                            separated by semi-colons\n";
+#ifdef HDF5_COMPAT
+  std::cout << "  --format csv|json|hdf5                  : if set, format output in the given option: csv (tab delimited), json or hdf5; csv being the default\n";
+#else
   std::cout << "  --format csv|json                       : if set, format output in the given option: csv (tab delimited) or json; csv being the default\n";
+#endif
   std::cout << "  --override                              : if set, a new node definition will replace a previous one\n";
   std::cout << "  --augment                               : if set, a new node definition will complete (add non existing attributes) / override (replace existing attributes) a previous one\n";
   std::cout << "  -o --output OUTPUT                      : prefix to be used for output files; when present run MaBoSS simulation process\n";
@@ -132,7 +139,9 @@ static int help()
 enum OutputFormat {
   CSV_FORMAT = 1,
   JSON_FORMAT = 2,
+#ifdef HDF5_COMPAT
   HDF5_FORMAT = 3
+#endif
 };
 
 static std::string format_extension(OutputFormat format) {
@@ -141,8 +150,10 @@ static std::string format_extension(OutputFormat format) {
     return ".csv";
   case JSON_FORMAT:
     return ".json";
+#ifdef HDF5_COMPAT
   case HDF5_FORMAT:
-    return ".hdf5";
+    return ".h5";
+#endif
   default:
     return NULL;
   }
@@ -150,16 +161,33 @@ static std::string format_extension(OutputFormat format) {
 
 static void display(ProbTrajEngine* engine, Network* network, const char* prefix, OutputFormat format, bool hexfloat, int individual) 
 {
-  
-  std::ostream* output_probtraj = new std::ofstream((std::string(prefix) + "_probtraj" + format_extension(format)).c_str());
-  std::ostream* output_fp = new std::ofstream((std::string(prefix) + "_fp" + format_extension(format)).c_str());
-  std::ostream* output_statdist = new std::ofstream((std::string(prefix) + "_statdist" + format_extension(format)).c_str());
-  std::ostream* output_statdist_cluster = new std::ofstream((std::string(prefix) + "_statdist_cluster" + format_extension(format)).c_str());
-  std::ostream* output_statdist_distrib = new std::ofstream((std::string(prefix) + "_statdist_distrib" + format_extension(format)).c_str());
-
   ProbTrajDisplayer<NetworkState>* probtraj_displayer;
   StatDistDisplayer* statdist_displayer;
   FixedPointDisplayer* fp_displayer;
+  
+  std::ostream* output_probtraj = NULL;
+  std::ostream* output_fp = NULL;
+  std::ostream* output_statdist = NULL;
+  std::ostream* output_statdist_cluster = NULL;
+  std::ostream* output_statdist_distrib = NULL;
+  
+  
+#ifdef HDF5_COMPAT
+  hid_t hdf5_file;
+  
+  if (format == HDF5_FORMAT) {
+    hdf5_file = H5Fcreate((std::string(prefix) + format_extension(format)).c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+  } 
+#endif
+
+  if (format == CSV_FORMAT || format == JSON_FORMAT) {
+    output_probtraj = new std::ofstream((std::string(prefix) + "_probtraj" + format_extension(format)).c_str());
+    output_fp = new std::ofstream((std::string(prefix) + "_fp" + format_extension(format)).c_str());
+    output_statdist = new std::ofstream((std::string(prefix) + "_statdist" + format_extension(format)).c_str());
+    output_statdist_cluster = new std::ofstream((std::string(prefix) + "_statdist_cluster" + format_extension(format)).c_str());
+    output_statdist_distrib = new std::ofstream((std::string(prefix) + "_statdist_distrib" + format_extension(format)).c_str());
+  }
+
   if (format == CSV_FORMAT) {
     probtraj_displayer = new CSVProbTrajDisplayer<NetworkState>(network, *output_probtraj, hexfloat);
     statdist_displayer = new CSVStatDistDisplayer(network, *output_statdist, hexfloat);
@@ -168,9 +196,12 @@ static void display(ProbTrajEngine* engine, Network* network, const char* prefix
     probtraj_displayer =  new JSONProbTrajDisplayer<NetworkState>(network, *output_probtraj, hexfloat);
     statdist_displayer = new JSONStatDistDisplayer(network, *output_statdist, *output_statdist_cluster, *output_statdist_distrib, hexfloat);
     fp_displayer = new JsonFixedPointDisplayer(network, *output_fp, hexfloat);
+#ifdef HDF5_COMPAT
   } else if (format == HDF5_FORMAT) {
-    hid_t file = H5Fcreate("test.hdf5", H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-    herr_t status = H5Fclose(file);
+    probtraj_displayer =  new HDF5ProbTrajDisplayer<NetworkState>(network, hdf5_file);
+    statdist_displayer = new HDF5StatDistDisplayer(network, hdf5_file);
+    fp_displayer = new HDF5FixedPointDisplayer(network, hdf5_file);
+#endif
   } else {
     probtraj_displayer = NULL;
     statdist_displayer = NULL;
@@ -186,17 +217,25 @@ static void display(ProbTrajEngine* engine, Network* network, const char* prefix
   delete statdist_displayer;
   delete fp_displayer;
   
-  ((std::ofstream*) output_probtraj)->close();
-  ((std::ofstream*) output_statdist)->close();
-  ((std::ofstream*) output_statdist_cluster)->close();
-  ((std::ofstream*) output_statdist_distrib)->close();
-  ((std::ofstream*) output_fp)->close();
-  
-  delete output_probtraj;
-  delete output_fp;
-  delete output_statdist;
-  delete output_statdist_cluster;
-  delete output_statdist_distrib;
+#ifdef HDF5_COMPAT
+  if (format == HDF5_FORMAT) {
+    H5Fclose(hdf5_file);
+  }
+#endif
+
+  if (format == CSV_FORMAT || format == JSON_FORMAT) {
+    ((std::ofstream*) output_probtraj)->close();
+    ((std::ofstream*) output_statdist)->close();
+    ((std::ofstream*) output_statdist_cluster)->close();
+    ((std::ofstream*) output_statdist_distrib)->close();
+    ((std::ofstream*) output_fp)->close();
+      
+    delete output_probtraj;
+    delete output_fp;
+    delete output_statdist;
+    delete output_statdist_cluster;
+    delete output_statdist_distrib;
+  }
 }
 
 int run_ensemble_istates(std::vector<char *> ctbndl_files, std::vector<ConfigOpt> runconfig_file_or_expr_v, const char* output, OutputFormat format, bool hexfloat, bool save_individual_results, bool random_sampling) 
@@ -506,7 +545,11 @@ int main(int argc, char* argv[])
 	  format = CSV_FORMAT;
 	} else if (!strcasecmp(fmt, "JSON")) {
 	  format = JSON_FORMAT;
-	} else {
+#ifdef HDF5_COMPAT
+  } else if (!strcasecmp(fmt, "HDF5")) {
+	  format = HDF5_FORMAT;
+#endif
+  } else {
           std::cerr << "\n" << prog << ": unknown format " << fmt << std::endl;
 	  return usage();
 	}	  

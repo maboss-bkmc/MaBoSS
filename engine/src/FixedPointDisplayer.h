@@ -51,6 +51,11 @@
 #define _FIXEDPOINT_DISPLAYER_H_
 
 #include <iostream>
+
+#ifdef HDF5_COMPAT
+#include <hdf5/serial/hdf5.h>
+#endif
+
 class NetworkState;
 class Network;
 
@@ -88,6 +93,19 @@ public:
   void end();
   ~JsonFixedPointDisplayer(){};
 };
+
+#ifdef HDF5_COMPAT
+class HDF5FixedPointDisplayer final : public FixedPointDisplayer {
+  Network* network;
+  hid_t& hdf5_file;
+public:
+  HDF5FixedPointDisplayer(Network* network, hid_t& hdf5_file) : network(network), hdf5_file(hdf5_file) {}
+  void begin(size_t size);
+  void displayFixedPoint(size_t num, const NetworkState& state, unsigned int val, unsigned int sample_count);
+  void end();
+  ~HDF5FixedPointDisplayer(){};
+};
+#endif
 
 #endif
 

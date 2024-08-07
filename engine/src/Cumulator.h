@@ -664,7 +664,13 @@ public:
 
   void displayProbTraj(Network* network, unsigned int refnode_count, ProbTrajDisplayer<S>* displayer) const 
   {
-    displayer->begin(COMPUTE_ERRORS, maxcols, max_simplecols, refnode_count);
+    std::set<S> result_states = getStates();
+    std::vector<S> list_states(result_states.begin(), result_states.end());
+    
+    std::set<NetworkState_Impl> result_simple_states = getSimpleStates();
+    std::vector<NetworkState_Impl> list_simple_states(result_simple_states.begin(), result_simple_states.end());
+    
+    displayer->begin(COMPUTE_ERRORS, maxcols, max_simplecols, refnode_count, list_states, list_simple_states);
 
     double time_tick2 = time_tick * time_tick;
     double ratio = time_tick*sample_count;
@@ -780,8 +786,6 @@ public:
     delete clusterFactory;
   }
 
-#ifdef PYTHON_API
-
 std::set<S> getStates() const
 {
   std::set<S> result_states;
@@ -815,6 +819,55 @@ std::vector<S> getLastStates() const
 
   return result_states;
 }
+
+
+std::set<NetworkState_Impl> getSimpleStates() const
+{
+  std::set<NetworkState_Impl> result_states;
+
+  if (isPopCumulator) {
+
+    for (int nn=0; nn < getMaxTickIndex(); nn++) {
+      const CumulMap& mp = get_map(nn);
+      auto iter = mp.iterator();
+
+      while (iter.hasNext()) {
+        TickValue tick_value;
+        const S& state = iter.next2(tick_value);
+        std::set<NetworkState_Impl>* t_network_states = state.getNetworkStates();
+        result_states.insert(t_network_states->begin(), t_network_states->end());
+        delete t_network_states;
+        
+      }
+    }
+  }
+  
+  return result_states;
+}
+
+std::set<NetworkState_Impl> getSimpleLastStates() const
+{
+  std::set<NetworkState_Impl> result_states;
+
+  if (isPopCumulator) {
+
+    const CumulMap& mp = get_map(getMaxTickIndex()-1);
+    auto iter = mp.iterator();
+
+    while (iter.hasNext()) {
+      TickValue tick_value;
+      const S& state = iter.next2(tick_value);
+      std::set<NetworkState_Impl>* t_network_states = state.getNetworkStates();
+      result_states.insert(t_network_states->begin(), t_network_states->end());
+      delete t_network_states;
+      
+    }
+  }
+  
+  return result_states;
+}
+
+#ifdef PYTHON_API
 
 PyObject* getNumpyStatesDists(Network* network) const 
 {
@@ -1149,56 +1202,6 @@ PyObject* getNumpyLastNodesDists(Network* network, std::vector<Node*> output_nod
   PyList_SetItem(timepoints, 0, PyFloat_FromDouble(((double) (getMaxTickIndex()-1)) * time_tick));
 
   return PyTuple_Pack(4, PyArray_Return(result), timepoints, pylist_nodes, PyArray_Return(errors));
-}
-
-
-
-
-
-std::set<NetworkState_Impl> getSimpleStates() const
-{
-  std::set<NetworkState_Impl> result_states;
-
-  if (isPopCumulator) {
-
-    for (int nn=0; nn < getMaxTickIndex(); nn++) {
-      const CumulMap& mp = get_map(nn);
-      auto iter = mp.iterator();
-
-      while (iter.hasNext()) {
-        TickValue tick_value;
-        const S& state = iter.next2(tick_value);
-        std::set<NetworkState_Impl>* t_network_states = state.getNetworkStates();
-        result_states.insert(t_network_states->begin(), t_network_states->end());
-        delete t_network_states;
-        
-      }
-    }
-  }
-  
-  return result_states;
-}
-
-std::set<NetworkState_Impl> getSimpleLastStates() const
-{
-  std::set<NetworkState_Impl> result_states;
-
-  if (isPopCumulator) {
-
-    const CumulMap& mp = get_map(getMaxTickIndex()-1);
-    auto iter = mp.iterator();
-
-    while (iter.hasNext()) {
-      TickValue tick_value;
-      const S& state = iter.next2(tick_value);
-      std::set<NetworkState_Impl>* t_network_states = state.getNetworkStates();
-      result_states.insert(t_network_states->begin(), t_network_states->end());
-      delete t_network_states;
-      
-    }
-  }
-  
-  return result_states;
 }
 
 PyObject* getNumpySimpleStatesDists(Network* network) const 

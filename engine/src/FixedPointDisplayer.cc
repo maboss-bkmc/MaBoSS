@@ -97,4 +97,13 @@ void JsonFixedPointDisplayer::end() {
   os << "]}";
 }
 
+#ifdef HDF5_COMPAT
+void HDF5FixedPointDisplayer::begin(size_t size) {
+}
 
+void HDF5FixedPointDisplayer::displayFixedPoint(size_t num, const NetworkState& state, unsigned int val, unsigned int sample_count) {
+}
+
+void HDF5FixedPointDisplayer::end() {
+}
+#endif

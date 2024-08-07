@@ -68,7 +68,11 @@ static int usage(std::ostream& os = std::cerr)
   os << "  " << prog << " -t|--generate-config-template BOOLEAN_NETWORK_FILE\n";
   os << "  " << prog << " [-q|--quiet]\n";
   os << "  " << prog << " [--verbose level\n";
+#ifdef HDF5_COMPAT
+  os << "  " << prog << " [--format csv|json|hdf5]\n";
+#else
   os << "  " << prog << " [--format csv|json]\n";
+#endif
   os << "  " << prog << " [--check]\n";
   os << "  " << prog << " [--override]\n";
   os << "  " << prog << " [--augment]\n";
@@ -87,7 +91,11 @@ static int help()
   //  std::cout << "                                        the VAR value in the configuration file (if present) will be overriden\n";
   std::cout << "  -e --config-expr CONFIG_EXPR            : evaluates the configuration expression; may have multiple expressions\n";
   std::cout << "                                            separated by semi-colons\n";
+#ifdef HDF5_COMPAT
+  std::cout << "  --format csv|json|hdf5                   : if set, format output in the given option: csv (tab delimited), json or hdf5; csv being the default\n";
+#else
   std::cout << "  --format csv|json                       : if set, format output in the given option: csv (tab delimited) or json; csv being the default\n";
+#endif
   std::cout << "  --override                              : if set, a new node definition will replace a previous one\n";
   std::cout << "  --augment                               : if set, a new node definition will complete (add non existing attributes) / override (replace existing attributes) a previous one\n";
   std::cout << "  --verbose level                         : Set level of verbose (0-3, default 0)\n";
@@ -114,7 +122,10 @@ static int help()
 
 enum OutputFormat {
   CSV_FORMAT = 1,
-  JSON_FORMAT
+  JSON_FORMAT,
+#ifdef HDF5_COMPAT
+  HDF5_FORMAT,
+#endif
 };
 
 static std::string format_extension(OutputFormat format) {
@@ -123,6 +134,10 @@ static std::string format_extension(OutputFormat format) {
     return ".csv";
   case JSON_FORMAT:
     return ".json";
+#ifdef HDF5_COMPAT
+  case HDF5_FORMAT:
+    return ".h5";
+#endif
   default:
     return NULL;
   }
@@ -197,6 +212,10 @@ int main(int argc, char* argv[])
 	  format = CSV_FORMAT;
 	} else if (!strcasecmp(fmt, "JSON")) {
 	  format = JSON_FORMAT;
+#ifdef HDF5_COMPAT
+  } else if (!strcasecmp(fmt, "HDF5")) {
+    format = HDF5_FORMAT;
+#endif
 	} else {
           std::cerr << "\n" << prog << ": unknown format " << fmt << std::endl;
 	  return usage();
@@ -301,6 +320,11 @@ int main(int argc, char* argv[])
   std::ostream* output_pop_probtraj = NULL;
   std::ostream* output_simple_pop_probtraj = NULL;
   
+#ifdef HDF5_COMPAT
+  hid_t hdf5_file;
+#endif
+  
+  
 #ifdef USE_DYNAMIC_BITSET
   MBDynBitset::init_pthread();
 #endif
@@ -360,9 +384,16 @@ int main(int argc, char* argv[])
     }
 
     output_run = new std::ofstream((std::string(output) + "_run.txt").c_str());
-    output_fp = new std::ofstream((std::string(output) + "_fp" + format_extension(format)).c_str());
-    output_pop_probtraj = new std::ofstream((std::string(output) + "_pop_probtraj" + format_extension(format)).c_str());
-    output_simple_pop_probtraj = new std::ofstream((std::string(output) + "_simple_pop_probtraj" + format_extension(format)).c_str());
+
+    if (format == CSV_FORMAT || format == JSON_FORMAT){
+      output_fp = new std::ofstream((std::string(output) + "_fp" + format_extension(format)).c_str());
+      output_pop_probtraj = new std::ofstream((std::string(output) + "_pop_probtraj" + format_extension(format)).c_str());
+      output_simple_pop_probtraj = new std::ofstream((std::string(output) + "_simple_pop_probtraj" + format_extension(format)).c_str());
+#ifdef HDF5_COMPAT
+    } else if (format == HDF5_FORMAT) {
+      hdf5_file = H5Fcreate((std::string(output) + format_extension(format)).c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+#endif
+    }
     
     time(&start_time);
     PopMaBEstEngine mabest(pop_network, runconfig);
@@ -378,6 +409,11 @@ int main(int argc, char* argv[])
       pop_probtraj_displayer = new JSONSimpleProbTrajDisplayer(pop_network, *output_pop_probtraj, *output_simple_pop_probtraj, hexfloat);
       // Use CSV displayer for fixed points as the Json one is not fully implemented
       fp_displayer = new CSVFixedPointDisplayer(pop_network, *output_fp, hexfloat);
+#ifdef HDF5_COMPAT
+    } else if (format == HDF5_FORMAT) {
+      pop_probtraj_displayer =  new HDF5PopProbTrajDisplayer(pop_network, hdf5_file);
+      fp_displayer = new HDF5FixedPointDisplayer(pop_network, hdf5_file);
+#endif
     } else {
       pop_probtraj_displayer = NULL;
       fp_displayer = NULL;
@@ -396,13 +432,18 @@ int main(int argc, char* argv[])
       delete output_traj;
     }
     
-    ((std::ofstream*)output_pop_probtraj)->close();
-    delete output_pop_probtraj;
+    if (format == CSV_FORMAT || format == JSON_FORMAT){
+      ((std::ofstream*)output_pop_probtraj)->close();
+      ((std::ofstream*)output_fp)->close();
+      ((std::ofstream*)output_simple_pop_probtraj)->close();
+#ifdef HDF5_COMPAT
+    } else if (format == HDF5_FORMAT) {
+      H5Fclose(hdf5_file);
+#endif
+    }
     
-    ((std::ofstream*)output_fp)->close();
+    delete output_pop_probtraj;
     delete output_fp;
-      
-    ((std::ofstream*)output_simple_pop_probtraj)->close();
     delete output_simple_pop_probtraj;
     
     delete pop_probtraj_displayer;

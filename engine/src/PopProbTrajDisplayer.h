@@ -326,22 +326,105 @@ public:
   }
 };
 
-/*
-class NumPyProbTrajDisplayer : public ProbTrajDisplayer {
+#ifdef HDF5_COMPAT
+class HDF5PopProbTrajDisplayer final : public HDF5ProbTrajDisplayer<PopNetworkState> {
 
-  std::ostream& os_probtraj;
-  std::ostream& os_probtraj_summary;
-  NumPyInfo* info;
-  std::map<...> cumul_info;
+  size_t dst_size;
+  size_t * dst_offset;
+  size_t * dst_sizes;
+  double pop;
+  double * simple_probas;
 
 public:
-  NumPyProbTrajDisplayer(Network* network, NumPyInfo* info, std::ostream& os_probtraj, std::ostream& os_probtraj_summary, bool hexfloat = false) : ProbTrajDisplayer(network, hexfloat), os_probtraj(os_probtraj) { }
+  HDF5PopProbTrajDisplayer(Network* network, hid_t file) : HDF5ProbTrajDisplayer(network, file) { }
 
-  virtual void beginDisplay();
-  virtual void beginTimeTickDisplay();
-  virtual void endTimeTickDisplay();
-  virtual void endDisplay();
+  void beginDisplay(){
+  
+    dst_size =  sizeof( double ) * (this->simple_states.size() + 1);
+    dst_offset = (size_t*) malloc( sizeof( size_t ) * (this->simple_states.size() + 1) );
+    dst_sizes = (size_t*) malloc( sizeof( size_t ) * (this->simple_states.size() + 1) );
+    
+    const char ** field_names = (const char**) calloc( (this->simple_states.size() + 1), sizeof( const char * ) );
+    char ** column_names = (char**) calloc((this->simple_states.size() + 1), sizeof(char *));
+    hid_t * field_type = (hid_t*) malloc( sizeof( hid_t ) * (this->simple_states.size() + 1) );
+    
+    dst_offset[0] = 0;
+    dst_sizes[0] = sizeof( double );
+    field_names[0] = "population";
+    field_type[0] = H5T_NATIVE_DOUBLE;
+    
+    for (size_t i = 0; i < this->simple_states.size(); i++) {
+      dst_offset[i+1] = (i+1) * sizeof( double );
+      dst_sizes[i+1] = sizeof( double );
+      std::string state_name = NetworkState(this->simple_states[i]).getName(this->network);
+      column_names[i+1] = (char*) malloc( sizeof( char ) * (state_name.size() +1) );
+      strcpy(column_names[i+1], state_name.c_str());
+      field_names[i+1] = column_names[i+1];
+      field_type[i+1] = H5T_NATIVE_DOUBLE;
+    }
+    
+    hsize_t    chunk_size = 10;
+    int        compress  = 0;
+    int        *fill_data = NULL;
+ 
+    H5TBmake_table( "simple_probas",file ,"simple_probas",this->simple_states.size()+1,0,
+                         dst_size,field_names, dst_offset, field_type,
+                         chunk_size, fill_data, compress, NULL  );
+                         
+    simple_probas = (double*) malloc(sizeof(double) * this->simple_states.size());
+    
+    free(column_names);
+    free(field_names);
+    free(field_type);
+  }
+  void beginTimeTickDisplay(){}
+  void endTimeTickDisplay(){
+    for (size_t i = 0; i < this->simple_states.size(); i++) {
+      probas[i] = 0.0;
+    }
+    
+    // Computing total population and state probabilities
+    double pop = 0;
+    std::map<NetworkState, double> network_state_probas;
+    std::map<unsigned int, double> pop_size_distrib;
+    for (const typename ProbTrajDisplayer<PopNetworkState>::Proba &proba : this->proba_v)
+    {
+      pop += proba.proba * proba.state.count(NULL);
+      for (const auto &network_state : proba.state.getMap())
+      {
+        if (network_state_probas.find(network_state.first) != network_state_probas.end())
+        {
+          network_state_probas[network_state.first] += proba.proba * network_state.second;
+        }
+        else
+        {
+          network_state_probas[network_state.first] = proba.proba * network_state.second;
+        }
+      }
+      
+      if (pop_size_distrib.find(proba.state.count(NULL)) != pop_size_distrib.end()) 
+      { 
+        pop_size_distrib[proba.state.count(NULL)] += proba.proba;
+      }
+      else 
+      {
+        pop_size_distrib[proba.state.count(NULL)] = proba.proba;
+      }
+    }
+    
+    simple_probas[0] = pop;
+    for (auto &network_state_proba : network_state_probas) {
+      simple_probas[this->simple_state_to_index[network_state_proba.first.getState()]] = network_state_proba.second;
+    }
+    H5TBappend_records(file, "probas", 1, dst_size, dst_offset, dst_sizes, simple_probas);
+  }
+  
+  void endDisplay(){
+    free(dst_offset);
+    free(dst_sizes);
+    free(simple_probas);
+  }
 };
-*/
+#endif
 
 #endif

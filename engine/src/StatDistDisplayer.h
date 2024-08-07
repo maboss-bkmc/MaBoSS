@@ -52,18 +52,21 @@
 
 #include <iostream>
 
+#ifdef HDF5_COMPAT
+#include <hdf5/serial/hdf5.h>
+#endif
+
 class StatDistDisplayer {
 
 protected:
   Network* network;
-  bool hexfloat;
   size_t max_size;
   size_t statdist_traj_count;
 
   size_t current_line;
   size_t num;
 
-  StatDistDisplayer(Network* network, bool hexfloat = false) : network(network), hexfloat(hexfloat), current_line(0) { }
+  StatDistDisplayer(Network* network) : network(network), current_line(0) { }
 
 public:
   void begin(size_t max_size, size_t statdist_traj_count) {
@@ -116,9 +119,9 @@ public:
 class CSVStatDistDisplayer : public StatDistDisplayer {
 
   std::ostream& os_statdist;
-
+  bool hexfloat;
 public:
-  CSVStatDistDisplayer(Network* network, std::ostream& os_statdist, bool hexfloat = false) : StatDistDisplayer(network, hexfloat), os_statdist(os_statdist) { }
+  CSVStatDistDisplayer(Network* network, std::ostream& os_statdist, bool hexfloat = false) : StatDistDisplayer(network), os_statdist(os_statdist), hexfloat(hexfloat) { }
 
   virtual void beginDisplay();
 
@@ -147,11 +150,12 @@ class JSONStatDistDisplayer : public StatDistDisplayer {
   std::ostream& os_statdist;
   std::ostream& os_statdist_cluster;
   std::ostream& os_statdist_distrib;
+  bool hexfloat;
   size_t current_state_proba;
   bool cluster_mode;
 
 public:
-  JSONStatDistDisplayer(Network* network, std::ostream& os_statdist, std::ostream& os_statdist_cluster, std::ostream& os_statdist_distrib, bool hexfloat = false) : StatDistDisplayer(network, hexfloat), os_statdist(os_statdist), os_statdist_cluster(os_statdist_cluster), os_statdist_distrib(os_statdist_distrib), current_state_proba(0), cluster_mode(false) { }
+  JSONStatDistDisplayer(Network* network, std::ostream& os_statdist, std::ostream& os_statdist_cluster, std::ostream& os_statdist_distrib, bool hexfloat = false) : StatDistDisplayer(network), os_statdist(os_statdist), os_statdist_cluster(os_statdist_cluster), os_statdist_distrib(os_statdist_distrib), hexfloat(hexfloat), current_state_proba(0), cluster_mode(false) { }
 
   virtual void beginDisplay();
 
@@ -175,5 +179,39 @@ public:
   virtual void addProbaVariance(const NetworkState_Impl& state, double proba, double variance);
   virtual void endDisplay();
 };
+
+#ifdef HDF5_COMPAT
+class HDF5StatDistDisplayer : public StatDistDisplayer {
+
+  hid_t& hdf5_file;
+  size_t current_state_proba;
+  bool cluster_mode;
+
+public:
+  HDF5StatDistDisplayer(Network* network, hid_t& hdf5_file) : StatDistDisplayer(network), hdf5_file(hdf5_file), current_state_proba(0), cluster_mode(false) { }
+
+  virtual void beginDisplay();
+
+  virtual void beginStatDistDisplay();
+  virtual void beginStateProbaDisplay();
+  virtual void addStateProba(const NetworkState_Impl& state, double proba);
+  virtual void endStateProbaDisplay();
+  virtual void endStatDistDisplay();
+
+  virtual void beginFactoryCluster();
+  virtual void endFactoryCluster();
+  virtual void beginCluster(size_t num, size_t size);
+  virtual void endCluster();
+
+  virtual void beginClusterFactoryStationaryDistribution();
+  virtual void endClusterFactoryStationaryDistribution();
+
+  virtual void beginClusterStationaryDistribution(size_t num);
+  virtual void endClusterStationaryDistribution();
+
+  virtual void addProbaVariance(const NetworkState_Impl& state, double proba, double variance);
+  virtual void endDisplay();
+};
+#endif
 
 #endif

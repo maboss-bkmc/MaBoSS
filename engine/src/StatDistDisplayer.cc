@@ -236,3 +236,56 @@ void CSVStatDistDisplayer::addProbaVariance(const NetworkState_Impl& state, doub
   }
 }
 
+#ifdef HDF5_COMPAT
+
+
+void HDF5StatDistDisplayer::beginDisplay() {
+}
+
+void HDF5StatDistDisplayer::beginStatDistDisplay() {
+}
+
+void HDF5StatDistDisplayer::endStatDistDisplay() {
+}
+
+void HDF5StatDistDisplayer::beginStateProbaDisplay() {
+}
+
+void HDF5StatDistDisplayer::addStateProba(const NetworkState_Impl& state, double proba) {
+}
+
+void HDF5StatDistDisplayer::endStateProbaDisplay() {
+}
+
+void HDF5StatDistDisplayer::endDisplay() {
+}
+
+void HDF5StatDistDisplayer::beginFactoryCluster() {
+}
+
+void HDF5StatDistDisplayer::endFactoryCluster() {
+}
+
+void HDF5StatDistDisplayer::beginCluster(size_t num, size_t size) {
+}
+
+void HDF5StatDistDisplayer::endCluster() {
+}
+
+void HDF5StatDistDisplayer::beginClusterFactoryStationaryDistribution() {
+}
+
+void HDF5StatDistDisplayer::endClusterFactoryStationaryDistribution() {
+}
+
+void HDF5StatDistDisplayer::beginClusterStationaryDistribution(size_t num) {
+}
+
+void HDF5StatDistDisplayer::endClusterStationaryDistribution() {
+}
+
+void HDF5StatDistDisplayer::addProbaVariance(const NetworkState_Impl& state, double proba, double variance) {
+}
+
+
+#endif
