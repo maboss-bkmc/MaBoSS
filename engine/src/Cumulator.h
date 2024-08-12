@@ -1636,10 +1636,15 @@ static void mergePairOfCumulators(Cumulator<S>* cumulator_1, Cumulator<S>* cumul
     cumulator_1->max_tick_index = cumulator_1->tick_index = cumulator_2->max_tick_index;
   }
 
-  for (unsigned int nn = 0; nn < cumulator_2->cumul_map_v.size(); ++nn) {
-    cumulator_1->add(nn, cumulator_2->cumul_map_v[nn]);
-    cumulator_1->add(nn, cumulator_2->hd_cumul_map_v[nn]);
-    cumulator_1->TH_square_v[nn] += cumulator_2->TH_square_v[nn];
+  size_t t_cumul_size = cumulator_2->cumul_map_v.size();
+  for (unsigned int nn = 0; nn < t_cumul_size; ++nn) {
+    size_t index = t_cumul_size-nn-1;
+    cumulator_1->add(index, cumulator_2->cumul_map_v[index]);
+    cumulator_2->cumul_map_v.pop_back();
+    cumulator_1->add(index, cumulator_2->hd_cumul_map_v[index]);
+    cumulator_2->hd_cumul_map_v.pop_back();
+    cumulator_1->TH_square_v[index] += cumulator_2->TH_square_v[index];
+    cumulator_2->TH_square_v.pop_back();
   }
   unsigned int proba_dist_size = cumulator_2->proba_dist_v.size();
   for (unsigned int ii = 0; ii < proba_dist_size; ++ii) {
