@@ -110,9 +110,11 @@ jobs:
       run: |
         cd engine/src
         make clean
-        make install CC=mpicc CXX=mpic++ MPI_COMPAT=1
-        make install CC=mpicc CXX=mpic++ MPI_COMPAT=1 MAXNODES=128
-       
+        make maboss CC=mpicc CXX=mpic++ MPI_COMPAT=1
+        make popmaboss CC=mpicc CXX=mpic++ MPI_COMPAT=1
+        make maboss CC=mpicc CXX=mpic++ MPI_COMPAT=1 MAXNODES=128
+        make popmaboss CC=mpicc CXX=mpic++ MPI_COMPAT=1 MAXNODES=128
+        
     - name: Test MaBoSS
       run: bash scripts/run_mpi_tests.sh
 

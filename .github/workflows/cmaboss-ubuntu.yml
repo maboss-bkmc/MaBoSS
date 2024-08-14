@@ -45,7 +45,7 @@ jobs:
     - name: Build cMaBoSS
       run: |
         cd engine/src
-        make
+        make grammars
         cd ../python
         cp -r ../src cmaboss
         pip3 install . -vvv
