@@ -499,10 +499,6 @@ int main(int argc, char* argv[])
 #endif
     }
     
-    delete output_pop_probtraj;
-    delete output_fp;
-    delete output_simple_pop_probtraj;
-    
     delete pop_probtraj_displayer;
     delete fp_displayer;
     
