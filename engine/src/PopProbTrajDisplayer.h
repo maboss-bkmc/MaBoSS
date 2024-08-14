@@ -329,9 +329,9 @@ public:
 #ifdef HDF5_COMPAT
 class HDF5PopProbTrajDisplayer final : public HDF5ProbTrajDisplayer<PopNetworkState> {
 
-  size_t dst_size;
-  size_t * dst_offset;
-  size_t * dst_sizes;
+  size_t dst_simple_size;
+  size_t * dst_simple_offset;
+  size_t * dst_simple_sizes;
   double pop;
   double * simple_probas;
 
@@ -340,22 +340,22 @@ public:
 
   void beginDisplay(){
     HDF5ProbTrajDisplayer<PopNetworkState>::beginDisplay();
-    dst_size =  sizeof( double ) * (this->simple_states.size() + 1);
-    dst_offset = (size_t*) malloc( sizeof( size_t ) * (this->simple_states.size() + 1) );
-    dst_sizes = (size_t*) malloc( sizeof( size_t ) * (this->simple_states.size() + 1) );
+    dst_simple_size =  sizeof( double ) * (this->simple_states.size() + 1);
+    dst_simple_offset = (size_t*) malloc( sizeof( size_t ) * (this->simple_states.size() + 1) );
+    dst_simple_sizes = (size_t*) malloc( sizeof( size_t ) * (this->simple_states.size() + 1) );
     
     const char ** field_names = (const char**) calloc( (this->simple_states.size() + 1), sizeof( const char * ) );
     char ** column_names = (char**) calloc((this->simple_states.size() + 1), sizeof(char *));
     hid_t * field_type = (hid_t*) malloc( sizeof( hid_t ) * (this->simple_states.size() + 1) );
     
-    dst_offset[0] = 0;
-    dst_sizes[0] = sizeof( double );
+    dst_simple_offset[0] = 0;
+    dst_simple_sizes[0] = sizeof( double );
     field_names[0] = "population";
     field_type[0] = H5T_NATIVE_DOUBLE;
     
     for (size_t i = 0; i < this->simple_states.size(); i++) {
-      dst_offset[i+1] = (i+1) * sizeof( double );
-      dst_sizes[i+1] = sizeof( double );
+      dst_simple_offset[i+1] = (i+1) * sizeof( double );
+      dst_simple_sizes[i+1] = sizeof( double );
       std::string state_name = NetworkState(this->simple_states[i]).getName(this->network);
       column_names[i+1] = (char*) malloc( sizeof( char ) * (state_name.size() +1) );
       strcpy(column_names[i+1], state_name.c_str());
@@ -424,8 +424,8 @@ public:
   
   void endDisplay(){
     HDF5ProbTrajDisplayer<PopNetworkState>::endDisplay();
-    free(dst_offset);
-    free(dst_sizes);
+    free(dst_simple_sizes);
+    free(dst_simple_offset);
     free(simple_probas);
   }
 };
