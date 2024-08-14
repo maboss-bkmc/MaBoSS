@@ -69,6 +69,7 @@ public:
   Network* network;
   bool hexfloat;
   bool compute_errors;
+  size_t maxrows;
   size_t maxcols;
   size_t max_simplecols;
   size_t refnode_count;
@@ -97,9 +98,10 @@ public:
   ProbTrajDisplayer(Network* network, bool hexfloat = false) : network(network), hexfloat(hexfloat), current_line(0), HD_v(NULL) { }
 
 // public:
-  void begin(bool compute_errors, size_t maxcols, size_t max_simplecols, size_t refnode_count, std::vector<S>& states, std::vector<NetworkState_Impl>& simple_states) {
+  void begin(bool compute_errors, size_t maxrows, size_t maxcols, size_t max_simplecols, size_t refnode_count, std::vector<S>& states, std::vector<NetworkState_Impl>& simple_states) {
     this->compute_errors = compute_errors;
     this->refnode_count = refnode_count;
+    this->maxrows = maxrows;
     this->maxcols = maxcols;
     this->max_simplecols = max_simplecols;
     this->HD_v = new double[refnode_count+1];
@@ -332,11 +334,11 @@ public:
       field_type[i] = H5T_NATIVE_DOUBLE;
     }
     
-    hsize_t    chunk_size = 10;
-    int        compress  = 0;
+    hsize_t    chunk_size = this->maxrows;
+    int        compress  = 1;
     int        *fill_data = NULL;
     
-    H5TBmake_table( "probas",file ,"probas",this->states.size(),0,
+    H5TBmake_table( "probas",file ,"probas",this->states.size(),this->maxrows,
                          dst_size,field_names, dst_offset, field_type,
                          chunk_size, fill_data, compress, NULL  );
                          
@@ -358,7 +360,7 @@ public:
     for (const typename ProbTrajDisplayer<S>::Proba &proba : this->proba_v) {
       probas[this->state_to_index[proba.state]] = proba.proba;
     }
-    H5TBappend_records(file, "probas", 1, dst_size, dst_offset, dst_sizes, probas);
+    H5TBwrite_records(file, "probas", this->current_line, 1, dst_size, dst_offset, dst_sizes, probas);
   }
   virtual void endDisplay(){
     free(dst_offset);

@@ -363,12 +363,12 @@ public:
       field_type[i+1] = H5T_NATIVE_DOUBLE;
     }
     
-    hsize_t    chunk_size = 10;
-    int        compress  = 0;
+    hsize_t    chunk_size = this->maxrows;
+    int        compress  = 1;
     int        *fill_data = NULL;
  
-    H5TBmake_table( "simple_probas",file ,"simple_probas",this->simple_states.size()+1,0,
-                         dst_size,field_names, dst_offset, field_type,
+    H5TBmake_table( "simple_probas",file ,"simple_probas",this->simple_states.size()+1,this->maxrows,
+                         dst_simple_size,field_names, dst_simple_offset, field_type,
                          chunk_size, fill_data, compress, NULL  );
                          
     simple_probas = (double*) malloc(sizeof(double) * this->simple_states.size());
@@ -417,9 +417,9 @@ public:
     
     simple_probas[0] = pop;
     for (auto &network_state_proba : network_state_probas) {
-      simple_probas[this->simple_state_to_index[network_state_proba.first.getState()]] = network_state_proba.second/pop;
+      simple_probas[this->simple_state_to_index[network_state_proba.first.getState()]+1] = network_state_proba.second/pop;
     }
-    H5TBappend_records(file, "simple_probas", 1, dst_size, dst_offset, dst_sizes, simple_probas);
+    H5TBwrite_records(file, "simple_probas", this->current_line, 1, dst_simple_size, dst_simple_offset, dst_simple_sizes, simple_probas);
   }
   
   void endDisplay(){

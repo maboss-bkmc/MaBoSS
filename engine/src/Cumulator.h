@@ -670,7 +670,7 @@ public:
     std::set<NetworkState_Impl> result_simple_states = getSimpleStates();
     std::vector<NetworkState_Impl> list_simple_states(result_simple_states.begin(), result_simple_states.end());
     
-    displayer->begin(COMPUTE_ERRORS, maxcols, max_simplecols, refnode_count, list_states, list_simple_states);
+    displayer->begin(COMPUTE_ERRORS, max_tick_index, maxcols, max_simplecols, refnode_count, list_states, list_simple_states);
 
     double time_tick2 = time_tick * time_tick;
     double ratio = time_tick*sample_count;
