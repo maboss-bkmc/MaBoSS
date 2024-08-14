@@ -380,7 +380,7 @@ public:
   void beginTimeTickDisplay(){}
   void endTimeTickDisplay(){
     for (size_t i = 0; i < this->simple_states.size(); i++) {
-      probas[i] = 0.0;
+      simple_probas[i] = 0.0;
     }
     
     // Computing total population and state probabilities
@@ -416,7 +416,7 @@ public:
     for (auto &network_state_proba : network_state_probas) {
       simple_probas[this->simple_state_to_index[network_state_proba.first.getState()]] = network_state_proba.second;
     }
-    H5TBappend_records(file, "probas", 1, dst_size, dst_offset, dst_sizes, simple_probas);
+    H5TBappend_records(file, "simple_probas", 1, dst_size, dst_offset, dst_sizes, simple_probas);
   }
   
   void endDisplay(){
