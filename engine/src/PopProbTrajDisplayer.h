@@ -339,7 +339,7 @@ public:
   HDF5PopProbTrajDisplayer(Network* network, hid_t file) : HDF5ProbTrajDisplayer(network, file) { }
 
   void beginDisplay(){
-  
+    HDF5ProbTrajDisplayer<PopNetworkState>::beginDisplay();
     dst_size =  sizeof( double ) * (this->simple_states.size() + 1);
     dst_offset = (size_t*) malloc( sizeof( size_t ) * (this->simple_states.size() + 1) );
     dst_sizes = (size_t*) malloc( sizeof( size_t ) * (this->simple_states.size() + 1) );
@@ -377,8 +377,11 @@ public:
     free(field_names);
     free(field_type);
   }
-  void beginTimeTickDisplay(){}
+  void beginTimeTickDisplay(){
+    HDF5ProbTrajDisplayer<PopNetworkState>::beginTimeTickDisplay();
+  }
   void endTimeTickDisplay(){
+    HDF5ProbTrajDisplayer<PopNetworkState>::endTimeTickDisplay();
     for (size_t i = 0; i < this->simple_states.size(); i++) {
       simple_probas[i] = 0.0;
     }
@@ -420,6 +423,7 @@ public:
   }
   
   void endDisplay(){
+    HDF5ProbTrajDisplayer<PopNetworkState>::endDisplay();
     free(dst_offset);
     free(dst_sizes);
     free(simple_probas);
