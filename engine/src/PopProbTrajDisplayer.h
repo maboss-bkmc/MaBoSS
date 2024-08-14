@@ -417,7 +417,7 @@ public:
     
     simple_probas[0] = pop;
     for (auto &network_state_proba : network_state_probas) {
-      simple_probas[this->simple_state_to_index[network_state_proba.first.getState()]] = network_state_proba.second;
+      simple_probas[this->simple_state_to_index[network_state_proba.first.getState()]] = network_state_proba.second/pop;
     }
     H5TBappend_records(file, "simple_probas", 1, dst_size, dst_offset, dst_sizes, simple_probas);
   }
