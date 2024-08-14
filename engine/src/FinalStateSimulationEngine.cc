@@ -57,8 +57,13 @@
 
 const std::string FinalStateSimulationEngine::VERSION = "1.0.0";
 
+#ifdef MPI_COMPAT
+FinalStateSimulationEngine::FinalStateSimulationEngine(Network* network, RunConfig* runconfig, int size, int rank) :
+  MetaEngine(network, runconfig, size, rank) {
+#else
 FinalStateSimulationEngine::FinalStateSimulationEngine(Network* network, RunConfig* runconfig) :
   MetaEngine(network, runconfig) {
+#endif
 
   if (thread_count > sample_count) {
     thread_count = sample_count;

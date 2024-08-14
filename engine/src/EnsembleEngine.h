@@ -89,8 +89,12 @@ class EnsembleEngine : public ProbTrajEngine {
 
 public:
   static const std::string VERSION;
-
+  
+#ifdef MPI_COMPAT
+  EnsembleEngine(std::vector<Network*> network, RunConfig* runconfig, int world_size, int world_rank, bool save_individual_result=false, bool random_sampling=false);
+#else
   EnsembleEngine(std::vector<Network*> network, RunConfig* runconfig, bool save_individual_result=false, bool random_sampling=false);
+#endif
 
   void run(std::ostream* output_traj);
 

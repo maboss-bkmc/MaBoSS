@@ -84,7 +84,11 @@ class FinalStateSimulationEngine : public MetaEngine {
 public:
   static const std::string VERSION;
   
+#ifdef MPI_COMPAT
+  FinalStateSimulationEngine(Network* network, RunConfig* runconfig, int world_size, int world_rank);
+#else
   FinalStateSimulationEngine(Network* network, RunConfig* runconfig);
+#endif
 
   void run(std::ostream* output_traj);
   ~FinalStateSimulationEngine();

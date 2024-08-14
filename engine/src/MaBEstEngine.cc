@@ -56,8 +56,13 @@
 
 const std::string MaBEstEngine::VERSION = "2.5.7";
 
+#ifdef MPI_COMPAT
+MaBEstEngine::MaBEstEngine(Network* network, RunConfig* runconfig, int world_size, int world_rank) :
+  ProbTrajEngine(network, runconfig, world_size, world_rank)
+#else
 MaBEstEngine::MaBEstEngine(Network* network, RunConfig* runconfig) :
   ProbTrajEngine(network, runconfig)
+#endif
   {
 
   if (thread_count > sample_count) {

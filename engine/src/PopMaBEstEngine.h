@@ -86,9 +86,12 @@ public:
   static const std::string VERSION;
   static int verbose;
   static void setVerbose(int level);
-  
-  PopMaBEstEngine(PopNetwork* pop_network, RunConfig* runconfig);
 
+#ifdef MPI_COMPAT
+  PopMaBEstEngine(PopNetwork* pop_network, RunConfig* runconfig, int world_size, int world_rank);
+#else  
+  PopMaBEstEngine(PopNetwork* pop_network, RunConfig* runconfig);
+#endif
   void run(std::ostream* output_traj);
 
   ~PopMaBEstEngine();

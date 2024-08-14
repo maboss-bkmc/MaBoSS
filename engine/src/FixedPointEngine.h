@@ -85,7 +85,11 @@ protected:
 
 public:
 
+#ifdef MPI_COMPAT
+  FixedPointEngine(Network * network, RunConfig* runconfig, int world_size, int world_rank) : MetaEngine(network, runconfig, world_size, world_rank) {}
+#else
   FixedPointEngine(Network * network, RunConfig* runconfig) : MetaEngine(network, runconfig) {}
+#endif
 
   bool converges() const {return fixpoints.size() > 0;}
   const STATE_MAP<NetworkState_Impl, unsigned int>& getFixpoints() const {return fixpoints;}

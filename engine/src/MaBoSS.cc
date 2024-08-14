@@ -61,6 +61,11 @@
 #include "RandomGenerator.h"
 #include "SBMLExporter.h"
 
+#ifdef MPI_COMPAT
+#include <mpi.h>
+int world_size, world_rank;
+#endif
+
 const char* prog = "MaBoSS";
 
 static int usage(std::ostream& os = std::cerr)
@@ -176,16 +181,28 @@ static void display(ProbTrajEngine* engine, Network* network, const char* prefix
   hid_t hdf5_file;
   
   if (format == HDF5_FORMAT) {
+#ifdef MPI_COMPAT
+  if (world_rank == 0) {
+#endif
     hdf5_file = H5Fcreate((std::string(prefix) + format_extension(format)).c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+#ifdef MPI_COMPAT
+  }
+#endif
   } 
 #endif
 
   if (format == CSV_FORMAT || format == JSON_FORMAT) {
+#ifdef MPI_COMPAT
+  if (world_rank == 0) {
+#endif
     output_probtraj = new std::ofstream((std::string(prefix) + "_probtraj" + format_extension(format)).c_str());
     output_fp = new std::ofstream((std::string(prefix) + "_fp" + format_extension(format)).c_str());
     output_statdist = new std::ofstream((std::string(prefix) + "_statdist" + format_extension(format)).c_str());
     output_statdist_cluster = new std::ofstream((std::string(prefix) + "_statdist_cluster" + format_extension(format)).c_str());
     output_statdist_distrib = new std::ofstream((std::string(prefix) + "_statdist_distrib" + format_extension(format)).c_str());
+#ifdef MPI_COMPAT
+  }
+#endif
   }
 
   if (format == CSV_FORMAT) {
@@ -219,16 +236,28 @@ static void display(ProbTrajEngine* engine, Network* network, const char* prefix
   
 #ifdef HDF5_COMPAT
   if (format == HDF5_FORMAT) {
+#ifdef MPI_COMPAT
+  if (world_rank == 0) {
+#endif
     H5Fclose(hdf5_file);
+#ifdef MPI_COMPAT
+  }
+#endif
   }
 #endif
 
   if (format == CSV_FORMAT || format == JSON_FORMAT) {
+#ifdef MPI_COMPAT
+  if (world_rank == 0) {
+#endif
     ((std::ofstream*) output_probtraj)->close();
     ((std::ofstream*) output_statdist)->close();
     ((std::ofstream*) output_statdist_cluster)->close();
     ((std::ofstream*) output_statdist_distrib)->close();
     ((std::ofstream*) output_fp)->close();
+#ifdef MPI_COMPAT
+  }
+#endif
       
     delete output_probtraj;
     delete output_fp;
@@ -300,11 +329,22 @@ int run_ensemble_istates(std::vector<char *> ctbndl_files, std::vector<ConfigOpt
   }
 
   // output_run = new std::ofstream((std::string(output) + "_run.txt").c_str());
+#ifdef MPI_COMPAT
+  if (world_rank == 0) {
+#endif 
   output_probtraj = new std::ofstream((std::string(output) + "_probtraj" + format_extension(format)).c_str());
   output_fp = new std::ofstream((std::string(output) + "_fp.csv").c_str());
-  
+#ifdef MPI_COMPAT
+  }
+#endif
   time(&start_time);
+
+#ifdef MPI_COMPAT
+  EnsembleEngine engine(networks, runconfig, world_size, world_rank, save_individual_results, random_sampling);
+#else
   EnsembleEngine engine(networks, runconfig, save_individual_results, random_sampling);
+#endif
+
   engine.run(NULL);
   
   display(&engine, networks[0], output, format, hexfloat, -1);
@@ -317,8 +357,15 @@ int run_ensemble_istates(std::vector<char *> ctbndl_files, std::vector<ConfigOpt
   time(&end_time);
 
   // ((std::ofstream*)output_run)->close();
+#ifdef MPI_COMPAT
+  if (world_rank == 0) {
+#endif
+
   ((std::ofstream*)output_probtraj)->close();
   ((std::ofstream*)output_fp)->close();
+#ifdef MPI_COMPAT
+  }
+#endif
   return 0;
 }
 
@@ -382,11 +429,21 @@ nodes[j]->isInternal(first_network_nodes[j]->isInternal());
   }
 
   // output_run = new std::ofstream((std::string(output) + "_run.txt").c_str());
+#ifdef MPI_COMPAT
+  if (world_rank == 0) {
+#endif
   output_probtraj = new std::ofstream((std::string(output) + "_probtraj" + format_extension(format)).c_str());
   output_fp = new std::ofstream((std::string(output) + "_fp.csv").c_str());
-  
+#ifdef MPI_COMPAT
+  }
+#endif
+
   time(&start_time);
+#ifdef MPI_COMPAT
+  EnsembleEngine engine(networks, runconfig, world_size, world_rank, save_individual_results, random_sampling);
+#else
   EnsembleEngine engine(networks, runconfig, save_individual_results, random_sampling);
+#endif
   engine.run(NULL);
   
   display(&engine, networks[0], output, format, hexfloat, -1);
@@ -399,9 +456,15 @@ nodes[j]->isInternal(first_network_nodes[j]->isInternal());
   time(&end_time);
 
   // ((std::ofstream*)output_run)->close();
+#ifdef MPI_COMPAT
+  if (world_rank == 0) {
+#endif
   ((std::ofstream*)output_probtraj)->close();
-  delete output_probtraj;
   ((std::ofstream*)output_fp)->close();
+#ifdef MPI_COMPAT
+  }
+#endif
+  delete output_probtraj;
   delete output_fp;
 
   delete runconfig;
@@ -444,7 +507,7 @@ int run_single(const char* ctbndl_file, std::vector<std::string> runconfig_var_v
   network->getSymbolTable()->checkSymbols();
 
   std::ostream* output_run = new std::ofstream((std::string(output) + "_run.txt").c_str());
-  
+
   StochasticSimulationEngine single_simulation(network, runconfig, runconfig->getSeedPseudoRandom());
   
   NetworkState initial_state;
@@ -464,6 +527,15 @@ int run_single(const char* ctbndl_file, std::vector<std::string> runconfig_var_v
 
 int main(int argc, char* argv[])
 {
+
+#ifdef MPI_COMPAT  
+  MPI_Init(NULL, NULL);
+  // Get the number of processes
+  MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+  // Get the rank of the process
+  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+#endif
+
   const char* output = NULL;
   std::vector<ConfigOpt> runconfig_file_or_expr_v;
   std::vector<std::string> runconfig_var_v;
@@ -764,7 +836,13 @@ int main(int argc, char* argv[])
 
       if (final_simulation) {
 	std::ostream* output_final = new std::ofstream((std::string(output) + "_finalprob" + format_extension(format)).c_str());
+
+#ifdef MPI_COMPAT
+  FinalStateSimulationEngine engine(network, runconfig, world_size, world_rank);
+#else
 	FinalStateSimulationEngine engine(network, runconfig);
+#endif
+
 	engine.run(NULL);
   
   FinalStateDisplayer* final_displayer;
@@ -783,7 +861,11 @@ int main(int argc, char* argv[])
         output_run = new std::ofstream((std::string(output) + "_run.txt").c_str());
  
         time(&start_time);
+#ifdef MPI_COMPAT
+        MaBEstEngine mabest(network, runconfig, world_size, world_rank);
+#else
         MaBEstEngine mabest(network, runconfig);
+#endif
         mabest.run(output_traj);
         
         display(&mabest, network, output, format, hexfloat, -1);
@@ -813,5 +895,10 @@ int main(int argc, char* argv[])
   MBDynBitset::end_pthread();
   MBDynBitset::stats();
 #endif
+
+#ifdef MPI_COMPAT
+  MPI_Finalize();
+#endif
+
   return 0;
 }

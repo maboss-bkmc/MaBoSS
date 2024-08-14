@@ -72,6 +72,16 @@ protected:
   Network* network;
   RunConfig* runconfig;
 
+ 
+#ifdef MPI_COMPAT
+  // Number of processes
+  int world_size;
+  
+  // Rank of the process
+  int world_rank;
+#endif
+
+
   double time_tick;
   double max_time;
   unsigned int sample_count;
@@ -86,12 +96,6 @@ protected:
   
  
 #ifdef MPI_COMPAT
-  // Number of processes
-  int world_size;
-  
-  // Rank of the process
-  int world_rank;
-  
   // Global sample count          
   unsigned int global_sample_count;
   unsigned int global_statdist_trajcount;
@@ -111,6 +115,17 @@ protected:
 
 public:
 
+#ifdef MPI_COMPAT
+  MetaEngine(Network* network, RunConfig* runconfig, int world_size, int world_rank) : 
+    network(network), runconfig(runconfig),
+    world_size(world_size), world_rank(world_rank),
+    time_tick(runconfig->getTimeTick()), 
+    max_time(runconfig->getMaxTime()), 
+    sample_count(runconfig->getSampleCount()), 
+    statdist_trajcount(runconfig->getStatDistTrajCount()),
+    discrete_time(runconfig->isDiscreteTime()), 
+    thread_count(runconfig->getThreadCount()) {
+#else
   MetaEngine(Network* network, RunConfig* runconfig) : 
     network(network), runconfig(runconfig),
     time_tick(runconfig->getTimeTick()), 
@@ -119,18 +134,10 @@ public:
     statdist_trajcount(runconfig->getStatDistTrajCount()),
     discrete_time(runconfig->isDiscreteTime()), 
     thread_count(runconfig->getThreadCount()) {
-      
+#endif 
   elapsed_core_runtime = user_core_runtime = elapsed_statdist_runtime = user_statdist_runtime = elapsed_epilogue_runtime = user_epilogue_runtime = 0;
     
 #ifdef MPI_COMPAT
-
-  MPI_Init(NULL, NULL);
-  // Get the number of processes
-  MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-
-  // Get the rank of the process
-  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-
   global_sample_count = sample_count;
   global_statdist_trajcount = statdist_trajcount;
   
@@ -157,10 +164,6 @@ public:
       
     }
   ~MetaEngine() {
-    
-#ifdef MPI_COMPAT
-  MPI_Finalize();
-#endif
   
   }
   static void init();

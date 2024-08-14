@@ -55,6 +55,10 @@
 #include "ProbTrajDisplayer.h"
 #include "PopProbTrajDisplayer.h"
 
+#ifdef MPI_COMPAT
+#include <mpi.h>
+#endif
+
 const char* prog = "PopMaBoSS";
 
 static int usage(std::ostream& os = std::cerr)
@@ -145,6 +149,16 @@ static std::string format_extension(OutputFormat format) {
 
 int main(int argc, char* argv[])
 {
+#ifdef MPI_COMPAT
+  int world_size, world_rank;
+  
+  MPI_Init(NULL, NULL);
+  // Get the number of processes
+  MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+  // Get the rank of the process
+  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+#endif
+  
   const char* output = NULL;
   std::vector<ConfigOpt> runconfig_file_or_expr_v;
   std::vector<std::string> runconfig_var_v;
@@ -379,10 +393,19 @@ int main(int argc, char* argv[])
           std::cerr << '\n' << prog << ": warning: cannot display trajectories in multi-threaded mode\n";
         }
       } else {
+#ifdef MPI_COMPAT
+        if (world_rank == 0) {
+#endif
 	        output_traj = new std::ofstream((std::string(output) + "_traj.txt").c_str());
+#ifdef MPI_COMPAT
+        }
+#endif
       }
     }
 
+#ifdef MPI_COMPAT
+    if (world_rank == 0) {
+#endif
     output_run = new std::ofstream((std::string(output) + "_run.txt").c_str());
 
     if (format == CSV_FORMAT || format == JSON_FORMAT){
@@ -394,9 +417,16 @@ int main(int argc, char* argv[])
       hdf5_file = H5Fcreate((std::string(output) + format_extension(format)).c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 #endif
     }
-    
+#ifdef MPI_COMPAT
+    } 
+#endif
+
     time(&start_time);
+#ifdef MPI_COMPAT
+    PopMaBEstEngine mabest(pop_network, runconfig, world_size, world_rank);
+#else
     PopMaBEstEngine mabest(pop_network, runconfig);
+#endif
     mabest.run(output_traj);
     
     ProbTrajDisplayer<PopNetworkState>* pop_probtraj_displayer;
@@ -425,20 +455,47 @@ int main(int argc, char* argv[])
 
     mabest.displayRunStats(*output_run, start_time, end_time);
 
+#ifdef MPI_COMPAT
+    if (world_rank == 0) {
+#endif
     ((std::ofstream*)output_run)->close();
+#ifdef MPI_COMPAT
+    }
+#endif
     delete output_run;
     if (NULL != output_traj) {
+#ifdef MPI_COMPAT
+    if (world_rank == 0) {
+#endif
       ((std::ofstream*)output_traj)->close();
+#ifdef MPI_COMPAT
+    }
+#endif
       delete output_traj;
     }
     
     if (format == CSV_FORMAT || format == JSON_FORMAT){
+#ifdef MPI_COMPAT
+    if (world_rank == 0) {
+#endif
       ((std::ofstream*)output_pop_probtraj)->close();
       ((std::ofstream*)output_fp)->close();
       ((std::ofstream*)output_simple_pop_probtraj)->close();
+#ifdef MPI_COMPAT
+    }
+#endif
+      delete output_pop_probtraj;
+      delete output_fp;
+      delete output_simple_pop_probtraj;
 #ifdef HDF5_COMPAT
     } else if (format == HDF5_FORMAT) {
+#ifdef MPI_COMPAT
+      if (world_rank == 0) {
+#endif
       H5Fclose(hdf5_file);
+#ifdef MPI_COMPAT
+      }
+#endif
 #endif
     }
     
@@ -462,6 +519,10 @@ int main(int argc, char* argv[])
 #ifdef USE_DYNAMIC_BITSET
   MBDynBitset::end_pthread();
   MBDynBitset::stats();
+#endif
+
+#ifdef MPI_COMPAT
+  MPI_Finalize();
 #endif
   return 0;
 }

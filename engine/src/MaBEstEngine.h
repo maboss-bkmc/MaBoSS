@@ -73,8 +73,12 @@ class MaBEstEngine : public ProbTrajEngine {
   
 public:
   static const std::string VERSION;
-  
+
+#ifdef MPI_COMPAT
+  MaBEstEngine(Network* network, RunConfig* runconfig, int world_size, int world_rank);
+#else
   MaBEstEngine(Network* network, RunConfig* runconfig);
+#endif
 
   void run(std::ostream* output_traj);
   void displayRunStats(std::ostream& os, time_t start_time, time_t end_time) const;

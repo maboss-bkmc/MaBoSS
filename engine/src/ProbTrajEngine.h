@@ -85,8 +85,12 @@ protected:
 
 public:
 
+#ifdef MPI_COMPAT
+  ProbTrajEngine(Network * network, RunConfig* runconfig, int world_size, int world_rank) : FixedPointEngine(network, runconfig, world_size, world_rank) {}
+#else
   ProbTrajEngine(Network* network, RunConfig* runconfig) : FixedPointEngine(network, runconfig) {}
-  
+#endif
+
   Cumulator<NetworkState>* getMergedCumulator() {
     return merged_cumulator; 
   }

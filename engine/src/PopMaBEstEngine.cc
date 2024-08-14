@@ -67,7 +67,11 @@ void PopMaBEstEngine::setVerbose(int level) {
   PopMaBEstEngine::verbose = level;
 }
 
+#ifdef MPI_COMPAT
+PopMaBEstEngine::PopMaBEstEngine(PopNetwork *pop_network, RunConfig *runconfig, int world_size, int world_rank) : MetaEngine(pop_network, runconfig, world_size, world_rank), pop_network(pop_network)
+#else
 PopMaBEstEngine::PopMaBEstEngine(PopNetwork *pop_network, RunConfig *runconfig) : MetaEngine(pop_network, runconfig), pop_network(pop_network)
+#endif
 {
   
   elapsed_core_runtime = user_core_runtime = elapsed_statdist_runtime = user_statdist_runtime = elapsed_epilogue_runtime = user_epilogue_runtime = 0;

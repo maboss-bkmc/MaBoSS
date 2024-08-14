@@ -60,9 +60,13 @@
 
 const std::string EnsembleEngine::VERSION = "1.2.0";
 
+#ifdef MPI_COMPAT
+EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runconfig, int world_size, int world_rank, bool save_individual_result, bool _random_sampling) :
+  ProbTrajEngine(networks[0], runconfig, world_size, world_rank), networks(networks), save_individual_result(save_individual_result), random_sampling(_random_sampling) {
+#else
 EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runconfig, bool save_individual_result, bool _random_sampling) :
   ProbTrajEngine(networks[0], runconfig), networks(networks), save_individual_result(save_individual_result), random_sampling(_random_sampling) {
-
+#endif
   if (thread_count > 1 && !runconfig->getRandomGeneratorFactory()->isThreadSafe()) {
     std::cerr << "Warning: non reentrant random, may not work properly in multi-threaded mode\n";
   }
