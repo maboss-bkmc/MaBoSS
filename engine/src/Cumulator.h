@@ -451,6 +451,7 @@ class Cumulator {
   std::vector<ProbaDist<S> > proba_dist_v;
   ProbaDist<S> curtraj_proba_dist;
   STATE_MAP<S, LastTickValue> last_tick_map;
+  std::map<unsigned int, unsigned int> output_scale;
   bool tick_completed;
 
   CumulMap& get_map() {
@@ -584,6 +585,41 @@ public:
     proba_dist_v.resize(statdist_trajcount);
     tick_completed = false;
     isPopCumulator = S::isPopState();
+    if (isPopCumulator) {
+      std::map<unsigned int, std::vector<int>> scale_values;
+      double base = runconfig->getPopBase();
+      for (unsigned int i = 1; i < 1024; i++) {
+        int level;
+        // std::cout << "base = " << base << std::endl;
+        if (base > 1.001)
+          level = pow(base, (round(log(i)/log(base))));
+        else  
+          level = i;  
+        // int level = pow(2, (ceil(log2(i))));
+        output_scale[i] = level;
+        if (scale_values.find(level) == scale_values.end()) {
+          scale_values[level] = std::vector<int>();
+        }
+        scale_values[level].push_back(i);
+        // std::cout << "output_scale[" << i << "] = " << output_scale[i] << std::endl;
+      }
+      std::map<unsigned int, unsigned int> replace;
+      for (auto& scale_value: scale_values) {
+        double mean = 0;
+        // std::cout << "Values for " << scale_value.first << ": " << std::endl;
+        for (auto& value: scale_value.second) {
+          // std::cout << value << ", ";
+          mean += value;
+        }
+        unsigned int imean = round(mean/scale_value.second.size());
+        // std::cout << "Mean: " << imean << std::endl;
+        replace[scale_value.first] = imean;
+      }
+      for (auto& scale_value: output_scale) {
+        // std::cout << "output_scale[" << scale_value.first << "] = " << scale_value.second << " => " << replace[scale_value.second] << std::endl;
+        output_scale[scale_value.first] = replace[scale_value.second];
+      }
+    }
   }
 
   void rewind() {
@@ -628,7 +664,7 @@ public:
 #endif    
 
 
-    S state = network_state.applyMask(output_mask);
+    S state = network_state.applyMask(output_mask, output_scale);
 
     double time_1 = cumultime(tick_index+1);
     if (tm < time_1) {

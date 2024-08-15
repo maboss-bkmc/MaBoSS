@@ -74,6 +74,7 @@ class RunConfig {
   unsigned int statdist_similarity_cache_max_size;
   void dump_perform(Network* network, std::ostream& os, bool is_template, std::string version) const;
   unsigned int init_pop;
+  double pop_base;
  public:
   RunConfig();
   ~RunConfig();
@@ -84,6 +85,7 @@ class RunConfig {
 
   RandomGeneratorFactory* getRandomGeneratorFactory() const;
   unsigned int getInitPop() const {return init_pop;}
+  double getPopBase() const {return pop_base;}
   double getTimeTick() const {return time_tick;}
   double getMaxTime() const {return max_time;}
   unsigned int getSampleCount() const {return sample_count;}

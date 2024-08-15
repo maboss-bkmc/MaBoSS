@@ -767,7 +767,7 @@ public:
     return NetworkState(state & mask.getState());
   }
   
-  NetworkState applyMask(const NetworkState& mask) const {
+  NetworkState applyMask(const NetworkState& mask, std::map<unsigned int, unsigned int>& scale) const {
     return NetworkState(state & mask.getState());
   }
 
@@ -1083,13 +1083,13 @@ public:
     return *this;
   }
 
-  PopNetworkState applyMask(const PopNetworkState& mask) const {
+  PopNetworkState applyMask(const PopNetworkState& mask, std::map<unsigned int, unsigned int>& scale) const {
     std::map<NetworkState_Impl, unsigned int> new_map;
     NetworkState networkstate_mask = mask.getMap().begin()->first;
         
     for (const auto & elem: mp) {
       NetworkState_Impl new_state = elem.first & networkstate_mask.getState();
-      new_map[new_state] = elem.second;
+      new_map[new_state] = scale[elem.second];
     }
     return PopNetworkState(new_map);
   }
