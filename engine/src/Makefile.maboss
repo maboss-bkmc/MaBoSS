@@ -149,7 +149,11 @@ server: $(MABOSS_SERVER)
 .PHONY: grammars
 grammars: BooleanGrammar.cc RunConfigGrammar.cc
 
+ifdef MPI_COMPAT
+all: $(MABOSS_LIB) $(MABOSS) $(POPMABOSS) $(FUNC_MODULE)
+else
 all: $(MABOSS_LIB) $(MABOSS) $(POPMABOSS) $(MABOSS_SERVER) $(MABOSS_CLIENT) $(FUNC_MODULE)
+endif
 
 $(MABOSS_ALIB): $(CORE_LIB_OBJS) $(LIB_OBJS)
 	ar rcs $(MABOSS_ALIB) $+
@@ -248,8 +252,12 @@ tar_perform: clean
 	(cd ../..; basename=$$(basename $$(pwd)); cd ..; tar cvfz backup/$${basename}-$$(date +"20%y-%m-%d-%H%M").tgz $${basename}/engine/examples/*/*.bnd $${basename}/engine/examples/*/*.cfg $${basename}/engine/src/*.[hly] $${basename}/engine/src/*.cc $${basename}/engine/src/Makefile $${basename}/engine/src/Makefile.maboss $${basename}/engine/src/init-config.sh $${basename}/engine/tests/*.sh $${basename}/engine/tests/*.bnd $${basename}/engine/tests/*.cfg)
 
 install: all
-	 mkdir -p ../pub
-	 cp $(MABOSS) $(MABOSS_SERVER) $(MABOSS_CLIENT) $(POPMABOSS) ../pub
+	mkdir -p ../pub
+ifdef MPI_COMPAT
+	cp $(MABOSS) $(POPMABOSS) ../pub
+else
+	cp $(MABOSS) $(MABOSS_SERVER) $(MABOSS_CLIENT) $(POPMABOSS) ../pub
+endif
 
 package:
 	@(cd ..; dir=`pwd`; cd src; make -j 4 all; version=`./MaBoSS -version | awk '{print $$3}'`; make clean; echo $$version; mkdir -p /tmp/MaBoSS-$$version/package; cd ..; find README src binaries doc examples \( -name Makefile\* -o -name \*.[ylh] -o -name init-config.sh -o -name \*.cc -o -name MaBoSS-RefCard.pdf -o -name DescriptionOutputFile.pdf -o -name MaBoSS -o -name MaBoSS_*n -o -name MaBoSS_*n.exe -o -name MaBoSS*-* -o -name MaBoSS.exe -o -name \*.cfg -o -name \*.bnd -o -name README \) -print | egrep -v "~|maboss-config\.h|doc/Makefile|doc/README" | cpio -pdmv /tmp/MaBoSS-$$version; cd /tmp; tar  cvfz /tmp/MaBoSS-$$version.tgz --exclude='*.svn*' MaBoSS-$$version; echo | rm -r /tmp/MaBoSS-$$version; echo; echo "Package: /tmp/MaBoSS-$$version.tgz")
