@@ -641,7 +641,7 @@ std::pair<Cumulator<PopNetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int
     while(lvl <= max_lvl) {
     
       int step_lvl = pow(2, lvl-1);
-      
+      MPI_Barrier(MPI_COMM_WORLD);
       for(int i=0; i < world_size; i+=(step_lvl*2)) {
         
         if (i+step_lvl < world_size) {
