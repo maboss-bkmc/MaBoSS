@@ -366,6 +366,10 @@ int run_ensemble_istates(std::vector<char *> ctbndl_files, std::vector<ConfigOpt
 #ifdef MPI_COMPAT
   }
 #endif
+
+  delete output_probtraj;
+  delete output_fp;
+  
   return 0;
 }
 
@@ -747,20 +751,20 @@ int main(int argc, char* argv[])
 
     if (ensemble) {
       if (ensemble_istates) {
-        return run_ensemble_istates(
+        run_ensemble_istates(
           ctbndl_files, runconfig_file_or_expr_v, output, format, hexfloat, 
           ensemble_save_individual_results, ensemble_random_sampling
         );
  
       } else {
-        return run_ensemble(
+        run_ensemble(
           ctbndl_files, runconfig_file_or_expr_v, output, format, hexfloat, 
           ensemble_save_individual_results, ensemble_random_sampling
         );
       }
         
     } else if (single_simulation) {
-      return run_single(
+      run_single(
         ctbndl_file, runconfig_var_v, runconfig_file_or_expr_v, 
         output, format, hexfloat, generate_config_template
       ); 
