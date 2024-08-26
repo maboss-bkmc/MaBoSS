@@ -69,7 +69,7 @@ class MaBEstEngine : public ProbTrajEngine {
   static void* threadWrapper(void *arg);
 
   void epilogue();
-  void runThread(Cumulator<NetworkState>* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, long long int* elapsed_time, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj);
+  void runThread(Cumulator<NetworkState>* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, long long int* elapsed_time, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int> >* observed_map, std::ostream* output_traj);
   
 public:
   static const std::string VERSION;

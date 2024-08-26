@@ -48,6 +48,7 @@
 */
 
 #include "MaBEstEngine.h"
+#include "BooleanNetwork.h"
 #include "Probe.h"
 #include <stdlib.h>
 #include <math.h>
@@ -88,6 +89,29 @@ MaBEstEngine::MaBEstEngine(Network* network, RunConfig* runconfig) :
       refnode_mask.setNodeState(node, true);
       refnode_count++;
     }
+    if (node->inGraph()) {
+      graph_nodes.push_back(node);
+      graph_mask.flipState(node);
+    }
+  }
+
+  graph_states.resize(pow(2, graph_nodes.size()));
+  
+  unsigned int i=0;
+  for (auto graph_state : graph_states) {
+    NetworkState state(graph_state);
+    
+    unsigned int j=0;
+    for (auto* node: graph_nodes){
+      if ((i & (1ULL << j)) > 0)
+      {
+        state.flipState(node);
+      }
+      j++;
+    }
+    
+    graph_states[i] = state.getState();
+    i++;
   }
 
   merged_cumulator = NULL;
@@ -97,6 +121,8 @@ MaBEstEngine::MaBEstEngine(Network* network, RunConfig* runconfig) :
 
   unsigned int scount = statdist_trajcount / thread_count;
   unsigned int first_scount = scount + statdist_trajcount - scount * thread_count;
+
+  observed_graph_v.resize(thread_count);
 
   for (unsigned int nn = 0; nn < thread_count; ++nn) {
     Cumulator<NetworkState>* cumulator = new Cumulator<NetworkState>(runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), (nn == 0 ? firstcount : count), (nn == 0 ? first_scount : scount ));
@@ -110,6 +136,13 @@ MaBEstEngine::MaBEstEngine(Network* network, RunConfig* runconfig) :
     }
     cumulator->setRefnodeMask(refnode_mask.getState());
     cumulator_v[nn] = cumulator;
+    
+    observed_graph_v[nn] = new std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int> >();
+    for (auto origin_state : graph_states){
+      for (auto destination_state: graph_states){
+        (*observed_graph_v[nn])[origin_state][destination_state] = 0.0;
+      }
+    }
   }
 }
 
@@ -122,10 +155,11 @@ struct ArgWrapper {
   long long int* elapsed_time;
   int seed;
   STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map;
+  std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int>>* observed_graph;
   std::ostream* output_traj;
 
-  ArgWrapper(MaBEstEngine* mabest, unsigned int start_count_thread, unsigned int sample_count_thread, Cumulator<NetworkState>* cumulator, RandomGeneratorFactory* randgen_factory, long long int * elapsed_time, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj) :
-    mabest(mabest), start_count_thread(start_count_thread), sample_count_thread(sample_count_thread), cumulator(cumulator), randgen_factory(randgen_factory), elapsed_time(elapsed_time), seed(seed), fixpoint_map(fixpoint_map), output_traj(output_traj) { }
+  ArgWrapper(MaBEstEngine* mabest, unsigned int start_count_thread, unsigned int sample_count_thread, Cumulator<NetworkState>* cumulator, RandomGeneratorFactory* randgen_factory, long long int * elapsed_time, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int> >* observed_graph, std::ostream* output_traj) :
+    mabest(mabest), start_count_thread(start_count_thread), sample_count_thread(sample_count_thread), cumulator(cumulator), randgen_factory(randgen_factory), elapsed_time(elapsed_time), seed(seed), fixpoint_map(fixpoint_map), observed_graph(observed_graph), output_traj(output_traj) { }
 };
 
 void* MaBEstEngine::threadWrapper(void *arg)
@@ -135,7 +169,7 @@ void* MaBEstEngine::threadWrapper(void *arg)
 #endif
   ArgWrapper* warg = (ArgWrapper*)arg;
   try {
-    warg->mabest->runThread(warg->cumulator, warg->start_count_thread, warg->sample_count_thread, warg->randgen_factory, warg->elapsed_time, warg->seed, warg->fixpoint_map, warg->output_traj);
+    warg->mabest->runThread(warg->cumulator, warg->start_count_thread, warg->sample_count_thread, warg->randgen_factory, warg->elapsed_time, warg->seed, warg->fixpoint_map, warg->observed_graph, warg->output_traj);
   } catch(const BNException& e) {
     std::cerr << e;
   }
@@ -145,12 +179,13 @@ void* MaBEstEngine::threadWrapper(void *arg)
   return NULL;
 }
 
-void MaBEstEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, long long int* elapsed_time, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj)
+void MaBEstEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, long long int* elapsed_time, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int> >* observed_graph, std::ostream* output_traj)
 {
   const std::vector<Node*>& nodes = network->getNodes();
   std::vector<Node*>::const_iterator begin = nodes.begin();
   std::vector<Node*>::const_iterator end = nodes.end();
   NetworkState network_state; 
+  NetworkState_Impl network_state_graph;
   Probe probe;
   probe.start();
   std::vector<double> nodeTransitionRates(nodes.size(), 0.0);
@@ -167,6 +202,8 @@ void MaBEstEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int st
       network_state.displayOneLine(*output_traj, network);
       (*output_traj) << '\n';
     }
+    
+    network_state_graph = network_state.getState() & graph_mask.getState();
     while (tm < max_time) {
       double total_rate = 0.;
             nodeTransitionRates.assign(nodes.size(), 0.0);
@@ -229,6 +266,13 @@ void MaBEstEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int st
 
       NodeIndex node_idx = getTargetNode(network, random_generator, nodeTransitionRates, total_rate);
       network_state.flipState(network->getNode(node_idx));
+      
+      NetworkState s_graph(network_state & graph_mask.getState());
+      if (s_graph.getState() != network_state_graph) {
+        (*observed_graph)[network_state_graph][s_graph.getState()] += 1;
+        network_state_graph = s_graph.getState();
+        
+      }
     }
     cumulator->trajectoryEpilogue();
   }
@@ -262,9 +306,9 @@ void MaBEstEngine::run(std::ostream* output_traj)
     fixpoint_map_v.push_back(fixpoint_map);
 
 #ifdef MPI_COMPAT
-    ArgWrapper* warg = new ArgWrapper(this, start_sample_count, cumulator_v[nn]->getSampleCount(), cumulator_v[nn], randgen_factory, &(thread_elapsed_runtimes[world_rank][nn]), seed, fixpoint_map, output_traj);
+    ArgWrapper* warg = new ArgWrapper(this, start_sample_count, cumulator_v[nn]->getSampleCount(), cumulator_v[nn], randgen_factory, &(thread_elapsed_runtimes[world_rank][nn]), seed, fixpoint_map, observed_graph_v[nn], output_traj);
 #else
-    ArgWrapper* warg = new ArgWrapper(this, start_sample_count, cumulator_v[nn]->getSampleCount(), cumulator_v[nn], randgen_factory, &(thread_elapsed_runtimes[nn]), seed, fixpoint_map, output_traj);
+    ArgWrapper* warg = new ArgWrapper(this, start_sample_count, cumulator_v[nn]->getSampleCount(), cumulator_v[nn], randgen_factory, &(thread_elapsed_runtimes[nn]), seed, fixpoint_map, observed_graph_v[nn], output_traj);
 #endif
 
     pthread_create(&tid[nn], NULL, MaBEstEngine::threadWrapper, warg);
@@ -343,7 +387,7 @@ if (getWorldRank() == 0) {
 
 void MaBEstEngine::epilogue()
 {
-  std::pair<Cumulator<NetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> results = mergeResults(cumulator_v, fixpoint_map_v);
+  std::pair<Cumulator<NetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> results = mergeResults(cumulator_v, fixpoint_map_v, observed_graph_v);
   merged_cumulator = results.first;
   fixpoints = *(results.second);
 

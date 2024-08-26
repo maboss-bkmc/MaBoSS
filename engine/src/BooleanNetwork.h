@@ -290,6 +290,7 @@ class Node {
   bool istate_set;
   bool is_internal;
   bool is_reference;
+  bool in_graph;
   NodeState referenceState;
   const Expression* logicalInputExpr;
   const Expression* rateUpExpr;
@@ -374,9 +375,17 @@ class Node {
   bool isInternal() const {
     return is_internal;
   }
+  
+  bool inGraph() const {
+    return in_graph;
+  }
 
   void isInternal(bool is_internal) {
     this->is_internal = is_internal;
+  }
+  
+  void inGraph(bool in_graph) {
+    this->in_graph = in_graph;
   }
 
   bool isReference() const {

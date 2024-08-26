@@ -564,7 +564,7 @@ void EnsembleEngine::mergeMPIIndividual(bool pack)
 
 void EnsembleEngine::epilogue()
 {
-  std::pair<Cumulator<NetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> results = mergeResults(cumulator_v, fixpoint_map_v);
+  std::pair<Cumulator<NetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> results = mergeResults(cumulator_v, fixpoint_map_v, observed_graph_v);
   merged_cumulator = results.first;
   fixpoints = *(results.second);
 
@@ -599,7 +599,7 @@ void EnsembleEngine::mergeIndividual() {
 
   for (unsigned int i=0; i < networks.size(); i++) {
     
-    std::pair<Cumulator<NetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> results = mergeResults(cumulators_thread_v[i], fixpoints_threads_v[i]);
+    std::pair<Cumulator<NetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> results = mergeResults(cumulators_thread_v[i], fixpoints_threads_v[i], observed_graph_v);
     cumulators_per_model[i] = results.first;
     fixpoints_per_model[i] = results.second;
     

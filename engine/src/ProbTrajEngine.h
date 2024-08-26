@@ -71,12 +71,18 @@ class ProbTrajEngine : public FixedPointEngine {
 
 protected:
 
+  NetworkState graph_mask;
+  std::vector<const Node*> graph_nodes;
+  std::vector<NetworkState_Impl> graph_states;
+  std::vector<std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int> >* > observed_graph_v;
+
   Cumulator<NetworkState>* merged_cumulator;
   std::vector<Cumulator<NetworkState>*> cumulator_v;
 
   static void* threadMergeWrapper(void *arg);
 
-  static std::pair<Cumulator<NetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> mergeResults(std::vector<Cumulator<NetworkState>*>& cumulator_v, std::vector<STATE_MAP<NetworkState_Impl, unsigned int> *>& fixpoint_map_v);  
+  static void mergePairOfObservedGraph(std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int> >* observed_graph_1, std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int> >* observed_graph_2);
+  static std::pair<Cumulator<NetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> mergeResults(std::vector<Cumulator<NetworkState>*>& cumulator_v, std::vector<STATE_MAP<NetworkState_Impl, unsigned int> *>& fixpoint_map_v, std::vector<std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int> >* >& observed_graph_v);  
   
 #ifdef MPI_COMPAT
   static std::pair<Cumulator<NetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> mergeMPIResults(RunConfig* runconfig, Cumulator<NetworkState>* ret_cumul, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints, int world_size, int world_rank, bool pack=true);
@@ -102,7 +108,7 @@ public:
   void displayProbTraj(ProbTrajDisplayer<NetworkState>* displayer) const;
   
   void display(ProbTrajDisplayer<NetworkState>* probtraj_displayer, StatDistDisplayer* statdist_displayer, FixedPointDisplayer* fp_displayer) const;
-
+  void displayObservedGraph(std::ostream* output_observed_graph);
 };
 
 #endif

@@ -56,10 +56,23 @@ struct MergeWrapper {
   Cumulator<NetworkState>* cumulator_2;
   STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_1;
   STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_2;
+  std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int> >* observed_graph_1;
+  std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int> >* observed_graph_2;
   
-  MergeWrapper(Cumulator<NetworkState>* cumulator_1, Cumulator<NetworkState>* cumulator_2, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_1, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_2) :
-    cumulator_1(cumulator_1), cumulator_2(cumulator_2), fixpoints_1(fixpoints_1), fixpoints_2(fixpoints_2) { }
+  MergeWrapper(Cumulator<NetworkState>* cumulator_1, Cumulator<NetworkState>* cumulator_2, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_1, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_2, std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int> >* observed_graph_1, std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int> >* observed_graph_2) :
+    cumulator_1(cumulator_1), cumulator_2(cumulator_2), fixpoints_1(fixpoints_1), fixpoints_2(fixpoints_2), observed_graph_1(observed_graph_1), observed_graph_2(observed_graph_2) { }
 };
+
+void ProbTrajEngine::mergePairOfObservedGraph(std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int> >* observed_graph_1, std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int> >* observed_graph_2)
+{
+  for (auto origin_state: *observed_graph_2){
+    for (auto destination_state: origin_state.second) {
+      (*observed_graph_1)[origin_state.first][destination_state.first] += destination_state.second;
+    }
+  }
+  delete observed_graph_2;
+  observed_graph_2 = NULL;
+}
 
 void* ProbTrajEngine::threadMergeWrapper(void *arg)
 {
@@ -70,6 +83,8 @@ void* ProbTrajEngine::threadMergeWrapper(void *arg)
   try {
     Cumulator<NetworkState>::mergePairOfCumulators(warg->cumulator_1, warg->cumulator_2);
     ProbTrajEngine::mergePairOfFixpoints(warg->fixpoints_1, warg->fixpoints_2);
+    if (warg->observed_graph_1 != NULL && warg->observed_graph_2 != NULL)
+    ProbTrajEngine::mergePairOfObservedGraph(warg->observed_graph_1, warg->observed_graph_2);
   } catch(const BNException& e) {
     std::cerr << e;
   }
@@ -80,7 +95,7 @@ void* ProbTrajEngine::threadMergeWrapper(void *arg)
 }
 
 
-std::pair<Cumulator<NetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> ProbTrajEngine::mergeResults(std::vector<Cumulator<NetworkState>*>& cumulator_v, std::vector<STATE_MAP<NetworkState_Impl, unsigned int> *>& fixpoint_map_v) {
+std::pair<Cumulator<NetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> ProbTrajEngine::mergeResults(std::vector<Cumulator<NetworkState>*>& cumulator_v, std::vector<STATE_MAP<NetworkState_Impl, unsigned int> *>& fixpoint_map_v, std::vector<std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int> >* >& observed_graph_v) {
   
   size_t size = cumulator_v.size();
   
@@ -104,7 +119,7 @@ std::pair<Cumulator<NetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*>
       for(unsigned int i=0; i < size; i+=(step_lvl*2)) {
         
         if (i+step_lvl < size) {
-          MergeWrapper* warg = new MergeWrapper(cumulator_v[i], cumulator_v[i+step_lvl], fixpoint_map_v[i], fixpoint_map_v[i+step_lvl]);
+          MergeWrapper* warg = new MergeWrapper(cumulator_v[i], cumulator_v[i+step_lvl], fixpoint_map_v[i], fixpoint_map_v[i+step_lvl], observed_graph_v[i], observed_graph_v[i+step_lvl]);
           pthread_create(&tid[nb_threads], NULL, ProbTrajEngine::threadMergeWrapper, warg);
           nb_threads++;
           wargs.push_back(warg);
@@ -209,4 +224,26 @@ void ProbTrajEngine::display(ProbTrajDisplayer<NetworkState>* probtraj_displayer
   displayProbTraj(probtraj_displayer);
   displayStatDist(statdist_displayer);
   displayFixpoints(fp_displayer);
+}
+
+void ProbTrajEngine::displayObservedGraph(std::ostream* output_observed_graph){
+  if (graph_states.size() > 0)
+  {
+    (*output_observed_graph) << "State";
+    for (auto state: graph_states) {
+      (*output_observed_graph) << "\t" << NetworkState(state).getName(network);
+    }
+    (*output_observed_graph) << std::endl;
+    
+    for (auto origin_state: graph_states) {
+      (*output_observed_graph) << NetworkState(origin_state).getName(network);
+      
+      for (auto destination_state: graph_states) {
+        (*output_observed_graph) << "\t" << (*(observed_graph_v[0]))[origin_state][destination_state];
+      }
+      
+      (*output_observed_graph) << std::endl;
+    }
+    
+  }
 }

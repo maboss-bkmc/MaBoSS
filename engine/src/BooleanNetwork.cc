@@ -90,6 +90,7 @@ void Node::reset()
   istate_set = false;
   is_internal = false;
   is_reference = false;
+  in_graph = false;
   referenceState = false;
   delete logicalInputExpr;
   logicalInputExpr = NULL;

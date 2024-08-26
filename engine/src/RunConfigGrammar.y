@@ -158,6 +158,8 @@ node_attr_decl: SYMBOL '.' SYMBOL '=' expression ';'
     } else {
       node->setReferenceState((NodeState)value);
     }
+  } else if (!strcasecmp($3, "in_graph")) {
+    node->inGraph((bool) value);
   } else {
     throw BNException(std::string(yy_error_head() + "invalid node attribute: ") + $3 + ", valid attributes are: istate or is_internal");
   }
