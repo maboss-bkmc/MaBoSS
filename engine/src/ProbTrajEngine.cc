@@ -227,6 +227,11 @@ void ProbTrajEngine::display(ProbTrajDisplayer<NetworkState>* probtraj_displayer
 }
 
 void ProbTrajEngine::displayObservedGraph(std::ostream* output_observed_graph){
+
+#ifdef MPI_COMPAT
+if (getWorldRank() == 0) {
+#endif
+
   if (graph_states.size() > 0)
   {
     (*output_observed_graph) << "State";
@@ -246,4 +251,7 @@ void ProbTrajEngine::displayObservedGraph(std::ostream* output_observed_graph){
     }
     
   }
+#ifdef MPI_COMPAT
+}
+#endif
 }
