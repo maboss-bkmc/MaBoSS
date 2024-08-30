@@ -33,9 +33,9 @@ fi
 
 mkdir -p ${BUILD_PATH}
 cd ${BUILD_PATH}
-wget https://github.com/sbmlteam/libsbml/archive/refs/tags/v5.20.2.tar.gz
-tar -zxf v5.20.2.tar.gz
-cd libsbml-5.20.2
+wget https://github.com/sbmlteam/libsbml/archive/refs/tags/v5.20.4.tar.gz
+tar -zxf v5.20.4.tar.gz
+cd libsbml-5.20.4
 mkdir build
 cd build
 

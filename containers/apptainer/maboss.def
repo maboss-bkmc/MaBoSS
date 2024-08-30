@@ -10,9 +10,9 @@ from: ubuntu:22.04
         flex bison gcc g++ make libxml2-dev cmake wget ca-certificates 
     apt clean -y 
     rm -rf /var/lib/apt/lists/*
-    wget https://github.com/sbmlteam/libsbml/archive/refs/tags/v5.20.2.tar.gz
-    tar -zxf v5.20.2.tar.gz
-    cd libsbml-5.20.2
+    wget https://github.com/sbmlteam/libsbml/archive/refs/tags/v5.20.4.tar.gz
+    tar -zxf v5.20.4.tar.gz
+    cd libsbml-5.20.4
     mkdir build
     cd build
     cmake -DCMAKE_INSTALL_PREFIX=/usr \
@@ -36,7 +36,7 @@ from: ubuntu:22.04
     make
     make install
     cd ../../
-    rm -fr libsbml-5.20.2
+    rm -fr libsbml-5.20.4
     rm -fr /opt/MaBoSS/.git
     
     bash -c "cd /opt/MaBoSS/engine/src/; make install SBML_COMPAT=1"

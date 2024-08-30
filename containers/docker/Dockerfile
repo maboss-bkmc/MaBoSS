@@ -9,9 +9,9 @@ RUN apt-get install -yq git flex bison gcc g++ make libxml2-dev cmake wget \
     && apt clean -y \
     && rm -rf /var/lib/apt/lists/*
 
-RUN wget https://github.com/sbmlteam/libsbml/archive/refs/tags/v5.20.2.tar.gz \
-    && tar -zxf v5.20.2.tar.gz \
-    && cd libsbml-5.20.2 \
+RUN wget https://github.com/sbmlteam/libsbml/archive/refs/tags/v5.20.4.tar.gz \
+    && tar -zxf v5.20.4.tar.gz \
+    && cd libsbml-5.20.4 \
     && mkdir build \
     && cd build \
     && cmake -DCMAKE_INSTALL_PREFIX=/usr \
@@ -35,7 +35,7 @@ RUN wget https://github.com/sbmlteam/libsbml/archive/refs/tags/v5.20.2.tar.gz \
     && make \
     && make install \
     && cd ../../ \
-    && rm -fr libsbml-5.20.2 \
+    && rm -fr libsbml-5.20.4 \
     && rm -fr /opt/MaBoSS/.git
     
 # Installing MaBoSS

@@ -11,11 +11,11 @@ jobs:
     name: MaBoSS
     runs-on: macos-12
     env:
-      CC: gcc-11
-      CXX: g++-11
+      CC: gcc-12
+      CXX: g++-12
       INSTALL_PATH: /usr/local
       BUILD_PATH: /tmp/
-      LIBXML_LIBDIR: /usr/local/opt/libxml2/lib/libxml2.dylib
+      LIBXML_LIBDIR: /usr/local/opt/libxml2/lib/libxml2.2.dylib
       LIBXML_INCLUDEDIR: /usr/local/opt/libxml2/include/libxml2/
       MACOSX_DEPLOYMENT_TARGET: 12.0
 
@@ -23,14 +23,9 @@ jobs:
     - uses: actions/checkout@v4
     - name: Install dependencies
       run : |
-        brew install flex bison gcc cmake hdf5
+        brew install gcc flex bison cmake
+        brew install libxml2 hdf5
         pip install numpy
-        pwd
-
-    - name: Manually install libxml2 2.11
-      run: |
-        wget https://github.com/Homebrew/homebrew-core/raw/38ba35404e3cdb398694419850179e0023158887/Formula/lib/libxml2.rb
-        brew install -s libxml2.rb
         
     - name: Set cmake version variable
       run: |
@@ -40,9 +35,9 @@ jobs:
       id: cache-libsbml-gcc
       uses: actions/cache@v4
       with:
-        path: /tmp/libsbml-5.20.2
-        key: ${{ runner.os }}-${{ env.CMAKE_VERSION }}.libSBML-5.20.2-g++11-namespace
-
+        path: /tmp/libsbml-5.20.4
+        key: ${{ runner.os }}-${{ env.CMAKE_VERSION }}.libSBML-5.20.4-g++12-namespace
+    
     - name: Compiling libSBML
       if: steps.cache-libsbml-gcc.outputs.cache-hit != 'true'
       run: bash scripts/build_libsbml.sh
@@ -56,8 +51,8 @@ jobs:
         make clean
         export CXXFLAGS="${CXXFLAGS} -I/usr/local/include -I/usr/local/include/libxml2"
         export LDFLAGS="${LDFLAGS} -L/usr/local/lib -lxml2"
-        make CXX=g++-11 CC=gcc-11 install SBML_COMPAT=1
-        make CXX=g++-11 CC=gcc-11 MAXNODES=128 install SBML_COMPAT=1
+        make CXX=g++-12 CC=gcc-12 install SBML_COMPAT=1
+        make CXX=g++-12 CC=gcc-12 MAXNODES=128 install SBML_COMPAT=1
         
     - name: Test MaBoSS
       run: bash scripts/run_tests.sh
@@ -78,14 +73,9 @@ jobs:
     - uses: actions/checkout@v4
     - name: Install dependencies
       run : |
-        brew install flex bison cmake hdf5
+        brew install flex bison cmake hdf5 libxml2
         pip install numpy
 
-    - name: Manually install libxml2 2.11
-      run: |
-        wget https://github.com/Homebrew/homebrew-core/raw/38ba35404e3cdb398694419850179e0023158887/Formula/lib/libxml2.rb
-        brew install -s libxml2.rb
-        
     - name: Set cmake version variable
       run: |
         echo "CMAKE_VERSION=$(cmake --version | head -n 1)" >> $GITHUB_ENV
@@ -94,8 +84,8 @@ jobs:
       id: cache-libsbml-clang
       uses: actions/cache@v4
       with:
-        path: /tmp/libsbml-5.20.2
-        key: ${{ runner.os }}-${{ env.CMAKE_VERSION }}-libSBML-5.20.2-clang++-namespace
+        path: /tmp/libsbml-5.20.4
+        key: ${{ runner.os }}-${{ env.CMAKE_VERSION }}-libSBML-5.20.4-clang++-namespace
 
     - name: Compiling libSBML
       if: steps.cache-libsbml-clang.outputs.cache-hit != 'true'
@@ -132,13 +122,8 @@ jobs:
     - uses: actions/checkout@v4
     - name: Install dependencies
       run : |
-        brew install flex bison cmake
+        brew install flex bison cmake libxml2
         
-    - name: Manually install libxml2 2.11
-      run: |
-        wget https://github.com/Homebrew/homebrew-core/raw/38ba35404e3cdb398694419850179e0023158887/Formula/lib/libxml2.rb
-        brew install -s libxml2.rb
-
     - name: Set cmake version variable
       run: |
         echo "CMAKE_VERSION=$(cmake --version | head -n 1)" >> $GITHUB_ENV
@@ -147,8 +132,8 @@ jobs:
       id: cache-libsbml-clang
       uses: actions/cache@v4
       with:
-        path: /tmp/libsbml-5.20.2
-        key: ${{ runner.os }}-${{ env.CMAKE_VERSION }}-libSBML-5.20.2-clang++-namespace
+        path: /tmp/libsbml-5.20.4
+        key: ${{ runner.os }}-${{ env.CMAKE_VERSION }}-libSBML-5.20.4-clang++-namespace
 
     - name: Compiling libSBML
       if: steps.cache-libsbml-clang.outputs.cache-hit != 'true'
@@ -210,12 +195,7 @@ jobs:
     - uses: actions/checkout@v4
     - name: Install dependencies
       run : |
-        brew install flex bison cmake
-
-    - name: Manually install libxml2 2.11
-      run: |
-        wget https://github.com/Homebrew/homebrew-core/raw/38ba35404e3cdb398694419850179e0023158887/Formula/lib/libxml2.rb
-        brew install -s libxml2.rb
+        brew install flex bison cmake libxml2
       
     - name: Set cmake version variable
       run: |
@@ -225,8 +205,8 @@ jobs:
       id: cache-libsbml-clang
       uses: actions/cache@v4
       with:
-        path: /tmp/libsbml-5.20.2
-        key: ${{ runner.os }}-m1-${{ env.CMAKE_VERSION }}-libSBML-5.20.2-clang++-namespace
+        path: /tmp/libsbml-5.20.4
+        key: ${{ runner.os }}-m1-${{ env.CMAKE_VERSION }}-libSBML-5.20.4-clang++-namespace
 
     - name: Compiling libSBML
       if: steps.cache-libsbml-clang.outputs.cache-hit != 'true'
@@ -339,23 +319,23 @@ jobs:
     - uses: actions/checkout@v4
     - name: Install dependencies
       run : |
-        brew install flex bison gcc@11
+        brew install flex bison
               
     - name: Build library
       run: |
         rm -fr engine/pub/*
         cd engine/src
         make clean
-        make install_lib CC=gcc-11 CXX=g++-11
-        make install_lib MAXNODES=128 CC=gcc-11 CXX=g++-11
-        make install_lib MAXNODES=256 CC=gcc-11 CXX=g++-11
-        make install_lib MAXNODES=512 CC=gcc-11 CXX=g++-11
-        make install_lib MAXNODES=1024 CC=gcc-11 CXX=g++-11
-        make install_alib CC=gcc-11 CXX=g++-11
-        make install_alib MAXNODES=128 CC=gcc-11 CXX=g++-11
-        make install_alib MAXNODES=256 CC=gcc-11 CXX=g++-11
-        make install_alib MAXNODES=512 CC=gcc-11 CXX=g++-11
-        make install_alib MAXNODES=1024 CC=gcc-11 CXX=g++-11
+        make install_lib CC=gcc-12 CXX=g++-12
+        make install_lib MAXNODES=128 CC=gcc-12 CXX=g++-12
+        make install_lib MAXNODES=256 CC=gcc-12 CXX=g++-12
+        make install_lib MAXNODES=512 CC=gcc-12 CXX=g++-12
+        make install_lib MAXNODES=1024 CC=gcc-12 CXX=g++-12
+        make install_alib CC=gcc-12 CXX=g++-12
+        make install_alib MAXNODES=128 CC=gcc-12 CXX=g++-12
+        make install_alib MAXNODES=256 CC=gcc-12 CXX=g++-12
+        make install_alib MAXNODES=512 CC=gcc-12 CXX=g++-12
+        make install_alib MAXNODES=1024 CC=gcc-12 CXX=g++-12
         make clean
         cd ../../../
         tar -zcvf libMaBoSS-osx64.tar.gz MaBoSS/README.md MaBoSS/LICENSE MaBoSS/engine/src MaBoSS/engine/include MaBoSS/engine/lib
@@ -384,28 +364,25 @@ jobs:
     steps:
     - uses: actions/checkout@v4
   
-    - name: Downgrade XCODE to 14.3.1
-      run: sudo xcode-select -switch /Applications/Xcode_14.3.1.app
-  
     - name: Install dependencies
       run : |
-        brew install flex bison gcc@13
+        brew install flex bison
               
     - name: Build library
       run: |
         rm -fr engine/pub/*
         cd engine/src
         make clean
-        make install_lib CC=gcc-13 CXX=g++-13
-        make install_lib MAXNODES=128 CC=gcc-13 CXX=g++-13
-        make install_lib MAXNODES=256 CC=gcc-13 CXX=g++-13
-        make install_lib MAXNODES=512 CC=gcc-13 CXX=g++-13
-        make install_lib MAXNODES=1024 CC=gcc-13 CXX=g++-13
-        make install_alib CC=gcc-13 CXX=g++-13
-        make install_alib MAXNODES=128 CC=gcc-13 CXX=g++-13
-        make install_alib MAXNODES=256 CC=gcc-13 CXX=g++-13
-        make install_alib MAXNODES=512 CC=gcc-13 CXX=g++-13
-        make install_alib MAXNODES=1024 CC=gcc-13 CXX=g++-13
+        make install_lib CC=gcc-12 CXX=g++-12
+        make install_lib MAXNODES=128 CC=gcc-12 CXX=g++-12
+        make install_lib MAXNODES=256 CC=gcc-12 CXX=g++-12
+        make install_lib MAXNODES=512 CC=gcc-12 CXX=g++-12
+        make install_lib MAXNODES=1024 CC=gcc-12 CXX=g++-12
+        make install_alib CC=gcc-12 CXX=g++-12
+        make install_alib MAXNODES=128 CC=gcc-12 CXX=g++-12
+        make install_alib MAXNODES=256 CC=gcc-12 CXX=g++-12
+        make install_alib MAXNODES=512 CC=gcc-12 CXX=g++-12
+        make install_alib MAXNODES=1024 CC=gcc-12 CXX=g++-12
         make clean
         cd ../../../
         tar -zcvf libMaBoSS-macos-arm64.tar.gz MaBoSS/README.md MaBoSS/LICENSE MaBoSS/engine/src MaBoSS/engine/include MaBoSS/engine/lib
@@ -431,8 +408,8 @@ jobs:
     runs-on: macos-12
     needs: [maboss_macos, maboss_llvm_macos]
     env:  
-      CC: gcc-11
-      CXX: g++-11
+      CC: gcc-12
+      CXX: g++-12
       INSTALL_PATH: /usr/local/
       BUILD_PATH: /tmp/
       LIBXML_LIBDIR: /usr/local/opt/libxml2/lib/libxml2.dylib
@@ -443,23 +420,18 @@ jobs:
     - uses: actions/checkout@v4
     - name: Install dependencies
       run : |
-        brew install flex bison gcc@11 cmake
-        
-    - name: Manually install libxml2 2.11
-      run: |
-        wget https://github.com/Homebrew/homebrew-core/raw/38ba35404e3cdb398694419850179e0023158887/Formula/lib/libxml2.rb
-        brew install -s libxml2.rb
+        brew install flex bison cmake libxml2
     
     - name: Set cmake version variable
       run: |
         echo "CMAKE_VERSION=$(cmake --version | head -n 1)" >> $GITHUB_ENV  
          
     - name: Cache compiled libSBML
-      id: cache-libsbml-gcc11
+      id: cache-libsbml-gcc12
       uses: actions/cache@v4
       with:
-        path: /tmp/libsbml-5.20.2
-        key: ${{ runner.os }}-${{ env.CMAKE_VERSION }}-libSBML-5.20.2-g++11-namespace
+        path: /tmp/libsbml-5.20.4
+        key: ${{ runner.os }}-${{ env.CMAKE_VERSION }}-libSBML-5.20.4-g++12-namespace
 
     - name: Compiling libSBML
       if: steps.cache-libsbml-gcc11.outputs.cache-hit != 'true'
@@ -475,17 +447,17 @@ jobs:
         rm -fr engine/pub/*
         cd engine/src
         make clean
-        make install CC=gcc-11 CXX=g++-11
-        make install_lib SBML_COMPAT=1 CC=gcc-11 CXX=g++-11
-        make install_lib SBML_COMPAT=1 CC=gcc-11 MAXNODES=128 CXX=g++-11
-        make install_lib SBML_COMPAT=1 CC=gcc-11 MAXNODES=256 CXX=g++-11
-        make install_lib SBML_COMPAT=1 CC=gcc-11 MAXNODES=512 CXX=g++-11
-        make install_lib SBML_COMPAT=1 CC=gcc-11 MAXNODES=1024 CXX=g++-11
-        make install_alib SBML_COMPAT=1 CC=gcc-11 CXX=g++-11
-        make install_alib SBML_COMPAT=1 CC=gcc-11 MAXNODES=128 CXX=g++-11
-        make install_alib SBML_COMPAT=1 CC=gcc-11 MAXNODES=256 CXX=g++-11
-        make install_alib SBML_COMPAT=1 CC=gcc-11 MAXNODES=512 CXX=g++-11
-        make install_alib SBML_COMPAT=1 CC=gcc-11 MAXNODES=1024 CXX=g++-11
+        make install CC=gcc-12 CXX=g++-12
+        make install_lib SBML_COMPAT=1 CC=gcc-12 CXX=g++-12
+        make install_lib SBML_COMPAT=1 CC=gcc-12 MAXNODES=128 CXX=g++-12
+        make install_lib SBML_COMPAT=1 CC=gcc-12 MAXNODES=256 CXX=g++-12
+        make install_lib SBML_COMPAT=1 CC=gcc-12 MAXNODES=512 CXX=g++-12
+        make install_lib SBML_COMPAT=1 CC=gcc-12 MAXNODES=1024 CXX=g++-12
+        make install_alib SBML_COMPAT=1 CC=gcc-12 CXX=g++-12
+        make install_alib SBML_COMPAT=1 CC=gcc-12 MAXNODES=128 CXX=g++-12
+        make install_alib SBML_COMPAT=1 CC=gcc-12 MAXNODES=256 CXX=g++-12
+        make install_alib SBML_COMPAT=1 CC=gcc-12 MAXNODES=512 CXX=g++-12
+        make install_alib SBML_COMPAT=1 CC=gcc-12 MAXNODES=1024 CXX=g++-12
         make clean
         cd ../../../
         tar -zcvf libMaBoSS-sbml-osx64.tar.gz MaBoSS/README.md MaBoSS/LICENSE MaBoSS/engine/src MaBoSS/engine/include MaBoSS/engine/lib
