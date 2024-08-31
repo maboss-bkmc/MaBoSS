@@ -1648,8 +1648,9 @@ PyObject* getNumpySimpleLastStatesDists(Network* network) const
       proba += new_tm_slice;
 #endif
     }
-
+#ifdef DEBUG      
     assert(proba >= 0.9999 && proba <= 1.0001);
+#endif
   }
 
   unsigned int getSampleCount() const {return sample_count;}
