@@ -60,7 +60,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build: ["cp*-manylinux_x86_64", "pp*-manylinux_x86_64"]
+        build: ["cp*-manylinux_x86_64"]
     needs: cmaboss
     steps:
       - uses: actions/checkout@v4
