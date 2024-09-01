@@ -484,6 +484,7 @@ jobs:
     name: Build Conda MaBoSS package
     needs: [maboss_macos, maboss_llvm_macos]
     strategy:
+      fail-fast: false
       matrix:
         repo: [
           {id: 0, name: "defaults", miniforge-variant: "", path: "/usr/local/miniconda"}, 
@@ -535,6 +536,7 @@ jobs:
     name: Build Conda MaBoSS package for arm64
     needs: [maboss_macos, maboss_llvm_macos]
     strategy:
+      fail-fast: false
       matrix:
         repo: [
           {id: 0, name: "defaults", miniforge-variant: "", path: "/Users/runner/miniconda3"}, 

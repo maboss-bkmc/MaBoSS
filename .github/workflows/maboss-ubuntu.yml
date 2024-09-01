@@ -429,6 +429,7 @@ jobs:
   maboss_conda_defaults:
     name: Build MaBoSS Anaconda package
     strategy:
+      fail-fast: false
       matrix:
         repo: [
           {id: 0, name: "defaults", miniforge-variant: "", path: "/usr/share/miniconda"}, 

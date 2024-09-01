@@ -58,6 +58,7 @@ jobs:
     name: Build linux wheels
     runs-on: ubuntu-22.04
     strategy:
+      fail-fast: false
       matrix:
         build: ["cp*-manylinux_x86_64", "pp*-manylinux_x86_64"]
     needs: cmaboss
@@ -121,6 +122,7 @@ jobs:
     needs: cmaboss
 
     strategy:
+      fail-fast: false
       matrix:
         version: [{python: "3.8", numpy: "1.24"}, {python: "3.9", numpy: "1.26"}, {python: "3.10", numpy: "1.26"}, {python: "3.11", numpy: "1.26"}, {python: "3.12", numpy: "1.26"}]
     
@@ -161,6 +163,7 @@ jobs:
     needs: cmaboss
 
     strategy:
+      fail-fast: false
       matrix:
         version: [{python: "3.8", numpy: "1.24"}, {python: "3.9", numpy: "2.0"}, {python: "3.10", numpy: "2.0"}, {python: "3.11", numpy: "2.0"}, {python: "3.12", numpy: "2.0"}]
     

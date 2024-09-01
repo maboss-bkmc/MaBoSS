@@ -184,6 +184,7 @@ jobs:
     needs: cmaboss_macos
 
     strategy:
+      fail-fast: false
       matrix:
         version: [{python: "3.8", numpy: "1.24"}, {python: "3.9", numpy: "1.26"}, {python: "3.10", numpy: "1.26"}, {python: "3.11", numpy: "1.26"}, {python: "3.12", numpy: "1.26"}]
     runs-on: macos-12
@@ -234,6 +235,7 @@ jobs:
     needs: cmaboss_macos
 
     strategy:
+      fail-fast: false
       matrix:
         version: [{python: "3.8", numpy: "1.24"}, {python: "3.9", numpy: "2.0"}, {python: "3.10", numpy: "2.0"}, {python: "3.11", numpy: "2.0"}, {python: "3.12", numpy: "2.0"}]
     runs-on: macos-12
@@ -286,6 +288,7 @@ jobs:
     needs: cmaboss_macos
 
     strategy:
+      fail-fast: false
       matrix:
         version: [{python: "3.8", numpy: "1.22"}, {python: "3.9", numpy: "1.22"}, {python: "3.10", numpy: "1.22"}, {python: "3.11", numpy: "1.23"}, {python: "3.12", numpy: "1.26"}]
     runs-on: macos-14
@@ -336,6 +339,7 @@ jobs:
     needs: cmaboss_macos
 
     strategy:
+      fail-fast: false
       matrix:
         version: [{python: "3.8", numpy: "1.22"}, {python: "3.9", numpy: "1.22"}, {python: "3.10", numpy: "1.22"}, {python: "3.11", numpy: "1.23"}, {python: "3.12", numpy: "1.26"}]
     runs-on: macos-14
