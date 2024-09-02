@@ -28,6 +28,8 @@ bash ./test-prngs.sh
 check "prngs"
 bash ./test-popmaboss.sh
 check popmaboss
+bash ./test-observed_graph.sh
+check observed_graph
 
 if [[ -n $RUNNER_OS ]] && [[ $RUNNER_OS != "Windows" ]]; then
     bash ./test-server.sh

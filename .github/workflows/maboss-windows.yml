@@ -34,6 +34,7 @@ jobs:
           mingw-w64-x86_64-libwinpthread-git mingw-w64-x86_64-winpthreads-git mingw-w64-x86_64-bzip2 
           mingw-w64-x86_64-lapack mingw-w64-x86_64-openblas mingw-w64-x86_64-hdf5
           mingw-w64-x86_64-python-pip mingw-w64-x86_64-python-numpy mingw-w64-x86_64-libxml2
+          mingw-w64-x86_64-diffutils
      
     - name: Cache compiled libSBML
       id: cache-libsbml-gcc

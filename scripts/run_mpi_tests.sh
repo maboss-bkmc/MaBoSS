@@ -30,6 +30,10 @@ bash ./test-mpi-popmaboss.sh 2
 check "popmaboss 2 nodes"
 bash ./test-mpi-popmaboss.sh 4
 check "popmaboss 4 nodes"
+bash ./test-mpi-observed_graph.sh 2
+check "observed_graph 2 nodes"
+bash ./test-mpi-observed_graph.sh 4
+check "observed_graph 4 nodes"
 cd ../..
 
 exit $return_code
