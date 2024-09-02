@@ -46,6 +46,7 @@
 */
 
 #include "EnsembleEngine.h"
+#include "ProbTrajEngine.h"
 #include "Probe.h"
 #include "Utils.h"
 #include <stdlib.h>
@@ -86,10 +87,34 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
       refnode_mask.setNodeState(node, true);
       refnode_count++;
     }
+    if (node->inGraph()) {
+      graph_nodes.push_back(node);
+      graph_mask.flipState(node);
+    }
   }
 
+  graph_states.resize(pow(2, graph_nodes.size()));
+  
+  unsigned int ii=0;
+  for (auto graph_state : graph_states) {
+    NetworkState state(graph_state);
+    
+    unsigned int jj=0;
+    for (auto* node: graph_nodes){
+      if ((ii & (1ULL << jj)) > 0)
+      {
+        state.flipState(node);
+      }
+      jj++;
+    }
+    
+    graph_states[ii] = state.getState();
+    ii++;
+  }
+  
   merged_cumulator = NULL;
   cumulator_v.resize(thread_count);
+  observed_graph_v.resize(thread_count);
 
   simulation_indices_v.resize(thread_count); // Per thread
   std::vector<unsigned int> simulations_per_model(networks.size(), 0);
@@ -181,10 +206,12 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
 #endif 
   cumulator_models_v.resize(thread_count); // Per thread
   fixpoints_models_v.resize(thread_count);
+  observed_graph_models_v.resize(thread_count);
 
   if (save_individual_result) {
     cumulators_thread_v.resize(networks.size());
     fixpoints_threads_v.resize(networks.size());
+    observed_graph_threads_v.resize(networks.size());
   }
 
   unsigned int count = sample_count / thread_count;
@@ -209,6 +236,13 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
 
     cumulator->setRefnodeMask(refnode_mask.getState());
     cumulator_v[nn] = cumulator;
+    
+    observed_graph_v[nn] = new ObservedGraph();
+    for (auto origin_state : graph_states){
+      for (auto destination_state: graph_states){
+        (*observed_graph_v[nn])[origin_state][destination_state] = 0.0;
+      }
+    }
 
     // Setting the size of the list of indices to the thread's sample count
     simulation_indices_v[nn].resize(t_count); 
@@ -306,6 +340,7 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
     if (save_individual_result) {
       cumulator_models_v[nn].resize(count_by_models.size());
       fixpoints_models_v[nn].resize(count_by_models.size());
+      observed_graph_models_v[nn].resize(count_by_models.size());
 
       for (nnn = 0; nnn < count_by_models.size(); nnn++) {
         if (count_by_models[nnn] > 0) {
@@ -325,10 +360,18 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
           cumulator_models_v[nn][nnn] = t_cumulator;
           cumulators_thread_v[simulation_indices_v[nn][c]].push_back(t_cumulator);
         
-
           FixedPoints* t_fixpoints_map = new FixedPoints();
           fixpoints_models_v[nn][nnn] = t_fixpoints_map;
           fixpoints_threads_v[simulation_indices_v[nn][c]].push_back(t_fixpoints_map);
+          
+          ObservedGraph* t_observed_graph = new ObservedGraph();
+          for (auto origin_state : graph_states){
+            for (auto destination_state: graph_states){
+              (*t_observed_graph)[origin_state][destination_state] = 0.0;
+            }
+          }
+          observed_graph_models_v[nn][nnn] = t_observed_graph;
+          observed_graph_threads_v[simulation_indices_v[nn][c]].push_back(t_observed_graph);
         }
         c += count_by_models[nnn];
       }
@@ -345,24 +388,26 @@ struct EnsembleArgWrapper {
   std::vector<unsigned int> simulations_per_model;
   std::vector<Cumulator<NetworkState>*> models_cumulators;
   std::vector<FixedPoints* > models_fixpoints;
+  std::vector<ObservedGraph* > models_observed_graphs;
   
   RandomGeneratorFactory* randgen_factory;
   int seed;
   FixedPoints* fixpoint_map;
+  ObservedGraph* observed_graph;
   std::ostream* output_traj;
 
   EnsembleArgWrapper(
     EnsembleEngine* mabest, unsigned int start_count_thread, unsigned int sample_count_thread, 
     Cumulator<NetworkState>* cumulator, std::vector<unsigned int> simulations_per_model, 
-    std::vector<Cumulator<NetworkState>*> models_cumulators, std::vector<FixedPoints* > models_fixpoints,
+    std::vector<Cumulator<NetworkState>*> models_cumulators, std::vector<FixedPoints* > models_fixpoints, std::vector<ObservedGraph* > models_observed_graphs,
     RandomGeneratorFactory* randgen_factory, int seed, 
-    FixedPoints* fixpoint_map, std::ostream* output_traj) :
+    FixedPoints* fixpoint_map, ObservedGraph* observed_graph, std::ostream* output_traj) :
 
       mabest(mabest), start_count_thread(start_count_thread), sample_count_thread(sample_count_thread), 
       cumulator(cumulator), simulations_per_model(simulations_per_model), 
-      models_cumulators(models_cumulators), models_fixpoints(models_fixpoints),
+      models_cumulators(models_cumulators), models_fixpoints(models_fixpoints), models_observed_graphs(models_observed_graphs),
       randgen_factory(randgen_factory), seed(seed), 
-      fixpoint_map(fixpoint_map), output_traj(output_traj) {
+      fixpoint_map(fixpoint_map), observed_graph(observed_graph), output_traj(output_traj) {
 
     }
 };
@@ -376,8 +421,9 @@ void* EnsembleEngine::threadWrapper(void *arg)
   try {
     warg->mabest->runThread(
       warg->cumulator, warg->start_count_thread, warg->sample_count_thread, 
-      warg->randgen_factory, warg->seed, warg->fixpoint_map, warg->output_traj, 
-      warg->simulations_per_model, warg->models_cumulators, warg->models_fixpoints);
+      warg->randgen_factory, warg->seed, warg->fixpoint_map, warg->observed_graph, warg->output_traj, 
+      warg->simulations_per_model, warg->models_cumulators, warg->models_fixpoints, warg->models_observed_graphs
+      );
   } catch(const BNException& e) {
     std::cerr << e;
   }
@@ -388,11 +434,12 @@ void* EnsembleEngine::threadWrapper(void *arg)
 }
 
 void EnsembleEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, 
-  RandomGeneratorFactory* randgen_factory, int seed, FixedPoints* fixpoint_map, std::ostream* output_traj, 
-  std::vector<unsigned int> simulation_ind, std::vector<Cumulator<NetworkState>*> t_models_cumulators, std::vector<FixedPoints* > t_models_fixpoints)
+  RandomGeneratorFactory* randgen_factory, int seed, FixedPoints* fixpoint_map, ObservedGraph* observed_graph, std::ostream* output_traj, 
+  std::vector<unsigned int> simulation_ind, std::vector<Cumulator<NetworkState>*> t_models_cumulators, std::vector<FixedPoints* > t_models_fixpoints, std::vector<ObservedGraph*> t_models_observed_graphs)
 {
   NetworkState network_state; 
-  
+  NetworkState_Impl network_state_graph;
+
   int model_ind = 0;
   RandomGenerator* random_generator = randgen_factory->generateRandomGenerator(seed);
   const std::vector<Node*>& nodes = networks[0]->getNodes();
@@ -428,6 +475,9 @@ void EnsembleEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int 
       network_state.displayOneLine(*output_traj, network);
       (*output_traj) << '\n';
     }
+    
+    network_state_graph = network_state.getState() & graph_mask.getState();
+    
     while (tm < max_time) {
       double total_rate = 0.;
       nodeTransitionRates.assign(nodes.size(), 0.0);
@@ -503,6 +553,16 @@ void EnsembleEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int 
 
       NodeIndex node_idx = getTargetNode(network, random_generator, nodeTransitionRates, total_rate);
       network_state.flipState(network->getNode(node_idx));
+      
+      NetworkState s_graph(network_state & graph_mask.getState());
+      if (s_graph.getState() != network_state_graph) {
+        (*observed_graph)[network_state_graph][s_graph.getState()] += 1;
+        network_state_graph = s_graph.getState(); 
+        
+        if (save_individual_result){
+          (*t_models_observed_graphs[model_ind])[network_state_graph][s_graph.getState()] += 1;
+        }
+      }
     }
 
     cumulator->trajectoryEpilogue();
@@ -523,7 +583,7 @@ void EnsembleEngine::run(std::ostream* output_traj)
   for (unsigned int nn = 0; nn < thread_count; ++nn) {
     FixedPoints* fixpoint_map = new FixedPoints();
     fixpoint_map_v.push_back(fixpoint_map);
-    EnsembleArgWrapper* warg = new EnsembleArgWrapper(this, start_sample_count, cumulator_v[nn]->getSampleCount(), cumulator_v[nn], simulation_indices_v[nn], cumulator_models_v[nn], fixpoints_models_v[nn], randgen_factory, seed, fixpoint_map, output_traj);
+    EnsembleArgWrapper* warg = new EnsembleArgWrapper(this, start_sample_count, cumulator_v[nn]->getSampleCount(), cumulator_v[nn], simulation_indices_v[nn], cumulator_models_v[nn], fixpoints_models_v[nn], observed_graph_models_v[nn], randgen_factory, seed, fixpoint_map, observed_graph, output_traj);
     pthread_create(&tid[nn], NULL, EnsembleEngine::threadWrapper, warg);
     arg_wrapper_v.push_back(warg);
 
@@ -549,8 +609,7 @@ void EnsembleEngine::mergeMPIIndividual(bool pack)
 {
   if (world_size > 1) {
     for (unsigned int model=0; model < networks.size(); model++) {
-      
-      mergeMPIResults(runconfig, cumulators_per_model[model], fixpoints_per_model[model], world_size, world_rank);
+      mergeMPIResults(runconfig, cumulators_per_model[model], fixpoints_per_model[model], observed_graph_per_model[model], world_size, world_rank);
       
       if (world_rank == 0)
         cumulators_per_model[model]->epilogue(networks[model], reference_state);
@@ -565,9 +624,10 @@ void EnsembleEngine::epilogue()
   mergeResults(cumulator_v, fixpoint_map_v, observed_graph_v);
   merged_cumulator = cumulator_v[0];
   fixpoints = fixpoint_map_v[0];
+  observed_graph = observed_graph_v[0];
 
 #ifdef MPI_COMPAT
-  mergeMPIResults(runconfig, merged_cumulator, fixpoints, world_size, world_rank);
+  mergeMPIResults(runconfig, merged_cumulator, fixpoints, observed_graph, world_size, world_rank);
   
   if (world_rank == 0){
 #endif
@@ -592,15 +652,21 @@ void EnsembleEngine::epilogue()
 void EnsembleEngine::mergeIndividual() {
   cumulators_per_model.resize(networks.size(), NULL);
   fixpoints_per_model.resize(networks.size(), NULL);
+  observed_graph_per_model.resize(networks.size(), NULL);
 
   for (unsigned int i=0; i < networks.size(); i++) {
-    
-    mergeResults(cumulators_thread_v[i], fixpoints_threads_v[i], observed_graph_v);
-    cumulators_per_model[i] = cumulators_thread_v[i][0];
-    fixpoints_per_model[i] = fixpoints_threads_v[i][0];
-    
-    if (cumulators_per_model[i] != NULL)
+    if (cumulators_thread_v[i].size() > 0) {
+      mergeResults(cumulators_thread_v[i], fixpoints_threads_v[i], observed_graph_threads_v[i]);
+      
+      cumulators_per_model[i] = cumulators_thread_v[i][0];
       cumulators_per_model[i]->epilogue(networks[i], reference_state);
+      
+      fixpoints_per_model[i] = fixpoints_threads_v[i][0];
+      observed_graph_per_model[i] = observed_graph_threads_v[i][0];
+    }
+    else {
+      cumulators_per_model[i] = new Cumulator<NetworkState>(runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), 0, 0);
+    }
   }
 }
 
@@ -646,9 +712,7 @@ if (world_rank == 0){
 }
 
 EnsembleEngine::~EnsembleEngine()
-{
-  delete fixpoint_map_v[0];
-  
+{  
   for (auto * t_arg_wrapper: arg_wrapper_v)
     delete t_arg_wrapper;
   
@@ -657,6 +721,13 @@ EnsembleEngine::~EnsembleEngine()
   for (auto * t_cumulator: cumulators_per_model) 
     delete t_cumulator;
 
+  delete fixpoints;
+
   for (auto * t_fixpoint: fixpoints_per_model)
     delete t_fixpoint;
+  
+  delete observed_graph;
+  
+  for (auto * t_observed_graph: observed_graph_per_model)
+    delete t_observed_graph;
 }

@@ -75,6 +75,7 @@ protected:
   NetworkState graph_mask;
   std::vector<const Node*> graph_nodes;
   std::vector<NetworkState_Impl> graph_states;
+  ObservedGraph* observed_graph;
   std::vector<ObservedGraph* > observed_graph_v;
 
   Cumulator<NetworkState>* merged_cumulator;
@@ -86,10 +87,11 @@ protected:
   static void mergeResults(std::vector<Cumulator<NetworkState>*>& cumulator_v, std::vector<FixedPoints *>& fixpoint_map_v, std::vector<ObservedGraph* >& observed_graph_v);  
   
 #ifdef MPI_COMPAT
-  static void mergeMPIResults(RunConfig* runconfig, Cumulator<NetworkState>* ret_cumul, FixedPoints* fixpoints, int world_size, int world_rank, bool pack=true);
+  static void mergeMPIResults(RunConfig* runconfig, Cumulator<NetworkState>* ret_cumul, FixedPoints* fixpoints, ObservedGraph* graph, int world_size, int world_rank, bool pack=true);
   
   static void mergePairOfMPIObservedGraph(ObservedGraph* graph, int world_rank, int dest, int origin, bool pack=true);
-
+  
+  static unsigned int MPI_Pack_Size_ObservedGraph(const ObservedGraph* graph);
   static void MPI_Unpack_ObservedGraph(ObservedGraph* graph, char* buff, unsigned int buff_size);
   static char* MPI_Pack_ObservedGraph(const ObservedGraph* graph, int dest, unsigned int * buff_size);
   static void MPI_Send_ObservedGraph(const ObservedGraph* graph, int dest);

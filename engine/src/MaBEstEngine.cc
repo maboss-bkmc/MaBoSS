@@ -390,10 +390,11 @@ void MaBEstEngine::epilogue()
   mergeResults(cumulator_v, fixpoint_map_v, observed_graph_v);
   merged_cumulator = cumulator_v[0];
   fixpoints = fixpoint_map_v[0];
+  observed_graph = observed_graph_v[0];
 
 #ifdef MPI_COMPAT
   
-  mergeMPIResults(runconfig, merged_cumulator, fixpoints, world_size, world_rank);
+  mergeMPIResults(runconfig, merged_cumulator, fixpoints, observed_graph, world_size, world_rank);
   
   if (world_rank == 0)
   {
@@ -407,12 +408,12 @@ void MaBEstEngine::epilogue()
 }
 
 MaBEstEngine::~MaBEstEngine()
-{
-  delete fixpoint_map_v[0];
-  
+{ 
   for (auto t_arg_wrapper: arg_wrapper_v)
     delete t_arg_wrapper;
 
   delete merged_cumulator;
+  delete fixpoints;
+  delete observed_graph;
 }
 

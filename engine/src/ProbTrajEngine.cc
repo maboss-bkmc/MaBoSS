@@ -83,7 +83,6 @@ void* ProbTrajEngine::threadMergeWrapper(void *arg)
   try {
     Cumulator<NetworkState>::mergePairOfCumulators(warg->cumulator_1, warg->cumulator_2);
     ProbTrajEngine::mergePairOfFixpoints(warg->fixpoints_1, warg->fixpoints_2);
-    if (warg->observed_graph_1 != NULL && warg->observed_graph_2 != NULL)
     ProbTrajEngine::mergePairOfObservedGraph(warg->observed_graph_1, warg->observed_graph_2);
   } catch(const BNException& e) {
     std::cerr << e;
@@ -140,8 +139,7 @@ void ProbTrajEngine::mergeResults(std::vector<Cumulator<NetworkState>*>& cumulat
 
 #ifdef MPI_COMPAT
 
-
-void ProbTrajEngine::mergeMPIResults(RunConfig* runconfig, Cumulator<NetworkState>* ret_cumul, FixedPoints* fixpoints, int world_size, int world_rank, bool pack)
+void ProbTrajEngine::mergeMPIResults(RunConfig* runconfig, Cumulator<NetworkState>* ret_cumul, FixedPoints* fixpoints, ObservedGraph* graph, int world_size, int world_rank, bool pack)
 {  
   if (world_size> 1) {
     
@@ -152,12 +150,14 @@ void ProbTrajEngine::mergeMPIResults(RunConfig* runconfig, Cumulator<NetworkStat
     
       int step_lvl = pow(2, lvl-1);
       
+      MPI_Barrier(MPI_COMM_WORLD);
       for(int i=0; i < world_size; i+=(step_lvl*2)) {
         
         if (i+step_lvl < world_size) {
           if (world_rank == i || world_rank == (i+step_lvl)){
             Cumulator<NetworkState>::mergePairOfMPICumulators(ret_cumul, world_rank, i, i+step_lvl, runconfig, pack);
             mergePairOfMPIFixpoints(fixpoints, world_rank, i, i+step_lvl, pack);
+            mergePairOfMPIObservedGraph(graph, world_rank, i, i+step_lvl, pack); 
           }
         } 
       }
@@ -235,7 +235,7 @@ if (getWorldRank() == 0) {
       (*output_observed_graph) << NetworkState(origin_state).getName(network);
       
       for (auto destination_state: graph_states) {
-        (*output_observed_graph) << "\t" << (*(observed_graph_v[0]))[origin_state][destination_state];
+        (*output_observed_graph) << "\t" << (*(observed_graph))[origin_state][destination_state];
       }
       
       (*output_observed_graph) << std::endl;
@@ -245,4 +245,170 @@ if (getWorldRank() == 0) {
 #ifdef MPI_COMPAT
 }
 #endif
+  
 }
+  
+#ifdef MPI_COMPAT
+
+void ProbTrajEngine::mergePairOfMPIObservedGraph(ObservedGraph* graph, int world_rank, int dest, int origin, bool pack)
+{
+  if (world_rank == dest) 
+  {
+  
+    if (pack) {
+      unsigned int buff_size = -1;
+      MPI_Recv( &buff_size, 1, MPI_UNSIGNED, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);    
+      char* buff = new char[buff_size];
+      MPI_Recv( buff, buff_size, MPI_PACKED, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
+      MPI_Unpack_ObservedGraph(graph, buff, buff_size);
+      delete [] buff;
+      
+    } else {
+      MPI_Recv_ObservedGraph(graph, origin);
+    }
+    
+  } else if (world_rank == origin) {
+
+    if (pack) {
+      unsigned int buff_size = -1;
+      char* buff = MPI_Pack_ObservedGraph(graph, dest, &buff_size);      
+      MPI_Send(&buff_size, 1, MPI_UNSIGNED, dest, 0, MPI_COMM_WORLD);
+      MPI_Send( buff, buff_size, MPI_PACKED, dest, 0, MPI_COMM_WORLD); 
+      delete [] buff;            
+      
+    } else {
+    
+      MPI_Send_ObservedGraph(graph, dest);
+    }
+  }
+}
+
+unsigned int ProbTrajEngine::MPI_Pack_Size_ObservedGraph(const ObservedGraph* graph) {
+  unsigned int pack_size = sizeof(unsigned int);
+  if (graph != NULL) {
+    for (auto& row: *graph) {
+      NetworkState s(row.first);
+      pack_size += s.my_MPI_Pack_Size();
+      pack_size += row.second.size() * sizeof(unsigned int);
+    }
+  }
+  return pack_size;
+}
+
+void ProbTrajEngine::MPI_Unpack_ObservedGraph(ObservedGraph* graph, char* buff, unsigned int buff_size)
+{
+  int position = 0;
+  
+  unsigned int size = -1;
+  MPI_Unpack(buff, buff_size, &position, &size, 1, MPI_UNSIGNED, MPI_COMM_WORLD);
+  
+  if (size > 0) {
+    
+    std::vector<NetworkState_Impl> states;
+    for (unsigned int i=0; i < size; i++) {
+      NetworkState s;
+      s.my_MPI_Unpack(buff, buff_size, &position);
+      states.push_back(s.getState());
+    }
+    
+    if (graph == NULL){
+      graph = new ObservedGraph();  
+      for (auto& state: states) {
+        (*graph)[state] = std::map<NetworkState_Impl, unsigned int>();
+        for (auto& state2: states) {
+          (*graph)[state][state2] = 0;
+        }
+      }
+    }
+    
+    for (auto& row: *graph) {
+      for (auto& cell: row.second) {
+        unsigned int count = -1;
+        MPI_Unpack(buff, buff_size, &position, &count, 1, MPI_UNSIGNED, MPI_COMM_WORLD);
+        cell.second += count;
+      }
+    }
+  }
+}
+
+char* ProbTrajEngine::MPI_Pack_ObservedGraph(const ObservedGraph* graph, int dest, unsigned int * buff_size)
+{
+  
+  *buff_size = MPI_Pack_Size_ObservedGraph(graph);
+  
+  char* buff = new char[*buff_size];
+  int position = 0;
+  
+  unsigned int size = graph == NULL ? 0 : graph->size();
+  MPI_Pack(&size, 1, MPI_UNSIGNED, buff, *buff_size, &position, MPI_COMM_WORLD);
+  
+  if (graph != NULL){
+    
+    for (auto& row: *graph) {
+      NetworkState s(row.first);
+      s.my_MPI_Pack(buff, *buff_size, &position);
+    }
+    for (auto& row: *graph) {
+      for (auto& cell: row.second) {
+        unsigned int count = cell.second;
+        MPI_Pack(&count, 1, MPI_UNSIGNED, buff, *buff_size, &position, MPI_COMM_WORLD);
+      }
+    }
+  }
+  return buff;
+}
+
+void ProbTrajEngine::MPI_Send_ObservedGraph(const ObservedGraph* graph, int dest)
+{
+  unsigned int nb_states = graph == NULL ? 0 : graph->size();
+  MPI_Send(&nb_states, 1, MPI_UNSIGNED, dest, 0, MPI_COMM_WORLD);
+  
+  if (nb_states > 0) {
+    for (auto& row: *graph) {
+      NetworkState s(row.first);
+      s.my_MPI_Send(dest);
+    }
+  
+    for (auto& row: *graph) {
+      for (auto& cell: row.second) {
+        unsigned int count = cell.second;
+        MPI_Send(&count, 1, MPI_UNSIGNED, dest, 0, MPI_COMM_WORLD);
+      }
+    } 
+  }
+}
+
+void ProbTrajEngine::MPI_Recv_ObservedGraph(ObservedGraph* graph, int origin)
+{
+  unsigned int nb_states = -1;
+  MPI_Recv(&nb_states, 1, MPI_UNSIGNED, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+  if (nb_states > 0) {
+    std::vector<NetworkState_Impl> states;
+    for (unsigned int i=0; i < nb_states; i++) {
+      NetworkState s;
+      s.my_MPI_Recv(origin);
+      states.push_back(s.getState());
+    }
+    
+    if (graph == NULL) {
+      graph = new ObservedGraph();
+      for (auto& state: states) {
+        (*graph)[state] = std::map<NetworkState_Impl, unsigned int>();
+        for (auto& state2: states) {
+          (*graph)[state][state2] = 0;
+        }
+      }
+    }
+    
+    for (auto& row: *graph) {
+      for (auto& cell: row.second) {
+        unsigned int count = -1;
+        MPI_Recv(&count, 1, MPI_UNSIGNED, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        cell.second += count;
+      }
+    } 
+  }
+}
+
+#endif
