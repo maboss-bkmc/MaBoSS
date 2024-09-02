@@ -326,7 +326,7 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
           cumulators_thread_v[simulation_indices_v[nn][c]].push_back(t_cumulator);
         
 
-          STATE_MAP<NetworkState_Impl, unsigned int>* t_fixpoints_map = new STATE_MAP<NetworkState_Impl, unsigned int>();
+          FixedPoints* t_fixpoints_map = new FixedPoints();
           fixpoints_models_v[nn][nnn] = t_fixpoints_map;
           fixpoints_threads_v[simulation_indices_v[nn][c]].push_back(t_fixpoints_map);
         }
@@ -344,19 +344,19 @@ struct EnsembleArgWrapper {
 
   std::vector<unsigned int> simulations_per_model;
   std::vector<Cumulator<NetworkState>*> models_cumulators;
-  std::vector<STATE_MAP<NetworkState_Impl, unsigned int>* > models_fixpoints;
+  std::vector<FixedPoints* > models_fixpoints;
   
   RandomGeneratorFactory* randgen_factory;
   int seed;
-  STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map;
+  FixedPoints* fixpoint_map;
   std::ostream* output_traj;
 
   EnsembleArgWrapper(
     EnsembleEngine* mabest, unsigned int start_count_thread, unsigned int sample_count_thread, 
     Cumulator<NetworkState>* cumulator, std::vector<unsigned int> simulations_per_model, 
-    std::vector<Cumulator<NetworkState>*> models_cumulators, std::vector<STATE_MAP<NetworkState_Impl, unsigned int>* > models_fixpoints,
+    std::vector<Cumulator<NetworkState>*> models_cumulators, std::vector<FixedPoints* > models_fixpoints,
     RandomGeneratorFactory* randgen_factory, int seed, 
-    STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj) :
+    FixedPoints* fixpoint_map, std::ostream* output_traj) :
 
       mabest(mabest), start_count_thread(start_count_thread), sample_count_thread(sample_count_thread), 
       cumulator(cumulator), simulations_per_model(simulations_per_model), 
@@ -388,8 +388,8 @@ void* EnsembleEngine::threadWrapper(void *arg)
 }
 
 void EnsembleEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, 
-  RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj, 
-  std::vector<unsigned int> simulation_ind, std::vector<Cumulator<NetworkState>*> t_models_cumulators, std::vector<STATE_MAP<NetworkState_Impl, unsigned int>* > t_models_fixpoints)
+  RandomGeneratorFactory* randgen_factory, int seed, FixedPoints* fixpoint_map, std::ostream* output_traj, 
+  std::vector<unsigned int> simulation_ind, std::vector<Cumulator<NetworkState>*> t_models_cumulators, std::vector<FixedPoints* > t_models_fixpoints)
 {
   NetworkState network_state; 
   
@@ -456,7 +456,7 @@ void EnsembleEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int 
       if (total_rate == 0) {
         tm = max_time;
         TH = 0.;
-        STATE_MAP<NetworkState_Impl, unsigned int>::iterator iter = fixpoint_map->find(network_state.getState());
+        FixedPoints::iterator iter = fixpoint_map->find(network_state.getState());
         if (iter == fixpoint_map->end()) {
           (*fixpoint_map)[network_state.getState()] = 1;
         } else {
@@ -464,8 +464,8 @@ void EnsembleEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int 
         }
 
         if (save_individual_result) {
-          STATE_MAP<NetworkState_Impl, unsigned int>* t_fixpoint_map = t_models_fixpoints[model_ind];
-          STATE_MAP<NetworkState_Impl, unsigned int>::iterator iter = t_fixpoint_map->find(network_state.getState());
+          FixedPoints* t_fixpoint_map = t_models_fixpoints[model_ind];
+          FixedPoints::iterator iter = t_fixpoint_map->find(network_state.getState());
           if (iter == t_fixpoint_map->end()) {
             (*t_fixpoint_map)[network_state.getState()] = 1;
           } else {
@@ -521,7 +521,7 @@ void EnsembleEngine::run(std::ostream* output_traj)
   unsigned int start_sample_count = 0;
   Probe probe;
   for (unsigned int nn = 0; nn < thread_count; ++nn) {
-    STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map = new STATE_MAP<NetworkState_Impl, unsigned int>();
+    FixedPoints* fixpoint_map = new FixedPoints();
     fixpoint_map_v.push_back(fixpoint_map);
     EnsembleArgWrapper* warg = new EnsembleArgWrapper(this, start_sample_count, cumulator_v[nn]->getSampleCount(), cumulator_v[nn], simulation_indices_v[nn], cumulator_models_v[nn], fixpoints_models_v[nn], randgen_factory, seed, fixpoint_map, output_traj);
     pthread_create(&tid[nn], NULL, EnsembleEngine::threadWrapper, warg);
@@ -550,10 +550,8 @@ void EnsembleEngine::mergeMPIIndividual(bool pack)
   if (world_size > 1) {
     for (unsigned int model=0; model < networks.size(); model++) {
       
-      std::pair<Cumulator<NetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> results = mergeMPIResults(runconfig, cumulators_per_model[model], fixpoints_per_model[model], world_size, world_rank);
-      cumulators_per_model[model] = results.first;
-      fixpoints_per_model[model] = results.second;
-
+      mergeMPIResults(runconfig, cumulators_per_model[model], fixpoints_per_model[model], world_size, world_rank);
+      
       if (world_rank == 0)
         cumulators_per_model[model]->epilogue(networks[model], reference_state);
     }
@@ -564,14 +562,12 @@ void EnsembleEngine::mergeMPIIndividual(bool pack)
 
 void EnsembleEngine::epilogue()
 {
-  std::pair<Cumulator<NetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> results = mergeResults(cumulator_v, fixpoint_map_v, observed_graph_v);
-  merged_cumulator = results.first;
-  fixpoints = *(results.second);
+  mergeResults(cumulator_v, fixpoint_map_v, observed_graph_v);
+  merged_cumulator = cumulator_v[0];
+  fixpoints = fixpoint_map_v[0];
 
 #ifdef MPI_COMPAT
-  std::pair<Cumulator<NetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> mpi_results = mergeMPIResults(runconfig, merged_cumulator, &fixpoints, world_size, world_rank);
-  merged_cumulator = mpi_results.first;
-  fixpoints = *(mpi_results.second);
+  mergeMPIResults(runconfig, merged_cumulator, fixpoints, world_size, world_rank);
   
   if (world_rank == 0){
 #endif
@@ -599,9 +595,9 @@ void EnsembleEngine::mergeIndividual() {
 
   for (unsigned int i=0; i < networks.size(); i++) {
     
-    std::pair<Cumulator<NetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> results = mergeResults(cumulators_thread_v[i], fixpoints_threads_v[i], observed_graph_v);
-    cumulators_per_model[i] = results.first;
-    fixpoints_per_model[i] = results.second;
+    mergeResults(cumulators_thread_v[i], fixpoints_threads_v[i], observed_graph_v);
+    cumulators_per_model[i] = cumulators_thread_v[i][0];
+    fixpoints_per_model[i] = fixpoints_threads_v[i][0];
     
     if (cumulators_per_model[i] != NULL)
       cumulators_per_model[i]->epilogue(networks[i], reference_state);

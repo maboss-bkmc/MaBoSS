@@ -56,6 +56,7 @@
 #include <assert.h>
 
 #include "MetaEngine.h"
+#include "FixedPointEngine.h"
 #include "BooleanNetwork.h"
 #include "Cumulator.h"
 #include "RandomGenerator.h"
@@ -75,11 +76,11 @@ class FinalStateSimulationEngine : public MetaEngine {
   NodeIndex getTargetNode(RandomGenerator* random_generator, const std::vector<double>& nodeTransitionRates, double total_rate) const;
   void epilogue();
   static void* threadWrapper(void *arg);
-  void runThread(unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* final_state_map, std::ostream* output_traj);
+  void runThread(unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, FixedPoints* final_state_map, std::ostream* output_traj);
   
-  STATE_MAP<NetworkState_Impl, unsigned int>* mergeFinalStateMaps();
+  FixedPoints* mergeFinalStateMaps();
   STATE_MAP<NetworkState_Impl, double> final_states;
-  std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*> final_states_map_v;
+  std::vector<FixedPoints*> final_states_map_v;
 
 public:
   static const std::string VERSION;

@@ -137,7 +137,7 @@ MaBEstEngine::MaBEstEngine(Network* network, RunConfig* runconfig) :
     cumulator->setRefnodeMask(refnode_mask.getState());
     cumulator_v[nn] = cumulator;
     
-    observed_graph_v[nn] = new std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int> >();
+    observed_graph_v[nn] = new ObservedGraph();
     for (auto origin_state : graph_states){
       for (auto destination_state: graph_states){
         (*observed_graph_v[nn])[origin_state][destination_state] = 0.0;
@@ -154,11 +154,11 @@ struct ArgWrapper {
   RandomGeneratorFactory* randgen_factory;
   long long int* elapsed_time;
   int seed;
-  STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map;
+  FixedPoints* fixpoint_map;
   std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int>>* observed_graph;
   std::ostream* output_traj;
 
-  ArgWrapper(MaBEstEngine* mabest, unsigned int start_count_thread, unsigned int sample_count_thread, Cumulator<NetworkState>* cumulator, RandomGeneratorFactory* randgen_factory, long long int * elapsed_time, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int> >* observed_graph, std::ostream* output_traj) :
+  ArgWrapper(MaBEstEngine* mabest, unsigned int start_count_thread, unsigned int sample_count_thread, Cumulator<NetworkState>* cumulator, RandomGeneratorFactory* randgen_factory, long long int * elapsed_time, int seed, FixedPoints* fixpoint_map, ObservedGraph* observed_graph, std::ostream* output_traj) :
     mabest(mabest), start_count_thread(start_count_thread), sample_count_thread(sample_count_thread), cumulator(cumulator), randgen_factory(randgen_factory), elapsed_time(elapsed_time), seed(seed), fixpoint_map(fixpoint_map), observed_graph(observed_graph), output_traj(output_traj) { }
 };
 
@@ -179,7 +179,7 @@ void* MaBEstEngine::threadWrapper(void *arg)
   return NULL;
 }
 
-void MaBEstEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, long long int* elapsed_time, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int> >* observed_graph, std::ostream* output_traj)
+void MaBEstEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, long long int* elapsed_time, int seed, FixedPoints* fixpoint_map, ObservedGraph* observed_graph, std::ostream* output_traj)
 {
   const std::vector<Node*>& nodes = network->getNodes();
   std::vector<Node*>::const_iterator begin = nodes.begin();
@@ -233,7 +233,7 @@ void MaBEstEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int st
       if (total_rate == 0) {
 	tm = max_time;
 	TH = 0.;
-  STATE_MAP<NetworkState_Impl, unsigned int>::iterator iter = fixpoint_map->find(network_state.getState());
+  FixedPoints::iterator iter = fixpoint_map->find(network_state.getState());
 	if (iter == fixpoint_map->end()) {
 	  (*fixpoint_map)[network_state.getState()] = 1;
 	} else {
@@ -302,7 +302,7 @@ void MaBEstEngine::run(std::ostream* output_traj)
 
   Probe probe;
   for (unsigned int nn = 0; nn < thread_count; ++nn) {
-    STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map = new STATE_MAP<NetworkState_Impl, unsigned int>();
+    FixedPoints* fixpoint_map = new FixedPoints();
     fixpoint_map_v.push_back(fixpoint_map);
 
 #ifdef MPI_COMPAT
@@ -387,15 +387,13 @@ if (getWorldRank() == 0) {
 
 void MaBEstEngine::epilogue()
 {
-  std::pair<Cumulator<NetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> results = mergeResults(cumulator_v, fixpoint_map_v, observed_graph_v);
-  merged_cumulator = results.first;
-  fixpoints = *(results.second);
+  mergeResults(cumulator_v, fixpoint_map_v, observed_graph_v);
+  merged_cumulator = cumulator_v[0];
+  fixpoints = fixpoint_map_v[0];
 
 #ifdef MPI_COMPAT
   
-  std::pair<Cumulator<NetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> mpi_results = mergeMPIResults(runconfig, merged_cumulator, &fixpoints, world_size, world_rank);
-  merged_cumulator = mpi_results.first;
-  fixpoints = *(mpi_results.second);
+  mergeMPIResults(runconfig, merged_cumulator, fixpoints, world_size, world_rank);
   
   if (world_rank == 0)
   {

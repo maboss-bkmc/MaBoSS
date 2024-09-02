@@ -54,6 +54,7 @@
 #include <assert.h>
 
 #include "MetaEngine.h"
+#include "FixedPointEngine.h"
 #include "BooleanNetwork.h"
 #include "Cumulator.h"
 #include "RandomGenerator.h"
@@ -74,14 +75,12 @@ class PopMaBEstEngine : public MetaEngine {
 
   PopNetwork* pop_network;
   
-  STATE_MAP<NetworkState_Impl, unsigned int> fixpoints;
-  std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*> fixpoint_map_v;
+  FixedPoints* fixpoints;
+  std::vector<FixedPoints*> fixpoint_map_v;
   
   Cumulator<PopNetworkState>* merged_cumulator;
   std::vector<Cumulator<PopNetworkState>* > cumulator_v;
-
-  STATE_MAP<NetworkState_Impl, unsigned int>* mergeFixpointMaps();
-
+  
 public:
   static const std::string VERSION;
   static int verbose;
@@ -96,8 +95,8 @@ public:
 
   ~PopMaBEstEngine();
 
-  bool converges() const {return fixpoints.size() > 0;}
-  const STATE_MAP<NetworkState_Impl, unsigned int>& getFixpoints() const {return fixpoints;}
+  bool converges() const {return fixpoints->size() > 0;}
+  const FixedPoints* getFixpoints() const {return fixpoints;}
   const std::map<unsigned int, std::pair<NetworkState, double> > getFixPointsDists() const;
 
   Cumulator<PopNetworkState>* getMergedCumulator() {
@@ -117,21 +116,21 @@ public:
   double computeTH(const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
   void epilogue();
   static void* threadWrapper(void *arg);
-  void runThread(Cumulator<PopNetworkState>* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj);
+  void runThread(Cumulator<PopNetworkState>* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, FixedPoints* fixpoint_map, std::ostream* output_traj);
   void displayRunStats(std::ostream& os, time_t start_time, time_t end_time) const;
 
-  static void mergePairOfFixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_1, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_2);
+  static void mergePairOfFixpoints(FixedPoints* fixpoints_1, FixedPoints* fixpoints_2);
   static void* threadMergeWrapper(void *arg);
-  std::pair<Cumulator<PopNetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> mergeResults(std::vector<Cumulator<PopNetworkState>*> cumulator_v, std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*> fixpoint_map_v);
+  void mergeResults(std::vector<Cumulator<PopNetworkState>*> cumulator_v, std::vector<FixedPoints*> fixpoint_map_v);
   
 #ifdef MPI_COMPAT
-  static std::pair<Cumulator<PopNetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> mergeMPIResults(RunConfig* runconfig, Cumulator<PopNetworkState>* ret_cumul, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints, int world_size, int world_rank, bool pack=false);  
+  static void mergeMPIResults(RunConfig* runconfig, Cumulator<PopNetworkState>* ret_cumul, FixedPoints* fixpoints, int world_size, int world_rank, bool pack=false);  
   
-  static void mergePairOfMPIFixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints, int world_rank, int dest, int origin, bool pack=false);
-  static void MPI_Unpack_Fixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, char* buff, unsigned int buff_size);
-  static char* MPI_Pack_Fixpoints(const STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, int dest, unsigned int * buff_size);
-  static void MPI_Send_Fixpoints(const STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, int dest);
-  static void MPI_Recv_Fixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, int origin);
+  static void mergePairOfMPIFixpoints(FixedPoints* fixpoints, int world_rank, int dest, int origin, bool pack=false);
+  static void MPI_Unpack_Fixpoints(FixedPoints* fp_map, char* buff, unsigned int buff_size);
+  static char* MPI_Pack_Fixpoints(const FixedPoints* fp_map, int dest, unsigned int * buff_size);
+  static void MPI_Send_Fixpoints(const FixedPoints* fp_map, int dest);
+  static void MPI_Recv_Fixpoints(FixedPoints* fp_map, int origin);
   
 #endif
 

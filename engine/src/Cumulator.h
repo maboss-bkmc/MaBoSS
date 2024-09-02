@@ -1833,7 +1833,7 @@ static void MPI_Recv_Cumulator(Cumulator<S>* mpi_ret_cumul, int origin)
   }   
 }
 
-static Cumulator<S>* mergePairOfMPICumulators(Cumulator<S>* ret_cumul, int world_rank, int dest, int origin, RunConfig* runconfig, bool pack) 
+static void mergePairOfMPICumulators(Cumulator<S>* ret_cumul, int world_rank, int dest, int origin, RunConfig* runconfig, bool pack) 
 {
   if (world_rank == dest) {
         
@@ -1912,22 +1912,9 @@ static Cumulator<S>* mergePairOfMPICumulators(Cumulator<S>* ret_cumul, int world
       MPI_Send_Cumulator(ret_cumul, dest);
     }
   }
-  
-  return ret_cumul;
 }
 
 #endif
-
-//   static void mergePairOfCumulators(Cumulator* cumulator_1, Cumulator* cumulator_2);
-
-// #ifdef MPI_COMPAT
-//   static Cumulator* mergePairOfMPICumulators(Cumulator* ret_cumul, int world_rank, int rank_receives, int rank_sends, RunConfig* runconfig, bool pack=true);
-
-//   static size_t MPI_Size_Cumulator(Cumulator* ret_cumul);
-//   static char* MPI_Pack_Cumulator(Cumulator* ret_cumul, int dest, unsigned int * buff_size);
-//   static void MPI_Unpack_Cumulator(Cumulator* mpi_ret_cumul, char* buff, unsigned int buff_size);
-
-// #endif
 
 };
 

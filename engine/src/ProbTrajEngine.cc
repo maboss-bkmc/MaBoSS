@@ -54,16 +54,16 @@
 struct MergeWrapper {
   Cumulator<NetworkState>* cumulator_1;
   Cumulator<NetworkState>* cumulator_2;
-  STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_1;
-  STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_2;
-  std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int> >* observed_graph_1;
-  std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int> >* observed_graph_2;
+  FixedPoints* fixpoints_1;
+  FixedPoints* fixpoints_2;
+  ObservedGraph* observed_graph_1;
+  ObservedGraph* observed_graph_2;
   
-  MergeWrapper(Cumulator<NetworkState>* cumulator_1, Cumulator<NetworkState>* cumulator_2, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_1, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_2, std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int> >* observed_graph_1, std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int> >* observed_graph_2) :
+  MergeWrapper(Cumulator<NetworkState>* cumulator_1, Cumulator<NetworkState>* cumulator_2, FixedPoints* fixpoints_1, FixedPoints* fixpoints_2, ObservedGraph* observed_graph_1, ObservedGraph* observed_graph_2) :
     cumulator_1(cumulator_1), cumulator_2(cumulator_2), fixpoints_1(fixpoints_1), fixpoints_2(fixpoints_2), observed_graph_1(observed_graph_1), observed_graph_2(observed_graph_2) { }
 };
 
-void ProbTrajEngine::mergePairOfObservedGraph(std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int> >* observed_graph_1, std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int> >* observed_graph_2)
+void ProbTrajEngine::mergePairOfObservedGraph(ObservedGraph* observed_graph_1, ObservedGraph* observed_graph_2)
 {
   for (auto origin_state: *observed_graph_2){
     for (auto destination_state: origin_state.second) {
@@ -95,14 +95,10 @@ void* ProbTrajEngine::threadMergeWrapper(void *arg)
 }
 
 
-std::pair<Cumulator<NetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> ProbTrajEngine::mergeResults(std::vector<Cumulator<NetworkState>*>& cumulator_v, std::vector<STATE_MAP<NetworkState_Impl, unsigned int> *>& fixpoint_map_v, std::vector<std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int> >* >& observed_graph_v) {
+void ProbTrajEngine::mergeResults(std::vector<Cumulator<NetworkState>*>& cumulator_v, std::vector<FixedPoints *>& fixpoint_map_v, std::vector<ObservedGraph* >& observed_graph_v) {
   
   size_t size = cumulator_v.size();
-  
-  if (size == 0) {
-    return std::make_pair((Cumulator<NetworkState>*) NULL, new STATE_MAP<NetworkState_Impl, unsigned int>());
-  }
-  
+
   if (size > 1) {
     
     
@@ -140,14 +136,12 @@ std::pair<Cumulator<NetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*>
   
    
   }
-  
-  return std::make_pair(cumulator_v[0], fixpoint_map_v[0]);
 }
 
 #ifdef MPI_COMPAT
 
 
-std::pair<Cumulator<NetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> ProbTrajEngine::mergeMPIResults(RunConfig* runconfig, Cumulator<NetworkState>* ret_cumul, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints, int world_size, int world_rank, bool pack)
+void ProbTrajEngine::mergeMPIResults(RunConfig* runconfig, Cumulator<NetworkState>* ret_cumul, FixedPoints* fixpoints, int world_size, int world_rank, bool pack)
 {  
   if (world_size> 1) {
     
@@ -162,7 +156,7 @@ std::pair<Cumulator<NetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*>
         
         if (i+step_lvl < world_size) {
           if (world_rank == i || world_rank == (i+step_lvl)){
-            ret_cumul = Cumulator<NetworkState>::mergePairOfMPICumulators(ret_cumul, world_rank, i, i+step_lvl, runconfig, pack);
+            Cumulator<NetworkState>::mergePairOfMPICumulators(ret_cumul, world_rank, i, i+step_lvl, runconfig, pack);
             mergePairOfMPIFixpoints(fixpoints, world_rank, i, i+step_lvl, pack);
           }
         } 
@@ -171,9 +165,6 @@ std::pair<Cumulator<NetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*>
       lvl++;
     }
   }
-  
-  return std::make_pair(ret_cumul, fixpoints); 
-  
 }
 #endif
 

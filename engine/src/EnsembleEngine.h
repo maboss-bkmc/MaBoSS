@@ -65,7 +65,7 @@ class EnsembleEngine : public ProbTrajEngine {
 
   std::vector<Network*> networks;
   std::vector<Cumulator<NetworkState>*> cumulators_per_model; // The final Cumulators for each model
-  std::vector<STATE_MAP<NetworkState_Impl, unsigned int>* > fixpoints_per_model; // The final fixpoints for each model
+  std::vector<FixedPoints* > fixpoints_per_model; // The final fixpoints for each model
   
   bool save_individual_result; // Do we want to save individual model simulation result
   bool random_sampling; // Randomly select the number of simulation per model
@@ -73,13 +73,13 @@ class EnsembleEngine : public ProbTrajEngine {
   std::vector<std::vector<unsigned int> > simulation_indices_v; // The list of indices of models to simulate for each thread
   std::vector<std::vector<Cumulator<NetworkState>*> > cumulator_models_v; // The results for each model, by thread
   std::vector<std::vector<Cumulator<NetworkState>*> > cumulators_thread_v; // The results for each model, by model
-  std::vector<std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*> > fixpoints_models_v; // The fixpoints for each model, by thread
-  std::vector<std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*> > fixpoints_threads_v; // The fixpoints for each model, by thread
+  std::vector<std::vector<FixedPoints*> > fixpoints_models_v; // The fixpoints for each model, by thread
+  std::vector<std::vector<FixedPoints*> > fixpoints_threads_v; // The fixpoints for each model, by thread
 
   std::vector<EnsembleArgWrapper*> arg_wrapper_v;
   void epilogue();
   static void* threadWrapper(void *arg);
-  void runThread(Cumulator<NetworkState>* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoint_map, std::ostream* output_traj, std::vector<unsigned int> simulation_ind, std::vector<Cumulator<NetworkState>*> t_models_cumulators, std::vector<STATE_MAP<NetworkState_Impl, unsigned int>* > t_models_fixpoints);
+  void runThread(Cumulator<NetworkState>* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, FixedPoints* fixpoint_map, std::ostream* output_traj, std::vector<unsigned int> simulation_ind, std::vector<Cumulator<NetworkState>*> t_models_cumulators, std::vector<FixedPoints* > t_models_fixpoints);
   void displayIndividualFixpoints(unsigned int model_id, FixedPointDisplayer* fp_displayer) const;
   void mergeIndividual();
 

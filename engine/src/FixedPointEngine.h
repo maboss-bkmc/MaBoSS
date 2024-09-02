@@ -63,23 +63,22 @@
 #include "FixedPointDisplayer.h"
 
 struct EnsembleArgWrapper;
-
+typedef STATE_MAP<NetworkState_Impl, unsigned int> FixedPoints;
 class FixedPointEngine : public MetaEngine {
 
 protected:
 
-  STATE_MAP<NetworkState_Impl, unsigned int> fixpoints;
-  std::vector<STATE_MAP<NetworkState_Impl, unsigned int>*> fixpoint_map_v;
-  STATE_MAP<NetworkState_Impl, unsigned int>* mergeFixpointMaps();
-  static void mergePairOfFixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_1, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints_2);
+  FixedPoints* fixpoints;
+  std::vector<FixedPoints*> fixpoint_map_v;
+  static void mergePairOfFixpoints(FixedPoints* fixpoints_1, FixedPoints* fixpoints_2);
 
 #ifdef MPI_COMPAT
-  static void mergePairOfMPIFixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints, int world_rank, int dest, int origin, bool pack=true);
+  static void mergePairOfMPIFixpoints(FixedPoints* fixpoints, int world_rank, int dest, int origin, bool pack=true);
 
-  static void MPI_Unpack_Fixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, char* buff, unsigned int buff_size);
-  static char* MPI_Pack_Fixpoints(const STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, int dest, unsigned int * buff_size);
-  static void MPI_Send_Fixpoints(const STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, int dest);
-  static void MPI_Recv_Fixpoints(STATE_MAP<NetworkState_Impl, unsigned int>* fp_map, int origin);
+  static void MPI_Unpack_Fixpoints(FixedPoints* fp_map, char* buff, unsigned int buff_size);
+  static char* MPI_Pack_Fixpoints(const FixedPoints* fp_map, int dest, unsigned int * buff_size);
+  static void MPI_Send_Fixpoints(const FixedPoints* fp_map, int dest);
+  static void MPI_Recv_Fixpoints(FixedPoints* fp_map, int origin);
   
 #endif
 
@@ -91,8 +90,8 @@ public:
   FixedPointEngine(Network * network, RunConfig* runconfig) : MetaEngine(network, runconfig) {}
 #endif
 
-  bool converges() const {return fixpoints.size() > 0;}
-  const STATE_MAP<NetworkState_Impl, unsigned int>& getFixpoints() const {return fixpoints;}
+  bool converges() const {return fixpoints->size() > 0;}
+  const FixedPoints* getFixpoints() const {return fixpoints;}
   const std::map<unsigned int, std::pair<NetworkState, double> > getFixPointsDists() const;
 
   // void displayFixpoints(std::ostream& output_fp, bool hexfloat = false) const;

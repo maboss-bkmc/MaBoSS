@@ -66,6 +66,7 @@
 #include "ProbTrajDisplayer.h"
 
 struct EnsembleArgWrapper;
+typedef std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int> > ObservedGraph;
 
 class ProbTrajEngine : public FixedPointEngine {
 
@@ -74,19 +75,27 @@ protected:
   NetworkState graph_mask;
   std::vector<const Node*> graph_nodes;
   std::vector<NetworkState_Impl> graph_states;
-  std::vector<std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int> >* > observed_graph_v;
+  std::vector<ObservedGraph* > observed_graph_v;
 
   Cumulator<NetworkState>* merged_cumulator;
   std::vector<Cumulator<NetworkState>*> cumulator_v;
 
   static void* threadMergeWrapper(void *arg);
 
-  static void mergePairOfObservedGraph(std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int> >* observed_graph_1, std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int> >* observed_graph_2);
-  static std::pair<Cumulator<NetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> mergeResults(std::vector<Cumulator<NetworkState>*>& cumulator_v, std::vector<STATE_MAP<NetworkState_Impl, unsigned int> *>& fixpoint_map_v, std::vector<std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int> >* >& observed_graph_v);  
+  static void mergePairOfObservedGraph(ObservedGraph* observed_graph_1, ObservedGraph* observed_graph_2);
+  static void mergeResults(std::vector<Cumulator<NetworkState>*>& cumulator_v, std::vector<FixedPoints *>& fixpoint_map_v, std::vector<ObservedGraph* >& observed_graph_v);  
   
 #ifdef MPI_COMPAT
-  static std::pair<Cumulator<NetworkState>*, STATE_MAP<NetworkState_Impl, unsigned int>*> mergeMPIResults(RunConfig* runconfig, Cumulator<NetworkState>* ret_cumul, STATE_MAP<NetworkState_Impl, unsigned int>* fixpoints, int world_size, int world_rank, bool pack=true);
+  static void mergeMPIResults(RunConfig* runconfig, Cumulator<NetworkState>* ret_cumul, FixedPoints* fixpoints, int world_size, int world_rank, bool pack=true);
   
+  static void mergePairOfMPIObservedGraph(ObservedGraph* graph, int world_rank, int dest, int origin, bool pack=true);
+
+  static void MPI_Unpack_ObservedGraph(ObservedGraph* graph, char* buff, unsigned int buff_size);
+  static char* MPI_Pack_ObservedGraph(const ObservedGraph* graph, int dest, unsigned int * buff_size);
+  static void MPI_Send_ObservedGraph(const ObservedGraph* graph, int dest);
+  static void MPI_Recv_ObservedGraph(ObservedGraph* graph, int origin);
+  
+
 #endif
 
 public:

@@ -119,10 +119,10 @@ struct FinalStateArgWrapper {
   
   RandomGeneratorFactory* randgen_factory;
   int seed;
-  STATE_MAP<NetworkState_Impl, unsigned int>* final_state_map;
+  FixedPoints* final_state_map;
   std::ostream* output_traj;
 
-  FinalStateArgWrapper(FinalStateSimulationEngine* mabest, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* final_state_map, std::ostream* output_traj) :
+  FinalStateArgWrapper(FinalStateSimulationEngine* mabest, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, FixedPoints* final_state_map, std::ostream* output_traj) :
     mabest(mabest), start_count_thread(start_count_thread), sample_count_thread(sample_count_thread), randgen_factory(randgen_factory), seed(seed), final_state_map(final_state_map), output_traj(output_traj) { }
 };
 
@@ -143,7 +143,7 @@ void* FinalStateSimulationEngine::threadWrapper(void *arg)
   return NULL;
 }
 
-void FinalStateSimulationEngine::runThread(unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, STATE_MAP<NetworkState_Impl, unsigned int>* final_state_map, std::ostream* output_traj)
+void FinalStateSimulationEngine::runThread(unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, FixedPoints* final_state_map, std::ostream* output_traj)
 {
   const std::vector<Node*>& nodes = network->getNodes();
   std::vector<Node*>::const_iterator begin = nodes.begin();
@@ -228,14 +228,14 @@ void FinalStateSimulationEngine::runThread(unsigned int start_count_thread, unsi
 
 #ifdef USE_DYNAMIC_BITSET
     NetworkState_Impl cp_final_state(final_state, 1);
-    STATE_MAP<NetworkState_Impl, unsigned int>::iterator iter = final_state_map->find(cp_final_state);
+    FixedPoints::iterator iter = final_state_map->find(cp_final_state);
     if (iter == final_state_map->end()) {
       (*final_state_map)[cp_final_state] = 1;
     } else {
       iter->second++;
     }  
 #else
-    STATE_MAP<NetworkState_Impl, unsigned int>::iterator iter = final_state_map->find(final_state);
+    FixedPoints::iterator iter = final_state_map->find(final_state);
     if (iter == final_state_map->end()) {
       (*final_state_map)[final_state] = 1;
     } else {
@@ -254,7 +254,7 @@ void FinalStateSimulationEngine::run(std::ostream* output_traj)
   unsigned int start_sample_count = 0;
   Probe probe;
   for (unsigned int nn = 0; nn < thread_count; ++nn) {
-    STATE_MAP<NetworkState_Impl, unsigned int>* final_states_map = new STATE_MAP<NetworkState_Impl, unsigned int>();
+    FixedPoints* final_states_map = new FixedPoints();
     final_states_map_v.push_back(final_states_map);
     FinalStateArgWrapper* warg = new FinalStateArgWrapper(this, start_sample_count, sample_count_per_thread[nn], randgen_factory, seed, final_states_map, output_traj);
     pthread_create(&tid[nn], NULL, FinalStateSimulationEngine::threadWrapper, warg);
@@ -269,17 +269,17 @@ void FinalStateSimulationEngine::run(std::ostream* output_traj)
   delete [] tid;
 }  
 
-STATE_MAP<NetworkState_Impl, unsigned int>* FinalStateSimulationEngine::mergeFinalStateMaps()
+FixedPoints* FinalStateSimulationEngine::mergeFinalStateMaps()
 {
   if (1 == final_states_map_v.size()) {
-    return new STATE_MAP<NetworkState_Impl, unsigned int>(*final_states_map_v[0]);
+    return new FixedPoints(*final_states_map_v[0]);
   }
 
-  STATE_MAP<NetworkState_Impl, unsigned int>* final_states_map = new STATE_MAP<NetworkState_Impl, unsigned int>();
+  FixedPoints* final_states_map = new FixedPoints();
   for (auto * fs_map : final_states_map_v) {
     for (const auto & fs : *fs_map) {
       const NetworkState_Impl& state = fs.first;
-      STATE_MAP<NetworkState_Impl, unsigned int>::iterator iter = final_states_map->find(state);
+      FixedPoints::iterator iter = final_states_map->find(state);
       if (iter == final_states_map->end()) {
 	      (*final_states_map)[state] = fs.second;
       } else {
@@ -292,7 +292,7 @@ STATE_MAP<NetworkState_Impl, unsigned int>* FinalStateSimulationEngine::mergeFin
 
 void FinalStateSimulationEngine::epilogue()
 {
-  STATE_MAP<NetworkState_Impl, unsigned int>* merged_final_states_map = mergeFinalStateMaps();
+  FixedPoints* merged_final_states_map = mergeFinalStateMaps();
   for (const auto & fs : *merged_final_states_map) {
 #ifdef USE_DYNAMIC_BITSET
     final_states[NetworkState(fs.first).getState(1)] = ((double) fs.second)/sample_count;
