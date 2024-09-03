@@ -120,6 +120,10 @@ public:
   
   void display(ProbTrajDisplayer<NetworkState>* probtraj_displayer, StatDistDisplayer* statdist_displayer, FixedPointDisplayer* fp_displayer) const;
   void displayObservedGraph(std::ostream* output_observed_graph);
+  
+#ifdef PYTHON_API
+  PyObject* getNumpyObservedGraph();
+#endif
 };
 
 #endif

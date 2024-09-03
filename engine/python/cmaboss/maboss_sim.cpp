@@ -202,6 +202,7 @@ static PyObject* cMaBoSSSim_run(cMaBoSSSimObject* self, PyObject *args, PyObject
     res->end_time = end_time;
     res->probtraj = Py_None;
     res->last_probtraj = Py_None;
+    res->observed_graph = Py_None;
     return (PyObject*) res;
   }
 }

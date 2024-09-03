@@ -72,6 +72,7 @@ typedef struct {
   time_t end_time;
   PyObject* probtraj;
   PyObject* last_probtraj;
+  PyObject* observed_graph;
 } cMaBoSSResultObject;
 
 static void cMaBoSSResult_dealloc(cMaBoSSResultObject *self)
@@ -91,6 +92,7 @@ static PyObject * cMaBoSSResult_new(PyTypeObject* type, PyObject *args, PyObject
   res = (cMaBoSSResultObject *) type->tp_alloc(type, 0);
   res->probtraj = Py_None;
   res->last_probtraj = Py_None;
+  res->observed_graph = Py_None;
   return (PyObject*) res;
 }
 
@@ -110,6 +112,17 @@ static PyObject* cMaBoSSResult_get_fp_table(cMaBoSSResultObject* self) {
   return dict;
 }
 
+static PyObject* cMaBoSSResult_get_observed_graph(cMaBoSSResultObject* self) {
+
+  if (self->observed_graph == Py_None)
+  {
+    self->observed_graph = self->engine->getNumpyObservedGraph();
+  }
+  
+  Py_INCREF(self->observed_graph);
+
+  return self->observed_graph;
+}
 static PyObject* cMaBoSSResult_get_probtraj(cMaBoSSResultObject* self) {
   if (self->probtraj == Py_None) {
     self->probtraj = self->engine->getMergedCumulator()->getNumpyStatesDists(self->network);
@@ -249,10 +262,12 @@ static PyMemberDef cMaBoSSResult_members[] = {
     {(char*)"end_time", T_LONG, offsetof(cMaBoSSResultObject, end_time), 0, (char*)"end_time"},
     {(char*)"probtraj", T_OBJECT_EX, offsetof(cMaBoSSResultObject, probtraj), 0, (char*)"probtraj"},
     {(char*)"last_probtraj", T_OBJECT_EX, offsetof(cMaBoSSResultObject, last_probtraj), 0, (char*)"last_probtraj"},
+    {(char*)"observed_graph", T_OBJECT_EX, offsetof(cMaBoSSResultObject, observed_graph), 0, (char*)"observed_graph"},
     {NULL}  /* Sentinel */
 };
 
 static PyMethodDef cMaBoSSResult_methods[] = {
+    {"get_observed_graph", (PyCFunction) cMaBoSSResult_get_observed_graph, METH_NOARGS, "gets the observed graph table"},
     {"get_fp_table", (PyCFunction) cMaBoSSResult_get_fp_table, METH_NOARGS, "gets the fixpoints table"},
     {"get_probtraj", (PyCFunction) cMaBoSSResult_get_probtraj, METH_NOARGS, "gets the raw states probability trajectories of the simulation"},
     {"get_last_probtraj", (PyCFunction) cMaBoSSResult_get_last_probtraj, METH_NOARGS, "gets the raw states probability trajectories of the simulation"},

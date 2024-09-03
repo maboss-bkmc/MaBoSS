@@ -412,3 +412,36 @@ void ProbTrajEngine::MPI_Recv_ObservedGraph(ObservedGraph* graph, int origin)
 }
 
 #endif
+
+#ifdef PYTHON_API
+
+PyObject* ProbTrajEngine::getNumpyObservedGraph()
+{
+  if (observed_graph != NULL)
+  {
+    npy_intp dims[2] = {(npy_intp) observed_graph->size(), (npy_intp) observed_graph->size()};
+    PyArrayObject* graph = (PyArrayObject *) PyArray_ZEROS(2,dims,NPY_DOUBLE, 0); 
+    PyObject* states = PyList_New(observed_graph->size());
+
+    int i=0;
+    for (auto& row: *observed_graph) 
+    {
+      PyList_SetItem(states, i, PyUnicode_FromString(NetworkState(row.first).getName(network).c_str()));
+      int j=0;
+      for (auto& cell: row.second) {
+        void* ptr_val = PyArray_GETPTR2(graph, i, j);
+
+        PyArray_SETITEM(graph, (char*) ptr_val, PyFloat_FromDouble(cell.second));
+        j++;
+      }
+      i++;
+    }
+
+    return PyTuple_Pack(2, PyArray_Return(graph), states);
+  
+  } else {
+    return Py_None;
+  }
+}
+
+#endif
