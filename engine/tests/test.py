@@ -94,11 +94,12 @@ class TestCMaBoSS(TestCase):
         nodes = ",".join(sorted([s.split(" ")[1] for s in sim.str_bnd().split("\n") if s.lower().startswith("node")]))
         self.assertEqual(nodes, "AKT1,AKT2,Apoptosis,CDH1,CDH2,CTNNB1,CellCycleArrest,DKK1,DNAdamage,ECM,EMT,ERK,GF,Invasion,Metastasis,Migration,NICD,SMAD,SNAI1,SNAI2,TGFbeta,TWIST1,VIM,ZEB1,ZEB2,miR200,miR203,miR34,p21,p53,p63,p73")
 
-def test_popmaboss(self):
+    def test_popmaboss(self):
         sim = cmaboss.PopMaBoSSSim("../tests/popmaboss/Fork.bnd", "../tests/popmaboss/Fork.cfg")
         res = sim.run()
 
-        table = pd.DataFrame(*(res.get_probtraj()[0:2]))
+        data, index, columns, _ = res.get_probtraj()
+        table = pd.DataFrame(data, index=index, columns=columns)
         table_expected = pd.DataFrame(
             np.array(
                 [[1.66255134e-01, 3.40868015e-02, 3.38551043e-02, 8.07009188e-02,
