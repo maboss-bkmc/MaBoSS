@@ -1331,6 +1331,64 @@ namespace std {
   };
 }
 
+class PopSize {
+  unsigned int size;
+public:
+  PopSize(unsigned int size) : size(size) { }
+  PopSize() : size(0) { }
+  void set() {size = 0;}
+  unsigned int getSize() const {return size;}
+  static bool isPopState() {return false;}
+  
+  // & operator for applying the mask
+  PopSize operator&(const NetworkState_Impl& mask) const { 
+    return PopSize(size); 
+  }
+  
+  // & operator for applying the mask
+  PopSize operator&(const NetworkState& mask) const { 
+    return PopSize(size);
+  }
+  
+  PopSize applyMask(const PopSize& mask, std::map<unsigned int, unsigned int>& scale) const {
+    return PopSize(size);
+  }
+  
+  bool operator==(const PopSize& pop_size) const {
+    return pop_size.getSize() == size;
+  }
+  
+  bool operator<(const PopSize& pop_size) const {
+    return size < pop_size.getSize();
+  }
+  
+  int hamming(Network* network, const NetworkState& state) const {
+    return 0;
+  }
+  std::set<NetworkState_Impl>* getNetworkStates() const {
+    return new std::set<NetworkState_Impl>();
+  }
+  
+  std::string getName(Network * network, const std::string& sep=" -- ") const {
+    return std::to_string(size);
+  }
+  
+  void displayOneLine(std::ostream& os, Network* network, const std::string& sep = " -- ") const {
+    os << getName(network, sep);
+  }
+  
+  
+};
+
+namespace std {
+  template <> struct hash<PopSize>
+  {
+    size_t operator()(const PopSize & x) const
+    {
+      return x.getSize();
+    }
+  };
+}
 // abstract base class used for expression evaluation
 class Expression {
 
@@ -1423,6 +1481,42 @@ public:
 
   ~NodeExpression() {
     //delete node;
+  }
+};
+
+
+class StateExpression: public Expression {
+  NetworkState state;
+  Network* network;
+public:
+  StateExpression(NetworkState state, Network* network) : state(state), network(network) { }
+
+  Expression* clone() const {return new StateExpression(state, network);}
+
+  double eval(const Node* this_node, const NetworkState& network_state) const {
+    return state.getState() == network_state.getState() ? 1.0 : 0.0;
+  }
+
+  double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop_state) const {
+    return state.getState() == network_state.getState() ? 1.0 : 0.0;
+  }
+  
+  bool hasCycle(Node* node) const {
+    return false;
+  }
+
+  void display(std::ostream& os) const {
+    state.displayOneLine(os, network);
+  }
+
+  bool isLogicalExpression() const {return true;}
+  std::vector<Node*> getNodes() const{
+    return std::vector<Node*>();
+  }
+  
+  void generateLogicalExpression(LogicalExprGenContext& genctx) const {}
+
+  ~StateExpression() {
   }
 };
 

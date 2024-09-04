@@ -77,6 +77,7 @@ RunConfig::RunConfig()
   statdist_similarity_cache_max_size = 20000;
   init_pop = 1;
   pop_base = 1.0;
+  custom_pop_output_expression = NULL;
 }
 
 RunConfig::~RunConfig()

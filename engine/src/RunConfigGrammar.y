@@ -68,6 +68,7 @@ extern std::string yy_error_head();
   double d;
   long long l;
   std::vector<const Node*>* node_list;
+  const Node* node;
   std::vector<Expression*>* expr_list;
   IStateGroup::ProbaIState* istate_expr;
   PopIStateGroup::PopProbaIState* pop_istate_expr;
@@ -93,6 +94,7 @@ extern std::string yy_error_head();
 %type<expr> expression
 %type<node_list> symbol_list
 %type<node_list> symbol_istate_list
+%type<node_list> state
 %type<expr_list> expression_list
 %type<istate_expr> istate_expression
 %type<istate_expr_list> istate_expression_list
@@ -107,7 +109,7 @@ extern std::string yy_error_head();
 %token<d> DOUBLE
 %token<l> INTEGER
 
-%token LOGAND LOGOR LOGXOR LOGNOT EQUAL NOT_EQUAL NODE GTEQ LTEQ
+%token LOGAND LOGOR LOGXOR LOGNOT EQUAL NOT_EQUAL GTEQ LTEQ CUSTOM_POP_OUTPUT NUMBER_CELL NODE_SEP
 
 %%
 
@@ -122,6 +124,7 @@ translation_unit: decl
 decl: var_decl
 | runconfig_decl
 | node_attr_decl
+| custom_pop_output_decl
 | ';'
 ;
 
@@ -303,6 +306,12 @@ var_decl: VARIABLE '=' expression ';'
 }
 ;
 
+custom_pop_output_decl: CUSTOM_POP_OUTPUT '=' expression ';'
+{
+  config->setCustomPopOutputExpression($3);
+}
+;
+
 primary_expression: INTEGER
 {
   $$ = new ConstantExpression($1);
@@ -320,8 +329,30 @@ primary_expression: INTEGER
 {
   $$ = new ParenthesisExpression($2);
 }
+| NUMBER_CELL '(' state ')'
+{
+  NetworkState network_state;
+  for (auto* node : *$3) {
+    network_state.setNodeState(node, 1);
+  }
+  StateExpression* state_expr = new StateExpression(network_state, network);
+  
+  $$ = new PopExpression(state_expr);
+}
 ;
 
+state: SYMBOL
+{
+  $$ = new std::vector<const Node*>();
+  $$->push_back(network->getNode($1));
+}
+| state NODE_SEP SYMBOL
+{
+  $$ = $1;
+  $$->push_back(network->getNode($3));
+}
+;
+ 
 argument_expression_list: expression
 {
   $$ = new ArgumentList();

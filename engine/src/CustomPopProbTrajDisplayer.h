@@ -1,5 +1,4 @@
 
-%{
 /*
 #############################################################################
 #                                                                           #
@@ -38,7 +37,7 @@
 #############################################################################
 
    Module:
-     RunConfigGrammar.l
+     CustomPopProbTrajDisplayer.h
 
    Authors:
      Eric Viara <viara@sysra.com>
@@ -46,103 +45,80 @@
      Vincent Noël <vincent.noel@curie.fr>
  
    Date:
-     January-March 2011
+     Decembre 2020
 */
 
-#include <math.h>
+#ifndef _CUSTOM_POP_PROBTRAJ_DISPLAYER_H_
+#define _CUSTOM_POP_PROBTRAJ_DISPLAYER_H_
 
-//static char *yytokstr();
-static unsigned int input_lineno = 1;
-static const char* file;
-static const char* expr;
-static void skip_comment(void);
-%}
+#include <iostream>
+#include "BooleanNetwork.h"
+#include "ProbTrajDisplayer.h"
+#include "Utils.h"
+#include <iomanip>
+#include <cstring>
 
-fracconst	([0-9]+\.[0-9]+)|([0-9]+\.)|(\.[0-9]+)
-exppart		[eE](\-|\+)?[0-9]+
+class CSVCustomPopProbTrajDisplayer : public ProbTrajDisplayer<PopSize> {
 
-%%
+  std::ostream& os_probtraj;
 
-[\t\f\v\r ]+ { }
-"\n" { input_lineno++; }
-"/*" { skip_comment(); }
-"//".* { }
-[Tt][Rr][Uu][Ee]        { yylval.l = 1; return INTEGER; }
-[Ff][Aa][Ll][Ss][Ee]    { yylval.l = 0; return INTEGER; }
-"#cell" { return NUMBER_CELL; }
-"custom_pop_output" { return CUSTOM_POP_OUTPUT; }
-" -- " { return NODE_SEP; }
-"$"[a-zA-Z_][a-zA-Z_0-9]* {
-  yylval.str = strdup(yytext);
-  return VARIABLE;
-}
-[a-zA-Z_][a-zA-Z_0-9]* {
-  yylval.str = strdup(yytext);
-  return SYMBOL;
-}
-[0-9]+			{ sscanf(yytext, "%lld", &yylval.l); return INTEGER; }
-{fracconst}{exppart}?	{ yylval.d = atof(yytext); return DOUBLE; }
-[0-9]+{exppart}		{ yylval.d = atof(yytext); return DOUBLE; }
-0x([0-9a-fA-F]*\.[0-9a-fA-F]+|[0-9a-fA-F]+\.?)p[-+]?[0-9]+ { yylval.d = atof(yytext); return DOUBLE; }
-.			{ return yytext[0]; }
+public:
+  CSVCustomPopProbTrajDisplayer(Network* network, std::ostream& os_probtraj, bool hexfloat = false) : ProbTrajDisplayer<PopSize>(network, hexfloat), os_probtraj(os_probtraj) { }
 
-%%
-
-static void skip_comment(void)
-{
-  int c1, c2;
-
-  c1 = yyinput();
-  c2 = yyinput();
-
-  while (c2 != EOF && !(c1 == '*' && c2 == '/')) {
-    if (c1 == '\n') {
-      ++input_lineno;
+  virtual void beginDisplay() {
+    os_probtraj << "Time\tTH" << (this->compute_errors ? "\tErrorTH" : "") << "\tH";
+    for (unsigned int jj = 0; jj <= this->refnode_count; ++jj) {
+      os_probtraj << "\tHD=" << jj;
     }
-    c1 = c2;
-    c2 = yyinput();
+
+    for (unsigned int nn = 0; nn < this->maxcols; ++nn) {
+      os_probtraj << "\tState\tProba" << (this->compute_errors ? "\tErrorProba" : "");
+    }
+
+    os_probtraj << '\n';
   }
-}
+  virtual void beginTimeTickDisplay() {}
+  virtual void endTimeTickDisplay() {
+    os_probtraj << std::setprecision(4) << std::fixed << this->time_tick;
+  #ifdef HAS_STD_HEXFLOAT
+    if (this->hexfloat) {
+      os_probtraj << std::hexfloat;
+    }
+  #endif
+    if (this->hexfloat) {
+      os_probtraj << '\t' << fmthexdouble(this->TH);
+      os_probtraj << '\t' << fmthexdouble(this->err_TH);
+      os_probtraj << '\t' << fmthexdouble(this->H);
+    } else {
+      os_probtraj << '\t' << this->TH;
+      os_probtraj << '\t' << this->err_TH;
+      os_probtraj << '\t' << this->H;
+    }
 
-int yywrap(void)
-{
-  return 1;
-}
+    for (unsigned int nn = 0; nn <= this->refnode_count; nn++) {
+      os_probtraj << '\t';
+      if (this->hexfloat) {
+        os_probtraj << fmthexdouble(this->HD_v[nn]);
+      } else {
+        os_probtraj << this->HD_v[nn];
+      }
+    }
 
-void yy_set_file(const char* _file)
-{
-  input_lineno = 1;
-  file = _file;
-  expr = NULL;
-}
-
-void yy_set_expr(const char* _expr)
-{
-  input_lineno = 1;
-  file = NULL;
-  expr = _expr;
-}
-
-static void yyerror(const char *)
-{
-  char tok[32];
-  snprintf(tok, 32, "%u", input_lineno);
-  if (file) {
-    throw BNException("configuration syntax error at line #" + std::string(tok) + " in file \"" + file + "\"");
-  } else {
-    throw BNException("configuration syntax error in expression '" + std::string(expr) + "'");
+    for (const typename ProbTrajDisplayer<PopSize>::Proba &proba : this->proba_v) {
+      os_probtraj << '\t';
+      proba.state.displayOneLine(os_probtraj, this->network);
+      if (this->hexfloat) {
+        os_probtraj << '\t' << fmthexdouble(proba.proba);
+        os_probtraj << '\t' << fmthexdouble(proba.err_proba);
+      } else {
+        os_probtraj << '\t' << std::setprecision(6) << proba.proba;
+        os_probtraj << '\t' << proba.err_proba;
+      }
+    }
+    os_probtraj << '\n';
   }
-}
+  virtual void endDisplay() {}
+};
 
-std::string yy_error_head()
- {
-   std::ostringstream ostr;
-   ostr << "configuration parsing at line #" << input_lineno << ": ";
-   return ostr.str();
- }
 
-// to avoid compiler warning when using -Wall option
-void runconfig_to_make_compiler_happy()
-{
-  unput('x');
-}
+#endif

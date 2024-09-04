@@ -46,13 +46,15 @@
 */
 
 #include "PopMaBEstEngine.h"
+#include "BooleanNetwork.h"
+#include "Cumulator.h"
 #include "MetaEngine.h"
+#include "ProbTrajDisplayer.h"
 #include "Probe.h"
 #include <stdlib.h>
 #include <math.h>
 #include <iomanip>
 #include <iostream>
-#include "Utils.h"
 #ifndef WINDOWS
 #include <dlfcn.h>
 #else
@@ -105,7 +107,9 @@ PopMaBEstEngine::PopMaBEstEngine(PopNetwork *pop_network, RunConfig *runconfig) 
   }
 
   merged_cumulator = NULL;
-  cumulator_v.resize(thread_count);
+  custom_pop_cumulator = NULL;
+  custom_pop_cumulator_v.resize(thread_count, NULL);
+  cumulator_v.resize(thread_count, NULL);
   unsigned int count = sample_count / thread_count;
   unsigned int firstcount = count + sample_count - count * thread_count;
   
@@ -114,15 +118,17 @@ PopMaBEstEngine::PopMaBEstEngine(PopNetwork *pop_network, RunConfig *runconfig) 
 
   for (unsigned int nn = 0; nn < thread_count; ++nn)
   {
+    Cumulator<PopSize> *custom_cumulator = new Cumulator<PopSize>(runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), (nn == 0 ? firstcount : count), (nn == 0 ? first_scount : scount));
+    custom_pop_cumulator_v[nn] = custom_cumulator;
     Cumulator<PopNetworkState> *cumulator = new Cumulator<PopNetworkState>(runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), (nn == 0 ? firstcount : count), (nn == 0 ? first_scount : scount ));
     if (has_internal)
     {
-#ifdef USE_STATIC_BITSET
+  #ifdef USE_STATIC_BITSET
       NetworkState_Impl state2 = ~internal_state.getState();
       cumulator->setOutputMask(PopNetworkState(state2, 1));
-#else
+  #else
       cumulator->setOutputMask(PopNetworkState(~internal_state.getState(), 1));
-#endif
+  #endif
     }
     cumulator_v[nn] = cumulator;
   }
@@ -194,13 +200,15 @@ struct ArgWrapper
   unsigned int start_count_thread;
   unsigned int sample_count_thread;
   Cumulator<PopNetworkState> *cumulator;
+  Cumulator<PopSize>* custom_cumulator;
   RandomGeneratorFactory *randgen_factory;
   long long int* elapsed_time;
   int seed;
   FixedPoints *fixpoint_map;
+  PopExpression* custom_pop_expression;
   std::ostream *output_traj;
 
-  ArgWrapper(PopMaBEstEngine *mabest, unsigned int start_count_thread, unsigned int sample_count_thread, Cumulator<PopNetworkState> *cumulator, RandomGeneratorFactory *randgen_factory, long long int * elapsed_time, int seed, FixedPoints *fixpoint_map, std::ostream *output_traj) : mabest(mabest), start_count_thread(start_count_thread), sample_count_thread(sample_count_thread), cumulator(cumulator), randgen_factory(randgen_factory), elapsed_time(elapsed_time), seed(seed), fixpoint_map(fixpoint_map), output_traj(output_traj) {}
+  ArgWrapper(PopMaBEstEngine *mabest, unsigned int start_count_thread, unsigned int sample_count_thread, Cumulator<PopNetworkState> *cumulator, Cumulator<PopSize>* custom_cumulator, RandomGeneratorFactory *randgen_factory, long long int * elapsed_time, int seed, FixedPoints *fixpoint_map, PopExpression* custom_pop_expression, std::ostream *output_traj) : mabest(mabest), start_count_thread(start_count_thread), sample_count_thread(sample_count_thread), cumulator(cumulator), custom_cumulator(custom_cumulator), randgen_factory(randgen_factory), elapsed_time(elapsed_time), seed(seed), fixpoint_map(fixpoint_map), custom_pop_expression(custom_pop_expression), output_traj(output_traj) {}
 };
 
 void *PopMaBEstEngine::threadWrapper(void *arg)
@@ -211,7 +219,7 @@ void *PopMaBEstEngine::threadWrapper(void *arg)
   ArgWrapper *warg = (ArgWrapper *)arg;
   try
   {
-    warg->mabest->runThread(warg->cumulator, warg->start_count_thread, warg->sample_count_thread, warg->randgen_factory, warg->seed, warg->fixpoint_map, warg->output_traj);
+    warg->mabest->runThread(warg->cumulator, warg->custom_cumulator, warg->start_count_thread, warg->sample_count_thread, warg->randgen_factory, warg->seed, warg->fixpoint_map, warg->custom_pop_expression, warg->output_traj);
   }
   catch (const BNException &e)
   {
@@ -223,7 +231,7 @@ void *PopMaBEstEngine::threadWrapper(void *arg)
   return NULL;
 }
 
-void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory *randgen_factory, int seed, FixedPoints *fixpoint_map, std::ostream *output_traj)
+void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, Cumulator<PopSize>* custom_cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory *randgen_factory, int seed, FixedPoints *fixpoint_map, PopExpression* custom_pop_expression, std::ostream *output_traj)
 {
   const std::vector<Node *> &nodes = pop_network->getNodes();
   PopNetworkState pop_network_state;
@@ -233,6 +241,8 @@ void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, unsigned 
   {
     random_generator->setSeed(seed + start_count_thread + nn);
     cumulator->rewind();
+    custom_cumulator->rewind();
+    
     if (verbose > 1) 
       std::cout << "> New simulation" << std::endl;
   
@@ -409,8 +419,17 @@ void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, unsigned 
         (*output_traj) << '\t' << TH << '\n';
       }
 
-      cumulator->cumul(pop_network_state, tm, TH);
-
+      if (runconfig->hasCustomPopOutput())
+      {
+        NetworkState s;
+        PopNetworkState t_popstate(pop_network_state & cumulator->getOutputMask().getMap().begin()->first);
+        PopSize pop_size((unsigned int) custom_pop_expression->eval(NULL, s, t_popstate));
+        // std::cout << "PopNetworkState = " << t_popstate.getName(network) << ", PopSize = " << pop_size.getSize() << std::endl;
+        custom_cumulator->cumul(pop_size, tm, TH); 
+      } else {
+        cumulator->cumul(pop_network_state, tm, TH);
+      }
+      
       if (tm >= max_time)
       {
         break;
@@ -432,6 +451,8 @@ void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, unsigned 
       std::cout << std::endl;
       
     cumulator->trajectoryEpilogue();
+    custom_cumulator->trajectoryEpilogue();
+
   }
   delete random_generator;
 }
@@ -461,9 +482,9 @@ void PopMaBEstEngine::run(std::ostream *output_traj)
     fixpoint_map_v.push_back(fixpoint_map);
     
 #ifdef MPI_COMPAT
-    ArgWrapper* warg = new ArgWrapper(this, start_sample_count, cumulator_v[nn]->getSampleCount(), cumulator_v[nn], randgen_factory, &(thread_elapsed_runtimes[world_rank][nn]), seed, fixpoint_map, output_traj);
+    ArgWrapper* warg = new ArgWrapper(this, start_sample_count, cumulator_v[nn]->getSampleCount(), cumulator_v[nn], custom_pop_cumulator_v[nn], randgen_factory, &(thread_elapsed_runtimes[world_rank][nn]), seed, fixpoint_map, runconfig->getCustomPopOutputExpression(), output_traj);
 #else
-    ArgWrapper* warg = new ArgWrapper(this, start_sample_count, cumulator_v[nn]->getSampleCount(), cumulator_v[nn], randgen_factory, &(thread_elapsed_runtimes[nn]), seed, fixpoint_map, output_traj);
+    ArgWrapper* warg = new ArgWrapper(this, start_sample_count, cumulator_v[nn]->getSampleCount(), cumulator_v[nn], custom_pop_cumulator_v[nn], randgen_factory, &(thread_elapsed_runtimes[nn]), seed, fixpoint_map, runconfig->getCustomPopOutputExpression(), output_traj);
 #endif
 
     pthread_create(&tid[nn], NULL, PopMaBEstEngine::threadWrapper, warg);
@@ -523,11 +544,13 @@ void PopMaBEstEngine::mergePairOfFixpoints(FixedPoints* fixpoints_1, FixedPoints
 struct PopMergeWrapper {
   Cumulator<PopNetworkState>* cumulator_1;
   Cumulator<PopNetworkState>* cumulator_2;
+  Cumulator<PopSize>* custom_cumulator_1;
+  Cumulator<PopSize>* custom_cumulator_2;
   FixedPoints* fixpoints_1;
   FixedPoints* fixpoints_2;
   
-  PopMergeWrapper(Cumulator<PopNetworkState>* cumulator_1, Cumulator<PopNetworkState>* cumulator_2, FixedPoints* fixpoints_1, FixedPoints* fixpoints_2) :
-    cumulator_1(cumulator_1), cumulator_2(cumulator_2), fixpoints_1(fixpoints_1), fixpoints_2(fixpoints_2) { }
+  PopMergeWrapper(Cumulator<PopNetworkState>* cumulator_1, Cumulator<PopNetworkState>* cumulator_2, Cumulator<PopSize>* custom_cumulator_1, Cumulator<PopSize>* custom_cumulator_2, FixedPoints* fixpoints_1, FixedPoints* fixpoints_2) :
+    cumulator_1(cumulator_1), cumulator_2(cumulator_2), custom_cumulator_1(custom_cumulator_1), custom_cumulator_2(custom_cumulator_2), fixpoints_1(fixpoints_1), fixpoints_2(fixpoints_2) { }
 };
 
 void* PopMaBEstEngine::threadMergeWrapper(void *arg)
@@ -538,6 +561,7 @@ void* PopMaBEstEngine::threadMergeWrapper(void *arg)
   PopMergeWrapper* warg = (PopMergeWrapper*)arg;
   try {
     Cumulator<PopNetworkState>::mergePairOfCumulators(warg->cumulator_1, warg->cumulator_2);
+    Cumulator<PopSize>::mergePairOfCumulators(warg->custom_cumulator_1, warg->custom_cumulator_2);
     PopMaBEstEngine::mergePairOfFixpoints(warg->fixpoints_1, warg->fixpoints_2);
   } catch(const BNException& e) {
     std::cerr << e;
@@ -569,7 +593,7 @@ void PopMaBEstEngine::mergeResults(std::vector<Cumulator<PopNetworkState>*> cumu
       for(unsigned int i=0; i < size; i+=(step_lvl*2)) {
         
         if (i+step_lvl < size) {
-          PopMergeWrapper* warg = new PopMergeWrapper(cumulator_v[i], cumulator_v[i+step_lvl], fixpoint_map_v[i], fixpoint_map_v[i+step_lvl]);
+          PopMergeWrapper* warg = new PopMergeWrapper(cumulator_v[i], cumulator_v[i+step_lvl], custom_pop_cumulator_v[i], custom_pop_cumulator_v[i+step_lvl], fixpoint_map_v[i], fixpoint_map_v[i+step_lvl]);
           pthread_create(&tid[nb_threads], NULL, PopMaBEstEngine::threadMergeWrapper, warg);
           nb_threads++;
           wargs.push_back(warg);
@@ -751,6 +775,7 @@ void PopMaBEstEngine::epilogue()
   mergeResults(cumulator_v, fixpoint_map_v);
 
   merged_cumulator = cumulator_v[0];
+  custom_pop_cumulator = custom_pop_cumulator_v[0];
   fixpoints = fixpoint_map_v[0];
   
 #ifdef MPI_COMPAT
@@ -761,7 +786,7 @@ void PopMaBEstEngine::epilogue()
   {
 #endif
   merged_cumulator->epilogue(pop_network, reference_state);
-
+  custom_pop_cumulator->epilogue(pop_network, reference_state);
 #ifdef MPI_COMPAT
   }
 #endif 
@@ -776,6 +801,7 @@ PopMaBEstEngine::~PopMaBEstEngine()
     delete t_arg_wrapper;
 
   delete merged_cumulator;
+  delete custom_pop_cumulator;
 }
 
 void PopMaBEstEngine::displayFixpoints(FixedPointDisplayer *displayer) const
@@ -854,6 +880,10 @@ if (getWorldRank() == 0) {
 #endif
 }
 
+void PopMaBEstEngine::displayCustomPopProbTraj(ProbTrajDisplayer<PopSize>* displayer) const
+{
+  custom_pop_cumulator->displayProbTraj(pop_network, refnode_count, displayer);
+}
 const std::map<unsigned int, std::pair<NetworkState, double> > PopMaBEstEngine::getFixPointsDists() const {
   
   std::map<unsigned int, std::pair<NetworkState, double> > res;

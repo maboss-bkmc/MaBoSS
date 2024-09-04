@@ -694,6 +694,10 @@ public:
     this->output_mask = output_mask;
   }
   
+  S getOutputMask() const {
+    return output_mask;
+  }
+  
   void setRefnodeMask(const NetworkState_Impl& refnode_mask) {
     this->refnode_mask = refnode_mask;
   }

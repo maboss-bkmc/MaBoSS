@@ -46,9 +46,12 @@
 */
 
 #include <ctime>
+#include "BooleanNetwork.h"
+#include "CustomPopProbTrajDisplayer.h"
 #include "PopMaBEstEngine.h"
 #include "Function.h"
 #include <fstream>
+#include <ostream>
 #include <stdlib.h>
 #include "Utils.h"
 #include "RandomGenerator.h"
@@ -333,6 +336,7 @@ int main(int argc, char* argv[])
   std::ostream* output_fp = NULL;
   std::ostream* output_pop_probtraj = NULL;
   std::ostream* output_simple_pop_probtraj = NULL;
+  std::ostream* output_custom_pop_probtraj = NULL;
   
 #ifdef HDF5_COMPAT
   hid_t hdf5_file;
@@ -412,6 +416,9 @@ int main(int argc, char* argv[])
       output_fp = new std::ofstream((std::string(output) + "_fp" + format_extension(format)).c_str());
       output_pop_probtraj = new std::ofstream((std::string(output) + "_pop_probtraj" + format_extension(format)).c_str());
       output_simple_pop_probtraj = new std::ofstream((std::string(output) + "_simple_pop_probtraj" + format_extension(format)).c_str());
+      if (runconfig->hasCustomPopOutput()) {
+        output_custom_pop_probtraj = new std::ofstream((std::string(output) + "_custom_pop_probtraj" + format_extension(format)).c_str());
+      }
 #ifdef HDF5_COMPAT
     } else if (format == HDF5_FORMAT) {
       hdf5_file = H5Fcreate((std::string(output) + format_extension(format)).c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
@@ -431,10 +438,15 @@ int main(int argc, char* argv[])
     
     ProbTrajDisplayer<PopNetworkState>* pop_probtraj_displayer;
     FixedPointDisplayer* fp_displayer;
+    ProbTrajDisplayer<PopSize>* custom_pop_probtraj_displayer = NULL;
     
     if (format == CSV_FORMAT) {
       pop_probtraj_displayer = new CSVSimplePopProbTrajDisplayer(pop_network, *output_pop_probtraj, *output_simple_pop_probtraj, hexfloat);
       fp_displayer = new CSVFixedPointDisplayer(pop_network, *output_fp, hexfloat);
+      if (runconfig->hasCustomPopOutput()){
+        custom_pop_probtraj_displayer = new CSVCustomPopProbTrajDisplayer(pop_network, *output_custom_pop_probtraj, hexfloat);
+      }
+      
     } else if (format == JSON_FORMAT) {
       pop_probtraj_displayer = new JSONSimpleProbTrajDisplayer(pop_network, *output_pop_probtraj, *output_simple_pop_probtraj, hexfloat);
       // Use CSV displayer for fixed points as the Json one is not fully implemented
@@ -448,9 +460,12 @@ int main(int argc, char* argv[])
       pop_probtraj_displayer = NULL;
       fp_displayer = NULL;
     }
-
+    
     mabest.display(pop_probtraj_displayer, fp_displayer);
     
+    if (runconfig->hasCustomPopOutput()){
+      mabest.displayCustomPopProbTraj(custom_pop_probtraj_displayer);
+    }
     time(&end_time);
 
     mabest.displayRunStats(*output_run, start_time, end_time);

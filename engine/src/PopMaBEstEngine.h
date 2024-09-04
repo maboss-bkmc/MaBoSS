@@ -53,6 +53,7 @@
 #include <vector>
 #include <assert.h>
 
+#include "CustomPopProbTrajDisplayer.h"
 #include "MetaEngine.h"
 #include "FixedPointEngine.h"
 #include "BooleanNetwork.h"
@@ -80,7 +81,8 @@ class PopMaBEstEngine : public MetaEngine {
   
   Cumulator<PopNetworkState>* merged_cumulator;
   std::vector<Cumulator<PopNetworkState>* > cumulator_v;
-  
+  Cumulator<PopSize>* custom_pop_cumulator;
+  std::vector<Cumulator<PopSize>* > custom_pop_cumulator_v;  
 public:
   static const std::string VERSION;
   static int verbose;
@@ -116,9 +118,9 @@ public:
   double computeTH(const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
   void epilogue();
   static void* threadWrapper(void *arg);
-  void runThread(Cumulator<PopNetworkState>* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, FixedPoints* fixpoint_map, std::ostream* output_traj);
+  void runThread(Cumulator<PopNetworkState>* cumulator, Cumulator<PopSize>* custom_cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, FixedPoints* fixpoint_map, PopExpression* simple_pop_expression, std::ostream* output_traj);
   void displayRunStats(std::ostream& os, time_t start_time, time_t end_time) const;
-
+  void displayCustomPopProbTraj(ProbTrajDisplayer<PopSize>* displayer) const;
   static void mergePairOfFixpoints(FixedPoints* fixpoints_1, FixedPoints* fixpoints_2);
   static void* threadMergeWrapper(void *arg);
   void mergeResults(std::vector<Cumulator<PopNetworkState>*> cumulator_v, std::vector<FixedPoints*> fixpoint_map_v);
