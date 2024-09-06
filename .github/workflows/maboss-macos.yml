@@ -487,8 +487,8 @@ jobs:
       fail-fast: false
       matrix:
         repo: [
-          {id: 0, name: "defaults", miniforge-variant: "", path: "/usr/local/miniconda"}, 
-          {id: 1, name: "conda-forge", miniforge-variant: "Mambaforge", path: "/Users/runner/miniconda3"}
+          {id: 0, name: "defaults"}, 
+          {id: 1, name: "conda-forge"}
         ]
     runs-on: macos-12
     defaults:
@@ -502,7 +502,6 @@ jobs:
         auto-update-conda: true
         channels: ${{ matrix.repo.name }}
         python-version: 3.12
-        miniforge-variant: ${{ matrix.repo.miniforge-variant }}
         use-mamba: true
               
     - name: Installing conda-build      
@@ -524,13 +523,13 @@ jobs:
     
     - name: Upload MaBoSS to Anaconda cloud on vincent-noel
       run: |   
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel ${{ matrix.repo.path }}/envs/test/conda-bld/osx-64/*.tar.bz2 --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/local/miniconda/envs/test/conda-bld/osx-64/*.tar.bz2 --force;
  
     
     - name: Upload MaBoSS to Anaconda cloud on colomoto
       if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
       run: |   
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto ${{ matrix.repo.path }}/envs/test/conda-bld/osx-64/*.tar.bz2 --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/local/miniconda/envs/test/conda-bld/osx-64/*.tar.bz2 --force;
 
   conda_maboss_macosx_m1:
     name: Build Conda MaBoSS package for arm64
@@ -539,8 +538,8 @@ jobs:
       fail-fast: false
       matrix:
         repo: [
-          {id: 0, name: "defaults", miniforge-variant: "", path: "/Users/runner/miniconda3"}, 
-          {id: 1, name: "conda-forge", miniforge-variant: "Mambaforge", path: "/Users/runner/miniconda3"}
+          {id: 0, name: "defaults", path: "/Users/runner/miniconda3"}, 
+          {id: 1, name: "conda-forge", path: "/Users/runner/miniconda3"}
         ]
     runs-on: macos-14
     defaults:
@@ -554,7 +553,6 @@ jobs:
         auto-update-conda: true
         channels: ${{ matrix.repo.name }}
         python-version: 3.12
-        miniforge-variant: ${{ matrix.repo.miniforge-variant }}
         use-mamba: true
               
     - name: Installing conda-build      

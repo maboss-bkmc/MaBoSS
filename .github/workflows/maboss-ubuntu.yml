@@ -432,8 +432,8 @@ jobs:
       fail-fast: false
       matrix:
         repo: [
-          {id: 0, name: "defaults", miniforge-variant: "", path: "/usr/share/miniconda"}, 
-          {id: 1, name: "conda-forge", miniforge-variant: "Mambaforge", path: "/home/runner/miniconda3"}
+          {id: 0, name: "defaults"}, 
+          {id: 1, name: "conda-forge"}
         ]
         
     runs-on: ubuntu-22.04
@@ -451,7 +451,6 @@ jobs:
         auto-update-conda: true
         channels: ${{ matrix.repo.name }}
         python-version: 3.12
-        miniforge-variant: ${{ matrix.repo.miniforge-variant }}
         use-mamba: true
         
     - name: Install conda-build
@@ -464,9 +463,9 @@ jobs:
 
     - name: Upload MaBoSS Ananconda package on vincent-noel
       run: |
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel ${{ matrix.repo.path }}/envs/test/conda-bld/linux-64/*.tar.bz2 --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/share/miniconda/envs/test/conda-bld/linux-64/*.tar.bz2 --force;
     
     - name: Upload MaBoSS Ananconda package on colomoto
       if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
       run: |
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto ${{ matrix.repo.path }}/envs/test/conda-bld/linux-64/*.tar.bz2 --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/share/miniconda/envs/test/conda-bld/linux-64/*.tar.bz2 --force;

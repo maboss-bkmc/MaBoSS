@@ -178,7 +178,6 @@ jobs:
         auto-update-conda: true
         channels: conda-forge
         python-version: 3.12
-        miniforge-variant: Mambaforge
         use-mamba: true
     
     - name: Install conda-build
@@ -191,10 +190,10 @@ jobs:
       
     - name: Upload cMaBoSS Ananconda package on vincent-noel
       run: |
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /home/runner/miniconda3/envs/test/conda-bld/linux-64/*.tar.bz2 --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/share/miniconda/envs/test/conda-bld/linux-64/*.tar.bz2 --force;
 
     - name: Upload cMaBoSS Ananconda package on colomoto
       if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
       run: |
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /home/runner/miniconda3/envs/test/conda-bld/linux-64/*.tar.bz2 --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/share/miniconda/envs/test/conda-bld/linux-64/*.tar.bz2 --force;
       
