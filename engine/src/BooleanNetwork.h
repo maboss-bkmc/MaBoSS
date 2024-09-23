@@ -861,12 +861,12 @@ public:
   NetworkState_Impl getState() const {return state;}
 
 
-  void display(std::ostream& os, Network* network) const;
+  void display(std::ostream& os, const Network* network) const;
 
-  std::string getName(Network * network, const std::string& sep=" -- ") const;
+  std::string getName(const Network * network, const std::string& sep=" -- ") const;
  
-  void displayOneLine(std::ostream& os, Network* network, const std::string& sep = " -- ") const;
-  void displayJSON(std::ostream& os, Network* network, const std::string& sep = " -- ") const;
+  void displayOneLine(std::ostream& os, const Network* network, const std::string& sep = " -- ") const;
+  void displayJSON(std::ostream& os, const Network* network, const std::string& sep = " -- ") const;
 
 #ifndef USE_UNORDERED_MAP
   bool operator<(const NetworkState& network_state) const {
@@ -1246,9 +1246,9 @@ public:
   // Count the population satisfying an expression
   unsigned int count(Expression * expr) const;
   void clear() { mp.clear(); hash_init = false; }
-  std::string getName(Network * network, const std::string& sep=" -- ") const;
-  void displayOneLine(std::ostream& os, Network* network, const std::string& sep = " -- ") const;
-  void displayJSON(std::ostream& os, Network* network, const std::string& sep = " -- ") const;
+  std::string getName(const Network * network, const std::string& sep=" -- ") const;
+  void displayOneLine(std::ostream& os, const Network* network, const std::string& sep = " -- ") const;
+  void displayJSON(std::ostream& os, const Network* network, const std::string& sep = " -- ") const;
 
   unsigned int hamming(Network* network, const NetworkState& state) const;
   

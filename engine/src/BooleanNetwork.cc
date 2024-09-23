@@ -582,7 +582,7 @@ void Network::displayHeader(std::ostream& os) const
 }
 
 
-void NetworkState::display(std::ostream& os, Network* network) const
+void NetworkState::display(std::ostream& os, const Network* network) const
 {
   const std::vector<Node*>& nodes = network->getNodes();
   int nn = 0;
@@ -593,7 +593,7 @@ void NetworkState::display(std::ostream& os, Network* network) const
   os << '\n';
 }
 
-std::string NetworkState::getName(Network* network, const std::string& sep) const {
+std::string NetworkState::getName(const Network* network, const std::string& sep) const {
 #if defined(USE_STATIC_BITSET) || defined(USE_DYNAMIC_BITSET)
   if (state.none()) {
     return "<nil>";
@@ -622,17 +622,17 @@ std::string NetworkState::getName(Network* network, const std::string& sep) cons
   }
 
 
-void NetworkState::displayOneLine(std::ostream& os, Network* network, const std::string& sep) const
+void NetworkState::displayOneLine(std::ostream& os, const Network* network, const std::string& sep) const
 {
   os << getName(network, sep);
 }
 
-void NetworkState::displayJSON(std::ostream& os, Network* network, const std::string& sep) const
+void NetworkState::displayJSON(std::ostream& os, const Network* network, const std::string& sep) const
 {
   os << getName(network, sep);
 }
 
-std::string PopNetworkState::getName(Network * network, const std::string& sep) const {
+std::string PopNetworkState::getName(const Network * network, const std::string& sep) const {
   
   std::string res = "[";
   
@@ -648,12 +648,12 @@ std::string PopNetworkState::getName(Network * network, const std::string& sep) 
   return res;
 }
 
-void PopNetworkState::displayOneLine(std::ostream &strm, Network* network, const std::string& sep) const 
+void PopNetworkState::displayOneLine(std::ostream &strm, const Network* network, const std::string& sep) const 
 {    
   strm << getName(network, sep);
 }
 
-void PopNetworkState::displayJSON(std::ostream &strm, Network* network, const std::string& sep) const 
+void PopNetworkState::displayJSON(std::ostream &strm, const Network* network, const std::string& sep) const 
 {    
   strm << "[";
   size_t i = mp.size();
