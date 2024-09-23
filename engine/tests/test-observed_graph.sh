@@ -33,6 +33,9 @@ if [ "$MULTI_THREAD_ONLY" = "" ]; then
 
     diff sizek/refer/sizek_1_thread_observed_graph.csv tmp/sizek_1_thread_observed_graph.csv
     check_file "observed graph"
+    
+    diff sizek/refer/sizek_1_thread_observed_durations.csv tmp/sizek_1_thread_observed_durations.csv
+    check_file "observed durations"
 fi
 
 if [ "$ONE_THREAD_ONLY" != "" ]; then exit 0; fi
@@ -41,6 +44,9 @@ if [ $? != 0 ]; then exit 1; fi
 
 diff sizek/refer/sizek_6_thread_observed_graph.csv tmp/sizek_6_thread_observed_graph.csv
 check_file "observed graph"
+
+diff sizek/refer/sizek_6_thread_observed_durations.csv tmp/sizek_6_thread_observed_durations.csv
+check_file "observed durations"
 
 rm -rf tmp; 
 

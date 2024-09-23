@@ -176,6 +176,7 @@ static void display(ProbTrajEngine* engine, Network* network, const char* prefix
   std::ostream* output_statdist_cluster = NULL;
   std::ostream* output_statdist_distrib = NULL;
   std::ostream* output_observed_graph = NULL;
+  std::ostream* output_observed_durations = NULL;
   
   
 #ifdef HDF5_COMPAT
@@ -202,6 +203,7 @@ static void display(ProbTrajEngine* engine, Network* network, const char* prefix
     output_statdist_cluster = new std::ofstream((std::string(prefix) + "_statdist_cluster" + format_extension(format)).c_str());
     output_statdist_distrib = new std::ofstream((std::string(prefix) + "_statdist_distrib" + format_extension(format)).c_str());
     output_observed_graph = new std::ofstream((std::string(prefix) + "_observed_graph.csv"));
+    output_observed_durations = new std::ofstream((std::string(prefix) + "_observed_durations.csv"));
 #ifdef MPI_COMPAT
   }
 #endif
@@ -230,7 +232,7 @@ static void display(ProbTrajEngine* engine, Network* network, const char* prefix
     (static_cast<EnsembleEngine*>(engine))->displayIndividual(individual, probtraj_displayer, statdist_displayer, fp_displayer);
   } else {
     engine->display(probtraj_displayer, statdist_displayer, fp_displayer);
-    engine->displayObservedGraph(output_observed_graph);
+    engine->displayObservedGraph(output_observed_graph, output_observed_durations);
   }
   
   delete probtraj_displayer;
@@ -259,6 +261,7 @@ static void display(ProbTrajEngine* engine, Network* network, const char* prefix
     ((std::ofstream*) output_statdist_distrib)->close();
     ((std::ofstream*) output_fp)->close();
     ((std::ofstream*) output_observed_graph)->close();
+    ((std::ofstream*) output_observed_durations)->close();
 #ifdef MPI_COMPAT
   }
 #endif
@@ -269,6 +272,7 @@ static void display(ProbTrajEngine* engine, Network* network, const char* prefix
     delete output_statdist_cluster;
     delete output_statdist_distrib;
     delete output_observed_graph;
+    delete output_observed_durations;
   }
 }
 

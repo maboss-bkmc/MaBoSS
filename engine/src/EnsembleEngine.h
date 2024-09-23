@@ -58,6 +58,7 @@
 #include "Cumulator.h"
 #include "RandomGenerator.h"
 #include "RunConfig.h"
+#include "ObservedGraph.h"
 
 struct EnsembleArgWrapper;
 

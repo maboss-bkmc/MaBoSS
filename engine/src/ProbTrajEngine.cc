@@ -63,17 +63,6 @@ struct MergeWrapper {
     cumulator_1(cumulator_1), cumulator_2(cumulator_2), fixpoints_1(fixpoints_1), fixpoints_2(fixpoints_2), observed_graph_1(observed_graph_1), observed_graph_2(observed_graph_2) { }
 };
 
-void ProbTrajEngine::mergePairOfObservedGraph(ObservedGraph* observed_graph_1, ObservedGraph* observed_graph_2)
-{
-  for (auto origin_state: *observed_graph_2){
-    for (auto destination_state: origin_state.second) {
-      (*observed_graph_1)[origin_state.first][destination_state.first] += destination_state.second;
-    }
-  }
-  delete observed_graph_2;
-  observed_graph_2 = NULL;
-}
-
 void* ProbTrajEngine::threadMergeWrapper(void *arg)
 {
 #ifdef USE_DYNAMIC_BITSET
@@ -83,7 +72,7 @@ void* ProbTrajEngine::threadMergeWrapper(void *arg)
   try {
     Cumulator<NetworkState>::mergePairOfCumulators(warg->cumulator_1, warg->cumulator_2);
     ProbTrajEngine::mergePairOfFixpoints(warg->fixpoints_1, warg->fixpoints_2);
-    ProbTrajEngine::mergePairOfObservedGraph(warg->observed_graph_1, warg->observed_graph_2);
+    warg->observed_graph_1->mergePairOfObservedGraph(warg->observed_graph_2);
   } catch(const BNException& e) {
     std::cerr << e;
   }
@@ -157,7 +146,7 @@ void ProbTrajEngine::mergeMPIResults(RunConfig* runconfig, Cumulator<NetworkStat
           if (world_rank == i || world_rank == (i+step_lvl)){
             Cumulator<NetworkState>::mergePairOfMPICumulators(ret_cumul, world_rank, i, i+step_lvl, runconfig, pack);
             mergePairOfMPIFixpoints(fixpoints, world_rank, i, i+step_lvl, pack);
-            mergePairOfMPIObservedGraph(graph, world_rank, i, i+step_lvl, pack); 
+            ObservedGraph::mergePairOfMPIObservedGraph(graph, world_rank, i, i+step_lvl, pack);
           }
         } 
       }
@@ -217,201 +206,18 @@ void ProbTrajEngine::display(ProbTrajDisplayer<NetworkState>* probtraj_displayer
   displayFixpoints(fp_displayer);
 }
 
-void ProbTrajEngine::displayObservedGraph(std::ostream* output_observed_graph){
+void ProbTrajEngine::displayObservedGraph(std::ostream* output_observed_graph, std::ostream * output_observed_durations){
 
 #ifdef MPI_COMPAT
 if (getWorldRank() == 0) {
 #endif
 
-  if (graph_states.size() > 0)
-  {
-    (*output_observed_graph) << "State";
-    for (auto state: graph_states) {
-      (*output_observed_graph) << "\t" << NetworkState(state).getName(network);
-    }
-    (*output_observed_graph) << std::endl;
-    
-    for (auto origin_state: graph_states) {
-      (*output_observed_graph) << NetworkState(origin_state).getName(network);
-      
-      for (auto destination_state: graph_states) {
-        (*output_observed_graph) << "\t" << (*(observed_graph))[origin_state][destination_state];
-      }
-      
-      (*output_observed_graph) << std::endl;
-    }
-    
-  }
+  observed_graph->display(output_observed_graph, output_observed_durations, network);
+  
 #ifdef MPI_COMPAT
 }
 #endif
-  
 }
-  
-#ifdef MPI_COMPAT
-
-void ProbTrajEngine::mergePairOfMPIObservedGraph(ObservedGraph* graph, int world_rank, int dest, int origin, bool pack)
-{
-  if (world_rank == dest) 
-  {
-  
-    if (pack) {
-      unsigned int buff_size = -1;
-      MPI_Recv( &buff_size, 1, MPI_UNSIGNED, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);    
-      char* buff = new char[buff_size];
-      MPI_Recv( buff, buff_size, MPI_PACKED, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
-      MPI_Unpack_ObservedGraph(graph, buff, buff_size);
-      delete [] buff;
-      
-    } else {
-      MPI_Recv_ObservedGraph(graph, origin);
-    }
-    
-  } else if (world_rank == origin) {
-
-    if (pack) {
-      unsigned int buff_size = -1;
-      char* buff = MPI_Pack_ObservedGraph(graph, dest, &buff_size);      
-      MPI_Send(&buff_size, 1, MPI_UNSIGNED, dest, 0, MPI_COMM_WORLD);
-      MPI_Send( buff, buff_size, MPI_PACKED, dest, 0, MPI_COMM_WORLD); 
-      delete [] buff;            
-      
-    } else {
-    
-      MPI_Send_ObservedGraph(graph, dest);
-    }
-  }
-}
-
-unsigned int ProbTrajEngine::MPI_Pack_Size_ObservedGraph(const ObservedGraph* graph) {
-  unsigned int pack_size = sizeof(unsigned int);
-  if (graph != NULL) {
-    for (auto& row: *graph) {
-      NetworkState s(row.first);
-      pack_size += s.my_MPI_Pack_Size();
-      pack_size += row.second.size() * sizeof(unsigned int);
-    }
-  }
-  return pack_size;
-}
-
-void ProbTrajEngine::MPI_Unpack_ObservedGraph(ObservedGraph* graph, char* buff, unsigned int buff_size)
-{
-  int position = 0;
-  
-  unsigned int size = -1;
-  MPI_Unpack(buff, buff_size, &position, &size, 1, MPI_UNSIGNED, MPI_COMM_WORLD);
-  
-  if (size > 0) {
-    
-    std::vector<NetworkState_Impl> states;
-    for (unsigned int i=0; i < size; i++) {
-      NetworkState s;
-      s.my_MPI_Unpack(buff, buff_size, &position);
-      states.push_back(s.getState());
-    }
-    
-    if (graph == NULL){
-      graph = new ObservedGraph();  
-      for (auto& state: states) {
-        (*graph)[state] = std::map<NetworkState_Impl, unsigned int>();
-        for (auto& state2: states) {
-          (*graph)[state][state2] = 0;
-        }
-      }
-    }
-    
-    for (auto& row: *graph) {
-      for (auto& cell: row.second) {
-        unsigned int count = -1;
-        MPI_Unpack(buff, buff_size, &position, &count, 1, MPI_UNSIGNED, MPI_COMM_WORLD);
-        cell.second += count;
-      }
-    }
-  }
-}
-
-char* ProbTrajEngine::MPI_Pack_ObservedGraph(const ObservedGraph* graph, int dest, unsigned int * buff_size)
-{
-  
-  *buff_size = MPI_Pack_Size_ObservedGraph(graph);
-  
-  char* buff = new char[*buff_size];
-  int position = 0;
-  
-  unsigned int size = graph == NULL ? 0 : graph->size();
-  MPI_Pack(&size, 1, MPI_UNSIGNED, buff, *buff_size, &position, MPI_COMM_WORLD);
-  
-  if (graph != NULL){
-    
-    for (auto& row: *graph) {
-      NetworkState s(row.first);
-      s.my_MPI_Pack(buff, *buff_size, &position);
-    }
-    for (auto& row: *graph) {
-      for (auto& cell: row.second) {
-        unsigned int count = cell.second;
-        MPI_Pack(&count, 1, MPI_UNSIGNED, buff, *buff_size, &position, MPI_COMM_WORLD);
-      }
-    }
-  }
-  return buff;
-}
-
-void ProbTrajEngine::MPI_Send_ObservedGraph(const ObservedGraph* graph, int dest)
-{
-  unsigned int nb_states = graph == NULL ? 0 : graph->size();
-  MPI_Send(&nb_states, 1, MPI_UNSIGNED, dest, 0, MPI_COMM_WORLD);
-  
-  if (nb_states > 0) {
-    for (auto& row: *graph) {
-      NetworkState s(row.first);
-      s.my_MPI_Send(dest);
-    }
-  
-    for (auto& row: *graph) {
-      for (auto& cell: row.second) {
-        unsigned int count = cell.second;
-        MPI_Send(&count, 1, MPI_UNSIGNED, dest, 0, MPI_COMM_WORLD);
-      }
-    } 
-  }
-}
-
-void ProbTrajEngine::MPI_Recv_ObservedGraph(ObservedGraph* graph, int origin)
-{
-  unsigned int nb_states = -1;
-  MPI_Recv(&nb_states, 1, MPI_UNSIGNED, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
-  if (nb_states > 0) {
-    std::vector<NetworkState_Impl> states;
-    for (unsigned int i=0; i < nb_states; i++) {
-      NetworkState s;
-      s.my_MPI_Recv(origin);
-      states.push_back(s.getState());
-    }
-    
-    if (graph == NULL) {
-      graph = new ObservedGraph();
-      for (auto& state: states) {
-        (*graph)[state] = std::map<NetworkState_Impl, unsigned int>();
-        for (auto& state2: states) {
-          (*graph)[state][state2] = 0;
-        }
-      }
-    }
-    
-    for (auto& row: *graph) {
-      for (auto& cell: row.second) {
-        unsigned int count = -1;
-        MPI_Recv(&count, 1, MPI_UNSIGNED, origin, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        cell.second += count;
-      }
-    } 
-  }
-}
-
-#endif
 
 #ifdef PYTHON_API
 
@@ -419,25 +225,17 @@ PyObject* ProbTrajEngine::getNumpyObservedGraph()
 {
   if (observed_graph != NULL)
   {
-    npy_intp dims[2] = {(npy_intp) observed_graph->size(), (npy_intp) observed_graph->size()};
-    PyArrayObject* graph = (PyArrayObject *) PyArray_ZEROS(2,dims,NPY_DOUBLE, 0); 
-    PyObject* states = PyList_New(observed_graph->size());
-
-    int i=0;
-    for (auto& row: *observed_graph) 
-    {
-      PyList_SetItem(states, i, PyUnicode_FromString(NetworkState(row.first).getName(network).c_str()));
-      int j=0;
-      for (auto& cell: row.second) {
-        void* ptr_val = PyArray_GETPTR2(graph, i, j);
-
-        PyArray_SETITEM(graph, (char*) ptr_val, PyFloat_FromDouble(cell.second));
-        j++;
-      }
-      i++;
-    }
-
-    return PyTuple_Pack(2, PyArray_Return(graph), states);
+    return observed_graph->getNumpyObservedGraph(network);
+  
+  } else {
+    return Py_None;
+  }
+}
+PyObject* ProbTrajEngine::getNumpyObservedDurations()
+{
+  if (observed_graph != NULL)
+  {
+    return observed_graph->getNumpyObservedDurations(network);
   
   } else {
     return Py_None;

@@ -1,0 +1,9 @@
+State	<nil>	CyclinB	CyclinE	CyclinB -- CyclinE	CyclinA	CyclinB -- CyclinA	CyclinE -- CyclinA	CyclinB -- CyclinE -- CyclinA
+<nil>	0	0.849719	8.09625	0	1.56828	0	0	0
+CyclinB	3.44822	0	0	1.74411	0	1.22096	0	0
+CyclinE	3.28821	0	0	0.839841	0	0	2.77909	0
+CyclinB -- CyclinE	0	0.907872	0.967225	0	0	0	0	0.943973
+CyclinA	2.41083	0	0	0	0	1.29037	0.599275	0
+CyclinB -- CyclinA	0	5.06838	0	0	3.87051	0	0	0.57118
+CyclinE -- CyclinA	0	0	0.967445	0	0.955555	0	0	1.06807
+CyclinB -- CyclinE -- CyclinA	0	0	0	2.1574	0	1.03392	1.41792	0

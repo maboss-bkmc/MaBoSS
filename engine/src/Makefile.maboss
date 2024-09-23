@@ -114,8 +114,8 @@ BISON = bison
 CHECK_FLEX  = $(FLEX) --version > /dev/null
 CHECK_BISON = $(BISON) --version > /dev/null
 
-CORE_LIB_SRC := BooleanNetwork.cc BooleanGrammar.cc RunConfigGrammar.cc Function.cc BuiltinFunctions.cc RunConfig.cc LogicalExprGen.cc Utils.cc MBDynBitset.cc RandomGenerator.cc FixedPointDisplayer.cc 
-CORE_LIB_OBJS := BooleanNetwork$(INFIX).o BooleanGrammar$(INFIX).o RunConfigGrammar$(INFIX).o Function$(INFIX).o BuiltinFunctions$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o Utils$(INFIX).o MBDynBitset$(INFIX).o RandomGenerator$(INFIX).o  FixedPointDisplayer$(INFIX).o
+CORE_LIB_SRC := BooleanNetwork.cc BooleanGrammar.cc RunConfigGrammar.cc Function.cc BuiltinFunctions.cc RunConfig.cc LogicalExprGen.cc Utils.cc MBDynBitset.cc RandomGenerator.cc FixedPointDisplayer.cc ObservedGraph.cc
+CORE_LIB_OBJS := BooleanNetwork$(INFIX).o BooleanGrammar$(INFIX).o RunConfigGrammar$(INFIX).o Function$(INFIX).o BuiltinFunctions$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o Utils$(INFIX).o MBDynBitset$(INFIX).o RandomGenerator$(INFIX).o  FixedPointDisplayer$(INFIX).o ObservedGraph$(INFIX).o
 POP_LIB_SRC := PopMaBEstEngine.cc MetaEngine.cc
 POP_LIB_OBJS := PopMaBEstEngine$(INFIX).o MetaEngine.o
 LIB_SRC := FinalStateSimulationEngine.cc StochasticSimulationEngine.cc MetaEngine.cc FixedPointEngine.cc ProbTrajEngine.cc MaBEstEngine.cc EnsembleEngine.cc ProbaDist.cc StatDistDisplayer.cc FinalStateDisplayer.cc

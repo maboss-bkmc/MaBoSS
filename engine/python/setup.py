@@ -13,7 +13,7 @@ maboss_sources = [
    # MaBoSS
    "MetaEngine.cc", "FixedPointEngine.cc", "ProbTrajEngine.cc",
    "FinalStateSimulationEngine.cc", "StochasticSimulationEngine.cc", "MaBEstEngine.cc", "EnsembleEngine.cc", 
-   "ProbaDist.cc", 
+   "ProbaDist.cc", "ObservedGraph.cc",
    "StatDistDisplayer.cc", "FinalStateDisplayer.cc"
 ]
 

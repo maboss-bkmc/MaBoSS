@@ -73,6 +73,7 @@ typedef struct {
   PyObject* probtraj;
   PyObject* last_probtraj;
   PyObject* observed_graph;
+  PyObject* observed_durations;
 } cMaBoSSResultObject;
 
 static void cMaBoSSResult_dealloc(cMaBoSSResultObject *self)
@@ -93,6 +94,7 @@ static PyObject * cMaBoSSResult_new(PyTypeObject* type, PyObject *args, PyObject
   res->probtraj = Py_None;
   res->last_probtraj = Py_None;
   res->observed_graph = Py_None;
+  res->observed_durations = Py_None;
   return (PyObject*) res;
 }
 
@@ -123,6 +125,19 @@ static PyObject* cMaBoSSResult_get_observed_graph(cMaBoSSResultObject* self) {
 
   return self->observed_graph;
 }
+
+static PyObject* cMaBoSSResult_get_observed_durations(cMaBoSSResultObject* self) {
+
+  if (self->observed_durations == Py_None)
+  {
+    self->observed_durations = self->engine->getNumpyObservedDurations();
+  }
+  
+  Py_INCREF(self->observed_durations);
+
+  return self->observed_durations;
+}
+
 static PyObject* cMaBoSSResult_get_probtraj(cMaBoSSResultObject* self) {
   if (self->probtraj == Py_None) {
     self->probtraj = self->engine->getMergedCumulator()->getNumpyStatesDists(self->network);
@@ -268,6 +283,7 @@ static PyMemberDef cMaBoSSResult_members[] = {
 
 static PyMethodDef cMaBoSSResult_methods[] = {
     {"get_observed_graph", (PyCFunction) cMaBoSSResult_get_observed_graph, METH_NOARGS, "gets the observed graph table"},
+    {"get_observed_durations", (PyCFunction) cMaBoSSResult_get_observed_durations, METH_NOARGS, "gets the observed durations table"},
     {"get_fp_table", (PyCFunction) cMaBoSSResult_get_fp_table, METH_NOARGS, "gets the fixpoints table"},
     {"get_probtraj", (PyCFunction) cMaBoSSResult_get_probtraj, METH_NOARGS, "gets the raw states probability trajectories of the simulation"},
     {"get_last_probtraj", (PyCFunction) cMaBoSSResult_get_last_probtraj, METH_NOARGS, "gets the raw states probability trajectories of the simulation"},

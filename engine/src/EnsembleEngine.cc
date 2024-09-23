@@ -46,6 +46,7 @@
 */
 
 #include "EnsembleEngine.h"
+#include "ObservedGraph.h"
 #include "ProbTrajEngine.h"
 #include "Probe.h"
 #include "Utils.h"
@@ -87,30 +88,8 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
       refnode_mask.setNodeState(node, true);
       refnode_count++;
     }
-    if (node->inGraph()) {
-      graph_nodes.push_back(node);
-      graph_mask.flipState(node);
-    }
   }
-
-  graph_states.resize(pow(2, graph_nodes.size()));
-  
-  unsigned int ii=0;
-  for (auto graph_state : graph_states) {
-    NetworkState state(graph_state);
-    
-    unsigned int jj=0;
-    for (auto* node: graph_nodes){
-      if ((ii & (1ULL << jj)) > 0)
-      {
-        state.flipState(node);
-      }
-      jj++;
-    }
-    
-    graph_states[ii] = state.getState();
-    ii++;
-  }
+  observed_graph = new ObservedGraph(networks[0]);
   
   merged_cumulator = NULL;
   cumulator_v.resize(thread_count);
@@ -237,12 +216,8 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
     cumulator->setRefnodeMask(refnode_mask.getState());
     cumulator_v[nn] = cumulator;
     
-    observed_graph_v[nn] = new ObservedGraph();
-    for (auto origin_state : graph_states){
-      for (auto destination_state: graph_states){
-        (*observed_graph_v[nn])[origin_state][destination_state] = 0.0;
-      }
-    }
+    observed_graph_v[nn] = new ObservedGraph(networks[0]);
+    observed_graph_v[nn]->init();
 
     // Setting the size of the list of indices to the thread's sample count
     simulation_indices_v[nn].resize(t_count); 
@@ -364,12 +339,9 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
           fixpoints_models_v[nn][nnn] = t_fixpoints_map;
           fixpoints_threads_v[simulation_indices_v[nn][c]].push_back(t_fixpoints_map);
           
-          ObservedGraph* t_observed_graph = new ObservedGraph();
-          for (auto origin_state : graph_states){
-            for (auto destination_state: graph_states){
-              (*t_observed_graph)[origin_state][destination_state] = 0.0;
-            }
-          }
+          ObservedGraph* t_observed_graph = new ObservedGraph(networks[0]);
+          t_observed_graph->init();
+          
           observed_graph_models_v[nn][nnn] = t_observed_graph;
           observed_graph_threads_v[simulation_indices_v[nn][c]].push_back(t_observed_graph);
         }
@@ -438,7 +410,6 @@ void EnsembleEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int 
   std::vector<unsigned int> simulation_ind, std::vector<Cumulator<NetworkState>*> t_models_cumulators, std::vector<FixedPoints* > t_models_fixpoints, std::vector<ObservedGraph*> t_models_observed_graphs)
 {
   NetworkState network_state; 
-  NetworkState_Impl network_state_graph;
 
   int model_ind = 0;
   RandomGenerator* random_generator = randgen_factory->generateRandomGenerator(seed);
@@ -476,7 +447,7 @@ void EnsembleEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int 
       (*output_traj) << '\n';
     }
     
-    network_state_graph = network_state.getState() & graph_mask.getState();
+    observed_graph->addFirstTransition(network_state);
     
     while (tm < max_time) {
       double total_rate = 0.;
@@ -554,15 +525,7 @@ void EnsembleEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int 
       NodeIndex node_idx = getTargetNode(network, random_generator, nodeTransitionRates, total_rate);
       network_state.flipState(network->getNode(node_idx));
       
-      NetworkState s_graph(network_state & graph_mask.getState());
-      if (s_graph.getState() != network_state_graph) {
-        (*observed_graph)[network_state_graph][s_graph.getState()] += 1;
-        network_state_graph = s_graph.getState(); 
-        
-        if (save_individual_result){
-          (*t_models_observed_graphs[model_ind])[network_state_graph][s_graph.getState()] += 1;
-        }
-      }
+      observed_graph->addTransition(network_state, tm);
     }
 
     cumulator->trajectoryEpilogue();
@@ -609,6 +572,10 @@ void EnsembleEngine::mergeMPIIndividual(bool pack)
 {
   if (world_size > 1) {
     for (unsigned int model=0; model < networks.size(); model++) {
+      if (observed_graph_per_model[model] == NULL)
+      {
+        observed_graph_per_model[model] = new ObservedGraph(networks[model]);
+      }
       mergeMPIResults(runconfig, cumulators_per_model[model], fixpoints_per_model[model], observed_graph_per_model[model], world_size, world_rank);
       
       if (world_rank == 0)

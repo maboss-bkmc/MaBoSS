@@ -64,17 +64,13 @@
 #include "RunConfig.h"
 #include "FixedPointDisplayer.h"
 #include "ProbTrajDisplayer.h"
-
+#include "ObservedGraph.h"
 struct EnsembleArgWrapper;
-typedef std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int> > ObservedGraph;
 
 class ProbTrajEngine : public FixedPointEngine {
 
 protected:
 
-  NetworkState graph_mask;
-  std::vector<const Node*> graph_nodes;
-  std::vector<NetworkState_Impl> graph_states;
   ObservedGraph* observed_graph;
   std::vector<ObservedGraph* > observed_graph_v;
 
@@ -83,21 +79,10 @@ protected:
 
   static void* threadMergeWrapper(void *arg);
 
-  static void mergePairOfObservedGraph(ObservedGraph* observed_graph_1, ObservedGraph* observed_graph_2);
   static void mergeResults(std::vector<Cumulator<NetworkState>*>& cumulator_v, std::vector<FixedPoints *>& fixpoint_map_v, std::vector<ObservedGraph* >& observed_graph_v);  
   
 #ifdef MPI_COMPAT
   static void mergeMPIResults(RunConfig* runconfig, Cumulator<NetworkState>* ret_cumul, FixedPoints* fixpoints, ObservedGraph* graph, int world_size, int world_rank, bool pack=true);
-  
-  static void mergePairOfMPIObservedGraph(ObservedGraph* graph, int world_rank, int dest, int origin, bool pack=true);
-  
-  static unsigned int MPI_Pack_Size_ObservedGraph(const ObservedGraph* graph);
-  static void MPI_Unpack_ObservedGraph(ObservedGraph* graph, char* buff, unsigned int buff_size);
-  static char* MPI_Pack_ObservedGraph(const ObservedGraph* graph, int dest, unsigned int * buff_size);
-  static void MPI_Send_ObservedGraph(const ObservedGraph* graph, int dest);
-  static void MPI_Recv_ObservedGraph(ObservedGraph* graph, int origin);
-  
-
 #endif
 
 public:
@@ -119,10 +104,11 @@ public:
   void displayProbTraj(ProbTrajDisplayer<NetworkState>* displayer) const;
   
   void display(ProbTrajDisplayer<NetworkState>* probtraj_displayer, StatDistDisplayer* statdist_displayer, FixedPointDisplayer* fp_displayer) const;
-  void displayObservedGraph(std::ostream* output_observed_graph);
+  void displayObservedGraph(std::ostream* output_observed_graph, std::ostream * output_observed_durations);
   
 #ifdef PYTHON_API
   PyObject* getNumpyObservedGraph();
+  PyObject* getNumpyObservedDurations();
 #endif
 };
 

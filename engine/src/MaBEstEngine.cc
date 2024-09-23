@@ -49,6 +49,7 @@
 
 #include "MaBEstEngine.h"
 #include "BooleanNetwork.h"
+#include "ObservedGraph.h"
 #include "Probe.h"
 #include <stdlib.h>
 #include <math.h>
@@ -89,30 +90,9 @@ MaBEstEngine::MaBEstEngine(Network* network, RunConfig* runconfig) :
       refnode_mask.setNodeState(node, true);
       refnode_count++;
     }
-    if (node->inGraph()) {
-      graph_nodes.push_back(node);
-      graph_mask.flipState(node);
-    }
   }
 
-  graph_states.resize(pow(2, graph_nodes.size()));
-  
-  unsigned int i=0;
-  for (auto graph_state : graph_states) {
-    NetworkState state(graph_state);
-    
-    unsigned int j=0;
-    for (auto* node: graph_nodes){
-      if ((i & (1ULL << j)) > 0)
-      {
-        state.flipState(node);
-      }
-      j++;
-    }
-    
-    graph_states[i] = state.getState();
-    i++;
-  }
+  observed_graph = new ObservedGraph(network);
 
   merged_cumulator = NULL;
   cumulator_v.resize(thread_count);
@@ -137,12 +117,8 @@ MaBEstEngine::MaBEstEngine(Network* network, RunConfig* runconfig) :
     cumulator->setRefnodeMask(refnode_mask.getState());
     cumulator_v[nn] = cumulator;
     
-    observed_graph_v[nn] = new ObservedGraph();
-    for (auto origin_state : graph_states){
-      for (auto destination_state: graph_states){
-        (*observed_graph_v[nn])[origin_state][destination_state] = 0.0;
-      }
-    }
+    observed_graph_v[nn] = new ObservedGraph(network);
+    observed_graph_v[nn]->init();
   }
 }
 
@@ -155,7 +131,7 @@ struct ArgWrapper {
   long long int* elapsed_time;
   int seed;
   FixedPoints* fixpoint_map;
-  std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int>>* observed_graph;
+  ObservedGraph* observed_graph;
   std::ostream* output_traj;
 
   ArgWrapper(MaBEstEngine* mabest, unsigned int start_count_thread, unsigned int sample_count_thread, Cumulator<NetworkState>* cumulator, RandomGeneratorFactory* randgen_factory, long long int * elapsed_time, int seed, FixedPoints* fixpoint_map, ObservedGraph* observed_graph, std::ostream* output_traj) :
@@ -185,7 +161,7 @@ void MaBEstEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int st
   std::vector<Node*>::const_iterator begin = nodes.begin();
   std::vector<Node*>::const_iterator end = nodes.end();
   NetworkState network_state; 
-  NetworkState_Impl network_state_graph;
+
   Probe probe;
   probe.start();
   std::vector<double> nodeTransitionRates(nodes.size(), 0.0);
@@ -203,7 +179,8 @@ void MaBEstEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int st
       (*output_traj) << '\n';
     }
     
-    network_state_graph = network_state.getState() & graph_mask.getState();
+    observed_graph->addFirstTransition(network_state);
+
     while (tm < max_time) {
       double total_rate = 0.;
             nodeTransitionRates.assign(nodes.size(), 0.0);
@@ -267,12 +244,7 @@ void MaBEstEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int st
       NodeIndex node_idx = getTargetNode(network, random_generator, nodeTransitionRates, total_rate);
       network_state.flipState(network->getNode(node_idx));
       
-      NetworkState s_graph(network_state & graph_mask.getState());
-      if (s_graph.getState() != network_state_graph) {
-        (*observed_graph)[network_state_graph][s_graph.getState()] += 1;
-        network_state_graph = s_graph.getState();
-        
-      }
+      observed_graph->addTransition(network_state, tm);
     }
     cumulator->trajectoryEpilogue();
   }
@@ -401,7 +373,7 @@ void MaBEstEngine::epilogue()
 #endif
 
   merged_cumulator->epilogue(network, reference_state);
-  
+  observed_graph->epilogue();
 #ifdef MPI_COMPAT
   }
 #endif 
