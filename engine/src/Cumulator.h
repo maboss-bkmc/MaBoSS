@@ -623,10 +623,6 @@ public:
   }
 
   void rewind() {
-    if (last_tm) {
-      computeMaxTickIndex();
-    }
-
     tick_index = 0;
     last_tm = 0.;
     last_tick_map.clear();
@@ -1550,18 +1546,11 @@ PyObject* getNumpySimpleLastStatesDists(Network* network) const
 
   }
 
-  void computeMaxTickIndex() {
-    if (max_tick_index > tick_index) {
-      max_tick_index = tick_index;
-    }
-  }
-  
+
   int getMaxTickIndex() const { return max_tick_index;} 
 
   void epilogue(Network* network, const NetworkState& reference_state) 
   {
-    computeMaxTickIndex();
-
     // compute H (Entropy), TH (Transition entropy) and HD (Hamming distance)
     H_v.resize(max_tick_index);
     TH_v.resize(max_tick_index);
@@ -1667,8 +1656,6 @@ static void mergePairOfCumulators(Cumulator<S>* cumulator_1, Cumulator<S>* cumul
   cumulator_1->statdist_trajcount += cumulator_2->statdist_trajcount;
   cumulator_1->proba_dist_v.resize(cumulator_1->statdist_trajcount);
   
-  cumulator_1->computeMaxTickIndex();
-  cumulator_2->computeMaxTickIndex();
   if (cumulator_2->cumul_map_v.size() > cumulator_1->cumul_map_v.size()) {
     cumulator_1->cumul_map_v.resize(cumulator_2->cumul_map_v.size());
     cumulator_1->hd_cumul_map_v.resize(cumulator_2->cumul_map_v.size());
@@ -1867,7 +1854,6 @@ static void mergePairOfMPICumulators(Cumulator<S>* ret_cumul, int world_rank, in
       ret_cumul->hd_cumul_map_v.resize(remote_cumul_size);
     }
     
-    ret_cumul->computeMaxTickIndex();
     if (remote_max_tick_index > ret_cumul->max_tick_index) {
       ret_cumul->max_tick_index = ret_cumul->tick_index = remote_max_tick_index;
     }
@@ -1892,10 +1878,6 @@ static void mergePairOfMPICumulators(Cumulator<S>* ret_cumul, int world_rank, in
     
     unsigned int local_statdist_trajcount = ret_cumul != NULL ? ret_cumul->statdist_trajcount : 0;
     MPI_Send(&local_statdist_trajcount, 1, MPI_UNSIGNED, dest, 0, MPI_COMM_WORLD);
-    
-    if (ret_cumul != NULL) {
-      ret_cumul->computeMaxTickIndex();
-    }
     
     size_t local_cumul_size = ret_cumul != NULL ? ret_cumul->cumul_map_v.size() : 0;
     MPI_Send(&local_cumul_size, 1, my_MPI_SIZE_T, dest, 0, MPI_COMM_WORLD);
