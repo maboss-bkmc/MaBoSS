@@ -48,3 +48,4 @@ Time	TH	ErrorTH	H	HD=0	State	Proba	ErrorProba	State	Proba	ErrorProba	State	Proba
 46.0000	0.0003	0.0000	1.8624	1.0000	Apoptosis	0.000154	0.000032	CellCycleArrest -- Invasion	0.394290	0.001545	<nil>	0.099526	0.000946	Apoptosis -- CellCycleArrest	0.278061	0.001415	CellCycleArrest	0.227970	0.001325
 47.0000	0.0003	0.0000	1.8625	1.0000	Apoptosis	0.000177	0.000035	CellCycleArrest -- Invasion	0.394282	0.001545	<nil>	0.099481	0.000946	Apoptosis -- CellCycleArrest	0.278199	0.001415	CellCycleArrest	0.227861	0.001325
 48.0000	0.0002	0.0000	1.8626	1.0000	Apoptosis	0.000179	0.000035	CellCycleArrest -- Invasion	0.394280	0.001545	<nil>	0.099483	0.000946	Apoptosis -- CellCycleArrest	0.278073	0.001415	CellCycleArrest	0.227985	0.001325
+49.0000	0.0002	0.0000	1.8625	1.0000	Apoptosis	0.000178	0.000034	CellCycleArrest -- Invasion	0.394289	0.001545	<nil>	0.099436	0.000946	Apoptosis -- CellCycleArrest	0.278066	0.001415	CellCycleArrest	0.228032	0.001325

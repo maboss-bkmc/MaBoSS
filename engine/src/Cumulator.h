@@ -572,7 +572,7 @@ public:
     runconfig(runconfig), time_tick(time_tick), sample_count(sample_count), sample_num(0), last_tm(0.), tick_index(0), statdist_trajcount(statdist_trajcount) {
     output_mask.set();
     refnode_mask.reset();
-    max_size = (int)(max_time/time_tick)+2;
+    max_size = (int)(max_time/time_tick);
     max_tick_index = max_size;
     cumul_map_v.resize(max_size);
     hd_cumul_map_v.resize(max_size);
@@ -679,7 +679,7 @@ public:
     }
     next();
 
-    for (; cumultime(tick_index+1) < tm; next()) {
+    for (; cumultime(tick_index+1) <= tm; next()) {
       if (!incr(state, time_tick, TH, fullstate)) {
 	last_tm = tm;
 	return;
