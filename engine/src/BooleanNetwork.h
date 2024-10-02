@@ -743,7 +743,7 @@ public:
     }
   }
 
-  ~Network();
+  virtual ~Network();
 };
 
 // global state of the boolean network
@@ -1557,6 +1557,7 @@ public:
   void generateLogicalExpression(LogicalExprGenContext& genctx) const;
 
   ~PopExpression() {
+    delete expr;
   }
 };
 
@@ -2539,16 +2540,7 @@ class PopNetwork : public Network {
   std::vector<PopIStateGroup*>* pop_istate_group_list;
 
   PopNetwork();
-  ~PopNetwork() { 
-    delete deathRate; 
-    for (auto division_rule: divisionRules) {
-      delete division_rule;
-    }
-    for (auto * pop_istate_group: *pop_istate_group_list) {
-      delete pop_istate_group;
-    }
-    delete pop_istate_group_list; 
-  }
+  ~PopNetwork();
   PopNetwork(const PopNetwork& network);
   PopNetwork& operator=(const PopNetwork& network);
 

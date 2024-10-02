@@ -200,7 +200,6 @@ node_decl_item: IDENTIFIER '=' expression ';'
 division_decl: DIVISION '{' division_decl_rate division_list_daughter '}'
 {
   DivisionDecl* div_decl = new DivisionDecl($4, $3);
-  delete $3;
   for (auto * div_daughter_decl : *($4)) {
     delete div_daughter_decl;
   }
@@ -211,7 +210,6 @@ division_decl: DIVISION '{' division_decl_rate division_list_daughter '}'
 {
   std::vector<DivisionDaughterDecl*>* empty_daughters = NULL;
   DivisionDecl* div_decl = new DivisionDecl(empty_daughters, $3);
-  delete $3;
   delete div_decl;
 }
 | DIVISION '{' division_list_daughter '}'

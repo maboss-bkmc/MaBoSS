@@ -338,6 +338,7 @@ primary_expression: INTEGER
   StateExpression* state_expr = new StateExpression(network_state, network);
   
   $$ = new PopExpression(state_expr);
+  delete $3;
 }
 ;
 
@@ -345,11 +346,13 @@ state: SYMBOL
 {
   $$ = new std::vector<const Node*>();
   $$->push_back(network->getNode($1));
+  free($1);
 }
 | state NODE_SEP SYMBOL
 {
   $$ = $1;
   $$->push_back(network->getNode($3));
+  free($3);
 }
 ;
  

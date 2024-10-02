@@ -83,6 +83,7 @@ RunConfig::RunConfig()
 RunConfig::~RunConfig()
 {
   delete randgen_factory;
+  delete custom_pop_output_expression;
 }
 
 void RunConfig::setParameter(const std::string& param, double value)

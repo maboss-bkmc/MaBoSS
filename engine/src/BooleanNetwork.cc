@@ -257,7 +257,7 @@ int PopNetwork::parseExpression(const char* content, std::map<std::string, NodeI
 }
 
 void DivisionRule::setRate(Expression* rate) {  
-  this->rate = rate->clone();
+  this->rate = rate;
 }
 
 double DivisionRule::getRate(const NetworkState& state, const PopNetworkState& pop) {
@@ -936,6 +936,19 @@ Network::~Network()
   for (auto & node : node_map) {
     delete node.second;
   }
+}
+
+PopNetwork::~PopNetwork()
+{
+  delete deathRate;
+  for (auto * division_rule : divisionRules) {
+    delete division_rule;
+  }
+  
+  for (auto * pop_istate_group : *pop_istate_group_list) {
+    delete pop_istate_group;
+  }
+  delete pop_istate_group_list;
   
 }
 
