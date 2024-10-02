@@ -1510,8 +1510,13 @@ public:
   }
 
   bool isLogicalExpression() const {return true;}
+  
   std::vector<Node*> getNodes() const{
-    return std::vector<Node*>();
+    std::vector<Node*> vec;
+    for (auto* node: network->getNodes())
+      if (state.getNodeState(node))
+        vec.push_back(node);
+    return vec;
   }
   
   void generateLogicalExpression(LogicalExprGenContext& genctx) const {}
@@ -1552,7 +1557,7 @@ public:
 
   bool isLogicalExpression() const {return true;}
   std::vector<Node*> getNodes() const{
-    return std::vector<Node*>();
+    return expr->getNodes();
   }
   void generateLogicalExpression(LogicalExprGenContext& genctx) const;
 
@@ -1579,7 +1584,7 @@ public:
     return left->isConstantExpression() && right->isConstantExpression();
   }
  
-  std::vector<Node*> getNodes() const{
+  virtual std::vector<Node*> getNodes() const{
     std::vector<Node*> vec1 = left->getNodes();
     std::vector<Node*> vec2 = right->getNodes();
     std::vector<Node*> vec(vec1.begin(), vec1.end());
@@ -1921,6 +1926,24 @@ public:
     return true_expr->isLogicalExpression() && false_expr->isLogicalExpression();
   }
 
+  std::vector<Node*> getNodes() const{
+    std::vector<Node*> vec1 = cond_expr->getNodes();
+    std::vector<Node*> vec2 = true_expr->getNodes();
+    std::vector<Node*> vec3 = false_expr->getNodes();
+    std::vector<Node*> vec(vec1.begin(), vec1.end());
+    for (auto* node : vec2) {
+      if (std::find(vec.begin(), vec.end(), node) == vec.end()) {
+        vec.push_back(node);
+      }
+    }
+    for (auto* node : vec3) {
+      if (std::find(vec.begin(), vec.end(), node) == vec.end()) {
+        vec.push_back(node);
+      }
+    }
+    return vec;
+  }
+  
   void generateLogicalExpression(LogicalExprGenContext& genctx) const;
 
   virtual ~CondExpression() {
@@ -2274,6 +2297,9 @@ public:
     os <<  ')';
   }
 
+  std::vector<Node*> getNodes() const{
+    return expr->getNodes();
+  }
   bool isConstantExpression() const {return expr->isConstantExpression();}
   bool isLogicalExpression() const {return expr->isLogicalExpression();}
 

@@ -105,6 +105,10 @@ public:
     return merged_cumulator; 
   }
 
+  Cumulator<PopSize>* getCustomPopCumulator() {
+    return custom_pop_cumulator;
+  }
+  
   void displayFixpoints(FixedPointDisplayer* displayer) const;
   void displayPopProbTraj(ProbTrajDisplayer<PopNetworkState>* displayer) const;
   void display(ProbTrajDisplayer<PopNetworkState>* pop_probtraj_displayer, FixedPointDisplayer* fp_displayer) const;

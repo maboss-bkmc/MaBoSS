@@ -86,7 +86,7 @@ class RunConfig {
   void setParameter(const std::string& param, double value);
   void setCustomPopOutputExpression(Expression* expr) { custom_pop_output_expression = expr; }
   bool hasCustomPopOutput() const { return custom_pop_output_expression != NULL; }
-  const Expression* getCustomPopOutputExpression() { return custom_pop_output_expression; }
+  const Expression* getCustomPopOutputExpression() const { return custom_pop_output_expression; }
   RandomGeneratorFactory* getRandomGeneratorFactory() const;
   unsigned int getInitPop() const {return init_pop;}
   double getPopBase() const {return pop_base;}

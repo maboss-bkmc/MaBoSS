@@ -170,6 +170,21 @@ void RunConfig::display(Network* network, time_t start_time, time_t end_time, st
   if (getRandomGeneratorFactory()->isPseudoRandom()) {
     os << "Seed Pseudo Random: " << getSeedPseudoRandom() << '\n';
   }
+  if (hasCustomPopOutput()) {
+    os << "Custom Population Output Expression: " ;
+    getCustomPopOutputExpression()->display(os);
+    os << std::endl;
+  }
+  
+  os << "Output nodes: ";
+  for (auto* node : network->getNodes())
+  {
+    if (!node->isInternal())
+    {
+      os << node->getLabel() << " ";
+    }
+  }
+  os << std::endl;
   os << "Generated Number Count: " << RandomGenerator::getGeneratedNumberCount() << "\n\n";
 
   snprintf(bufstr, 1024, sepfmt, "-----------");

@@ -92,6 +92,16 @@ PopMaBEstEngine::PopMaBEstEngine(PopNetwork *pop_network, RunConfig *runconfig) 
   NetworkState internal_state;
   bool has_internal = false;
   refnode_count = 0;
+
+  if (runconfig->hasCustomPopOutput())
+  {
+    const Expression* custom_pop_output = runconfig->getCustomPopOutputExpression();
+    std::vector<Node*> custom_nodes = custom_pop_output->getNodes();
+    for (auto* node: nodes) {
+      node->isInternal(std::find(custom_nodes.begin(), custom_nodes.end(), node) == custom_nodes.end());
+    }
+  }
+
   for (const auto * node : nodes)
   {
     if (node->isInternal())
