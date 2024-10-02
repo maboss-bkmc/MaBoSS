@@ -19,7 +19,7 @@ check_file()
 
 cp user_func/user_func.cc ../src
 cd ../src
-make clean; make FUNC_MODULE=user_func maboss
+make clean; make maboss -j; make FUNC_MODULE=user_func
 if [ $? != 0 ]; then exit 1; fi
 cd ../tests
 

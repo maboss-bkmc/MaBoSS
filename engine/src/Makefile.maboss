@@ -168,8 +168,8 @@ $(POPMABOSS_LIB): $(CORE_LIB_OBJS) $(POP_LIB_OBJS)
 	$(CXX) -shared -o $(POPMABOSS_LIB) $+ -lpthread $(LDL_FLAG) $(LDFLAGS) $(SBML_LIB) $(HDF5_LIB)
 
 
-$(FUNC_MODULE): $(FUNC_MODULE).o $(CORE_LIB_OBJS) $(LIB_OBJS)
-	$(CXX) -shared -o $(FUNC_MODULE).so $(FUNC_MODULE).o $(CORE_LIB_OBJS) $(LIB_OBJS) -lpthread -L.
+$(FUNC_MODULE): $(FUNC_MODULE).o Function$(INFIX).o
+	$(CXX) -shared -o $(FUNC_MODULE).so $(FUNC_MODULE).o Function$(INFIX).o -lpthread -L.
 
 $(MABOSS): MaBoSS$(INFIX).o $(MABOSS_OBJS)
 ifdef USE_LIB
