@@ -57,6 +57,14 @@ if [ $? != 0 ]; then exit 1; fi
 python compare_probtrajs.py popmaboss/refer/res_assymetric_pop_probtraj.csv tmp/res_assymetric_pop_probtraj.csv 5e-2 5e-2
 check_file "pop_projtraj"
 
+
+/usr/bin/time -p $LAUNCHER $POPMABOSS -c popmaboss/ICD_phenomenological_TDC_ratio.cfg -o tmp/res_icd popmaboss/ICD_phenomenologicalPM.pbnd > /dev/null
+
+if [ $? != 0 ]; then exit 1; fi
+
+python compare_probtrajs.py popmaboss/refer/res_icd_custom_pop_probtraj.csv tmp/res_icd_custom_pop_probtraj.csv 5e-2 5e-2
+check_file "custom pop_projtraj"
+
 rm -rf tmp; 
 
 exit $return_code
