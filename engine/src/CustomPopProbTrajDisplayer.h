@@ -65,7 +65,7 @@ class CSVCustomPopProbTrajDisplayer : public ProbTrajDisplayer<PopSize> {
 public:
   CSVCustomPopProbTrajDisplayer(Network* network, std::ostream& os_probtraj, bool hexfloat = false) : ProbTrajDisplayer<PopSize>(network, hexfloat), os_probtraj(os_probtraj) { }
 
-  virtual void beginDisplay() {
+  void beginDisplay() {
     os_probtraj << "Time\tTH" << (this->compute_errors ? "\tErrorTH" : "") << "\tH";
     for (unsigned int jj = 0; jj <= this->refnode_count; ++jj) {
       os_probtraj << "\tHD=" << jj;
@@ -77,8 +77,8 @@ public:
 
     os_probtraj << '\n';
   }
-  virtual void beginTimeTickDisplay() {}
-  virtual void endTimeTickDisplay() {
+  void beginTimeTickDisplay() {}
+  void endTimeTickDisplay() {
     os_probtraj << std::setprecision(4) << std::fixed << this->time_tick;
   #ifdef HAS_STD_HEXFLOAT
     if (this->hexfloat) {
@@ -117,7 +117,7 @@ public:
     }
     os_probtraj << '\n';
   }
-  virtual void endDisplay() {}
+  void endDisplay() { }
 };
 
 

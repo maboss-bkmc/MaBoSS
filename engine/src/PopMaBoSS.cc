@@ -496,12 +496,16 @@ int main(int argc, char* argv[])
       ((std::ofstream*)output_pop_probtraj)->close();
       ((std::ofstream*)output_fp)->close();
       ((std::ofstream*)output_simple_pop_probtraj)->close();
+      if (runconfig->hasCustomPopOutput())
+        ((std::ofstream*)output_custom_pop_probtraj)->close();
 #ifdef MPI_COMPAT
     }
 #endif
       delete output_pop_probtraj;
       delete output_fp;
       delete output_simple_pop_probtraj;
+      if (runconfig->hasCustomPopOutput())
+        delete output_custom_pop_probtraj;
 #ifdef HDF5_COMPAT
     } else if (format == HDF5_FORMAT) {
 #ifdef MPI_COMPAT
@@ -516,6 +520,8 @@ int main(int argc, char* argv[])
     
     delete pop_probtraj_displayer;
     delete fp_displayer;
+    if (runconfig->hasCustomPopOutput())
+      delete custom_pop_probtraj_displayer;
     
     delete runconfig;
     delete pop_network;

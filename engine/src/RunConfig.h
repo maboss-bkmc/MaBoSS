@@ -75,7 +75,7 @@ class RunConfig {
   void dump_perform(Network* network, std::ostream& os, bool is_template, std::string version) const;
   unsigned int init_pop;
   double pop_base;
-  PopExpression* custom_pop_output_expression;
+  Expression* custom_pop_output_expression;
   
  public:
   RunConfig();
@@ -84,9 +84,9 @@ class RunConfig {
   int parse(Network* network, const char* file = NULL);
   int parseExpression(Network* network, const char* expr);
   void setParameter(const std::string& param, double value);
-  void setCustomPopOutputExpression(Expression* expr) { custom_pop_output_expression = (PopExpression*) expr; }
+  void setCustomPopOutputExpression(Expression* expr) { custom_pop_output_expression = expr; }
   bool hasCustomPopOutput() const { return custom_pop_output_expression != NULL; }
-  PopExpression* getCustomPopOutputExpression() { return custom_pop_output_expression; }
+  const Expression* getCustomPopOutputExpression() { return custom_pop_output_expression; }
   RandomGeneratorFactory* getRandomGeneratorFactory() const;
   unsigned int getInitPop() const {return init_pop;}
   double getPopBase() const {return pop_base;}

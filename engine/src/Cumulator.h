@@ -652,6 +652,22 @@ public:
     last_tick_map.clear();
   }
 
+  void cumulEmpty(double tm) {
+    double time_1 = cumultime(tick_index+1);
+    if (tm < time_1) {
+      last_tm = tm;
+      return;
+    }
+
+    if (!tick_completed) {
+      next();
+    }
+
+    for (; cumultime(tick_index+1) <= tm; next()) {
+    }
+    last_tm = tm;
+  }
+
   void cumul(const S& network_state, double tm, double TH) { 
 #ifdef USE_DYNAMIC_BITSET
     S fullstate(network_state & refnode_mask, 1);
