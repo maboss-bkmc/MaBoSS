@@ -119,6 +119,20 @@ static PyObject* cPopMaBoSSResult_get_simple_last_probtraj(cPopMaBoSSResultObjec
   return self->engine->getMergedCumulator()->getNumpySimpleLastStatesDists(self->network);
 }
 
+static PyObject* cPopMaBoSSResult_get_custom_probtraj(cPopMaBoSSResultObject* self) {
+  if (self->runconfig->hasCustomPopOutput()){
+    return self->engine->getCustomPopCumulator()->getNumpyStatesDists(self->network);
+  } else 
+  return Py_None;
+}
+
+static PyObject* cPopMaBoSSResult_get_custom_last_probtraj(cPopMaBoSSResultObject* self) {
+  if (self->runconfig->hasCustomPopOutput())
+    return self->engine->getCustomPopCumulator()->getNumpyLastStatesDists(self->network);
+  else 
+    return Py_None;
+}
+
 static PyObject* cPopMaBoSSResult_display_fp(cPopMaBoSSResultObject* self, PyObject *args) 
 {
   char * filename = NULL;
@@ -198,6 +212,8 @@ static PyMethodDef cPopMaBoSSResult_methods[] = {
     {"get_last_probtraj", (PyCFunction) cPopMaBoSSResult_get_last_probtraj, METH_NOARGS, "gets the last raw states probability of the simulation"},
     {"get_simple_probtraj", (PyCFunction) cPopMaBoSSResult_get_simple_probtraj, METH_NOARGS, "gets the raw simple states probability trajectories of the simulation"},
     {"get_simple_last_probtraj", (PyCFunction) cPopMaBoSSResult_get_simple_last_probtraj, METH_NOARGS, "gets the last raw simple states probability of the simulation"},
+    {"get_custom_probtraj", (PyCFunction) cPopMaBoSSResult_get_custom_probtraj, METH_NOARGS, "gets the raw custom states probability trajectories of the simulation"},
+    {"get_custom_last_probtraj", (PyCFunction) cPopMaBoSSResult_get_custom_last_probtraj, METH_NOARGS, "gets the last raw custom states probability of the simulation"},
     {"display_fp", (PyCFunction) cPopMaBoSSResult_display_fp, METH_VARARGS, "prints the fixpoints to a file"},
     {"display_probtraj", (PyCFunction) cPopMaBoSSResult_display_probtraj, METH_VARARGS, "prints the probtraj to a file"},
     // {"display_statdist", (PyCFunction) cMaBoSSResult_display_statdist, METH_VARARGS, "prints the statdist to a file"},

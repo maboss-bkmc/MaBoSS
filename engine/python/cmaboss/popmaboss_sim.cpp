@@ -79,12 +79,13 @@ static PyObject * cPopMaBoSSSim_new(PyTypeObject* type, PyObject *args, PyObject
     PyObject* cfg = NULL;
     char * network_file = NULL;
     char * config_file = NULL;
+    PyObject* config_files = NULL;
     char * network_str = NULL;
     char * config_str = NULL;
-    static const char *kwargs_list[] = {"network", "config", "network_str", "config_str", "net", "cfg", NULL};
+    static const char *kwargs_list[] = {"network", "config", "configs", "network_str", "config_str", "net", "cfg", NULL};
     if (!PyArg_ParseTupleAndKeywords(
-      args, kwargs, "|ssssOO", const_cast<char **>(kwargs_list), 
-      &network_file, &config_file, &network_str, &config_str, &net, &cfg
+      args, kwargs, "|ssOssOO", const_cast<char **>(kwargs_list), 
+      &network_file, &config_file, &config_files, &network_str, &config_str, &net, &cfg
     ))
       return NULL;
       
@@ -101,6 +102,20 @@ static PyObject * cPopMaBoSSSim_new(PyTypeObject* type, PyObject *args, PyObject
       runconfig->parse(network, config_file);
 
     } 
+    if (network_file != NULL && config_files != NULL) {
+      // Loading bnd file
+      network = new PopNetwork();
+      network->parse(network_file);
+
+      // Loading cfg files
+      runconfig = new RunConfig();
+      IStateGroup::reset(network);
+      for (int i = 0; i < PyList_Size(config_files); i++) {
+        PyObject* item = PyList_GetItem(config_files, i);
+        runconfig->parse(network, PyUnicode_AsUTF8(item));
+      }
+      
+    }
     // else if (network_str != NULL && config_str != NULL) {
     //   // Loading bnd file
     //   network = new PopNetwork();
