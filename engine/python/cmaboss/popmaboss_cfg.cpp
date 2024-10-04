@@ -36,7 +36,7 @@
 #############################################################################
 
    Module:
-     maboss_cfg.cpp
+     popmaboss_cfg.cpp
 
    Authors:
      Vincent Noël <vincent.noel@curie.fr>
@@ -45,38 +45,38 @@
      January-March 2020
 */
 
-#ifndef MABOSS_CONFIG
-#define MABOSS_CONFIG
+#ifndef POPMABOSS_CONFIG
+#define POPMABOSS_CONFIG
 #define PY_SSIZE_T_CLEAN
 
 #include <Python.h>
 #include <set>
 #include "maboss_net.cpp"
 #include "src/RunConfig.h"
-#include "src/MaBEstEngine.h"
+#include "src/PopMaBEstEngine.h"
 
 typedef struct {
   PyObject_HEAD
   RunConfig* config;
-} cMaBoSSConfigObject;
+} cPopMaBoSSConfigObject;
 
-static void cMaBoSSConfig_dealloc(cMaBoSSConfigObject *self)
+static void cPopMaBoSSConfig_dealloc(cPopMaBoSSConfigObject *self)
 {
     delete self->config;
     Py_TYPE(self)->tp_free((PyObject *) self);
 }
 
-static RunConfig* cMaBoSSConfig_getConfig(cMaBoSSConfigObject* self) 
+static RunConfig* cPopMaBoSSConfig_getConfig(cPopMaBoSSConfigObject* self) 
 {
   return self->config;
 }
 
-static PyObject* cMaBoSSConfig_getMaxTime(cMaBoSSConfigObject* self)
+static PyObject* cPopMaBoSSConfig_getMaxTime(cPopMaBoSSConfigObject* self)
 {
   return PyFloat_FromDouble(self->config->getMaxTime());
 }
 
-static PyObject * cMaBoSSConfig_new(PyTypeObject* type, PyObject *args, PyObject* kwargs) 
+static PyObject * cPopMaBoSSConfig_new(PyTypeObject* type, PyObject *args, PyObject* kwargs) 
 {
   Py_ssize_t nb_args = PyTuple_Size(args);  
 
@@ -84,10 +84,10 @@ static PyObject * cMaBoSSConfig_new(PyTypeObject* type, PyObject *args, PyObject
     return NULL;
   }
   
-  cMaBoSSNetworkObject * network = (cMaBoSSNetworkObject*) PyTuple_GetItem(args, 0);
+  cPopMaBoSSNetworkObject * network = (cPopMaBoSSNetworkObject*) PyTuple_GetItem(args, 0);
 
-  cMaBoSSConfigObject* pyconfig;
-  pyconfig = (cMaBoSSConfigObject *) type->tp_alloc(type, 0);
+  cPopMaBoSSConfigObject* pyconfig;
+  pyconfig = (cPopMaBoSSConfigObject *) type->tp_alloc(type, 0);
   pyconfig->config = new RunConfig();
   
   try {
@@ -106,23 +106,23 @@ static PyObject * cMaBoSSConfig_new(PyTypeObject* type, PyObject *args, PyObject
 }
 
 
-static PyMethodDef cMaBoSSConfig_methods[] = {
-    {"getConfig", (PyCFunction) cMaBoSSConfig_getConfig, METH_NOARGS, "returns the config object"},
-    {"getMaxTime", (PyCFunction) cMaBoSSConfig_getMaxTime, METH_NOARGS, "returns the max time"},
+static PyMethodDef cPopMaBoSSConfig_methods[] = {
+    {"getConfig", (PyCFunction) cPopMaBoSSConfig_getConfig, METH_NOARGS, "returns the config object"},
+    {"getMaxTime", (PyCFunction) cPopMaBoSSConfig_getMaxTime, METH_NOARGS, "returns the max time"},
     {NULL}  /* Sentinel */
 };
 
-static PyTypeObject cMaBoSSConfig = []{
+static PyTypeObject cPopMaBoSSConfig = []{
     PyTypeObject net{PyVarObject_HEAD_INIT(NULL, 0)};
 
-    net.tp_name = "cmaboss.cMaBoSSConfigObject";
-    net.tp_basicsize = sizeof(cMaBoSSConfigObject);
+    net.tp_name = "cmaboss.cPopMaBoSSConfigObject";
+    net.tp_basicsize = sizeof(cPopMaBoSSConfigObject);
     net.tp_itemsize = 0;
     net.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
-    net.tp_doc = "cMaBoSS Network object";
-    net.tp_new = cMaBoSSConfig_new;
-    net.tp_dealloc = (destructor) cMaBoSSConfig_dealloc;
-    net.tp_methods = cMaBoSSConfig_methods;
+    net.tp_doc = "cPopMaBoSS Network object";
+    net.tp_new = cPopMaBoSSConfig_new;
+    net.tp_dealloc = (destructor) cPopMaBoSSConfig_dealloc;
+    net.tp_methods = cPopMaBoSSConfig_methods;
     return net;
 }();
 

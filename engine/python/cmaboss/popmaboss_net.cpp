@@ -45,37 +45,62 @@
      January-March 2020
 */
 
-#ifndef MABOSS_NETWORK
-#define MABOSS_NETWORK
-#include "maboss_net.h"
+#ifndef MABOSS_POPNETWORK
+#define MABOSS_POPNETWORK
+// #include "popmaboss_net.h"
 #include "maboss_node.cpp"
 
 
-static void cMaBoSSNetwork_dealloc(cMaBoSSNetworkObject *self)
+#define PY_SSIZE_T_CLEAN
+
+#include <Python.h>
+// #include <set>
+#include "src/BooleanNetwork.h"
+// #include "src/MaBEstEngine.h"
+#include "maboss_node.cpp"
+
+typedef struct {
+  PyObject_HEAD
+  PopNetwork* network;
+  PyObject* nodes;
+} cPopMaBoSSNetworkObject;
+
+static void cPopMaBoSSNetwork_dealloc(cPopMaBoSSNetworkObject *self)
 {
     delete self->network;
     Py_TYPE(self)->tp_free((PyObject *) self);
 }
 
-static Network* cMaBoSSNetwork_getNetwork(cMaBoSSNetworkObject* self) 
+static Network* cPopMaBoSSNetwork_getNetwork(cPopMaBoSSNetworkObject* self) 
 {
+  
   return self->network;
 }
 
-static PyObject* cMaBoSSNetwork_getListNodes(cMaBoSSNetworkObject* self)
+static PyObject* cPopMaBoSSNetwork_getDictNodes(cPopMaBoSSNetworkObject* self)
 {
-  PyObject *list = PyList_New(self->network->getNodes().size());
-
-  size_t index = 0;
-  for (auto* node: self->network->getNodes()) {
-    PyList_SetItem(list, index, PyUnicode_FromString(node->getLabel().c_str()));
-    index++;
-  }
-
-  return list;
+  Py_INCREF(self->nodes);
+  return self->nodes;
 }
 
-static PyObject * cMaBoSSNetwork_new(PyTypeObject* type, PyObject *args, PyObject* kwargs) 
+static int cPopMaBoSSNetwork_NodesSetItem(cPopMaBoSSNetworkObject* self, PyObject *key, PyObject* value) 
+{
+  Py_INCREF(value);
+  return PyDict_SetItem(self->nodes, key, value);
+}
+static PyObject * cPopMaBoSSNetwork_NodesGetItem(cPopMaBoSSNetworkObject* self, PyObject *key) 
+{
+  PyObject* item = PyDict_GetItem(self->nodes, key);
+  Py_INCREF(item);
+  return item;
+}
+
+static Py_ssize_t cPopMaBoSSNetwork_NodesLength(cPopMaBoSSNetworkObject* self)
+{
+  return PyObject_Length(self->nodes);
+}
+
+static PyObject * cPopMaBoSSNetwork_new(PyTypeObject* type, PyObject *args, PyObject* kwargs) 
 {
   char * network_file;
   static const char *kwargs_list[] = {"network", NULL};
@@ -85,12 +110,27 @@ static PyObject * cMaBoSSNetwork_new(PyTypeObject* type, PyObject *args, PyObjec
   ))
     return NULL;
   
-  cMaBoSSNetworkObject* pynetwork;
-  pynetwork = (cMaBoSSNetworkObject *) type->tp_alloc(type, 0);
-  pynetwork->network = new Network();
+  cPopMaBoSSNetworkObject* pynetwork;
+  pynetwork = (cPopMaBoSSNetworkObject *) type->tp_alloc(type, 0);
+  pynetwork->network = new PopNetwork();
   
   try{
     pynetwork->network->parse(network_file);
+    pynetwork->nodes = PyDict_New();
+
+    for (auto* node: pynetwork->network->getNodes()) 
+    { 
+      
+      cMaBoSSNodeObject * pynode = (cMaBoSSNodeObject *) PyObject_New(cMaBoSSNodeObject, &cMaBoSSNode);
+      pynode->_node = node;
+      PyDict_SetItemString(pynetwork->nodes, node->getLabel().c_str(), (PyObject*) pynode);
+      Py_INCREF(pynode);
+    }
+    PyObject* keys = PyDict_Keys(pynetwork->nodes);
+  for (int i = 0; i < PyList_Size(keys); i++) {
+    PyObject* key = PyList_GetItem(keys, i);
+    std::cout << "Key = " << PyUnicode_AsUTF8(key) << std::endl;
+  }
   
   } catch (BNException& e) {
     PyErr_SetString(PyBNException, e.getMessage().c_str());
@@ -101,23 +141,32 @@ static PyObject * cMaBoSSNetwork_new(PyTypeObject* type, PyObject *args, PyObjec
 }
 
 
-static PyMethodDef cMaBoSSNetwork_methods[] = {
-    {"getNetwork", (PyCFunction) cMaBoSSNetwork_getNetwork, METH_NOARGS, "returns the network object"},
-    {"getListNodes", (PyCFunction) cMaBoSSNetwork_getListNodes, METH_NOARGS, "returns the list of nodes"},
+static PyMethodDef cPopMaBoSSNetwork_methods[] = {
+    {"getNetwork", (PyCFunction) cPopMaBoSSNetwork_getNetwork, METH_NOARGS, "returns the network object"},
+    {"getNodes", (PyCFunction) cPopMaBoSSNetwork_getDictNodes, METH_NOARGS, "returns the dict of nodes"},
+    // {"__getitem__", (PyCFunction) cPopMaBoSSNetwork_getNode, METH_VARARGS, "returns a chosen node"},
+    // {"__setitem__", (PyCFunction) cPopMaBoSSNetwork_setNode, METH_VARARGS, "sets a chosen node"},
     {NULL}  /* Sentinel */
 };
 
-static PyTypeObject cMaBoSSNetwork = []{
+static PyMappingMethods cPopMaBoSSNetwork_mapping = {
+	(lenfunc)cPopMaBoSSNetwork_NodesLength,		// lenfunc PyMappingMethods.mp_length
+	(binaryfunc)cPopMaBoSSNetwork_NodesGetItem,		// binaryfunc PyMappingMethods.mp_subscript
+	(objobjargproc)cPopMaBoSSNetwork_NodesSetItem,		// objobjargproc PyMappingMethods.mp_ass_subscript
+};
+
+static PyTypeObject cPopMaBoSSNetwork = []{
     PyTypeObject net{PyVarObject_HEAD_INIT(NULL, 0)};
 
-    net.tp_name = "cmaboss.cMaBoSSNetworkObject";
-    net.tp_basicsize = sizeof(cMaBoSSNetworkObject);
+    net.tp_name = "cmaboss.cPopMaBoSSNetworkObject";
+    net.tp_basicsize = sizeof(cPopMaBoSSNetworkObject);
     net.tp_itemsize = 0;
     net.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
-    net.tp_doc = "cMaBoSS Network object";
-    net.tp_new = cMaBoSSNetwork_new;
-    net.tp_dealloc = (destructor) cMaBoSSNetwork_dealloc;
-    net.tp_methods = cMaBoSSNetwork_methods;
+    net.tp_doc = "cMaBoSS PopNetwork object";
+    net.tp_new = cPopMaBoSSNetwork_new;
+    net.tp_dealloc = (destructor) cPopMaBoSSNetwork_dealloc;
+    net.tp_methods = cPopMaBoSSNetwork_methods;
+    net.tp_as_mapping = &cPopMaBoSSNetwork_mapping;
     return net;
 }();
 #endif

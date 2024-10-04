@@ -36,7 +36,7 @@
 #############################################################################
 
    Module:
-     maboss_cfg.cpp
+     maboss_node.cpp
 
    Authors:
      Vincent Noël <vincent.noel@curie.fr>
@@ -45,85 +45,79 @@
      January-March 2020
 */
 
-#ifndef MABOSS_CONFIG
-#define MABOSS_CONFIG
-#define PY_SSIZE_T_CLEAN
+#ifndef MABOSS_NODE
+#define MABOSS_NODE
 
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <set>
-#include "maboss_net.cpp"
-#include "src/RunConfig.h"
+#include "src/BooleanNetwork.h"
 #include "src/MaBEstEngine.h"
 
 typedef struct {
   PyObject_HEAD
-  RunConfig* config;
-} cMaBoSSConfigObject;
+  Node* _node;
+} cMaBoSSNodeObject;
 
-static void cMaBoSSConfig_dealloc(cMaBoSSConfigObject *self)
+static void cMaBoSSNode_dealloc(cMaBoSSNodeObject *self)
 {
-    delete self->config;
+    delete self->_node;
     Py_TYPE(self)->tp_free((PyObject *) self);
 }
 
-static RunConfig* cMaBoSSConfig_getConfig(cMaBoSSConfigObject* self) 
+static Node* cMaBoSSNode_getNode(cMaBoSSNodeObject* self) 
 {
-  return self->config;
+  return self->_node;
 }
 
-static PyObject* cMaBoSSConfig_getMaxTime(cMaBoSSConfigObject* self)
+
+static PyObject* cMaBoSSNode_getLabel(cMaBoSSNodeObject* self) 
 {
-  return PyFloat_FromDouble(self->config->getMaxTime());
+  return PyUnicode_FromString(self->_node->getLabel().c_str());
 }
 
-static PyObject * cMaBoSSConfig_new(PyTypeObject* type, PyObject *args, PyObject* kwargs) 
+static PyObject * cMaBoSSNode_new(PyTypeObject* type, PyObject *args, PyObject* kwargs) 
 {
-  Py_ssize_t nb_args = PyTuple_Size(args);  
-
-  if (nb_args < 2) {
+  char * name;
+  cMaBoSSNetworkObject * network;
+  static const char *kwargs_list[] = {"name", "network", NULL};
+  if (!PyArg_ParseTupleAndKeywords(
+    args, kwargs, "so", const_cast<char **>(kwargs_list), 
+    &name, &network
+  ))
     return NULL;
-  }
+ 
+  cMaBoSSNodeObject * pynode = (cMaBoSSNodeObject *) type->tp_alloc(type, 0);
   
-  cMaBoSSNetworkObject * network = (cMaBoSSNetworkObject*) PyTuple_GetItem(args, 0);
-
-  cMaBoSSConfigObject* pyconfig;
-  pyconfig = (cMaBoSSConfigObject *) type->tp_alloc(type, 0);
-  pyconfig->config = new RunConfig();
-  
-  try {
-    for (Py_ssize_t i = 1; i < nb_args; i++) {
-      PyObject* bytes = PyUnicode_AsUTF8String(PyTuple_GetItem(args, i));
-      pyconfig->config->parse(network->network, PyBytes_AsString(bytes));
-      Py_DECREF(bytes);
-    }
-
+  try{
+    pynode->_node = network->network->getOrMakeNode(name);
+    
   } catch (BNException& e) {
     PyErr_SetString(PyBNException, e.getMessage().c_str());
     return NULL;
   }
-
-  return (PyObject*) pyconfig;
+  
+  return (PyObject*) pynode;
 }
 
 
-static PyMethodDef cMaBoSSConfig_methods[] = {
-    {"getConfig", (PyCFunction) cMaBoSSConfig_getConfig, METH_NOARGS, "returns the config object"},
-    {"getMaxTime", (PyCFunction) cMaBoSSConfig_getMaxTime, METH_NOARGS, "returns the max time"},
+static PyMethodDef cMaBoSSNode_methods[] = {
+    // {"getNode", (PyCFunction) cMaBoSSNode_getNode, METH_NOARGS, "returns the node object"},
+    {"getLabel", (PyCFunction) cMaBoSSNode_getLabel, METH_NOARGS, "returns the node object"},
     {NULL}  /* Sentinel */
 };
 
-static PyTypeObject cMaBoSSConfig = []{
+static PyTypeObject cMaBoSSNode = []{
     PyTypeObject net{PyVarObject_HEAD_INIT(NULL, 0)};
 
-    net.tp_name = "cmaboss.cMaBoSSConfigObject";
-    net.tp_basicsize = sizeof(cMaBoSSConfigObject);
+    net.tp_name = "cmaboss.cMaBoSSNodeObject";
+    net.tp_basicsize = sizeof(cMaBoSSNodeObject);
     net.tp_itemsize = 0;
     net.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
-    net.tp_doc = "cMaBoSS Network object";
-    net.tp_new = cMaBoSSConfig_new;
-    net.tp_dealloc = (destructor) cMaBoSSConfig_dealloc;
-    net.tp_methods = cMaBoSSConfig_methods;
+    net.tp_doc = "cMaBoSS Node object";
+    net.tp_new = cMaBoSSNode_new;
+    net.tp_dealloc = (destructor) cMaBoSSNode_dealloc;
+    net.tp_methods = cMaBoSSNode_methods;
     return net;
 }();
-
 #endif

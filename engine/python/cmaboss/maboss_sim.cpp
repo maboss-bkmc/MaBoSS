@@ -57,6 +57,7 @@
 #include "maboss_commons.h"
 #include "maboss_net.cpp"
 #include "maboss_cfg.cpp"
+#include "maboss_param.cpp"
 #include <sstream>
 
 #ifdef __GLIBC__
@@ -67,6 +68,7 @@ typedef struct {
   PyObject_HEAD
   Network* network;
   RunConfig* runconfig;
+  cMaBoSSParamObject* param;
 } cMaBoSSSimObject;
 
 static void cMaBoSSSim_dealloc(cMaBoSSSimObject *self)
@@ -82,13 +84,14 @@ static PyObject * cMaBoSSSim_new(PyTypeObject* type, PyObject *args, PyObject* k
     PyObject* cfg = NULL;
     char * network_file = NULL;
     char * config_file = NULL;
+    PyObject* config_files = NULL;
     char * network_str = NULL;
     char * config_str = NULL;
     bool use_sbml_names = false;
-    static const char *kwargs_list[] = {"network", "config", "network_str", "config_str", "net", "cfg", "use_sbml_names", NULL};
+    static const char *kwargs_list[] = {"network", "config", "configs", "network_str", "config_str", "net", "cfg", "use_sbml_names", NULL};
     if (!PyArg_ParseTupleAndKeywords(
-      args, kwargs, "|ssssOOp", const_cast<char **>(kwargs_list), 
-      &network_file, &config_file, &network_str, &config_str, &net, &cfg, &use_sbml_names
+      args, kwargs, "|ssOssOOp", const_cast<char **>(kwargs_list), 
+      &network_file, &config_file, &config_files, &network_str, &config_str, &net, &cfg, &use_sbml_names
     ))
       return NULL;
       
@@ -123,11 +126,28 @@ static PyObject * cMaBoSSSim_new(PyTypeObject* type, PyObject *args, PyObject* k
       runconfig = new RunConfig();
       IStateGroup::reset(network);
       runconfig->parseExpression(network, config_str);
+      
+    } else if (network_file != NULL && config_files != NULL) {
+        // Loading bnd file
+        network = new Network();
+        network->parse(network_file);
 
+        // Loading cfg files
+        runconfig = new RunConfig();
+        IStateGroup::reset(network);
+        for (int i = 0; i < PyList_Size(config_files); i++) {
+          PyObject* item = PyList_GetItem(config_files, i);
+          runconfig->parse(network, PyUnicode_AsUTF8(item));
+        }  
+        
     } else if (net != NULL && cfg != NULL) {
       network = ((cMaBoSSNetworkObject*) net)->network;
       runconfig = ((cMaBoSSConfigObject*) cfg)->config;
     }
+    
+    cMaBoSSParamObject* param = (cMaBoSSParamObject *) PyObject_New(cMaBoSSParamObject, &cMaBoSSParam);
+    param->config = runconfig;
+    param->network = network;
     
     if (network != nullptr && runconfig != nullptr) {
 
@@ -139,6 +159,7 @@ static PyObject * cMaBoSSSim_new(PyTypeObject* type, PyObject *args, PyObject* k
       simulation = (cMaBoSSSimObject *) type->tp_alloc(type, 0);
       simulation->network = network;
       simulation->runconfig = runconfig;
+      simulation->param = param;
 
       return (PyObject *) simulation;
     } else return Py_None;
@@ -242,84 +263,7 @@ static PyObject* cMaBoSSSim_cfg_str(cMaBoSSSimObject* self, PyObject *args, PyOb
 
 static PyObject* cMaBoSSSim_update_parameters(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs) 
 {
-  PyObject * time_tick = NULL;
-  PyObject * max_time = NULL;
-  PyObject * sample_count = NULL;
-  PyObject * init_pop = NULL;
-  PyObject * discrete_time = NULL;
-  PyObject * use_physrandgen = NULL;
-  PyObject * use_glibcrandgen = NULL;
-  PyObject * use_mtrandgen = NULL;
-  PyObject * seed_pseudorandom = NULL;
-  PyObject * display_traj = NULL;
-  PyObject * statdist_traj_count = NULL;
-  PyObject * statdist_cluster_threshold = NULL;
-  PyObject * thread_count = NULL;
-  PyObject * statdist_similarity_cache_max_size = NULL; 
- 
-  static const char *kwargs_list[] = {
-    "time_tick", "max_time", "sample_count",
-    "discrete_time", "use_physrandgen", "use_glibcrandgen",
-    "use_mtrandgen", "seed_pseudorandom", "display_traj", 
-    "statdist_traj_count", "statdist_cluster_threshold", 
-    "thread_count", "statdist_similarity_cache_max_size",
-    NULL
-  };
-  
-  if (!PyArg_ParseTupleAndKeywords(
-    args, kwargs, "|OOOOOOOOOOOOO", const_cast<char **>(kwargs_list), 
-    &time_tick, &max_time, &sample_count,
-    &discrete_time, &use_physrandgen, &use_glibcrandgen, 
-    &use_mtrandgen, &seed_pseudorandom, &display_traj, 
-    &statdist_traj_count, &statdist_cluster_threshold, 
-    &thread_count, &statdist_similarity_cache_max_size
-  ))
-    return NULL;
-    
- if (time_tick != NULL) {
-    self->runconfig->setParameter("time_tick", PyFloat_AsDouble(time_tick));
-  }
-  if (max_time != NULL) {
-    self->runconfig->setParameter("max_time", PyFloat_AsDouble(max_time));
-  }
-  if (sample_count != NULL) {
-    self->runconfig->setParameter("sample_count", PyLong_AsLong(sample_count));
-  }
-  if (init_pop != NULL) {
-    self->runconfig->setParameter("init_pop", PyLong_AsLong(init_pop));
-  }
-  if (discrete_time != NULL) {
-    self->runconfig->setParameter("discrete_time", PyLong_AsLong(discrete_time));
-  }
-  if (use_physrandgen != NULL) {
-    self->runconfig->setParameter("use_physrandgen", PyLong_AsLong(use_physrandgen));
-  }
-  if (use_glibcrandgen != NULL) {
-    self->runconfig->setParameter("use_glibcrandgen", PyLong_AsLong(use_glibcrandgen));
-  }
-  if (use_mtrandgen != NULL) {
-    self->runconfig->setParameter("use_mtrandgen", PyLong_AsLong(use_mtrandgen));
-  }
-  if (seed_pseudorandom != NULL) {
-    self->runconfig->setParameter("seed_pseudorandom", PyFloat_AsDouble(seed_pseudorandom));
-  }
-  if (display_traj != NULL) {
-    self->runconfig->setParameter("display_traj", PyLong_AsLong(display_traj));
-  }
-  if (statdist_traj_count != NULL) {
-    self->runconfig->setParameter("statdist_traj_count", PyLong_AsLong(statdist_traj_count));
-  }
-  if (statdist_cluster_threshold != NULL) {
-    self->runconfig->setParameter("statdist_cluster_threshold", PyFloat_AsDouble(statdist_cluster_threshold));
-  }
-  if (thread_count != NULL) {
-    self->runconfig->setParameter("thread_count", PyLong_AsLong(thread_count));
-  }
-  if (statdist_similarity_cache_max_size != NULL) {
-    self->runconfig->setParameter("statdist_similarity_cache_max_size", PyLong_AsLong(statdist_similarity_cache_max_size));
-  }
-  
-  return Py_None;
+  return cMaBoSSParam_update_parameters(self->param, args, kwargs);
 }
 
 static PyObject* cMaBoSSSim_get_nodes(cMaBoSSSimObject* self) {
@@ -346,6 +290,11 @@ static PyMethodDef cMaBoSSSim_methods[] = {
     {NULL}  /* Sentinel */
 };
 
+static PyMemberDef cMaBoSSSim_members[] = {
+    {"param", T_OBJECT_EX, offsetof(cMaBoSSSimObject, param), READONLY},
+    {NULL}  /* Sentinel */
+};
+
 static PyTypeObject cMaBoSSSim = []{
     PyTypeObject sim{PyVarObject_HEAD_INIT(NULL, 0)};
 
@@ -357,5 +306,6 @@ static PyTypeObject cMaBoSSSim = []{
     sim.tp_new = cMaBoSSSim_new;
     sim.tp_dealloc = (destructor) cMaBoSSSim_dealloc;
     sim.tp_methods = cMaBoSSSim_methods;
+    sim.tp_members = cMaBoSSSim_members;
     return sim;
 }();

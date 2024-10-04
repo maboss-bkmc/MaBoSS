@@ -104,6 +104,12 @@ MODULE_INIT_NAME(void)
     if (PyType_Ready(&cPopMaBoSSSim) < 0){
         return NULL;
     }
+    if (PyType_Ready(&cPopMaBoSSNetwork) < 0){
+        return NULL;
+    }
+    if (PyType_Ready(&cPopMaBoSSConfig) < 0){
+        return NULL;
+    }
     if (PyType_Ready(&cPopMaBoSSResult) < 0){
         return NULL;
     }
@@ -142,6 +148,20 @@ MODULE_INIT_NAME(void)
     Py_INCREF(&cMaBoSSConfig);
     if (PyModule_AddObject(m, "MaBoSSCfg", (PyObject *) &cMaBoSSConfig) < 0) {
         Py_DECREF(&cMaBoSSConfig);
+        Py_DECREF(m);
+        return NULL;
+    }
+    
+    Py_INCREF(&cPopMaBoSSNetwork);
+    if (PyModule_AddObject(m, "PopMaBoSSNet", (PyObject *) &cPopMaBoSSNetwork) < 0) {
+        Py_DECREF(&cPopMaBoSSNetwork);
+        Py_DECREF(m);
+        return NULL;
+    }
+
+    Py_INCREF(&cPopMaBoSSConfig);
+    if (PyModule_AddObject(m, "PopMaBoSSCfg", (PyObject *) &cPopMaBoSSConfig) < 0) {
+        Py_DECREF(&cPopMaBoSSConfig);
         Py_DECREF(m);
         return NULL;
     }

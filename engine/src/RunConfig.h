@@ -94,6 +94,10 @@ class RunConfig {
   double getMaxTime() const {return max_time;}
   unsigned int getSampleCount() const {return sample_count;}
   bool isDiscreteTime() const {return discrete_time;}
+  bool usePhysRandGen() const {return use_physrandgen;}
+  bool useGlibcRandGen() const {return use_glibcrandgen;}
+  bool useMTRandGen() const {return use_mtrandgen;}
+  bool getDisplayTrajectories() const {return display_traj;}
   int getSeedPseudoRandom() const {return seed_pseudorand;}
   void setSeedPseudoRandom(int seed) { seed_pseudorand = seed;}
   void display(Network* network, time_t start_time, time_t end_time, std::ostream& os) const;
