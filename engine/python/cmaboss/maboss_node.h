@@ -36,30 +36,22 @@
 #############################################################################
 
    Module:
-     maboss_net.h
+     maboss_node.h
 
    Authors:
      Vincent Noël <vincent.noel@curie.fr>
  
    Date:
-     January-March 2020
+     September 2022
 */
 
 #define PY_SSIZE_T_CLEAN
 
 #include <Python.h>
 #include <set>
-
-#ifndef MABOSS_NETWORK_H
-#define MABOSS_NETWORK_H
-
 #include "src/BooleanNetwork.h"
-#include "src/MaBEstEngine.h"
 
 typedef struct {
   PyObject_HEAD
-  Network* network;
-  PyObject* nodes;
-} cMaBoSSNetworkObject;
-
-#endif
+  Node* __node;
+} cMaBoSSNodeObject;

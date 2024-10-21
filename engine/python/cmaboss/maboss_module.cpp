@@ -138,6 +138,13 @@ MODULE_INIT_NAME(void)
         return NULL;
     }
 
+    // Py_INCREF(&cMaBoSSNode);
+    // if (PyModule_AddObject(m, "MaBoSSNode", (PyObject *) &cMaBoSSNode) < 0) {
+    //     Py_DECREF(&cMaBoSSNode);
+    //     Py_DECREF(m);
+    //     return NULL;
+    // }
+    
     Py_INCREF(&cMaBoSSNetwork);
     if (PyModule_AddObject(m, "MaBoSSNet", (PyObject *) &cMaBoSSNetwork) < 0) {
         Py_DECREF(&cMaBoSSNetwork);

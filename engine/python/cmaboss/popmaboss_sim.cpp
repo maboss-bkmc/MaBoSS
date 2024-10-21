@@ -146,19 +146,38 @@ static PyObject * cPopMaBoSSSim_new(PyTypeObject* type, PyObject *args, PyObject
       network = (cPopMaBoSSNetworkObject*) net;
       runconfig = (cPopMaBoSSConfigObject*) cfg;
     }
+    
     cMaBoSSParamObject* param = (cMaBoSSParamObject *) PyObject_New(cMaBoSSParamObject, &cMaBoSSParam);
+    Py_INCREF(param);
     param->config = runconfig->config;
     param->network = network->network;
     
     if (network != nullptr && runconfig != nullptr) {
+      
+      network->nodes = PyDict_New();
+
+      for (auto* node: network->network->getNodes()) 
+      { 
+      
+        cMaBoSSNodeObject * pynode = (cMaBoSSNodeObject *) PyObject_New(cMaBoSSNodeObject, &cMaBoSSNode);
+        pynode->_node = node;
+        pynode->_network = network->network;
+        PyDict_SetItemString(network->nodes, node->getLabel().c_str(), (PyObject*) pynode);
+        Py_INCREF(pynode);
+      }
+      Py_INCREF(network->nodes);
+      
       // Error checking
       IStateGroup::checkAndComplete(network->network);
       
       cPopMaBoSSSimObject* simulation;
       simulation = (cPopMaBoSSSimObject *) type->tp_alloc(type, 0);
       simulation->network = network;
+      Py_INCREF(network);
       simulation->runconfig = runconfig;
+      Py_INCREF(runconfig);
       simulation->param = param;
+      Py_INCREF(param);
 
       return (PyObject *) simulation;
     } else return Py_None;
@@ -212,15 +231,42 @@ static PyObject* cPopMaBoSSSim_get_nodes(cPopMaBoSSSimObject* self) {
   return list;
 }
 
+static PyObject* cPopMaBoSSSim_setCustomPopOutput(cPopMaBoSSSimObject* self, PyObject *args) {
+  PyObject* custom_output;
+  if (!PyArg_ParseTuple(args, "O", &custom_output))
+    return NULL;
+  
+  std::string str_custom_output("custom_pop_output = ");
+  str_custom_output.append(PyUnicode_AsUTF8(custom_output));
+  str_custom_output.append(";");  
+  try{
+    self->runconfig->config->parseExpression(self->network->network, str_custom_output.c_str());  
+  } catch (BNException& e) {
+    PyErr_SetString(PyBNException, e.getMessage().c_str());
+    return NULL;
+  }
+  
+  return Py_None;
+}
+
+// static PyObject* cPopMaBoSSSim_copy(cPopMaBoSSSimObject* self) {
+//   cPopMaBoSSSimObject* simulation;
+//   simulation = (cPopMaBoSSSimObject *) cPopMaBoSSSim_new(&cPopMaBoSSSim, NULL, NULL);
+//   return (PyObject *) simulation;
+// }
+
 static PyMethodDef cPopMaBoSSSim_methods[] = {
 
     {"get_nodes", (PyCFunction) cPopMaBoSSSim_get_nodes, METH_NOARGS, "gets the list of nodes"},
+    // {"copy", (PyCFunction) cPopMaBoSSSim_copy, METH_NOARGS, "copy the simulation"},
     {"run", (PyCFunction) cPopMaBoSSSim_run, METH_VARARGS | METH_KEYWORDS, "runs the simulation"},
     {"update_parameters", (PyCFunction) cPopMaBoSSSim_update_parameters, METH_VARARGS | METH_KEYWORDS, "changes the parameters of the simulation"},
+    {"set_custom_pop_output", (PyCFunction) cPopMaBoSSSim_setCustomPopOutput, METH_VARARGS, "changes the custom pop output"},
     {NULL}  /* Sentinel */
 };
 
 static PyMemberDef cPopMaBoSSSim_members[] = {
+    {"network", T_OBJECT_EX, offsetof(cPopMaBoSSSimObject, network), READONLY},
     {"param", T_OBJECT_EX, offsetof(cPopMaBoSSSimObject, param), READONLY},
     {NULL}  /* Sentinel */
 };

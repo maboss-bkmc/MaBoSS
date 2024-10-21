@@ -36,7 +36,7 @@
 #############################################################################
 
    Module:
-     maboss_net.h
+     popmaboss_net.h
 
    Authors:
      Vincent Noël <vincent.noel@curie.fr>
@@ -49,17 +49,33 @@
 
 #include <Python.h>
 #include <set>
-
-#ifndef MABOSS_NETWORK_H
-#define MABOSS_NETWORK_H
-
 #include "src/BooleanNetwork.h"
 #include "src/MaBEstEngine.h"
 
 typedef struct {
   PyObject_HEAD
-  Network* network;
-  PyObject* nodes;
-} cMaBoSSNetworkObject;
+  PopNetwork* network;
+} cMaBoSSPopNetworkObject;
 
-#endif
+
+static void cMaBoSSPopNetwork_dealloc(cMaBoSSPopNetworkObject *self);
+
+static PyObject * cMaBoSSPopNetwork_new(PyTypeObject* type, PyObject *args, PyObject* kwargs);
+
+static PyMethodDef cMaBoSSPopNetwork_methods[] = {
+    {NULL}  /* Sentinel */
+};
+
+static PyTypeObject cMaBoSSPopNetwork = []{
+    PyTypeObject net{PyVarObject_HEAD_INIT(NULL, 0)};
+
+    net.tp_name = "cmaboss.cMaBoSSPopNetworkObject";
+    net.tp_basicsize = sizeof(cMaBoSSPopNetworkObject);
+    net.tp_itemsize = 0;
+    net.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
+    net.tp_doc = "cMaBoSS PopNetwork object";
+    net.tp_new = cMaBoSSPopNetwork_new;
+    net.tp_dealloc = (destructor) cMaBoSSPopNetwork_dealloc;
+    net.tp_methods = cMaBoSSPopNetwork_methods;
+    return net;
+}();

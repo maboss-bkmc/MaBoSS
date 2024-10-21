@@ -66,11 +66,6 @@ static void cPopMaBoSSConfig_dealloc(cPopMaBoSSConfigObject *self)
     Py_TYPE(self)->tp_free((PyObject *) self);
 }
 
-static RunConfig* cPopMaBoSSConfig_getConfig(cPopMaBoSSConfigObject* self) 
-{
-  return self->config;
-}
-
 static PyObject* cPopMaBoSSConfig_getMaxTime(cPopMaBoSSConfigObject* self)
 {
   return PyFloat_FromDouble(self->config->getMaxTime());
@@ -107,7 +102,6 @@ static PyObject * cPopMaBoSSConfig_new(PyTypeObject* type, PyObject *args, PyObj
 
 
 static PyMethodDef cPopMaBoSSConfig_methods[] = {
-    {"getConfig", (PyCFunction) cPopMaBoSSConfig_getConfig, METH_NOARGS, "returns the config object"},
     {"getMaxTime", (PyCFunction) cPopMaBoSSConfig_getMaxTime, METH_NOARGS, "returns the max time"},
     {NULL}  /* Sentinel */
 };

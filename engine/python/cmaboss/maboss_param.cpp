@@ -65,87 +65,48 @@ static void cMaBoSSParam_dealloc(cMaBoSSParamObject *self)
 
 static PyObject* cMaBoSSParam_update_parameters(cMaBoSSParamObject* self, PyObject *args, PyObject* kwargs) 
 {
-  // SymbolTable* st = self->network->getSymbolTable();
-  // for (auto const& item_name : st->getSymbolsNames()) {
-  //   std::cout << item_name << " = " << st->getSymbolValue(st->getSymbol(item_name));
-  // }
-  
-  
-  PyObject * time_tick = NULL;
-  PyObject * max_time = NULL;
-  PyObject * sample_count = NULL;
-  PyObject * init_pop = NULL;
-  PyObject * discrete_time = NULL;
-  PyObject * use_physrandgen = NULL;
-  PyObject * use_glibcrandgen = NULL;
-  PyObject * use_mtrandgen = NULL;
-  PyObject * seed_pseudorandom = NULL;
-  PyObject * display_traj = NULL;
-  PyObject * statdist_traj_count = NULL;
-  PyObject * statdist_cluster_threshold = NULL;
-  PyObject * thread_count = NULL;
-  PyObject * statdist_similarity_cache_max_size = NULL; 
- 
-  static const char *kwargs_list[] = {
-    "time_tick", "max_time", "sample_count", "init_pop",
-    "discrete_time", "use_physrandgen", "use_glibcrandgen",
-    "use_mtrandgen", "seed_pseudorandom", "display_traj", 
-    "statdist_traj_count", "statdist_cluster_threshold", 
-    "thread_count", "statdist_similarity_cache_max_size",
-    NULL
-  };
-  
-  if (!PyArg_ParseTupleAndKeywords(
-    args, kwargs, "|OOOOOOOOOOOOOO", const_cast<char **>(kwargs_list), 
-    &time_tick, &max_time, &sample_count, &init_pop, 
-    &discrete_time, &use_physrandgen, &use_glibcrandgen, 
-    &use_mtrandgen, &seed_pseudorandom, &display_traj, 
-    &statdist_traj_count, &statdist_cluster_threshold, 
-    &thread_count, &statdist_similarity_cache_max_size
-  ))
-    return NULL;
-    
-  if (time_tick != NULL) {
-    self->config->setParameter("time_tick", PyFloat_AsDouble(time_tick));
-  }
-  if (max_time != NULL) {
-    self->config->setParameter("max_time", PyFloat_AsDouble(max_time));
-  }
-  if (sample_count != NULL) {
-    self->config->setParameter("sample_count", PyLong_AsLong(sample_count));
-  }
-  if (init_pop != NULL) {
-    self->config->setParameter("init_pop", PyLong_AsLong(init_pop));
-  }
-  if (discrete_time != NULL) {
-    self->config->setParameter("discrete_time", PyLong_AsLong(discrete_time));
-  }
-  if (use_physrandgen != NULL) {
-    self->config->setParameter("use_physrandgen", PyLong_AsLong(use_physrandgen));
-  }
-  if (use_glibcrandgen != NULL) {
-    self->config->setParameter("use_glibcrandgen", PyLong_AsLong(use_glibcrandgen));
-  }
-  if (use_mtrandgen != NULL) {
-    self->config->setParameter("use_mtrandgen", PyLong_AsLong(use_mtrandgen));
-  }
-  if (seed_pseudorandom != NULL) {
-    self->config->setParameter("seed_pseudorandom", PyFloat_AsDouble(seed_pseudorandom));
-  }
-  if (display_traj != NULL) {
-    self->config->setParameter("display_traj", PyLong_AsLong(display_traj));
-  }
-  if (statdist_traj_count != NULL) {
-    self->config->setParameter("statdist_traj_count", PyLong_AsLong(statdist_traj_count));
-  }
-  if (statdist_cluster_threshold != NULL) {
-    self->config->setParameter("statdist_cluster_threshold", PyFloat_AsDouble(statdist_cluster_threshold));
-  }
-  if (thread_count != NULL) {
-    self->config->setParameter("thread_count", PyLong_AsLong(thread_count));
-  }
-  if (statdist_similarity_cache_max_size != NULL) {
-    self->config->setParameter("statdist_similarity_cache_max_size", PyLong_AsLong(statdist_similarity_cache_max_size));
+  PyObject* key, *value;
+  Py_ssize_t pos = 0;
+  while (PyDict_Next(kwargs, &pos, &key, &value)) 
+  {  
+    if (PyUnicode_CompareWithASCIIString(key, "time_tick") == 0) {
+      self->config->setParameter("time_tick", PyFloat_AsDouble(value));
+    } else if (PyUnicode_CompareWithASCIIString(key, "max_time") == 0) {
+      self->config->setParameter("max_time", PyFloat_AsDouble(value));
+    } else if (PyUnicode_CompareWithASCIIString(key, "sample_count") == 0) {
+      self->config->setParameter("sample_count", PyLong_AsLong(value));
+    } else if (PyUnicode_CompareWithASCIIString(key, "init_pop") == 0) {
+      self->config->setParameter("init_pop", PyLong_AsLong(value));
+    } else if (PyUnicode_CompareWithASCIIString(key, "discrete_time") == 0) {
+      self->config->setParameter("discrete_time", PyLong_AsLong(value));
+    } else if (PyUnicode_CompareWithASCIIString(key, "use_physrandgen") == 0) {
+      self->config->setParameter("use_physrandgen", PyLong_AsLong(value));
+    } else if (PyUnicode_CompareWithASCIIString(key, "use_mtrandgen") == 0) {
+      self->config->setParameter("use_mtrandgen", PyLong_AsLong(value));
+    } else if (PyUnicode_CompareWithASCIIString(key, "use_glibcrandgen") == 0) {
+      self->config->setParameter("use_glibcrandgen", PyLong_AsLong(value));
+    } else if (PyUnicode_CompareWithASCIIString(key, "seed_pseudorandom") == 0) {
+      self->config->setParameter("seed_pseudorandom", PyFloat_AsDouble(value));
+    } else if (PyUnicode_CompareWithASCIIString(key, "thread_count") == 0) {
+      self->config->setParameter("thread_count", PyLong_AsLong(value));
+    } else if (PyUnicode_CompareWithASCIIString(key, "display_traj") == 0) {
+      self->config->setParameter("display_traj", PyLong_AsLong(value));
+    } else if (PyUnicode_CompareWithASCIIString(key, "statdist_traj_count") == 0) {
+      self->config->setParameter("statdist_traj_count", PyLong_AsLong(value));
+    } else if (PyUnicode_CompareWithASCIIString(key, "statdist_cluster_threshold") == 0) {
+      self->config->setParameter("statdist_cluster_threshold", PyFloat_AsDouble(value));
+    } else if (PyUnicode_CompareWithASCIIString(key, "statdist_similarity_cache_max_size") == 0) {
+      self->config->setParameter("statdist_similarity_cache_max_size", PyLong_AsLong(value));
+    } else {
+      const char * key_str = PyUnicode_AsUTF8(key);
+      if (key_str[0] == '$') {
+        SymbolTable* st = self->network->getSymbolTable();
+        st->setSymbolValue(st->getSymbol(key_str), PyFloat_AsDouble(value));
+      } else {
+        PyErr_SetString(PyExc_KeyError, "Unknown parameter");
+        return NULL;
+      }
+    }
   }
   
   return Py_None;
@@ -225,19 +186,120 @@ static PyObject * cMaBoSSParam_GetItem(cMaBoSSParamObject* self, PyObject *key)
     PyObject* statdist_similarity_cache_max_size = PyLong_FromUnsignedLong(self->config->getStatDistSimilarityCacheMaxSize());
     Py_INCREF(statdist_similarity_cache_max_size);
     return statdist_similarity_cache_max_size;
+    
+  } else if (PyUnicode_CompareWithASCIIString(key, "init_pop") == 0) {
+    PyObject* init_pop = PyLong_FromUnsignedLong(self->config->getInitPop());
+    Py_INCREF(init_pop);
+    return init_pop;
+    
+  } else {
+    
+    const char * key_str = PyUnicode_AsUTF8(key);
+    if (key_str[0] == '$') {
+      SymbolTable* st = self->network->getSymbolTable();
+      PyObject* symbol_value = PyFloat_FromDouble(st->getSymbolValue(st->getSymbol(key_str)));
+      Py_INCREF(symbol_value);
+      return symbol_value;
+    } else {
+      PyErr_SetString(PyExc_KeyError, "Unknown parameter");
+      return NULL;
+    }
+  }
   
-  } 
   return NULL;
 }
 
 static Py_ssize_t cMaBoSSParam_Length(cMaBoSSParamObject* self)
 {
-  // return PyObject_Length(self->nodes);
-  return 13;
+  return 15 + self->network->getSymbolTable()->getSymbolsNames().size();
 }
 
+static PyObject* cMaBoSSParam_getKeys(cMaBoSSParamObject* self)
+{
+  SymbolTable* st = self->network->getSymbolTable();
+  PyObject* keys = PyList_New(15 + st->getSymbolsNames().size());
+  PyList_SetItem(keys, 0, PyUnicode_FromString("time_tick"));
+  PyList_SetItem(keys, 1, PyUnicode_FromString("max_time"));
+  PyList_SetItem(keys, 2, PyUnicode_FromString("sample_count"));
+  PyList_SetItem(keys, 3, PyUnicode_FromString("init_pop"));
+  PyList_SetItem(keys, 4, PyUnicode_FromString("discrete_time"));
+  PyList_SetItem(keys, 5, PyUnicode_FromString("use_physrandgen"));
+  PyList_SetItem(keys, 6, PyUnicode_FromString("use_glibcrandgen"));
+  PyList_SetItem(keys, 7, PyUnicode_FromString("use_mtrandgen"));
+  PyList_SetItem(keys, 8, PyUnicode_FromString("seed_pseudorandom"));
+  PyList_SetItem(keys, 9, PyUnicode_FromString("display_traj"));
+  PyList_SetItem(keys, 10, PyUnicode_FromString("statdist_traj_count"));
+  PyList_SetItem(keys, 11, PyUnicode_FromString("statdist_cluster_threshold"));
+  PyList_SetItem(keys, 12, PyUnicode_FromString("thread_count"));
+  PyList_SetItem(keys, 13, PyUnicode_FromString("statdist_similarity_cache_max_size"));
+  PyList_SetItem(keys, 14, PyUnicode_FromString("init_pop"));
+  int i = 0;
+  for (auto const& item_name : st->getSymbolsNames()) {
+    PyList_SetItem(keys, 15 + i, PyUnicode_FromString(item_name.c_str()));
+    i++;
+  }
+  return keys;
+}
+
+static PyObject* cMaBoSSParam_getValues(cMaBoSSParamObject* self)
+{
+  SymbolTable* st = self->network->getSymbolTable();
+  PyObject* values = PyList_New(15 + st->getSymbolsNames().size());
+  PyList_SetItem(values, 0, PyFloat_FromDouble(self->config->getTimeTick()));
+  PyList_SetItem(values, 1, PyFloat_FromDouble(self->config->getMaxTime()));
+  PyList_SetItem(values, 2, PyLong_FromUnsignedLong(self->config->getSampleCount()));
+  PyList_SetItem(values, 3, PyLong_FromUnsignedLong(self->config->getInitPop()));
+  PyList_SetItem(values, 4, self->config->isDiscreteTime() ? Py_True : Py_False);
+  PyList_SetItem(values, 5, self->config->usePhysRandGen() ? Py_True : Py_False);
+  PyList_SetItem(values, 6, self->config->useGlibcRandGen() ? Py_True : Py_False);
+  PyList_SetItem(values, 7, self->config->useMTRandGen() ? Py_True : Py_False);
+  PyList_SetItem(values, 8, PyLong_FromLong(self->config->getSeedPseudoRandom()));
+  PyList_SetItem(values, 9, PyLong_FromUnsignedLong(self->config->getDisplayTrajectories()));
+  PyList_SetItem(values, 10, PyLong_FromUnsignedLong(self->config->getStatDistTrajCount()));
+  PyList_SetItem(values, 11, PyFloat_FromDouble(self->config->getStatdistClusterThreshold()));
+  PyList_SetItem(values, 12, PyLong_FromUnsignedLong(self->config->getThreadCount()));
+  PyList_SetItem(values, 13, PyLong_FromUnsignedLong(self->config->getStatDistSimilarityCacheMaxSize()));
+  PyList_SetItem(values, 14, PyLong_FromUnsignedLong(self->config->getInitPop()));
+  int i = 0;
+  for (auto const& item_name : st->getSymbolsNames()) {
+    PyList_SetItem(values, 15 + i, PyFloat_FromDouble(st->getSymbolValue(st->getSymbol(item_name))));
+    i++;
+  }
+  return values;
+}
+
+static PyObject* cMaBoSSParam_getItems(cMaBoSSParamObject* self)
+{
+  SymbolTable* st = self->network->getSymbolTable();
+  PyObject* items = PyList_New(15 + st->getSymbolsNames().size());
+  PyList_SetItem(items, 0, PyTuple_Pack(2, PyUnicode_FromString("time_tick"), PyFloat_FromDouble(self->config->getTimeTick())));
+  PyList_SetItem(items, 1, PyTuple_Pack(2, PyUnicode_FromString("max_time"), PyFloat_FromDouble(self->config->getMaxTime())));
+  PyList_SetItem(items, 2, PyTuple_Pack(2, PyUnicode_FromString("sample_count"), PyLong_FromUnsignedLong(self->config->getSampleCount())));
+  PyList_SetItem(items, 3, PyTuple_Pack(2, PyUnicode_FromString("init_pop"), PyLong_FromUnsignedLong(self->config->getInitPop())));
+  PyList_SetItem(items, 4, PyTuple_Pack(2, PyUnicode_FromString("discrete_time"), self->config->isDiscreteTime() ? Py_True : Py_False));
+  PyList_SetItem(items, 5, PyTuple_Pack(2, PyUnicode_FromString("use_physrandgen"), self->config->usePhysRandGen() ? Py_True : Py_False));
+  PyList_SetItem(items, 6, PyTuple_Pack(2, PyUnicode_FromString("use_glibcrandgen"), self->config->useGlibcRandGen() ? Py_True : Py_False));
+  PyList_SetItem(items, 7, PyTuple_Pack(2, PyUnicode_FromString("use_mtrandgen"), self->config->useMTRandGen() ? Py_True : Py_False));
+  PyList_SetItem(items, 8, PyTuple_Pack(2, PyUnicode_FromString("seed_pseudorandom"), PyLong_FromLong(self->config->getSeedPseudoRandom())));
+  PyList_SetItem(items, 9, PyTuple_Pack(2, PyUnicode_FromString("display_traj"), PyLong_FromUnsignedLong(self->config->getDisplayTrajectories())));
+  PyList_SetItem(items, 10, PyTuple_Pack(2, PyUnicode_FromString("statdist_traj_count"), PyLong_FromUnsignedLong(self->config->getStatDistTrajCount())));
+  PyList_SetItem(items, 11, PyTuple_Pack(2, PyUnicode_FromString("statdist_cluster_threshold"), PyFloat_FromDouble(self-> config->getStatdistClusterThreshold())));
+  PyList_SetItem(items, 12, PyTuple_Pack(2, PyUnicode_FromString("thread_count"), PyLong_FromUnsignedLong(self->config->getThreadCount())));
+  PyList_SetItem(items, 13, PyTuple_Pack(2, PyUnicode_FromString("statdist_similarity_cache_max_size"), PyLong_FromUnsignedLong(self->config->getStatDistSimilarityCacheMaxSize())));
+  PyList_SetItem(items, 14, PyTuple_Pack(2, PyUnicode_FromString("init_pop"), PyLong_FromUnsignedLong(self->config->getInitPop())));
+  int i = 0;
+  for (auto const& item_name : st->getSymbolsNames()) {
+    PyList_SetItem(items, 15 + i, PyTuple_Pack(2, PyUnicode_FromString(item_name.c_str()), PyFloat_FromDouble(st->getSymbolValue(st->getSymbol(item_name)))));
+    i++;
+  }
+  return items;
+}
+  
 static PyMethodDef cMaBoSSParam_methods[] = {
-    {NULL}  /* Sentinel */
+  {"keys", (PyCFunction) cMaBoSSParam_getKeys, METH_NOARGS, "returns the keys"},
+  {"values", (PyCFunction) cMaBoSSParam_getValues, METH_NOARGS, "returns the values"},
+  {"items", (PyCFunction) cMaBoSSParam_getItems, METH_NOARGS, "returns the items"},
+  {NULL}  /* Sentinel */
 };
 
 static PyMappingMethods cMaBoSSParam_mapping = {

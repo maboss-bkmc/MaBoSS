@@ -51,28 +51,117 @@
 #include "maboss_node.cpp"
 
 
+
 static void cMaBoSSNetwork_dealloc(cMaBoSSNetworkObject *self)
 {
     delete self->network;
     Py_TYPE(self)->tp_free((PyObject *) self);
 }
 
-static Network* cMaBoSSNetwork_getNetwork(cMaBoSSNetworkObject* self) 
-{
-  return self->network;
+static PyObject *cMaBoSSNetwork_str(PyObject *self) {
+  PyObject* str = PyUnicode_FromString(((cMaBoSSNetworkObject* )self)->network->toString().c_str());
+  Py_INCREF(str);
+  return str;
 }
 
-static PyObject* cMaBoSSNetwork_getListNodes(cMaBoSSNetworkObject* self)
+static int cMaBoSSNetwork_NodesSetItem(cMaBoSSNetworkObject* self, PyObject *key, PyObject* value) 
 {
-  PyObject *list = PyList_New(self->network->getNodes().size());
+  Py_INCREF(value);
+  return PyDict_SetItem(self->nodes, key, value);
+}
 
-  size_t index = 0;
-  for (auto* node: self->network->getNodes()) {
-    PyList_SetItem(list, index, PyUnicode_FromString(node->getLabel().c_str()));
-    index++;
+static PyObject * cMaBoSSNetwork_NodesGetItem(cMaBoSSNetworkObject* self, PyObject *key) 
+{
+  PyObject* item = PyDict_GetItem(self->nodes, key);
+  Py_INCREF(item);
+  return item;
+}
+
+static Py_ssize_t cMaBoSSNetwork_NodesLength(cMaBoSSNetworkObject* self)
+{
+  return PyObject_Length(self->nodes);
+}
+
+static PyObject* cMaBoSSNetwork_setOutput(cMaBoSSNetworkObject* self, PyObject *args) 
+{
+  PyObject* list;
+  if (!PyArg_ParseTuple(args, "O", &list))
+    return NULL;
+  
+  for (auto* node: self->network->getNodes()) 
+  {
+    if (PySequence_Contains(list, PyUnicode_FromString(node->getLabel().c_str()))) {
+      node->isInternal(false);
+    } else {
+      node->isInternal(true);
+    }
   }
+  return Py_None;
+}
 
-  return list;
+static PyObject* cMaBoSSNetwork_getOutput(cMaBoSSNetworkObject* self) 
+{
+  PyObject* output = PyList_New(0);
+  for (auto* node: self->network->getNodes()) 
+  {
+    if (!node->isInternal()) {
+      PyList_Append(output, PyUnicode_FromString(node->getLabel().c_str()));
+    }
+  }
+  Py_INCREF(output);
+  return output;
+}
+
+static PyObject* cMaBoSSNetwork_setObservedGraphNode(cMaBoSSNetworkObject* self, PyObject *args) 
+{
+  PyObject* list;
+  if (!PyArg_ParseTuple(args, "O", &list))
+    return NULL;
+  
+  for (auto* node: self->network->getNodes()) 
+  {
+    if (PySequence_Contains(list, PyUnicode_FromString(node->getLabel().c_str()))) {
+      node->inGraph(true);
+    } else {
+      node->inGraph(false);
+    }
+  }
+  return Py_None;
+}
+
+static PyObject* cMaBoSSNetwork_getObservedGraphNode(cMaBoSSNetworkObject* self, PyObject *args) 
+{
+  PyObject* output = PyList_New(0);
+  for (auto* node: self->network->getNodes()) 
+  {
+    if (node->inGraph()) {
+      PyList_Append(output, PyUnicode_FromString(node->getLabel().c_str()));
+    }
+  }
+  Py_INCREF(output);
+  return output;
+}
+
+static PyObject* cMaBoSSNetwork_addNode(cMaBoSSNetworkObject* self, PyObject *args) 
+{
+  char * name;
+  if (!PyArg_ParseTuple(args, "s", &name))
+    return NULL;
+  
+  try{
+    cMaBoSSNodeObject * pynode = (cMaBoSSNodeObject *) PyObject_New(cMaBoSSNodeObject, &cMaBoSSNode);
+    pynode->_network = self->network;
+    pynode->_node = self->network->getOrMakeNode(name);
+    PyDict_SetItemString(self->nodes, name, (PyObject*) pynode);
+    Py_INCREF(pynode);
+    
+
+  } catch (BNException& e) {
+    PyErr_SetString(PyBNException, e.getMessage().c_str());
+    return NULL;
+  }
+  
+  return Py_None;
 }
 
 static PyObject * cMaBoSSNetwork_new(PyTypeObject* type, PyObject *args, PyObject* kwargs) 
@@ -91,7 +180,17 @@ static PyObject * cMaBoSSNetwork_new(PyTypeObject* type, PyObject *args, PyObjec
   
   try{
     pynetwork->network->parse(network_file);
-  
+    pynetwork->nodes = PyDict_New();
+
+    for (auto* node: pynetwork->network->getNodes()) 
+    { 
+      
+      cMaBoSSNodeObject * pynode = (cMaBoSSNodeObject *) PyObject_New(cMaBoSSNodeObject, &cMaBoSSNode);
+      pynode->_node = node;
+      PyDict_SetItemString(pynetwork->nodes, node->getLabel().c_str(), (PyObject*) pynode);
+      Py_INCREF(pynode);
+    }
+ 
   } catch (BNException& e) {
     PyErr_SetString(PyBNException, e.getMessage().c_str());
     return NULL;
@@ -102,9 +201,18 @@ static PyObject * cMaBoSSNetwork_new(PyTypeObject* type, PyObject *args, PyObjec
 
 
 static PyMethodDef cMaBoSSNetwork_methods[] = {
-    {"getNetwork", (PyCFunction) cMaBoSSNetwork_getNetwork, METH_NOARGS, "returns the network object"},
-    {"getListNodes", (PyCFunction) cMaBoSSNetwork_getListNodes, METH_NOARGS, "returns the list of nodes"},
+    {"set_output", (PyCFunction) cMaBoSSNetwork_setOutput, METH_VARARGS, "sets the output nodes"},
+    {"get_output", (PyCFunction) cMaBoSSNetwork_getOutput, METH_NOARGS, "gets the output nodes"},
+    {"set_observed_graph_nodes", (PyCFunction) cMaBoSSNetwork_setObservedGraphNode, METH_VARARGS, "sets the observed graph nodes"},
+    {"get_observed_graph_nodes", (PyCFunction) cMaBoSSNetwork_getObservedGraphNode, METH_VARARGS, "gets the observed graph nodes"},
+    {"add_node", (PyCFunction) cMaBoSSNetwork_addNode, METH_VARARGS, "adds a node to the network"},
     {NULL}  /* Sentinel */
+};
+
+static PyMappingMethods cMaBoSSNetwork_mapping = {
+	(lenfunc)cMaBoSSNetwork_NodesLength,		
+	(binaryfunc)cMaBoSSNetwork_NodesGetItem,
+	(objobjargproc)cMaBoSSNetwork_NodesSetItem,
 };
 
 static PyTypeObject cMaBoSSNetwork = []{
@@ -118,6 +226,8 @@ static PyTypeObject cMaBoSSNetwork = []{
     net.tp_new = cMaBoSSNetwork_new;
     net.tp_dealloc = (destructor) cMaBoSSNetwork_dealloc;
     net.tp_methods = cMaBoSSNetwork_methods;
+    net.tp_as_mapping = &cMaBoSSNetwork_mapping;
+    net.tp_str = cMaBoSSNetwork_str;
     return net;
 }();
 #endif

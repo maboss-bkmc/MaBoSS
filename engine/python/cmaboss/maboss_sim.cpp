@@ -66,8 +66,8 @@
 
 typedef struct {
   PyObject_HEAD
-  Network* network;
-  RunConfig* runconfig;
+  cMaBoSSNetworkObject* network;
+  cMaBoSSConfigObject* config;
   cMaBoSSParamObject* param;
 } cMaBoSSSimObject;
 
@@ -95,70 +95,79 @@ static PyObject * cMaBoSSSim_new(PyTypeObject* type, PyObject *args, PyObject* k
     ))
       return NULL;
       
-    Network* network = nullptr;
-    RunConfig* runconfig = nullptr;
+    cMaBoSSNetworkObject* network = nullptr;
+    cMaBoSSConfigObject* config = nullptr;
+
     if (network_file != NULL) {
       // Loading bnd file
+      network = (cMaBoSSNetworkObject *) PyObject_New(cMaBoSSNetworkObject, &cMaBoSSNetwork);
+
       std::string nf(network_file);
-      network = new Network();
+      network->network = new Network();
 #ifdef SBML_COMPAT
       if (nf.substr(nf.find_last_of(".") + 1) == "sbml" || nf.substr(nf.find_last_of(".") + 1) == "xml" ) {
-        network->parseSBML(network_file, NULL, use_sbml_names); 
+        network->network->parseSBML(network_file, NULL, use_sbml_names); 
       } else {
 #endif
-        network->parse(network_file);
+        network->network->parse(network_file);
 #ifdef SBML_COMPAT
       }
 #endif
       // Loading cfg file
-      runconfig = new RunConfig();
-      IStateGroup::reset(network);
+      config = (cMaBoSSConfigObject *) PyObject_New(cMaBoSSConfigObject, &cMaBoSSConfig);
+      config->config = new RunConfig();
+      IStateGroup::reset(network->network);
       if (config_file != NULL) {
-        runconfig->parse(network, config_file);
+        config->config->parse(network->network, config_file);
       }
     } 
     else if (network_str != NULL && config_str != NULL) {
       // Loading bnd file
-      network = new Network();
-      network->parseExpression((const char *) network_str);
+      network = (cMaBoSSNetworkObject *) PyObject_New(cMaBoSSNetworkObject, &cMaBoSSNetwork);
+      network->network = new Network();
+      network->network->parseExpression((const char *) network_str);
       
       // Loading cfg file
-      runconfig = new RunConfig();
-      IStateGroup::reset(network);
-      runconfig->parseExpression(network, config_str);
+      config = (cMaBoSSConfigObject *) PyObject_New(cMaBoSSConfigObject, &cMaBoSSConfig);
+      config->config = new RunConfig();
+      IStateGroup::reset(network->network);
+      config->config->parseExpression(network->network, config_str);
       
     } else if (network_file != NULL && config_files != NULL) {
-        // Loading bnd file
-        network = new Network();
-        network->parse(network_file);
+      // Loading bnd file
+      network = (cMaBoSSNetworkObject *) PyObject_New(cMaBoSSNetworkObject, &cMaBoSSNetwork);
 
-        // Loading cfg files
-        runconfig = new RunConfig();
-        IStateGroup::reset(network);
-        for (int i = 0; i < PyList_Size(config_files); i++) {
-          PyObject* item = PyList_GetItem(config_files, i);
-          runconfig->parse(network, PyUnicode_AsUTF8(item));
-        }  
+      network->network = new Network();
+      network->network->parse(network_file);
+
+      // Loading cfg files
+      config = (cMaBoSSConfigObject *) PyObject_New(cMaBoSSConfigObject, &cMaBoSSConfig);
+      config->config = new RunConfig();
+      IStateGroup::reset(network->network);
+      for (int i = 0; i < PyList_Size(config_files); i++) {
+        PyObject* item = PyList_GetItem(config_files, i);
+        config->config->parse(network->network, PyUnicode_AsUTF8(item));
+      }  
         
     } else if (net != NULL && cfg != NULL) {
-      network = ((cMaBoSSNetworkObject*) net)->network;
-      runconfig = ((cMaBoSSConfigObject*) cfg)->config;
+      network = (cMaBoSSNetworkObject*) net;
+      config = ((cMaBoSSConfigObject*) cfg);
     }
     
     cMaBoSSParamObject* param = (cMaBoSSParamObject *) PyObject_New(cMaBoSSParamObject, &cMaBoSSParam);
-    param->config = runconfig;
-    param->network = network;
+    param->config = config->config;
+    param->network = network->network;
     
-    if (network != nullptr && runconfig != nullptr) {
+    if (network != nullptr && config != nullptr) {
 
       // Error checking
-      IStateGroup::checkAndComplete(network);
-      network->getSymbolTable()->checkSymbols();
+      IStateGroup::checkAndComplete(network->network);
+      network->network->getSymbolTable()->checkSymbols();
 
       cMaBoSSSimObject* simulation;
       simulation = (cMaBoSSSimObject *) type->tp_alloc(type, 0);
       simulation->network = network;
-      simulation->runconfig = runconfig;
+      simulation->config = config;
       simulation->param = param;
 
       return (PyObject *) simulation;
@@ -186,7 +195,7 @@ static PyObject* cMaBoSSSim_run(cMaBoSSSimObject* self, PyObject *args, PyObject
   RandomGenerator::resetGeneratedNumberCount();
   if (b_only_last_state) {
   
-    FinalStateSimulationEngine* simulation = new FinalStateSimulationEngine(self->network, self->runconfig);
+    FinalStateSimulationEngine* simulation = new FinalStateSimulationEngine(self->network->network, self->config->config);
     time(&start_time);
     simulation->run(NULL);
 
@@ -196,8 +205,8 @@ static PyObject* cMaBoSSSim_run(cMaBoSSSimObject* self, PyObject *args, PyObject
 
     time(&end_time);
     cMaBoSSResultFinalObject* res = (cMaBoSSResultFinalObject*) PyObject_New(cMaBoSSResultFinalObject, &cMaBoSSResultFinal);
-    res->network = self->network;
-    res->runconfig = self->runconfig;
+    res->network = self->network->network;
+    res->runconfig = self->config->config;
     res->engine = simulation;
     res->start_time = start_time;
     res->end_time = end_time;
@@ -205,7 +214,7 @@ static PyObject* cMaBoSSSim_run(cMaBoSSSimObject* self, PyObject *args, PyObject
     return (PyObject*) res;
   } else {
 
-    MaBEstEngine* simulation = new MaBEstEngine(self->network, self->runconfig);
+    MaBEstEngine* simulation = new MaBEstEngine(self->network->network, self->config->config);
     time(&start_time);
     simulation->run(NULL);
     
@@ -216,8 +225,8 @@ static PyObject* cMaBoSSSim_run(cMaBoSSSimObject* self, PyObject *args, PyObject
     time(&end_time);
     
     cMaBoSSResultObject* res = (cMaBoSSResultObject*) PyObject_New(cMaBoSSResultObject, &cMaBoSSResult);
-    res->network = self->network;
-    res->runconfig = self->runconfig;
+    res->network = self->network->network;
+    res->runconfig = self->config->config;
     res->engine = simulation;
     res->start_time = start_time;
     res->end_time = end_time;
@@ -232,8 +241,8 @@ static PyObject* cMaBoSSSim_run(cMaBoSSSimObject* self, PyObject *args, PyObject
 
 static PyObject* cMaBoSSSim_check(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs) {
   try {
-    IStateGroup::checkAndComplete(self->network);
-    self->network->getSymbolTable()->checkSymbols();
+    IStateGroup::checkAndComplete(self->network->network);
+    self->network->network->getSymbolTable()->checkSymbols();
   } catch (BNException& e) {
     PyErr_SetString(PyBNException, e.getMessage().c_str());
     return NULL;
@@ -244,20 +253,20 @@ static PyObject* cMaBoSSSim_check(cMaBoSSSimObject* self, PyObject *args, PyObje
 static PyObject* cMaBoSSSim_get_logical_rules(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs) {
   
   std::ostringstream ss;
-  self->network->generateLogicalExpressions(ss);
+  self->network->network->generateLogicalExpressions(ss);
   return PyUnicode_FromString(ss.str().c_str());
 }
 
 static PyObject* cMaBoSSSim_bnd_str(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs) {
   std::ostringstream bnd;
-  self->network->display(bnd);
+  self->network->network->display(bnd);
   return PyUnicode_FromString(bnd.str().c_str());
 }
 
 
 static PyObject* cMaBoSSSim_cfg_str(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs) {
   std::ostringstream cfg;
-  self->runconfig->dump(self->network, cfg, MaBEstEngine::VERSION);
+  self->config->config->dump(self->network->network, cfg, MaBEstEngine::VERSION);
   return PyUnicode_FromString(cfg.str().c_str());
 }
 
@@ -268,10 +277,10 @@ static PyObject* cMaBoSSSim_update_parameters(cMaBoSSSimObject* self, PyObject *
 
 static PyObject* cMaBoSSSim_get_nodes(cMaBoSSSimObject* self) {
 
-  PyObject *list = PyList_New(self->network->getNodes().size());
+  PyObject *list = PyList_New(self->network->network->getNodes().size());
 
   size_t index = 0;
-  for (auto* node: self->network->getNodes()) {
+  for (auto* node: self->network->network->getNodes()) {
     PyList_SetItem(list, index, PyUnicode_FromString(node->getLabel().c_str()));
     index++;
   }
@@ -291,6 +300,8 @@ static PyMethodDef cMaBoSSSim_methods[] = {
 };
 
 static PyMemberDef cMaBoSSSim_members[] = {
+    {"network", T_OBJECT_EX, offsetof(cMaBoSSSimObject, network), READONLY},
+    {"config", T_OBJECT_EX, offsetof(cMaBoSSSimObject, config), READONLY},
     {"param", T_OBJECT_EX, offsetof(cMaBoSSSimObject, param), READONLY},
     {NULL}  /* Sentinel */
 };
