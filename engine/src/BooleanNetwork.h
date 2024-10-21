@@ -713,7 +713,7 @@ public:
 
   void displayHeader(std::ostream& os) const;
 
-  void display(std::ostream& os) const;
+  virtual void display(std::ostream& os) const;
 
   void generateLogicalExpressions(std::ostream& os) const;
 
@@ -732,7 +732,7 @@ public:
   void removeLastNode(const std::string& identifier) {
     /* This function was created to remove the last node which was just created. 
        It is only used when parsing a bnet file, to remove the "target, factors" which is part of the header
-       Changes are that you should NEVER use it for another purpose.
+       Chances are that you should NEVER use it for another purpose.
     */
     if (node_map.find(identifier) != node_map.end()) {
       Node* to_delete = node_map[identifier];
@@ -2476,6 +2476,20 @@ class DivisionRule {
   
   // This will return a new state based on the mother cell, properly modified according to the maps
   NetworkState applyRules(int daughter, const NetworkState& state, const PopNetworkState& pop);
+  
+  void display(std::ostream& os) const
+  {
+    os << "division {" << std::endl;
+    os << "  rate=" << this->rate->toString() << ";" << std::endl;
+    for (const auto node_expr : daughters.at(DAUGHTER_1)) {
+      os << "  " << node_expr.first->getLabel() << ".DAUGHTER1 = " << node_expr.second->toString() << ";" << std::endl;
+    }
+    for (const auto node_expr : daughters.at(DAUGHTER_2)) {
+      os << "  " << node_expr.first->getLabel() << ".DAUGHTER2 = " << node_expr.second->toString() << ";" << std::endl;
+    }
+
+    os << "}" << std::endl;
+  }
 };
 
 class PopNetwork;
@@ -2586,6 +2600,14 @@ class PopNetwork : public Network {
   double getDeathRate(const NetworkState& state, const PopNetworkState& pop) const;
   
   std::vector<PopIStateGroup*>* getPopIStateGroup() { return pop_istate_group_list; }
+  
+  std::string toString() const {
+    std::ostringstream ostr;
+    display(ostr);
+    return ostr.str();
+  }
+
+  void display(std::ostream& os) const;
 };
 
 

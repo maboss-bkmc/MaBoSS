@@ -736,6 +736,23 @@ unsigned int PopNetworkState::hamming(Network* network, const NetworkState& stat
   return hd;
 }
 
+void PopNetwork::display(std::ostream& os) const 
+{
+  Network::display(os);
+  os << std::endl;
+  if (deathRate != NULL) {
+    os << "death {" << std::endl << "  rate = ";
+    deathRate->display(os);
+    os << ";" << std::endl << "}" << std::endl << std::endl;
+  }
+  
+  for (auto rule: getDivisionRules())
+  {
+    rule->display(os);
+    os << std::endl;
+  }
+}
+  
 std::ostream& operator<<(std::ostream& os, const BNException& e)
 {
   os << "BooleanNetwork exception: " << e.getMessage() << '\n';
