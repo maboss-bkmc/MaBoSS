@@ -635,6 +635,7 @@ public:
 
   int parse(const char* file = NULL, std::map<std::string, NodeIndex>* nodes_indexes = NULL, bool is_temp_file = false, bool useSBMLNames = false);
   int parseExpression(const char* content = NULL, std::map<std::string, NodeIndex>* nodes_indexes = NULL);
+  Expression* parseSingleExpression(const char* content, std::map<std::string, NodeIndex>* nodes_indexes);
   
   #ifdef SBML_COMPAT
   int parseSBML(const char* file, std::map<std::string, NodeIndex>* nodes_indexes = NULL, bool useSBMLNames = false);
@@ -2572,7 +2573,7 @@ class PopNetwork : public Network {
 
   int parse(const char* file = NULL, std::map<std::string, NodeIndex>* nodes_indexes = NULL, bool is_temp_file = false);
   int parseExpression(const char* content, std::map<std::string, NodeIndex>* nodes_indexes);
-
+  Expression* parseSingleExpression(const char* content, std::map<std::string, NodeIndex>* nodes_indexes);
   void initPopStates(PopNetworkState& initial_pop_state, RandomGenerator* randgen, unsigned int pop);
 
   void addDivisionRule(DivisionRule* rule) { divisionRules.push_back(rule); }

@@ -54,6 +54,7 @@ extern int yylex();
 static void yyerror(const char *s);
 static Network* current_network;
 static PopNetwork* current_pop_network;
+static Expression* current_expression;
 %}
 
 %union {
@@ -119,6 +120,10 @@ decl: node_decl
 }
 | death_decl
 {
+}
+| expression
+{
+  current_expression = $1;
 }
 ;
 
@@ -502,4 +507,14 @@ void set_pop_network(PopNetwork* pop_network)
 PopNetwork* get_pop_network()
 {
   return current_pop_network;
+}
+
+void set_expression(Expression* expression)
+{
+  current_expression = expression;
+}
+
+Expression* get_expression()
+{
+  return current_expression;
 }

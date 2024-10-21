@@ -58,7 +58,8 @@ extern void set_current_network(Network* network);
 extern Network* get_current_network();
 extern void set_pop_network(PopNetwork* pop_network);
 extern PopNetwork* get_pop_network();
-
+extern void set_expression(Expression* expr);
+extern Expression* get_expression();
 class NodeDeclItem {
 
   std::string identifier;

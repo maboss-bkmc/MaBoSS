@@ -163,6 +163,14 @@ int Network::parseExpression(const char* content, std::map<std::string, NodeInde
 }
 
 
+Expression* Network::parseSingleExpression(const char* content, std::map<std::string, NodeIndex>* nodes_indexes)
+{
+  set_expression(NULL);
+  Network::parseExpression(content, nodes_indexes);
+  
+  return get_expression();
+}
+
 int Network::parse(const char* file, std::map<std::string, NodeIndex>* nodes_indexes, bool is_temp_file, bool useSBMLNames)
 {
 #ifdef SBML_COMPAT
@@ -255,6 +263,17 @@ int PopNetwork::parseExpression(const char* content, std::map<std::string, NodeI
   set_pop_network(NULL);
   return res;
 }
+
+Expression* PopNetwork::parseSingleExpression(const char* content, std::map<std::string, NodeIndex>* nodes_indexes)
+{
+  set_pop_network(this);
+  set_expression(NULL);
+  Network::parseExpression(content, nodes_indexes);
+  
+  set_pop_network(NULL);
+  return get_expression();
+}
+
 
 void DivisionRule::setRate(Expression* rate) {  
   this->rate = rate;
