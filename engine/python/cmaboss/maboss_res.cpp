@@ -45,16 +45,10 @@
      January-March 2020
 */
 
-#define PY_SSIZE_T_CLEAN
-#ifdef PYTHON_API
-#include <Python.h>
+#include "maboss_res.h"
+
 #include <structmember.h>
 #include <fstream>
-#include <stdlib.h>
-#include <set>
-#include "src/BooleanNetwork.h"
-#include "src/MaBEstEngine.h"
-#include "maboss_commons.h"
 #include "src/FixedPointDisplayer.h"
 #include "src/ProbTrajDisplayer.h"
 #include "src/StatDistDisplayer.h"
@@ -63,20 +57,51 @@
 #include <malloc.h>
 #endif
 
-typedef struct {
-  PyObject_HEAD
-  Network* network;
-  RunConfig* runconfig;
-  MaBEstEngine* engine;
-  time_t start_time;
-  time_t end_time;
-  PyObject* probtraj;
-  PyObject* last_probtraj;
-  PyObject* observed_graph;
-  PyObject* observed_durations;
-} cMaBoSSResultObject;
+PyMemberDef cMaBoSSResult_members[] = {
+    {(char*)"network", T_OBJECT_EX, offsetof(cMaBoSSResultObject, network), 0, (char*)"network"},
+    {(char*)"runconfig", T_OBJECT_EX, offsetof(cMaBoSSResultObject, runconfig), 0, (char*)"runconfig"},
+    {(char*)"engine", T_OBJECT_EX, offsetof(cMaBoSSResultObject, engine), 0, (char*)"engine"},
+    {(char*)"start_time", T_LONG, offsetof(cMaBoSSResultObject, start_time), 0, (char*)"start_time"},
+    {(char*)"end_time", T_LONG, offsetof(cMaBoSSResultObject, end_time), 0, (char*)"end_time"},
+    {(char*)"probtraj", T_OBJECT_EX, offsetof(cMaBoSSResultObject, probtraj), 0, (char*)"probtraj"},
+    {(char*)"last_probtraj", T_OBJECT_EX, offsetof(cMaBoSSResultObject, last_probtraj), 0, (char*)"last_probtraj"},
+    {(char*)"observed_graph", T_OBJECT_EX, offsetof(cMaBoSSResultObject, observed_graph), 0, (char*)"observed_graph"},
+    {NULL}  /* Sentinel */
+};
 
-static void cMaBoSSResult_dealloc(cMaBoSSResultObject *self)
+PyMethodDef cMaBoSSResult_methods[] = {
+    {"get_observed_graph", (PyCFunction) cMaBoSSResult_get_observed_graph, METH_NOARGS, "gets the observed graph table"},
+    {"get_observed_durations", (PyCFunction) cMaBoSSResult_get_observed_durations, METH_NOARGS, "gets the observed durations table"},
+    {"get_fp_table", (PyCFunction) cMaBoSSResult_get_fp_table, METH_NOARGS, "gets the fixpoints table"},
+    {"get_probtraj", (PyCFunction) cMaBoSSResult_get_probtraj, METH_NOARGS, "gets the raw states probability trajectories of the simulation"},
+    {"get_last_probtraj", (PyCFunction) cMaBoSSResult_get_last_probtraj, METH_NOARGS, "gets the raw states probability trajectories of the simulation"},
+    {"get_nodes_probtraj", (PyCFunction) cMaBoSSResult_get_nodes_probtraj, METH_VARARGS, "gets the raw states probability trajectories of the simulation"},
+    {"get_last_nodes_probtraj", (PyCFunction) cMaBoSSResult_get_last_nodes_probtraj, METH_VARARGS, "gets the raw states probability trajectories of the simulation"},
+    {"display_fp", (PyCFunction) cMaBoSSResult_display_fp, METH_VARARGS, "prints the fixpoints to a file"},
+    {"display_probtraj", (PyCFunction) cMaBoSSResult_display_probtraj, METH_VARARGS, "prints the probtraj to a file"},
+    {"display_statdist", (PyCFunction) cMaBoSSResult_display_statdist, METH_VARARGS, "prints the statdist to a file"},
+    {"display_run", (PyCFunction) cMaBoSSResult_display_run, METH_VARARGS, "prints the run of the simulation to a file"},
+    {NULL}  /* Sentinel */
+};
+
+
+PyTypeObject cMaBoSSResult = []{
+  PyTypeObject res{PyVarObject_HEAD_INIT(NULL, 0)};
+
+  res.tp_name = build_type_name("cMaBoSSResult");
+  res.tp_basicsize = sizeof(cMaBoSSResultObject);
+  res.tp_itemsize = 0;
+  res.tp_dealloc = (destructor) cMaBoSSResult_dealloc;
+  res.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
+  res.tp_doc = "cMaBoSSResultObject";
+  res.tp_methods = cMaBoSSResult_methods;
+  res.tp_members = cMaBoSSResult_members;
+  res.tp_new = cMaBoSSResult_new;
+
+  return res;
+}();
+
+void cMaBoSSResult_dealloc(cMaBoSSResultObject *self)
 {
   delete self->engine;
   
@@ -87,7 +112,7 @@ static void cMaBoSSResult_dealloc(cMaBoSSResultObject *self)
   Py_TYPE(self)->tp_free((PyObject *) self);
 }
 
-static PyObject * cMaBoSSResult_new(PyTypeObject* type, PyObject *args, PyObject* kwargs) 
+PyObject * cMaBoSSResult_new(PyTypeObject* type, PyObject *args, PyObject* kwargs) 
 {
   cMaBoSSResultObject* res;
   res = (cMaBoSSResultObject *) type->tp_alloc(type, 0);
@@ -98,7 +123,7 @@ static PyObject * cMaBoSSResult_new(PyTypeObject* type, PyObject *args, PyObject
   return (PyObject*) res;
 }
 
-static PyObject* cMaBoSSResult_get_fp_table(cMaBoSSResultObject* self) {
+PyObject* cMaBoSSResult_get_fp_table(cMaBoSSResultObject* self) {
 
   PyObject *dict = PyDict_New();
 
@@ -114,7 +139,7 @@ static PyObject* cMaBoSSResult_get_fp_table(cMaBoSSResultObject* self) {
   return dict;
 }
 
-static PyObject* cMaBoSSResult_get_observed_graph(cMaBoSSResultObject* self) {
+PyObject* cMaBoSSResult_get_observed_graph(cMaBoSSResultObject* self) {
 
   if (self->observed_graph == Py_None)
   {
@@ -126,7 +151,7 @@ static PyObject* cMaBoSSResult_get_observed_graph(cMaBoSSResultObject* self) {
   return self->observed_graph;
 }
 
-static PyObject* cMaBoSSResult_get_observed_durations(cMaBoSSResultObject* self) {
+PyObject* cMaBoSSResult_get_observed_durations(cMaBoSSResultObject* self) {
 
   if (self->observed_durations == Py_None)
   {
@@ -138,7 +163,7 @@ static PyObject* cMaBoSSResult_get_observed_durations(cMaBoSSResultObject* self)
   return self->observed_durations;
 }
 
-static PyObject* cMaBoSSResult_get_probtraj(cMaBoSSResultObject* self) {
+PyObject* cMaBoSSResult_get_probtraj(cMaBoSSResultObject* self) {
   if (self->probtraj == Py_None) {
     self->probtraj = self->engine->getMergedCumulator()->getNumpyStatesDists(self->network);
   }
@@ -148,7 +173,7 @@ static PyObject* cMaBoSSResult_get_probtraj(cMaBoSSResultObject* self) {
   return self->probtraj;
 }
 
-static PyObject* cMaBoSSResult_get_last_probtraj(cMaBoSSResultObject* self) {
+PyObject* cMaBoSSResult_get_last_probtraj(cMaBoSSResultObject* self) {
   if (self->last_probtraj == Py_None) {
     self->last_probtraj = self->engine->getMergedCumulator()->getNumpyLastStatesDists(self->network);
   }
@@ -157,7 +182,7 @@ static PyObject* cMaBoSSResult_get_last_probtraj(cMaBoSSResultObject* self) {
   return self->last_probtraj;
 }
 
-static PyObject* cMaBoSSResult_get_nodes_probtraj(cMaBoSSResultObject* self, PyObject* args) {
+PyObject* cMaBoSSResult_get_nodes_probtraj(cMaBoSSResultObject* self, PyObject* args) {
 
   std::vector<Node*> list_nodes;
   PyObject* pList = Py_None;
@@ -179,7 +204,7 @@ static PyObject* cMaBoSSResult_get_nodes_probtraj(cMaBoSSResultObject* self, PyO
   return self->engine->getMergedCumulator()->getNumpyNodesDists(self->network, list_nodes);
 }
 
-static PyObject* cMaBoSSResult_get_last_nodes_probtraj(cMaBoSSResultObject* self, PyObject* args) {
+PyObject* cMaBoSSResult_get_last_nodes_probtraj(cMaBoSSResultObject* self, PyObject* args) {
 
   std::vector<Node*> list_nodes;
   PyObject* pList = Py_None;
@@ -201,7 +226,7 @@ static PyObject* cMaBoSSResult_get_last_nodes_probtraj(cMaBoSSResultObject* self
   return self->engine->getMergedCumulator()->getNumpyLastNodesDists(self->network, list_nodes);
 }
 
-static PyObject* cMaBoSSResult_display_fp(cMaBoSSResultObject* self, PyObject *args) 
+PyObject* cMaBoSSResult_display_fp(cMaBoSSResultObject* self, PyObject *args) 
 {
   char * filename = NULL;
   int hexfloat = 0;
@@ -215,10 +240,10 @@ static PyObject* cMaBoSSResult_display_fp(cMaBoSSResultObject* self, PyObject *a
   ((std::ofstream*) output_fp)->close();
   delete output_fp;
 
-  return Py_None;
+  Py_RETURN_NONE;
 }
 
-static PyObject* cMaBoSSResult_display_probtraj(cMaBoSSResultObject* self, PyObject *args) 
+PyObject* cMaBoSSResult_display_probtraj(cMaBoSSResultObject* self, PyObject *args) 
 {
   char * filename = NULL;
   int hexfloat = 0;
@@ -234,10 +259,10 @@ static PyObject* cMaBoSSResult_display_probtraj(cMaBoSSResultObject* self, PyObj
   ((std::ofstream*) output_probtraj)->close();
   delete output_probtraj;
 
-  return Py_None;
+  Py_RETURN_NONE;
 }
 
-static PyObject* cMaBoSSResult_display_statdist(cMaBoSSResultObject* self, PyObject *args) 
+PyObject* cMaBoSSResult_display_statdist(cMaBoSSResultObject* self, PyObject *args) 
 {
   char * filename = NULL;
   int hexfloat = 0;
@@ -251,10 +276,10 @@ static PyObject* cMaBoSSResult_display_statdist(cMaBoSSResultObject* self, PyObj
   ((std::ofstream*) output_statdist)->close();
   delete output_statdist;
 
-  return Py_None;
+  Py_RETURN_NONE;
 }
 
-static PyObject* cMaBoSSResult_display_run(cMaBoSSResultObject* self, PyObject* args) 
+PyObject* cMaBoSSResult_display_run(cMaBoSSResultObject* self, PyObject* args) 
 {
   char * filename = NULL;
   int hexfloat = 0;
@@ -266,56 +291,5 @@ static PyObject* cMaBoSSResult_display_run(cMaBoSSResultObject* self, PyObject* 
   ((std::ofstream*) output_run)->close();
   delete output_run;
 
-  return Py_None;
+  Py_RETURN_NONE;
 }
-
-static PyMemberDef cMaBoSSResult_members[] = {
-    {(char*)"network", T_OBJECT_EX, offsetof(cMaBoSSResultObject, network), 0, (char*)"network"},
-    {(char*)"runconfig", T_OBJECT_EX, offsetof(cMaBoSSResultObject, runconfig), 0, (char*)"runconfig"},
-    {(char*)"engine", T_OBJECT_EX, offsetof(cMaBoSSResultObject, engine), 0, (char*)"engine"},
-    {(char*)"start_time", T_LONG, offsetof(cMaBoSSResultObject, start_time), 0, (char*)"start_time"},
-    {(char*)"end_time", T_LONG, offsetof(cMaBoSSResultObject, end_time), 0, (char*)"end_time"},
-    {(char*)"probtraj", T_OBJECT_EX, offsetof(cMaBoSSResultObject, probtraj), 0, (char*)"probtraj"},
-    {(char*)"last_probtraj", T_OBJECT_EX, offsetof(cMaBoSSResultObject, last_probtraj), 0, (char*)"last_probtraj"},
-    {(char*)"observed_graph", T_OBJECT_EX, offsetof(cMaBoSSResultObject, observed_graph), 0, (char*)"observed_graph"},
-    {NULL}  /* Sentinel */
-};
-
-static PyMethodDef cMaBoSSResult_methods[] = {
-    {"get_observed_graph", (PyCFunction) cMaBoSSResult_get_observed_graph, METH_NOARGS, "gets the observed graph table"},
-    {"get_observed_durations", (PyCFunction) cMaBoSSResult_get_observed_durations, METH_NOARGS, "gets the observed durations table"},
-    {"get_fp_table", (PyCFunction) cMaBoSSResult_get_fp_table, METH_NOARGS, "gets the fixpoints table"},
-    {"get_probtraj", (PyCFunction) cMaBoSSResult_get_probtraj, METH_NOARGS, "gets the raw states probability trajectories of the simulation"},
-    {"get_last_probtraj", (PyCFunction) cMaBoSSResult_get_last_probtraj, METH_NOARGS, "gets the raw states probability trajectories of the simulation"},
-    {"get_nodes_probtraj", (PyCFunction) cMaBoSSResult_get_nodes_probtraj, METH_VARARGS, "gets the raw states probability trajectories of the simulation"},
-    {"get_last_nodes_probtraj", (PyCFunction) cMaBoSSResult_get_last_nodes_probtraj, METH_VARARGS, "gets the raw states probability trajectories of the simulation"},
-    {"display_fp", (PyCFunction) cMaBoSSResult_display_fp, METH_VARARGS, "prints the fixpoints to a file"},
-    {"display_probtraj", (PyCFunction) cMaBoSSResult_display_probtraj, METH_VARARGS, "prints the probtraj to a file"},
-    {"display_statdist", (PyCFunction) cMaBoSSResult_display_statdist, METH_VARARGS, "prints the statdist to a file"},
-    {"display_run", (PyCFunction) cMaBoSSResult_display_run, METH_VARARGS, "prints the run of the simulation to a file"},
-    {NULL}  /* Sentinel */
-};
-
-#if ! defined (MAXNODES) || MAXNODES <= 64 
-    static char result_name[50] = "cmaboss";
-#else
-    static char result_name[50] = STR(MODULE_NAME);
-#endif
-
-static PyTypeObject cMaBoSSResult = []{
-  PyTypeObject res{PyVarObject_HEAD_INIT(NULL, 0)};
-
-  res.tp_name = strcat(result_name, ".cMaBoSSResult");
-  res.tp_basicsize = sizeof(cMaBoSSResultObject);
-  res.tp_itemsize = 0;
-  res.tp_dealloc = (destructor) cMaBoSSResult_dealloc;
-  res.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
-  res.tp_doc = "cMaBoSSResultObject";
-  res.tp_methods = cMaBoSSResult_methods;
-  res.tp_members = cMaBoSSResult_members;
-  res.tp_new = cMaBoSSResult_new;
-
-  return res;
-}();
-
-#endif

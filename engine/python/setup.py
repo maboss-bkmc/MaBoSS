@@ -18,6 +18,16 @@ maboss_sources = [
 ]
 
 maboss_module_sources = [
+   'cmaboss/maboss_node.cpp',
+   'cmaboss/maboss_param.cpp',
+   'cmaboss/maboss_cfg.cpp',
+   'cmaboss/maboss_net.cpp',
+   'cmaboss/maboss_sim.cpp',
+   'cmaboss/maboss_res.cpp',
+   'cmaboss/maboss_resfinal.cpp',
+   'cmaboss/popmaboss_net.cpp',
+   'cmaboss/popmaboss_sim.cpp',
+   'cmaboss/popmaboss_res.cpp',
    'cmaboss/maboss_module.cpp', 
 ]
 extra_compile_args = ['-std=c++11', '-DPYTHON_API', '-DSBML_COMPAT']

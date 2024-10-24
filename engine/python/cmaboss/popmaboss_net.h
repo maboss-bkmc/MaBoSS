@@ -36,7 +36,7 @@
 #############################################################################
 
    Module:
-     popmaboss_net.h
+     maboss_net.cpp
 
    Authors:
      Vincent Noël <vincent.noel@curie.fr>
@@ -45,37 +45,34 @@
      January-March 2020
 */
 
-#define PY_SSIZE_T_CLEAN
+#ifndef POPMABOSS_NETWORK
+#define POPMABOSS_NETWORK
 
-#include <Python.h>
-#include <set>
+#include "maboss_commons.h"
+
 #include "src/BooleanNetwork.h"
-#include "src/MaBEstEngine.h"
 
 typedef struct {
   PyObject_HEAD
   PopNetwork* network;
-} cMaBoSSPopNetworkObject;
+  PyObject* nodes;
+} cPopMaBoSSNetworkObject;
 
+void cPopMaBoSSNetwork_dealloc(cPopMaBoSSNetworkObject *self);
+PyObject *cPopMaBoSSNetwork_str(PyObject *self);
+int cPopMaBoSSNetwork_NodesSetItem(cPopMaBoSSNetworkObject* self, PyObject *key, PyObject* value);
+PyObject * cPopMaBoSSNetwork_NodesGetItem(cPopMaBoSSNetworkObject* self, PyObject *key);
+Py_ssize_t cPopMaBoSSNetwork_NodesLength(cPopMaBoSSNetworkObject* self);
+PyObject* cPopMaBoSSNetwork_Keys(cPopMaBoSSNetworkObject* self);
+PyObject* cPopMaBoSSNetwork_Values(cPopMaBoSSNetworkObject* self); 
+PyObject* cPopMaBoSSNetwork_Items(cPopMaBoSSNetworkObject* self); 
+PyObject* cPopMaBoSSNetwork_getDeathRate(cPopMaBoSSNetworkObject* self); 
+PyObject* cPopMaBoSSNetwork_setDeathRate(cPopMaBoSSNetworkObject* self, PyObject *args);
+PyObject* cPopMaBoSSNetwork_setOutput(cPopMaBoSSNetworkObject* self, PyObject *args);
+PyObject* cPopMaBoSSNetwork_getOutput(cPopMaBoSSNetworkObject* self);
+PyObject* cPopMaBoSSNetwork_addDivisionRule(cPopMaBoSSNetworkObject* self, PyObject *args);
+PyObject* cPopMaBoSSNetwork_getDivisionRules(cPopMaBoSSNetworkObject* self);
+PyObject * cPopMaBoSSNetwork_new(PyTypeObject* type, PyObject *args, PyObject* kwargs);
+int cPopMaBoSSNetwork_init(PyObject* self, PyObject *args, PyObject* kwargs);
 
-static void cMaBoSSPopNetwork_dealloc(cMaBoSSPopNetworkObject *self);
-
-static PyObject * cMaBoSSPopNetwork_new(PyTypeObject* type, PyObject *args, PyObject* kwargs);
-
-static PyMethodDef cMaBoSSPopNetwork_methods[] = {
-    {NULL}  /* Sentinel */
-};
-
-static PyTypeObject cMaBoSSPopNetwork = []{
-    PyTypeObject net{PyVarObject_HEAD_INIT(NULL, 0)};
-
-    net.tp_name = "cmaboss.cMaBoSSPopNetworkObject";
-    net.tp_basicsize = sizeof(cMaBoSSPopNetworkObject);
-    net.tp_itemsize = 0;
-    net.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
-    net.tp_doc = "cMaBoSS PopNetwork object";
-    net.tp_new = cMaBoSSPopNetwork_new;
-    net.tp_dealloc = (destructor) cMaBoSSPopNetwork_dealloc;
-    net.tp_methods = cMaBoSSPopNetwork_methods;
-    return net;
-}();
+#endif

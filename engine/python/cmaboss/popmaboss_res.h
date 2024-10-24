@@ -36,88 +36,46 @@
 #############################################################################
 
    Module:
-     popmaboss_cfg.cpp
+     popmaboss_res.h
 
    Authors:
      Vincent Noël <vincent.noel@curie.fr>
  
    Date:
-     January-March 2020
+     March 2021
 */
 
-#ifndef POPMABOSS_CONFIG
-#define POPMABOSS_CONFIG
-#define PY_SSIZE_T_CLEAN
+#ifndef POPMABOSS_RESULT
+#define POPMABOSS_RESULT
 
-#include <Python.h>
-#include <set>
-#include "maboss_net.cpp"
-#include "src/RunConfig.h"
+#include "popmaboss_net.h"
+#include "maboss_commons.h"
+
+#include "src/BooleanNetwork.h"
 #include "src/PopMaBEstEngine.h"
+#include "src/RunConfig.h"
+
 
 typedef struct {
   PyObject_HEAD
+  PopNetwork* network;
   RunConfig* config;
-} cPopMaBoSSConfigObject;
+  PopMaBEstEngine* engine;
+  time_t start_time;
+  time_t end_time;
+} cPopMaBoSSResultObject;
 
-static void cPopMaBoSSConfig_dealloc(cPopMaBoSSConfigObject *self)
-{
-    delete self->config;
-    Py_TYPE(self)->tp_free((PyObject *) self);
-}
-
-static PyObject* cPopMaBoSSConfig_getMaxTime(cPopMaBoSSConfigObject* self)
-{
-  return PyFloat_FromDouble(self->config->getMaxTime());
-}
-
-static PyObject * cPopMaBoSSConfig_new(PyTypeObject* type, PyObject *args, PyObject* kwargs) 
-{
-  Py_ssize_t nb_args = PyTuple_Size(args);  
-
-  if (nb_args < 2) {
-    return NULL;
-  }
-  
-  cPopMaBoSSNetworkObject * network = (cPopMaBoSSNetworkObject*) PyTuple_GetItem(args, 0);
-
-  cPopMaBoSSConfigObject* pyconfig;
-  pyconfig = (cPopMaBoSSConfigObject *) type->tp_alloc(type, 0);
-  pyconfig->config = new RunConfig();
-  
-  try {
-    for (Py_ssize_t i = 1; i < nb_args; i++) {
-      PyObject* bytes = PyUnicode_AsUTF8String(PyTuple_GetItem(args, i));
-      pyconfig->config->parse(network->network, PyBytes_AsString(bytes));
-      Py_DECREF(bytes);
-    }
-
-  } catch (BNException& e) {
-    PyErr_SetString(PyBNException, e.getMessage().c_str());
-    return NULL;
-  }
-
-  return (PyObject*) pyconfig;
-}
-
-
-static PyMethodDef cPopMaBoSSConfig_methods[] = {
-    {"getMaxTime", (PyCFunction) cPopMaBoSSConfig_getMaxTime, METH_NOARGS, "returns the max time"},
-    {NULL}  /* Sentinel */
-};
-
-static PyTypeObject cPopMaBoSSConfig = []{
-    PyTypeObject net{PyVarObject_HEAD_INIT(NULL, 0)};
-
-    net.tp_name = "cmaboss.cPopMaBoSSConfigObject";
-    net.tp_basicsize = sizeof(cPopMaBoSSConfigObject);
-    net.tp_itemsize = 0;
-    net.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
-    net.tp_doc = "cPopMaBoSS Network object";
-    net.tp_new = cPopMaBoSSConfig_new;
-    net.tp_dealloc = (destructor) cPopMaBoSSConfig_dealloc;
-    net.tp_methods = cPopMaBoSSConfig_methods;
-    return net;
-}();
+void cPopMaBoSSResult_dealloc(cPopMaBoSSResultObject *self);
+PyObject * cPopMaBoSSResult_new(PyTypeObject* type, PyObject *args, PyObject* kwargs);
+PyObject* cPopMaBoSSResult_get_fp_table(cPopMaBoSSResultObject* self);
+PyObject* cPopMaBoSSResult_get_probtraj(cPopMaBoSSResultObject* self);
+PyObject* cPopMaBoSSResult_get_last_probtraj(cPopMaBoSSResultObject* self);
+PyObject* cPopMaBoSSResult_get_simple_probtraj(cPopMaBoSSResultObject* self);
+PyObject* cPopMaBoSSResult_get_simple_last_probtraj(cPopMaBoSSResultObject* self);
+PyObject* cPopMaBoSSResult_get_custom_probtraj(cPopMaBoSSResultObject* self);
+PyObject* cPopMaBoSSResult_get_custom_last_probtraj(cPopMaBoSSResultObject* self);
+PyObject* cPopMaBoSSResult_display_fp(cPopMaBoSSResultObject* self, PyObject *args);
+PyObject* cPopMaBoSSResult_display_probtraj(cPopMaBoSSResultObject* self, PyObject *args);
+PyObject* cPopMaBoSSResult_display_run(cPopMaBoSSResultObject* self, PyObject* args);
 
 #endif

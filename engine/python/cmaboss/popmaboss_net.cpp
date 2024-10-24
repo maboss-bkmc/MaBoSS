@@ -44,52 +44,99 @@
    Date:
      January-March 2020
 */
+#include "popmaboss_net.h"
+#include "maboss_node.h"
 
-#ifndef MABOSS_POPNETWORK
-#define MABOSS_POPNETWORK
 
-#define PY_SSIZE_T_CLEAN
+PyMethodDef cPopMaBoSSNetwork_methods[] = {
+    // {"getNetwork", (PyCFunction) cPopMaBoSSNetwork_getNetwork, METH_NOARGS, "returns the network object"},
+    // {"getNodes", (PyCFunction) cPopMaBoSSNetwork_getDictNodes, METH_NOARGS, "returns the dict of nodes"},
+    {"set_output", (PyCFunction) cPopMaBoSSNetwork_setOutput, METH_VARARGS, "set the output nodes"},
+    {"get_output", (PyCFunction) cPopMaBoSSNetwork_getOutput, METH_NOARGS, "returns the output nodes"},
+    {"set_death_rate", (PyCFunction) cPopMaBoSSNetwork_setDeathRate, METH_VARARGS, "sets the death rate"},
+    {"get_death_rate", (PyCFunction) cPopMaBoSSNetwork_getDeathRate, METH_NOARGS, "gets the death rate"},
+    {"add_division_rule", (PyCFunction) cPopMaBoSSNetwork_addDivisionRule, METH_VARARGS, "adds a division rule"},
+    {"get_division_rules", (PyCFunction) cPopMaBoSSNetwork_getDivisionRules, METH_NOARGS, "gets the division rules"},
+    {"keys", (PyCFunction) cPopMaBoSSNetwork_Keys, METH_NOARGS, "returns the keys"},
+    {"values", (PyCFunction) cPopMaBoSSNetwork_Values, METH_NOARGS, "returns the values"},
+    {"items", (PyCFunction) cPopMaBoSSNetwork_Items, METH_NOARGS, "returns the items"},
+    {NULL}  /* Sentinel */
+};
 
-#include <Python.h>
-#include "src/BooleanNetwork.h"
-#include "maboss_node.cpp"
+PyMappingMethods cPopMaBoSSNetwork_mapping = {
+	(lenfunc)cPopMaBoSSNetwork_NodesLength,		
+	(binaryfunc)cPopMaBoSSNetwork_NodesGetItem,
+	(objobjargproc)cPopMaBoSSNetwork_NodesSetItem,
+};
 
-typedef struct {
-  PyObject_HEAD
-  PopNetwork* network;
-  PyObject* nodes;
-} cPopMaBoSSNetworkObject;
+PyTypeObject cPopMaBoSSNetwork = []{
+    PyTypeObject net{PyVarObject_HEAD_INIT(NULL, 0)};
 
-static void cPopMaBoSSNetwork_dealloc(cPopMaBoSSNetworkObject *self)
+    net.tp_name = build_type_name("cPopMaBoSSNetworkObject");
+    net.tp_basicsize = sizeof(cPopMaBoSSNetworkObject);
+    net.tp_itemsize = 0;
+    net.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
+    net.tp_doc = "cMaBoSS PopNetwork object";
+    net.tp_init = cPopMaBoSSNetwork_init;
+    net.tp_new = cPopMaBoSSNetwork_new;
+    net.tp_dealloc = (destructor) cPopMaBoSSNetwork_dealloc;
+    net.tp_methods = cPopMaBoSSNetwork_methods;
+    net.tp_as_mapping = &cPopMaBoSSNetwork_mapping;
+    net.tp_str = cPopMaBoSSNetwork_str;
+    return net;
+}();
+
+void cPopMaBoSSNetwork_dealloc(cPopMaBoSSNetworkObject *self)
 {
     delete self->network;
     Py_TYPE(self)->tp_free((PyObject *) self);
 }
 
-static PyObject *cPopMaBoSSNetwork_str(PyObject *self) {
+PyObject *cPopMaBoSSNetwork_str(PyObject *self) {
   PyObject* str = PyUnicode_FromString(((cPopMaBoSSNetworkObject* )self)->network->toString().c_str());
   Py_INCREF(str);
   return str;
 }
 
-static int cPopMaBoSSNetwork_NodesSetItem(cPopMaBoSSNetworkObject* self, PyObject *key, PyObject* value) 
+int cPopMaBoSSNetwork_NodesSetItem(cPopMaBoSSNetworkObject* self, PyObject *key, PyObject* value) 
 {
   Py_INCREF(value);
   return PyDict_SetItem(self->nodes, key, value);
 }
-static PyObject * cPopMaBoSSNetwork_NodesGetItem(cPopMaBoSSNetworkObject* self, PyObject *key) 
+PyObject * cPopMaBoSSNetwork_NodesGetItem(cPopMaBoSSNetworkObject* self, PyObject *key) 
 {
   PyObject* item = PyDict_GetItem(self->nodes, key);
   Py_INCREF(item);
   return item;
 }
 
-static Py_ssize_t cPopMaBoSSNetwork_NodesLength(cPopMaBoSSNetworkObject* self)
+Py_ssize_t cPopMaBoSSNetwork_NodesLength(cPopMaBoSSNetworkObject* self)
 {
   return PyObject_Length(self->nodes);
 }
 
-static PyObject* cPopMaBoSSNetwork_getDeathRate(cPopMaBoSSNetworkObject* self) 
+PyObject* cPopMaBoSSNetwork_Keys(cPopMaBoSSNetworkObject* self) 
+{
+  PyObject* keys = PyDict_Keys(self->nodes);
+  Py_INCREF(keys);
+  return keys;
+}
+
+PyObject* cPopMaBoSSNetwork_Values(cPopMaBoSSNetworkObject* self) 
+{
+  PyObject* values = PyDict_Values(self->nodes);
+  Py_INCREF(values);
+  return values;
+}
+
+PyObject* cPopMaBoSSNetwork_Items(cPopMaBoSSNetworkObject* self) 
+{
+  PyObject* items = PyDict_Items(self->nodes);
+  Py_INCREF(items);
+  return items;
+}
+
+PyObject* cPopMaBoSSNetwork_getDeathRate(cPopMaBoSSNetworkObject* self) 
 {
   const Expression* death_rate = self->network->getDeathRate();
   if (death_rate == NULL) {
@@ -105,7 +152,7 @@ static PyObject* cPopMaBoSSNetwork_getDeathRate(cPopMaBoSSNetworkObject* self)
   return death_rate_str;
 }
 
-static PyObject* cPopMaBoSSNetwork_setDeathRate(cPopMaBoSSNetworkObject* self, PyObject *args) 
+PyObject* cPopMaBoSSNetwork_setDeathRate(cPopMaBoSSNetworkObject* self, PyObject *args) 
 {
 
   char* death_rate = NULL;
@@ -131,7 +178,7 @@ static PyObject* cPopMaBoSSNetwork_setDeathRate(cPopMaBoSSNetworkObject* self, P
   return Py_None;
 }
 
-static PyObject* cPopMaBoSSNetwork_setOutput(cPopMaBoSSNetworkObject* self, PyObject *args) 
+PyObject* cPopMaBoSSNetwork_setOutput(cPopMaBoSSNetworkObject* self, PyObject *args) 
 {
   PyObject* list;
   if (!PyArg_ParseTuple(args, "O", &list))
@@ -148,7 +195,7 @@ static PyObject* cPopMaBoSSNetwork_setOutput(cPopMaBoSSNetworkObject* self, PyOb
   return Py_None;
 }
 
-static PyObject* cPopMaBoSSNetwork_getOutput(cPopMaBoSSNetworkObject* self) 
+PyObject* cPopMaBoSSNetwork_getOutput(cPopMaBoSSNetworkObject* self) 
 {
   PyObject* output = PyList_New(0);
   for (auto* node: self->network->getNodes()) 
@@ -161,7 +208,7 @@ static PyObject* cPopMaBoSSNetwork_getOutput(cPopMaBoSSNetworkObject* self)
   return output;
 }
 
-static PyObject* cPopMaBoSSNetwork_addDivisionRule(cPopMaBoSSNetworkObject* self, PyObject *args) 
+PyObject* cPopMaBoSSNetwork_addDivisionRule(cPopMaBoSSNetworkObject* self, PyObject *args) 
 {
   char* rule = NULL;
   PyObject* daugther_1 = NULL;
@@ -206,7 +253,7 @@ static PyObject* cPopMaBoSSNetwork_addDivisionRule(cPopMaBoSSNetworkObject* self
   return Py_None;
 }
 
-static PyObject* cPopMaBoSSNetwork_getDivisionRules(cPopMaBoSSNetworkObject* self) 
+PyObject* cPopMaBoSSNetwork_getDivisionRules(cPopMaBoSSNetworkObject* self) 
 {
   PyObject* rules = PyList_New(0);
   for (auto rule: self->network->getDivisionRules()) 
@@ -232,73 +279,54 @@ static PyObject* cPopMaBoSSNetwork_getDivisionRules(cPopMaBoSSNetworkObject* sel
   return rules;
 }
 
-static PyObject * cPopMaBoSSNetwork_new(PyTypeObject* type, PyObject *args, PyObject* kwargs) 
+PyObject * cPopMaBoSSNetwork_new(PyTypeObject* type, PyObject *args, PyObject* kwargs) 
 {
-  char * network_file;
-  static const char *kwargs_list[] = {"network", NULL};
+  cPopMaBoSSNetworkObject* py_network = (cPopMaBoSSNetworkObject *) type->tp_alloc(type, 0);
+  py_network->network = new PopNetwork(); 
+  py_network->nodes = PyDict_New();
+  return (PyObject*) py_network;
+}
+
+int cPopMaBoSSNetwork_init(PyObject* self, PyObject *args, PyObject* kwargs) 
+{
+  PyObject * network_file = Py_None;
+  PyObject * network_str = Py_None;
+  const char *kwargs_list[] = {"network", "network_str", NULL};
   if (!PyArg_ParseTupleAndKeywords(
-    args, kwargs, "s", const_cast<char **>(kwargs_list), 
-    &network_file
+    args, kwargs, "|OO", const_cast<char **>(kwargs_list), 
+    &network_file, &network_str
   ))
-    return NULL;
+    return -1;
   
-  cPopMaBoSSNetworkObject* pynetwork;
-  pynetwork = (cPopMaBoSSNetworkObject *) type->tp_alloc(type, 0);
-  pynetwork->network = new PopNetwork();
+  cPopMaBoSSNetworkObject* py_network = (cPopMaBoSSNetworkObject *) self;
   
   try{
-    pynetwork->network->parse(network_file);
-    pynetwork->nodes = PyDict_New();
+    if (network_file != Py_None) 
+    {
+      py_network->network->parse(PyUnicode_AsUTF8(network_file));  
+      
+    } else if (network_str != Py_None)
+    {
+      py_network->network->parseExpression(PyUnicode_AsUTF8(network_str));
+      
+    } else {
+      py_network = NULL;
+      PyErr_SetString(PyBNException, "No network file or string provided");
+      return -1;
+    }
 
-    for (auto* node: pynetwork->network->getNodes()) 
+    for (auto* node: py_network->network->getNodes()) 
     { 
-      cMaBoSSNodeObject * pynode = (cMaBoSSNodeObject *) PyObject_New(cMaBoSSNodeObject, &cMaBoSSNode);
-      pynode->_node = node;
-      pynode->_network = pynetwork->network;
-      PyDict_SetItemString(pynetwork->nodes, node->getLabel().c_str(), (PyObject*) pynode);
-      Py_INCREF(pynode);
+      PyObject * py_node = PyObject_CallFunction((PyObject *) &cMaBoSSNode, "sO", node->getLabel().c_str(), py_network);
+      PyDict_SetItemString(py_network->nodes, node->getLabel().c_str(), (PyObject*) py_node);
+      Py_INCREF(py_node);
     }
   
   } catch (BNException& e) {
+    py_network = NULL;
     PyErr_SetString(PyBNException, e.getMessage().c_str());
-    return NULL;
+    return -1;
   }
   
-  return (PyObject*) pynetwork;
+  return 0;
 }
-
-
-static PyMethodDef cPopMaBoSSNetwork_methods[] = {
-    // {"getNetwork", (PyCFunction) cPopMaBoSSNetwork_getNetwork, METH_NOARGS, "returns the network object"},
-    // {"getNodes", (PyCFunction) cPopMaBoSSNetwork_getDictNodes, METH_NOARGS, "returns the dict of nodes"},
-    {"set_output", (PyCFunction) cPopMaBoSSNetwork_setOutput, METH_VARARGS, "set the output nodes"},
-    {"get_output", (PyCFunction) cPopMaBoSSNetwork_getOutput, METH_NOARGS, "returns the output nodes"},
-    {"set_death_rate", (PyCFunction) cPopMaBoSSNetwork_setDeathRate, METH_VARARGS, "sets the death rate"},
-    {"get_death_rate", (PyCFunction) cPopMaBoSSNetwork_getDeathRate, METH_NOARGS, "gets the death rate"},
-    {"add_division_rule", (PyCFunction) cPopMaBoSSNetwork_addDivisionRule, METH_VARARGS, "adds a division rule"},
-    {"get_division_rules", (PyCFunction) cPopMaBoSSNetwork_getDivisionRules, METH_NOARGS, "gets the division rules"},
-    {NULL}  /* Sentinel */
-};
-
-static PyMappingMethods cPopMaBoSSNetwork_mapping = {
-	(lenfunc)cPopMaBoSSNetwork_NodesLength,		
-	(binaryfunc)cPopMaBoSSNetwork_NodesGetItem,
-	(objobjargproc)cPopMaBoSSNetwork_NodesSetItem,
-};
-
-static PyTypeObject cPopMaBoSSNetwork = []{
-    PyTypeObject net{PyVarObject_HEAD_INIT(NULL, 0)};
-
-    net.tp_name = "cmaboss.cPopMaBoSSNetworkObject";
-    net.tp_basicsize = sizeof(cPopMaBoSSNetworkObject);
-    net.tp_itemsize = 0;
-    net.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
-    net.tp_doc = "cMaBoSS PopNetwork object";
-    net.tp_new = cPopMaBoSSNetwork_new;
-    net.tp_dealloc = (destructor) cPopMaBoSSNetwork_dealloc;
-    net.tp_methods = cPopMaBoSSNetwork_methods;
-    net.tp_as_mapping = &cPopMaBoSSNetwork_mapping;
-    net.tp_str = cPopMaBoSSNetwork_str;
-    return net;
-}();
-#endif

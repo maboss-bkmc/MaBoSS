@@ -45,17 +45,15 @@
      January-March 2020
 */
 
-#define PY_SSIZE_T_CLEAN
 
 
 #ifndef _COMMONS_H_
 #define _COMMONS_H_
 
-#include <Python.h>
-#include "src/BooleanNetwork.h"
-#include "src/MaBEstEngine.h"
+#define PY_SSIZE_T_CLEAN
 
-static PyObject *PyBNException = NULL;
+#include <Python.h>
+#include <structmember.h>
 
 // I use these to define the name of the library, and the init function
 // Not sure why we need this 2 level thingy... Came from https://stackoverflow.com/a/1489971/11713763
@@ -68,4 +66,19 @@ static PyObject *PyBNException = NULL;
 #define MODULE_NAME NAME1(cmaboss_, MODULE_NODES)
 #endif
 
+extern PyObject *PyBNException;
+extern const char module_name[];
+
+extern PyTypeObject cMaBoSSNetwork;
+extern PyTypeObject cMaBoSSConfig;
+extern PyTypeObject cMaBoSSSim;
+extern PyTypeObject cMaBoSSResult;
+extern PyTypeObject cMaBoSSResultFinal;
+extern PyTypeObject cPopMaBoSSSim;
+extern PyTypeObject cPopMaBoSSNetwork;
+extern PyTypeObject cPopMaBoSSResult;
+extern PyTypeObject cMaBoSSNode;
+extern PyTypeObject cMaBoSSParam;
+
+extern const char * build_type_name(const char * name);
 #endif

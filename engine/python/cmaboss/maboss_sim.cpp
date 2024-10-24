@@ -45,144 +45,136 @@
      January-March 2020
 */
 
-#define PY_SSIZE_T_CLEAN
+#include "maboss_sim.h"
+#include "maboss_res.h"
+#include "maboss_resfinal.h"
 
-#include <Python.h>
-#include <set>
 #include "src/BooleanNetwork.h"
 #include "src/MaBEstEngine.h"
 #include "src/FinalStateSimulationEngine.h"
-#include "maboss_res.cpp"
-#include "maboss_resfinal.cpp"
-#include "maboss_commons.h"
-#include "maboss_net.cpp"
-#include "maboss_cfg.cpp"
-#include "maboss_param.cpp"
 #include <sstream>
 
 #ifdef __GLIBC__
 #include <malloc.h>
 #endif
 
-typedef struct {
-  PyObject_HEAD
-  cMaBoSSNetworkObject* network;
-  cMaBoSSConfigObject* config;
-  cMaBoSSParamObject* param;
-} cMaBoSSSimObject;
+PyMethodDef cMaBoSSSim_methods[] = {
+    {"run", (PyCFunction) cMaBoSSSim_run, METH_VARARGS | METH_KEYWORDS, "runs the simulation"},
+    {"check", (PyCFunction) cMaBoSSSim_check, METH_VARARGS | METH_KEYWORDS, "checks the model"},
+    {"str_bnd", (PyCFunction) cMaBoSSSim_bnd_str, METH_VARARGS | METH_KEYWORDS, "returns the contents of the bnd file"},
+    {"str_cfg", (PyCFunction) cMaBoSSSim_cfg_str, METH_VARARGS | METH_KEYWORDS, "checks the contents of the cfg file"},
+    {"get_logical_rules", (PyCFunction) cMaBoSSSim_get_logical_rules, METH_VARARGS | METH_KEYWORDS, "returns logical formulas"},
+    {"update_parameters", (PyCFunction) cMaBoSSSim_update_parameters, METH_VARARGS | METH_KEYWORDS, "changes the parameters of the simulation"},
+    {"get_nodes", (PyCFunction) cMaBoSSSim_get_nodes, METH_NOARGS, "returns the list of nodes"},
+    {NULL}  /* Sentinel */
+};
 
-static void cMaBoSSSim_dealloc(cMaBoSSSimObject *self)
+PyMemberDef cMaBoSSSim_members[] = {
+    {"network", T_OBJECT_EX, offsetof(cMaBoSSSimObject, network), READONLY},
+    {"config", T_OBJECT_EX, offsetof(cMaBoSSSimObject, config), READONLY},
+    {"param", T_OBJECT_EX, offsetof(cMaBoSSSimObject, param), READONLY},
+    {NULL}  /* Sentinel */
+};
+
+PyTypeObject cMaBoSSSim = []{
+    PyTypeObject sim{PyVarObject_HEAD_INIT(NULL, 0)};
+
+    sim.tp_name = build_type_name("cMaBoSSSimObject");
+    sim.tp_basicsize = sizeof(cMaBoSSSimObject);
+    sim.tp_itemsize = 0;
+    sim.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
+    sim.tp_doc = "cMaBoSS Simulation object";
+    sim.tp_init = cMaBoSSSim_init;
+    sim.tp_new = cMaBoSSSim_new;
+    sim.tp_dealloc = (destructor) cMaBoSSSim_dealloc;
+    sim.tp_methods = cMaBoSSSim_methods;
+    sim.tp_members = cMaBoSSSim_members;
+    return sim;
+}();
+
+void cMaBoSSSim_dealloc(cMaBoSSSimObject *self)
 {
     Py_TYPE(self)->tp_free((PyObject *) self);
 }
 
-static PyObject * cMaBoSSSim_new(PyTypeObject* type, PyObject *args, PyObject* kwargs) 
+int cMaBoSSSim_init(PyObject* self, PyObject *args, PyObject* kwargs)  
 {
+  PyObject * network_file = Py_None;
+  PyObject * config_file = Py_None;
+  PyObject * config_files = Py_None;
+  PyObject * network_str = Py_None;
+  PyObject * config_str = Py_None;
+  PyObject * net = Py_None;
+  PyObject * cfg = Py_None;
+  PyObject * use_sbml_names = Py_False;
+  const char *kwargs_list[] = {"network", "config", "configs", "network_str", "config_str", "net", "cfg", "use_sbml_names", NULL};
+  if (!PyArg_ParseTupleAndKeywords(
+    args, kwargs, "|OOOOOOOO", const_cast<char **>(kwargs_list), 
+    &network_file, &config_file, &config_files, &network_str, &config_str, &net, &cfg, &use_sbml_names
+  ))
+    return -1;
+  
+  cMaBoSSSimObject* py_simulation = (cMaBoSSSimObject *) self;
+
   try {
-    // Loading arguments
-    PyObject* net = NULL;
-    PyObject* cfg = NULL;
-    char * network_file = NULL;
-    char * config_file = NULL;
-    PyObject* config_files = NULL;
-    char * network_str = NULL;
-    char * config_str = NULL;
-    bool use_sbml_names = false;
-    static const char *kwargs_list[] = {"network", "config", "configs", "network_str", "config_str", "net", "cfg", "use_sbml_names", NULL};
-    if (!PyArg_ParseTupleAndKeywords(
-      args, kwargs, "|ssOssOOp", const_cast<char **>(kwargs_list), 
-      &network_file, &config_file, &config_files, &network_str, &config_str, &net, &cfg, &use_sbml_names
-    ))
-      return NULL;
+    if (net != Py_None) 
+    {
+      py_simulation->network = (cMaBoSSNetworkObject*) net;
       
-    cMaBoSSNetworkObject* network = nullptr;
-    cMaBoSSConfigObject* config = nullptr;
-
-    if (network_file != NULL) {
-      // Loading bnd file
-      network = (cMaBoSSNetworkObject *) PyObject_New(cMaBoSSNetworkObject, &cMaBoSSNetwork);
-
-      std::string nf(network_file);
-      network->network = new Network();
-#ifdef SBML_COMPAT
-      if (nf.substr(nf.find_last_of(".") + 1) == "sbml" || nf.substr(nf.find_last_of(".") + 1) == "xml" ) {
-        network->network->parseSBML(network_file, NULL, use_sbml_names); 
-      } else {
-#endif
-        network->network->parse(network_file);
-#ifdef SBML_COMPAT
-      }
-#endif
-      // Loading cfg file
-      config = (cMaBoSSConfigObject *) PyObject_New(cMaBoSSConfigObject, &cMaBoSSConfig);
-      config->config = new RunConfig();
-      IStateGroup::reset(network->network);
-      if (config_file != NULL) {
-        config->config->parse(network->network, config_file);
-      }
-    } 
-    else if (network_str != NULL && config_str != NULL) {
-      // Loading bnd file
-      network = (cMaBoSSNetworkObject *) PyObject_New(cMaBoSSNetworkObject, &cMaBoSSNetwork);
-      network->network = new Network();
-      network->network->parseExpression((const char *) network_str);
-      
-      // Loading cfg file
-      config = (cMaBoSSConfigObject *) PyObject_New(cMaBoSSConfigObject, &cMaBoSSConfig);
-      config->config = new RunConfig();
-      IStateGroup::reset(network->network);
-      config->config->parseExpression(network->network, config_str);
-      
-    } else if (network_file != NULL && config_files != NULL) {
-      // Loading bnd file
-      network = (cMaBoSSNetworkObject *) PyObject_New(cMaBoSSNetworkObject, &cMaBoSSNetwork);
-
-      network->network = new Network();
-      network->network->parse(network_file);
-
-      // Loading cfg files
-      config = (cMaBoSSConfigObject *) PyObject_New(cMaBoSSConfigObject, &cMaBoSSConfig);
-      config->config = new RunConfig();
-      IStateGroup::reset(network->network);
-      for (int i = 0; i < PyList_Size(config_files); i++) {
-        PyObject* item = PyList_GetItem(config_files, i);
-        config->config->parse(network->network, PyUnicode_AsUTF8(item));
-      }  
-        
-    } else if (net != NULL && cfg != NULL) {
-      network = (cMaBoSSNetworkObject*) net;
-      config = ((cMaBoSSConfigObject*) cfg);
+    } else {
+      py_simulation->network = (cMaBoSSNetworkObject*) PyObject_CallFunction((PyObject *) &cMaBoSSNetwork, 
+        "OOO", network_file, network_str, use_sbml_names
+      );
     }
     
-    cMaBoSSParamObject* param = (cMaBoSSParamObject *) PyObject_New(cMaBoSSParamObject, &cMaBoSSParam);
-    param->config = config->config;
-    param->network = network->network;
+    if (py_simulation->network == NULL) {
+      return -1;
+    }
     
-    if (network != nullptr && config != nullptr) {
-
-      // Error checking
-      IStateGroup::checkAndComplete(network->network);
-      network->network->getSymbolTable()->checkSymbols();
-
-      cMaBoSSSimObject* simulation;
-      simulation = (cMaBoSSSimObject *) type->tp_alloc(type, 0);
-      simulation->network = network;
-      simulation->config = config;
-      simulation->param = param;
-
-      return (PyObject *) simulation;
-    } else return Py_None;
+    if (cfg != Py_None)
+    {
+      py_simulation->config = (cMaBoSSConfigObject*) cfg;
+      
+    } else {
+      py_simulation->config = (cMaBoSSConfigObject*) PyObject_CallFunction((PyObject *) &cMaBoSSConfig, 
+        "OOOO", py_simulation->network, config_file, config_files, config_str
+      );
+    }
+    
+    if (py_simulation->config == NULL) {
+      return -1;
+    }
+    
+    py_simulation->param = (cMaBoSSParamObject*) PyObject_CallFunction((PyObject *) &cMaBoSSParam,
+      "OO", py_simulation->network, py_simulation->config
+    );
+    
+    // Error checking
+    IStateGroup::checkAndComplete(py_simulation->network->network);
+    py_simulation->network->network->getSymbolTable()->checkSymbols();
   }
   catch (BNException& e) {
     PyErr_SetString(PyBNException, e.getMessage().c_str());
-    return NULL;
+    return -1;
   }
+  
+  return 0;
 }
 
-static PyObject* cMaBoSSSim_run(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs) {
+PyObject * cMaBoSSSim_new(PyTypeObject* type, PyObject *args, PyObject* kwargs) 
+{
+  cMaBoSSSimObject* py_simulation = (cMaBoSSSimObject *) type->tp_alloc(type, 0);
+  py_simulation->network = NULL;
+  py_simulation->config = NULL;
+  py_simulation->param = NULL;
+
+  return (PyObject *) py_simulation;
+}
+
+PyObject* cMaBoSSSim_run(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs) {
   
   int only_last_state = 0;
-  static const char *kwargs_list[] = {"only_last_state", NULL};
+  const char *kwargs_list[] = {"only_last_state", NULL};
   if (!PyArg_ParseTupleAndKeywords(
     args, kwargs, "|i", const_cast<char **>(kwargs_list), 
     &only_last_state
@@ -239,7 +231,7 @@ static PyObject* cMaBoSSSim_run(cMaBoSSSimObject* self, PyObject *args, PyObject
 }
 
 
-static PyObject* cMaBoSSSim_check(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs) {
+PyObject* cMaBoSSSim_check(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs) {
   try {
     IStateGroup::checkAndComplete(self->network->network);
     self->network->network->getSymbolTable()->checkSymbols();
@@ -250,32 +242,32 @@ static PyObject* cMaBoSSSim_check(cMaBoSSSimObject* self, PyObject *args, PyObje
   return Py_None;
 }
 
-static PyObject* cMaBoSSSim_get_logical_rules(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs) {
+PyObject* cMaBoSSSim_get_logical_rules(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs) {
   
   std::ostringstream ss;
   self->network->network->generateLogicalExpressions(ss);
   return PyUnicode_FromString(ss.str().c_str());
 }
 
-static PyObject* cMaBoSSSim_bnd_str(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs) {
+PyObject* cMaBoSSSim_bnd_str(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs) {
   std::ostringstream bnd;
   self->network->network->display(bnd);
   return PyUnicode_FromString(bnd.str().c_str());
 }
 
 
-static PyObject* cMaBoSSSim_cfg_str(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs) {
+PyObject* cMaBoSSSim_cfg_str(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs) {
   std::ostringstream cfg;
-  self->config->config->dump(self->network->network, cfg, MaBEstEngine::VERSION);
+  self->config->config->dump(self->network->network, cfg, MaBEstEngine::VERSION, false);
   return PyUnicode_FromString(cfg.str().c_str());
 }
 
-static PyObject* cMaBoSSSim_update_parameters(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs) 
+PyObject* cMaBoSSSim_update_parameters(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs) 
 {
   return cMaBoSSParam_update_parameters(self->param, args, kwargs);
 }
 
-static PyObject* cMaBoSSSim_get_nodes(cMaBoSSSimObject* self) {
+PyObject* cMaBoSSSim_get_nodes(cMaBoSSSimObject* self) {
 
   PyObject *list = PyList_New(self->network->network->getNodes().size());
 
@@ -287,36 +279,3 @@ static PyObject* cMaBoSSSim_get_nodes(cMaBoSSSimObject* self) {
 
   return list;
 }
-
-static PyMethodDef cMaBoSSSim_methods[] = {
-    {"run", (PyCFunction) cMaBoSSSim_run, METH_VARARGS | METH_KEYWORDS, "runs the simulation"},
-    {"check", (PyCFunction) cMaBoSSSim_check, METH_VARARGS | METH_KEYWORDS, "checks the model"},
-    {"str_bnd", (PyCFunction) cMaBoSSSim_bnd_str, METH_VARARGS | METH_KEYWORDS, "returns the contents of the bnd file"},
-    {"str_cfg", (PyCFunction) cMaBoSSSim_cfg_str, METH_VARARGS | METH_KEYWORDS, "checks the contents of the cfg file"},
-    {"get_logical_rules", (PyCFunction) cMaBoSSSim_get_logical_rules, METH_VARARGS | METH_KEYWORDS, "returns logical formulas"},
-    {"update_parameters", (PyCFunction) cMaBoSSSim_update_parameters, METH_VARARGS | METH_KEYWORDS, "changes the parameters of the simulation"},
-    {"get_nodes", (PyCFunction) cMaBoSSSim_get_nodes, METH_NOARGS, "returns the list of nodes"},
-    {NULL}  /* Sentinel */
-};
-
-static PyMemberDef cMaBoSSSim_members[] = {
-    {"network", T_OBJECT_EX, offsetof(cMaBoSSSimObject, network), READONLY},
-    {"config", T_OBJECT_EX, offsetof(cMaBoSSSimObject, config), READONLY},
-    {"param", T_OBJECT_EX, offsetof(cMaBoSSSimObject, param), READONLY},
-    {NULL}  /* Sentinel */
-};
-
-static PyTypeObject cMaBoSSSim = []{
-    PyTypeObject sim{PyVarObject_HEAD_INIT(NULL, 0)};
-
-    sim.tp_name = "cmaboss.cMaBoSSSimObject";
-    sim.tp_basicsize = sizeof(cMaBoSSSimObject);
-    sim.tp_itemsize = 0;
-    sim.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
-    sim.tp_doc = "cMaBoSS Simulation object";
-    sim.tp_new = cMaBoSSSim_new;
-    sim.tp_dealloc = (destructor) cMaBoSSSim_dealloc;
-    sim.tp_methods = cMaBoSSSim_methods;
-    sim.tp_members = cMaBoSSSim_members;
-    return sim;
-}();

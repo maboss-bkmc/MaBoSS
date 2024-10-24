@@ -45,32 +45,50 @@
      January-March 2020
 */
 
-#define PY_SSIZE_T_CLEAN
-#ifdef PYTHON_API
-#include <Python.h>
-#include <structmember.h>
+#include "maboss_resfinal.h"
+
 #include <fstream>
-#include <stdlib.h>
-#include <set>
-#include "src/BooleanNetwork.h"
-#include "src/FinalStateSimulationEngine.h"
-#include "maboss_commons.h"
 
 #ifdef __GLIBC__
 #include <malloc.h>
 #endif
 
-typedef struct {
-  PyObject_HEAD
-  Network* network;
-  RunConfig* runconfig;
-  FinalStateSimulationEngine* engine;
-  time_t start_time;
-  time_t end_time;
-  PyObject* last_probtraj;
-} cMaBoSSResultFinalObject;
+PyMemberDef cMaBoSSResultFinal_members[] = {
+    {(char*)"network", T_OBJECT_EX, offsetof(cMaBoSSResultFinalObject, network), 0, (char*)"network"},
+    {(char*)"runconfig", T_OBJECT_EX, offsetof(cMaBoSSResultFinalObject, runconfig), 0, (char*)"runconfig"},
+    {(char*)"engine", T_OBJECT_EX, offsetof(cMaBoSSResultFinalObject, engine), 0, (char*)"engine"},
+    {(char*)"start_time", T_LONG, offsetof(cMaBoSSResultFinalObject, start_time), 0, (char*)"start_time"},
+    {(char*)"end_time", T_LONG, offsetof(cMaBoSSResultFinalObject, end_time), 0, (char*)"end_time"},
+    {(char*)"last_probtraj", T_OBJECT_EX, offsetof(cMaBoSSResultFinalObject, last_probtraj), 0, (char*)"last_probtraj"},
+    {NULL}  /* Sentinel */
+};
 
-static void cMaBoSSResultFinal_dealloc(cMaBoSSResultFinalObject *self)
+PyMethodDef cMaBoSSResultFinal_methods[] = {
+    {"get_final_time", (PyCFunction) cMaBoSSResultFinal_get_final_time, METH_NOARGS, "gets the final time of the simulation"},
+    {"get_last_probtraj", (PyCFunction) cMaBoSSResultFinal_get_last_probtraj, METH_NOARGS, "gets the last probtraj of the simulation"},
+    {"display_final_states", (PyCFunction) cMaBoSSResultFinal_display_final_states, METH_VARARGS, "display the final state"},
+    {"get_last_nodes_probtraj", (PyCFunction) cMaBoSSResultFinal_get_last_nodes_probtraj, METH_VARARGS, "gets the last nodes probtraj of the simulation"},
+    {"display_run", (PyCFunction) cMaBoSSResultFinal_display_run, METH_VARARGS, "prints the run of the simulation to a file"},
+    {NULL}  /* Sentinel */
+};
+
+PyTypeObject cMaBoSSResultFinal = []{
+  PyTypeObject res{PyVarObject_HEAD_INIT(NULL, 0)};
+
+  res.tp_name = build_type_name("cMaBoSSResultFinal");
+  res.tp_basicsize = sizeof(cMaBoSSResultFinalObject);
+  res.tp_itemsize = 0;
+  res.tp_dealloc = (destructor) cMaBoSSResultFinal_dealloc;
+  res.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
+  res.tp_doc = "cMaBoSSResultFinalObject";
+  res.tp_methods = cMaBoSSResultFinal_methods;
+  res.tp_members = cMaBoSSResultFinal_members;
+  res.tp_new = cMaBoSSResultFinal_new;
+
+  return res;
+}();
+
+void cMaBoSSResultFinal_dealloc(cMaBoSSResultFinalObject *self)
 {
   delete self->engine;
   
@@ -81,7 +99,7 @@ static void cMaBoSSResultFinal_dealloc(cMaBoSSResultFinalObject *self)
   Py_TYPE(self)->tp_free((PyObject *) self);
 }
 
-static PyObject * cMaBoSSResultFinal_new(PyTypeObject* type, PyObject *args, PyObject* kwargs) 
+PyObject * cMaBoSSResultFinal_new(PyTypeObject* type, PyObject *args, PyObject* kwargs) 
 {
   cMaBoSSResultFinalObject* res;
   res = (cMaBoSSResultFinalObject *) type->tp_alloc(type, 0);  
@@ -89,7 +107,7 @@ static PyObject * cMaBoSSResultFinal_new(PyTypeObject* type, PyObject *args, PyO
   return (PyObject*) res;
 }
 
-static PyObject* cMaBoSSResultFinal_get_last_probtraj(cMaBoSSResultFinalObject* self) 
+PyObject* cMaBoSSResultFinal_get_last_probtraj(cMaBoSSResultFinalObject* self) 
 {
   if (self->last_probtraj == Py_None) {
     self->last_probtraj = self->engine->getNumpyLastStatesDists();
@@ -99,7 +117,7 @@ static PyObject* cMaBoSSResultFinal_get_last_probtraj(cMaBoSSResultFinalObject* 
   return self->last_probtraj;
 }
 
-static PyObject* cMaBoSSResultFinal_get_last_nodes_probtraj(cMaBoSSResultFinalObject* self, PyObject* args) {
+PyObject* cMaBoSSResultFinal_get_last_nodes_probtraj(cMaBoSSResultFinalObject* self, PyObject* args) {
   
   std::vector<Node*> list_nodes;
   PyObject* pList = Py_None;
@@ -123,7 +141,7 @@ static PyObject* cMaBoSSResultFinal_get_last_nodes_probtraj(cMaBoSSResultFinalOb
   return self->engine->getNumpyLastNodesDists(list_nodes);
 }
 
-static PyObject* cMaBoSSResultFinal_display_final_states(cMaBoSSResultFinalObject* self, PyObject* args) {
+PyObject* cMaBoSSResultFinal_display_final_states(cMaBoSSResultFinalObject* self, PyObject* args) {
 
   char * filename = NULL;
   int hexfloat = 0;
@@ -141,15 +159,15 @@ static PyObject* cMaBoSSResultFinal_display_final_states(cMaBoSSResultFinalObjec
   delete final_displayer;
   delete output_final;
 
-  return Py_None;
+  Py_RETURN_NONE;
 }
 
-static PyObject* cMaBoSSResultFinal_get_final_time(cMaBoSSResultFinalObject* self) {
+PyObject* cMaBoSSResultFinal_get_final_time(cMaBoSSResultFinalObject* self) {
   return PyFloat_FromDouble(self->engine->getFinalTime());
 }
 
 
-static PyObject* cMaBoSSResultFinal_display_run(cMaBoSSResultFinalObject* self, PyObject* args) 
+PyObject* cMaBoSSResultFinal_display_run(cMaBoSSResultFinalObject* self, PyObject* args) 
 {
   char * filename = NULL;
   int hexfloat = 0;
@@ -161,49 +179,5 @@ static PyObject* cMaBoSSResultFinal_display_run(cMaBoSSResultFinalObject* self, 
   ((std::ofstream*) output_run)->close();
   delete output_run;
 
-  return Py_None;
+  Py_RETURN_NONE;
 }
-
-static PyMemberDef cMaBoSSResultFinal_members[] = {
-    {(char*)"network", T_OBJECT_EX, offsetof(cMaBoSSResultFinalObject, network), 0, (char*)"network"},
-    {(char*)"runconfig", T_OBJECT_EX, offsetof(cMaBoSSResultFinalObject, runconfig), 0, (char*)"runconfig"},
-    {(char*)"engine", T_OBJECT_EX, offsetof(cMaBoSSResultFinalObject, engine), 0, (char*)"engine"},
-    {(char*)"start_time", T_LONG, offsetof(cMaBoSSResultFinalObject, start_time), 0, (char*)"start_time"},
-    {(char*)"end_time", T_LONG, offsetof(cMaBoSSResultFinalObject, end_time), 0, (char*)"end_time"},
-    {(char*)"last_probtraj", T_OBJECT_EX, offsetof(cMaBoSSResultFinalObject, last_probtraj), 0, (char*)"last_probtraj"},
-    {NULL}  /* Sentinel */
-};
-
-static PyMethodDef cMaBoSSResultFinal_methods[] = {
-    {"get_final_time", (PyCFunction) cMaBoSSResultFinal_get_final_time, METH_NOARGS, "gets the final time of the simulation"},
-    {"get_last_probtraj", (PyCFunction) cMaBoSSResultFinal_get_last_probtraj, METH_NOARGS, "gets the last probtraj of the simulation"},
-    {"display_final_states", (PyCFunction) cMaBoSSResultFinal_display_final_states, METH_VARARGS, "display the final state"},
-    {"get_last_nodes_probtraj", (PyCFunction) cMaBoSSResultFinal_get_last_nodes_probtraj, METH_VARARGS, "gets the last nodes probtraj of the simulation"},
-    {"display_run", (PyCFunction) cMaBoSSResultFinal_display_run, METH_VARARGS, "prints the run of the simulation to a file"},
-    {NULL}  /* Sentinel */
-};
-
-#if ! defined (MAXNODES) || MAXNODES <= 64 
-    static char result_final_name[50] = "cmaboss";
-#else
-    static char result_final_name[50] = STR(MODULE_NAME);
-#endif
-
-
-static PyTypeObject cMaBoSSResultFinal = []{
-  PyTypeObject res{PyVarObject_HEAD_INIT(NULL, 0)};
-
-  res.tp_name = strcat(result_final_name, ".cMaBoSSResultFinal");
-  res.tp_basicsize = sizeof(cMaBoSSResultFinalObject);
-  res.tp_itemsize = 0;
-  res.tp_dealloc = (destructor) cMaBoSSResultFinal_dealloc;
-  res.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
-  res.tp_doc = "cMaBoSSResultFinalObject";
-  res.tp_methods = cMaBoSSResultFinal_methods;
-  res.tp_members = cMaBoSSResultFinal_members;
-  res.tp_new = cMaBoSSResultFinal_new;
-
-  return res;
-}();
-
-#endif

@@ -42,16 +42,32 @@
      Vincent Noël <vincent.noel@curie.fr>
  
    Date:
-     September 2022
+     January-March 2020
 */
 
-#define PY_SSIZE_T_CLEAN
+#ifndef MABOSS_NODE
+#define MABOSS_NODE
 
-#include <Python.h>
-#include <set>
+#include "maboss_commons.h"
+
 #include "src/BooleanNetwork.h"
 
 typedef struct {
   PyObject_HEAD
-  Node* __node;
+  Node* node;
+  Network* network;
 } cMaBoSSNodeObject;
+
+void cMaBoSSNode_dealloc(cMaBoSSNodeObject *self);
+PyObject* cMaBoSSNode_getLabel(cMaBoSSNodeObject* self);
+PyObject* cMaBoSSNode_setLogic(cMaBoSSNodeObject* self, PyObject* args);
+PyObject* cMaBoSSNode_getLogic(cMaBoSSNodeObject* self);
+PyObject * cMaBoSSNode_setRawRateUp(cMaBoSSNodeObject* self, PyObject* args); 
+PyObject * cMaBoSSNode_setRawRateDown(cMaBoSSNodeObject* self, PyObject* args); 
+PyObject* cMaBoSSNode_setRate(cMaBoSSNodeObject* self, PyObject* args);
+PyObject* cMaBoSSNode_getRateUp(cMaBoSSNodeObject* self);
+PyObject* cMaBoSSNode_getRateDown(cMaBoSSNodeObject* self); 
+PyObject * cMaBoSSNode_new(PyTypeObject* type, PyObject *args, PyObject* kwargs);
+int cMaBoSSNode_init(PyObject *self, PyObject *args, PyObject *kwargs);
+
+#endif

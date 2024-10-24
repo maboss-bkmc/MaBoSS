@@ -45,30 +45,46 @@
      March 2021
 */
 
-#define PY_SSIZE_T_CLEAN
-#ifdef PYTHON_API
-#include <Python.h>
-#include <fstream>
-#include <stdlib.h>
-#include <set>
-#include "src/BooleanNetwork.h"
-#include "src/PopMaBEstEngine.h"
+
+#include "popmaboss_res.h"
+
 #include "src/PopProbTrajDisplayer.h"
 
+#include <fstream>
 #ifdef __GLIBC__
 #include <malloc.h>
 #endif
 
-typedef struct {
-  PyObject_HEAD
-  PopNetwork* network;
-  RunConfig* runconfig;
-  PopMaBEstEngine* engine;
-  time_t start_time;
-  time_t end_time;
-} cPopMaBoSSResultObject;
+PyMethodDef cPopMaBoSSResult_methods[] = {
+    {"get_fp_table", (PyCFunction) cPopMaBoSSResult_get_fp_table, METH_NOARGS, "gets the fixpoints table"},
+    {"get_probtraj", (PyCFunction) cPopMaBoSSResult_get_probtraj, METH_NOARGS, "gets the raw states probability trajectories of the simulation"},
+    {"get_last_probtraj", (PyCFunction) cPopMaBoSSResult_get_last_probtraj, METH_NOARGS, "gets the last raw states probability of the simulation"},
+    {"get_simple_probtraj", (PyCFunction) cPopMaBoSSResult_get_simple_probtraj, METH_NOARGS, "gets the raw simple states probability trajectories of the simulation"},
+    {"get_simple_last_probtraj", (PyCFunction) cPopMaBoSSResult_get_simple_last_probtraj, METH_NOARGS, "gets the last raw simple states probability of the simulation"},
+    {"get_custom_probtraj", (PyCFunction) cPopMaBoSSResult_get_custom_probtraj, METH_NOARGS, "gets the raw custom states probability trajectories of the simulation"},
+    {"get_custom_last_probtraj", (PyCFunction) cPopMaBoSSResult_get_custom_last_probtraj, METH_NOARGS, "gets the last raw custom states probability of the simulation"},
+    {"display_fp", (PyCFunction) cPopMaBoSSResult_display_fp, METH_VARARGS, "prints the fixpoints to a file"},
+    {"display_probtraj", (PyCFunction) cPopMaBoSSResult_display_probtraj, METH_VARARGS, "prints the probtraj to a file"},
+    // {"display_statdist", (PyCFunction) cMaBoSSResult_display_statdist, METH_VARARGS, "prints the statdist to a file"},
+    {"display_run", (PyCFunction) cPopMaBoSSResult_display_run, METH_VARARGS, "prints the run of the simulation to a file"},
+    {NULL}  /* Sentinel */
+};
 
-static void cPopMaBoSSResult_dealloc(cPopMaBoSSResultObject *self)
+PyTypeObject cPopMaBoSSResult = []{
+  PyTypeObject res{PyVarObject_HEAD_INIT(NULL, 0)};
+
+  res.tp_name = build_type_name("cPopMaBoSSResultObject");
+  res.tp_basicsize = sizeof(cPopMaBoSSResultObject);
+  res.tp_itemsize = 0;
+  res.tp_flags = Py_TPFLAGS_DEFAULT;// | Py_TPFLAGS_BASETYPE;
+  res.tp_doc = "cPopMaBoSSResultobject";
+  res.tp_new = cPopMaBoSSResult_new;
+  res.tp_dealloc = (destructor) cPopMaBoSSResult_dealloc;
+  res.tp_methods = cPopMaBoSSResult_methods;
+  return res;
+}();
+
+void cPopMaBoSSResult_dealloc(cPopMaBoSSResultObject *self)
 {
   delete self->engine;
   
@@ -79,7 +95,7 @@ static void cPopMaBoSSResult_dealloc(cPopMaBoSSResultObject *self)
   Py_TYPE(self)->tp_free((PyObject *) self);
 }
 
-static PyObject * cPopMaBoSSResult_new(PyTypeObject* type, PyObject *args, PyObject* kwargs) 
+PyObject * cPopMaBoSSResult_new(PyTypeObject* type, PyObject *args, PyObject* kwargs) 
 {
   cPopMaBoSSResultObject* res;
   res = (cPopMaBoSSResultObject *) type->tp_alloc(type, 0);
@@ -87,7 +103,7 @@ static PyObject * cPopMaBoSSResult_new(PyTypeObject* type, PyObject *args, PyObj
   return (PyObject*) res;
 }
 
-static PyObject* cPopMaBoSSResult_get_fp_table(cPopMaBoSSResultObject* self) {
+PyObject* cPopMaBoSSResult_get_fp_table(cPopMaBoSSResultObject* self) {
 
   PyObject *dict = PyDict_New();
 
@@ -103,37 +119,37 @@ static PyObject* cPopMaBoSSResult_get_fp_table(cPopMaBoSSResultObject* self) {
   return dict;
 }
 
-static PyObject* cPopMaBoSSResult_get_probtraj(cPopMaBoSSResultObject* self) {
+PyObject* cPopMaBoSSResult_get_probtraj(cPopMaBoSSResultObject* self) {
   return self->engine->getMergedCumulator()->getNumpyStatesDists(self->network);
 }
 
-static PyObject* cPopMaBoSSResult_get_last_probtraj(cPopMaBoSSResultObject* self) {
+PyObject* cPopMaBoSSResult_get_last_probtraj(cPopMaBoSSResultObject* self) {
   return self->engine->getMergedCumulator()->getNumpyLastStatesDists(self->network);
 }
 
-static PyObject* cPopMaBoSSResult_get_simple_probtraj(cPopMaBoSSResultObject* self) {
+PyObject* cPopMaBoSSResult_get_simple_probtraj(cPopMaBoSSResultObject* self) {
   return self->engine->getMergedCumulator()->getNumpySimpleStatesDists(self->network);
 }
 
-static PyObject* cPopMaBoSSResult_get_simple_last_probtraj(cPopMaBoSSResultObject* self) {
+PyObject* cPopMaBoSSResult_get_simple_last_probtraj(cPopMaBoSSResultObject* self) {
   return self->engine->getMergedCumulator()->getNumpySimpleLastStatesDists(self->network);
 }
 
-static PyObject* cPopMaBoSSResult_get_custom_probtraj(cPopMaBoSSResultObject* self) {
-  if (self->runconfig->hasCustomPopOutput()){
+PyObject* cPopMaBoSSResult_get_custom_probtraj(cPopMaBoSSResultObject* self) {
+  if (self->config->hasCustomPopOutput()){
     return self->engine->getCustomPopCumulator()->getNumpyStatesDists(self->network);
   } else 
-  return Py_None;
+  Py_RETURN_NONE;
 }
 
-static PyObject* cPopMaBoSSResult_get_custom_last_probtraj(cPopMaBoSSResultObject* self) {
-  if (self->runconfig->hasCustomPopOutput())
+PyObject* cPopMaBoSSResult_get_custom_last_probtraj(cPopMaBoSSResultObject* self) {
+  if (self->config->hasCustomPopOutput())
     return self->engine->getCustomPopCumulator()->getNumpyLastStatesDists(self->network);
   else 
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
-static PyObject* cPopMaBoSSResult_display_fp(cPopMaBoSSResultObject* self, PyObject *args) 
+PyObject* cPopMaBoSSResult_display_fp(cPopMaBoSSResultObject* self, PyObject *args) 
 {
   char * filename = NULL;
   int hexfloat = 0;
@@ -149,10 +165,10 @@ static PyObject* cPopMaBoSSResult_display_fp(cPopMaBoSSResultObject* self, PyObj
   delete fp_displayer;
   delete output_fp;
 
-  return Py_None;
+  Py_RETURN_NONE;
 }
 
-static PyObject* cPopMaBoSSResult_display_probtraj(cPopMaBoSSResultObject* self, PyObject *args) 
+PyObject* cPopMaBoSSResult_display_probtraj(cPopMaBoSSResultObject* self, PyObject *args) 
 {
   char * filename = NULL;
   char * simple_filename = NULL;
@@ -173,10 +189,10 @@ static PyObject* cPopMaBoSSResult_display_probtraj(cPopMaBoSSResultObject* self,
   delete output_probtraj;
   delete output_simple_probtraj;
   
-  return Py_None;
+  Py_RETURN_NONE;
 }
 
-// static PyObject* cPopMaBoSSResult_display_statdist(cPopMaBoSSResultObject* self, PyObject *args) 
+// PyObject* cPopMaBoSSResult_display_statdist(cPopMaBoSSResultObject* self, PyObject *args) 
 // {
 //   char * filename = NULL;
 //   int hexfloat = 0;
@@ -188,10 +204,10 @@ static PyObject* cPopMaBoSSResult_display_probtraj(cPopMaBoSSResultObject* self,
 //   ((std::ofstream*) output_statdist)->close();
 //   delete output_statdist;
 
-//   return Py_None;
+//   Py_RETURN_NONE;
 // }
 
-static PyObject* cPopMaBoSSResult_display_run(cPopMaBoSSResultObject* self, PyObject* args) 
+PyObject* cPopMaBoSSResult_display_run(cPopMaBoSSResultObject* self, PyObject* args) 
 {
   char * filename = NULL;
   int hexfloat = 0;
@@ -203,36 +219,5 @@ static PyObject* cPopMaBoSSResult_display_run(cPopMaBoSSResultObject* self, PyOb
   ((std::ofstream*) output_run)->close();
   delete output_run;
 
-  return Py_None;
+  Py_RETURN_NONE;
 }
-
-static PyMethodDef cPopMaBoSSResult_methods[] = {
-    {"get_fp_table", (PyCFunction) cPopMaBoSSResult_get_fp_table, METH_NOARGS, "gets the fixpoints table"},
-    {"get_probtraj", (PyCFunction) cPopMaBoSSResult_get_probtraj, METH_NOARGS, "gets the raw states probability trajectories of the simulation"},
-    {"get_last_probtraj", (PyCFunction) cPopMaBoSSResult_get_last_probtraj, METH_NOARGS, "gets the last raw states probability of the simulation"},
-    {"get_simple_probtraj", (PyCFunction) cPopMaBoSSResult_get_simple_probtraj, METH_NOARGS, "gets the raw simple states probability trajectories of the simulation"},
-    {"get_simple_last_probtraj", (PyCFunction) cPopMaBoSSResult_get_simple_last_probtraj, METH_NOARGS, "gets the last raw simple states probability of the simulation"},
-    {"get_custom_probtraj", (PyCFunction) cPopMaBoSSResult_get_custom_probtraj, METH_NOARGS, "gets the raw custom states probability trajectories of the simulation"},
-    {"get_custom_last_probtraj", (PyCFunction) cPopMaBoSSResult_get_custom_last_probtraj, METH_NOARGS, "gets the last raw custom states probability of the simulation"},
-    {"display_fp", (PyCFunction) cPopMaBoSSResult_display_fp, METH_VARARGS, "prints the fixpoints to a file"},
-    {"display_probtraj", (PyCFunction) cPopMaBoSSResult_display_probtraj, METH_VARARGS, "prints the probtraj to a file"},
-    // {"display_statdist", (PyCFunction) cMaBoSSResult_display_statdist, METH_VARARGS, "prints the statdist to a file"},
-    {"display_run", (PyCFunction) cPopMaBoSSResult_display_run, METH_VARARGS, "prints the run of the simulation to a file"},
-    {NULL}  /* Sentinel */
-};
-
-static PyTypeObject cPopMaBoSSResult = []{
-  PyTypeObject res{PyVarObject_HEAD_INIT(NULL, 0)};
-
-  res.tp_name = "cmaboss.cPopMaBoSSResultObject";
-  res.tp_basicsize = sizeof(cPopMaBoSSResultObject);
-  res.tp_itemsize = 0;
-  res.tp_flags = Py_TPFLAGS_DEFAULT;// | Py_TPFLAGS_BASETYPE;
-  res.tp_doc = "cPopMaBoSSResultobject";
-  res.tp_new = cPopMaBoSSResult_new;
-  res.tp_dealloc = (destructor) cPopMaBoSSResult_dealloc;
-  res.tp_methods = cPopMaBoSSResult_methods;
-  return res;
-}();
-
-#endif

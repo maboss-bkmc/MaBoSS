@@ -45,23 +45,42 @@
      January-March 2020
 */
 
-#define PY_SSIZE_T_CLEAN
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #define PY_ARRAY_UNIQUE_SYMBOL MABOSS_ARRAY_API
-#include <Python.h>
 #include <numpy/arrayobject.h>
-#include "maboss_sim.cpp"
-#include "popmaboss_sim.cpp"
+
+#include "maboss_commons.h"
+#include "maboss_node.h"
+#include "maboss_sim.h"
+#include "popmaboss_sim.h"
+#include "maboss_res.h"
+#include "maboss_resfinal.h"
+#include "popmaboss_res.h"
+
+#if ! defined (MAXNODES) || MAXNODES <= 64 
+    const char module_name[] = "cmaboss";
+#else
+    const char module_name[] = STR(MODULE_NAME);
+#endif
+
+const char * build_type_name(const char* object_name) {
+    char * name = new char[strlen(module_name) + strlen(object_name) + 2];
+    strcat(strcpy(name, module_name), ".");
+    strcat(name, object_name);
+    return name;
+}
+
+PyObject* PyBNException = NULL;
 
 /*  define functions in module */
-static PyMethodDef cMaBoSS[] =
+PyMethodDef cMaBoSS[] =
 { 
      {NULL, NULL, 0, NULL}
 };
 
 /* module initialization */
 /* Python version 3*/
-static struct PyModuleDef cMaBoSSDef =
+struct PyModuleDef cMaBoSSDef =
 {
     PyModuleDef_HEAD_INIT,
 #if ! defined (MAXNODES) || MAXNODES <= 64 
@@ -107,12 +126,17 @@ MODULE_INIT_NAME(void)
     if (PyType_Ready(&cPopMaBoSSNetwork) < 0){
         return NULL;
     }
-    if (PyType_Ready(&cPopMaBoSSConfig) < 0){
-        return NULL;
-    }
+    
     if (PyType_Ready(&cPopMaBoSSResult) < 0){
         return NULL;
     }
+    if (PyType_Ready(&cMaBoSSParam) < 0){
+        return NULL;
+    }
+    if (PyType_Ready(&cMaBoSSNode) < 0){
+        return NULL;
+    }
+    
     m = PyModule_Create(&cMaBoSSDef);
 
 #if ! defined (MAXNODES) || MAXNODES <= 64 
@@ -131,6 +155,13 @@ MODULE_INIT_NAME(void)
         return NULL;
     }
     
+    Py_INCREF(&cMaBoSSParam);
+    if (PyModule_AddObject(m, "MaBoSSParam", (PyObject *) &cMaBoSSParam) < 0) {
+        Py_DECREF(&cMaBoSSParam);
+        Py_DECREF(m);
+        return NULL;
+    }
+
     Py_INCREF(&cPopMaBoSSSim);
     if (PyModule_AddObject(m, "PopMaBoSSSim", (PyObject *) &cPopMaBoSSSim) < 0) {
         Py_DECREF(&cPopMaBoSSSim);
@@ -138,12 +169,12 @@ MODULE_INIT_NAME(void)
         return NULL;
     }
 
-    // Py_INCREF(&cMaBoSSNode);
-    // if (PyModule_AddObject(m, "MaBoSSNode", (PyObject *) &cMaBoSSNode) < 0) {
-    //     Py_DECREF(&cMaBoSSNode);
-    //     Py_DECREF(m);
-    //     return NULL;
-    // }
+    Py_INCREF(&cMaBoSSNode);
+    if (PyModule_AddObject(m, "MaBoSSNode", (PyObject *) &cMaBoSSNode) < 0) {
+        Py_DECREF(&cMaBoSSNode);
+        Py_DECREF(m);
+        return NULL;
+    }
     
     Py_INCREF(&cMaBoSSNetwork);
     if (PyModule_AddObject(m, "MaBoSSNet", (PyObject *) &cMaBoSSNetwork) < 0) {
@@ -166,13 +197,6 @@ MODULE_INIT_NAME(void)
         return NULL;
     }
 
-    Py_INCREF(&cPopMaBoSSConfig);
-    if (PyModule_AddObject(m, "PopMaBoSSCfg", (PyObject *) &cPopMaBoSSConfig) < 0) {
-        Py_DECREF(&cPopMaBoSSConfig);
-        Py_DECREF(m);
-        return NULL;
-    }
-
     Py_INCREF(&cMaBoSSResult);
     if (PyModule_AddObject(m, "cMaBoSSResult", (PyObject *) &cMaBoSSResult) < 0) {
         Py_DECREF(&cMaBoSSResult);
@@ -187,5 +211,12 @@ MODULE_INIT_NAME(void)
         return NULL;
     }
 
+    Py_INCREF(&cPopMaBoSSResult);
+    if (PyModule_AddObject(m, "cPopMaBoSSResult", (PyObject *) &cPopMaBoSSResult) < 0) {
+        Py_DECREF(&cPopMaBoSSResult);
+        Py_DECREF(m);
+        return NULL;
+    }
+    
     return m;
 }

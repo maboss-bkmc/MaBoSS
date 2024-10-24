@@ -45,188 +45,11 @@
      January-March 2020
 */
 
-#ifndef MABOSS_NODE
-#define MABOSS_NODE
-
-#define PY_SSIZE_T_CLEAN
-#include <Python.h>
-#include <set>
-#include "src/BooleanNetwork.h"
-#include "src/MaBEstEngine.h"
+#include "maboss_node.h"
 #include "maboss_net.h"
+#include "popmaboss_net.h"
 
-typedef struct {
-  PyObject_HEAD
-  Node* _node;
-  Network* _network;
-} cMaBoSSNodeObject;
-
-static void cMaBoSSNode_dealloc(cMaBoSSNodeObject *self)
-{
-    delete self->_node;
-    Py_TYPE(self)->tp_free((PyObject *) self);
-}
-
-static PyObject* cMaBoSSNode_getLabel(cMaBoSSNodeObject* self) 
-{
-  return PyUnicode_FromString(self->_node->getLabel().c_str());
-}
-
-static PyObject* cMaBoSSNode_setLogic(cMaBoSSNodeObject* self, PyObject* args) 
-{
-  PyObject * logic = NULL;
-  if (!PyArg_ParseTuple(args, "O", &logic))
-    return NULL;
-  
-  try{
-    std::map<std::string, NodeIndex> nodes_indexes;
-    for (auto* node: self->_network->getNodes()) {
-      nodes_indexes[node->getLabel()] = node->getIndex();
-    }
-
-    if (logic != NULL) {
-    //   std::cout << "Setting logical input to NULL" << std::endl;
-    //   self->_node->setLogicalInputExpression(NULL);
-    //   Py_RETURN_NONE;
-    // } else {
-      Expression* logic_expr = self->_network->parseSingleExpression(PyUnicode_AsUTF8(logic), &nodes_indexes);
-      self->_node->setLogicalInputExpression(logic_expr);
-    }
-    
-  } catch (BNException& e) {
-    PyErr_SetString(PyBNException, e.getMessage().c_str());
-    return NULL;
-  }
-  
-  Py_RETURN_NONE;
-}
-
-static PyObject* cMaBoSSNode_getLogic(cMaBoSSNodeObject* self) 
-{
-  if (self->_node->getLogicalInputExpression() != NULL) {
-    return PyUnicode_FromString(self->_node->getLogicalInputExpression()->toString().c_str());
-  } else {
-    Py_RETURN_NONE;
-  }
-  
-}
-
-static PyObject * cMaBoSSNode_setRawRateUp(cMaBoSSNodeObject* self, PyObject* args) 
-{
-  PyObject* rate_up = NULL;
-  if (!PyArg_ParseTuple(args, "O", &rate_up))
-    return NULL;
-  
-  try{
-    std::map<std::string, NodeIndex> nodes_indexes;
-    for (auto* node: self->_network->getNodes()) {
-      nodes_indexes[node->getLabel()] = node->getIndex();
-    }
-
-    Expression* rate_up_expr = self->_network->parseSingleExpression(PyUnicode_AsUTF8(rate_up), &nodes_indexes);
-    self->_node->setRateUpExpression(rate_up_expr);
-    
-  } catch (BNException& e) {
-    PyErr_SetString(PyBNException, e.getMessage().c_str());
-    return NULL;
-  }
-  
-  Py_RETURN_NONE;
-}
-
-static PyObject * cMaBoSSNode_setRawRateDown(cMaBoSSNodeObject* self, PyObject* args) 
-{
-
-  PyObject* rate_down = NULL;
-  if (!PyArg_ParseTuple(args, "O", &rate_down))
-    return NULL;
-  
-  try{
-    std::map<std::string, NodeIndex> nodes_indexes;
-    for (auto* node: self->_network->getNodes()) {
-      nodes_indexes[node->getLabel()] = node->getIndex();
-    }
-
-    Expression* rate_down_expr = self->_network->parseSingleExpression(PyUnicode_AsUTF8(rate_down), &nodes_indexes);
-    self->_node->setRateUpExpression(rate_down_expr);
-    
-  } catch (BNException& e) {
-    PyErr_SetString(PyBNException, e.getMessage().c_str());
-    return NULL;
-  }
-  
-  Py_RETURN_NONE;
-}
-
-static PyObject* cMaBoSSNode_setRate(cMaBoSSNodeObject* self, PyObject* args) 
-{
-  double rate_up = 0.0;
-  double rate_down = 0.0;
-  if (!PyArg_ParseTuple(args, "dd", &rate_up, &rate_down))
-    return NULL;
-
-  try{
-    std::map<std::string, NodeIndex> nodes_indexes;
-    for (auto* node: self->_network->getNodes()) {
-      nodes_indexes[node->getLabel()] = node->getIndex();
-    }
-
-    self->_node->setRateUpExpression(
-      new CondExpression(new AliasExpression("logic"), new ConstantExpression(rate_up), new ConstantExpression(0.0))
-    );
-    self->_node->setRateDownExpression(
-      new CondExpression(new AliasExpression("logic"), new ConstantExpression(0.0), new ConstantExpression(rate_down))
-    );
-    
-  } catch (BNException& e) {
-    PyErr_SetString(PyBNException, e.getMessage().c_str());
-    return NULL;
-  }
-  
-  Py_RETURN_NONE;
-}
-
-static PyObject* cMaBoSSNode_getRateUp(cMaBoSSNodeObject* self) 
-{
-  PyObject* rate_up_str = PyUnicode_FromString(self->_node->getRateUpExpression()->toString().c_str());
-  Py_INCREF(rate_up_str);
-  return rate_up_str;
-}
-
-static PyObject* cMaBoSSNode_getRateDown(cMaBoSSNodeObject* self) 
-{
-  PyObject* rate_down_str = PyUnicode_FromString(self->_node->getRateDownExpression()->toString().c_str());
-  Py_INCREF(rate_down_str);
-  return rate_down_str;
-}
-
-static PyObject * cMaBoSSNode_new(PyTypeObject* type, PyObject *args, PyObject* kwargs) 
-{
-  char * name;
-  cMaBoSSNetworkObject * network;
-  static const char *kwargs_list[] = {"name", "network", NULL};
-  if (!PyArg_ParseTupleAndKeywords(
-    args, kwargs, "so", const_cast<char **>(kwargs_list), 
-    &name, &network
-  ))
-    return NULL;
- 
-  cMaBoSSNodeObject * pynode = (cMaBoSSNodeObject *) type->tp_alloc(type, 0);
-  
-  try{
-    pynode->_network = network->network;
-    pynode->_node = network->network->getOrMakeNode(name);
-    
-  } catch (BNException& e) {
-    PyErr_SetString(PyBNException, e.getMessage().c_str());
-    return NULL;
-  }
-  
-  return (PyObject*) pynode;
-}
-
-
-static PyMethodDef cMaBoSSNode_methods[] = {
+PyMethodDef cMaBoSSNode_methods[] = {
     {"getLabel", (PyCFunction) cMaBoSSNode_getLabel, METH_NOARGS, "returns the node object"},
     {"set_logic", (PyCFunction) cMaBoSSNode_setLogic, METH_VARARGS, "sets the logic of the node"},
     {"get_logic", (PyCFunction) cMaBoSSNode_getLogic, METH_NOARGS, "returns the logic of the node"},
@@ -238,17 +61,183 @@ static PyMethodDef cMaBoSSNode_methods[] = {
     {NULL}  /* Sentinel */
 };
 
-static PyTypeObject cMaBoSSNode = []{
+PyTypeObject cMaBoSSNode = []{
     PyTypeObject net{PyVarObject_HEAD_INIT(NULL, 0)};
-
-    net.tp_name = "cmaboss.cMaBoSSNodeObject";
+    net.tp_name = build_type_name("cMaBoSSNodeObject");
     net.tp_basicsize = sizeof(cMaBoSSNodeObject);
     net.tp_itemsize = 0;
     net.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
     net.tp_doc = "cMaBoSS Node object";
+    net.tp_init = cMaBoSSNode_init;
     net.tp_new = cMaBoSSNode_new;
     net.tp_dealloc = (destructor) cMaBoSSNode_dealloc;
     net.tp_methods = cMaBoSSNode_methods;
     return net;
 }();
-#endif
+
+void cMaBoSSNode_dealloc(cMaBoSSNodeObject *self)
+{
+    delete self->node;
+    Py_TYPE(self)->tp_free((PyObject *) self);
+}
+
+PyObject* cMaBoSSNode_getLabel(cMaBoSSNodeObject* self) 
+{
+  return PyUnicode_FromString(self->node->getLabel().c_str());
+}
+
+PyObject* cMaBoSSNode_setLogic(cMaBoSSNodeObject* self, PyObject* args) 
+{
+  PyObject * logic = NULL;
+  if (!PyArg_ParseTuple(args, "O", &logic))
+    return NULL;
+  
+  try{
+    if (logic != NULL) {
+      Expression* logic_expr = self->network->parseSingleExpression(PyUnicode_AsUTF8(logic));
+      self->node->setLogicalInputExpression(logic_expr);
+    }
+    
+  } catch (BNException& e) {
+    PyErr_SetString(PyBNException, e.getMessage().c_str());
+    return NULL;
+  }
+  
+  Py_RETURN_NONE;
+}
+
+PyObject* cMaBoSSNode_getLogic(cMaBoSSNodeObject* self) 
+{
+  if (self->node->getLogicalInputExpression() != NULL) {
+    return PyUnicode_FromString(self->node->getLogicalInputExpression()->toString().c_str());
+  } else {
+    Py_RETURN_NONE;
+  }
+  
+}
+
+PyObject * cMaBoSSNode_setRawRateUp(cMaBoSSNodeObject* self, PyObject* args) 
+{
+  PyObject* rate_up = NULL;
+  if (!PyArg_ParseTuple(args, "O", &rate_up))
+    return NULL;
+  
+  try{
+    Expression* rate_up_expr = self->network->parseSingleExpression(PyUnicode_AsUTF8(rate_up));
+    self->node->setRateUpExpression(rate_up_expr);
+    
+  } catch (BNException& e) {
+    PyErr_SetString(PyBNException, e.getMessage().c_str());
+    return NULL;
+  }
+  
+  Py_RETURN_NONE;
+}
+
+PyObject * cMaBoSSNode_setRawRateDown(cMaBoSSNodeObject* self, PyObject* args) 
+{
+
+  PyObject* rate_down = NULL;
+  if (!PyArg_ParseTuple(args, "O", &rate_down))
+    return NULL;
+  
+  try{
+    Expression* rate_down_expr = self->network->parseSingleExpression(PyUnicode_AsUTF8(rate_down));
+    self->node->setRateUpExpression(rate_down_expr);
+    
+  } catch (BNException& e) {
+    PyErr_SetString(PyBNException, e.getMessage().c_str());
+    return NULL;
+  }
+  
+  Py_RETURN_NONE;
+}
+
+PyObject* cMaBoSSNode_setRate(cMaBoSSNodeObject* self, PyObject* args) 
+{
+  double rate_up = 0.0;
+  double rate_down = 0.0;
+  if (!PyArg_ParseTuple(args, "dd", &rate_up, &rate_down))
+    return NULL;
+
+  try{
+    self->node->setRateUpExpression(
+      new CondExpression(new AliasExpression("logic"), new ConstantExpression(rate_up), new ConstantExpression(0.0))
+    );
+    self->node->setRateDownExpression(
+      new CondExpression(new AliasExpression("logic"), new ConstantExpression(0.0), new ConstantExpression(rate_down))
+    );
+    
+  } catch (BNException& e) {
+    PyErr_SetString(PyBNException, e.getMessage().c_str());
+    return NULL;
+  }
+  
+  Py_RETURN_NONE;
+}
+
+PyObject* cMaBoSSNode_getRateUp(cMaBoSSNodeObject* self) 
+{
+  PyObject* rate_up_str = PyUnicode_FromString(self->node->getRateUpExpression()->toString().c_str());
+  Py_INCREF(rate_up_str);
+  return rate_up_str;
+}
+
+PyObject* cMaBoSSNode_getRateDown(cMaBoSSNodeObject* self) 
+{
+  PyObject* rate_down_str = PyUnicode_FromString(self->node->getRateDownExpression()->toString().c_str());
+  Py_INCREF(rate_down_str);
+  return rate_down_str;
+}
+
+PyObject * cMaBoSSNode_new(PyTypeObject* type, PyObject *args, PyObject* kwargs) 
+{
+  cMaBoSSNodeObject * py_node = (cMaBoSSNodeObject *) type->tp_alloc(type, 0);
+  py_node->network = NULL;
+  py_node->node = NULL;
+  return (PyObject*) py_node;
+}
+
+int cMaBoSSNode_init(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+  PyObject * name = Py_None;
+  PyObject * py_network = Py_None;
+  const char *kwargs_list[] = {"name", "network", NULL};
+  if (!PyArg_ParseTupleAndKeywords(
+    args, kwargs, "OO", const_cast<char **>(kwargs_list), 
+    &name, &py_network
+  ))
+    return -1;
+
+  cMaBoSSNodeObject * py_node = (cMaBoSSNodeObject *) self;
+
+  try
+  {
+
+    if (PyObject_IsInstance(py_network, (PyObject*)&cMaBoSSNetwork))
+    {
+      py_node->network = ((cMaBoSSNetworkObject*) py_network)->network;
+      
+    } else if (PyObject_IsInstance(py_network, (PyObject*)&cPopMaBoSSNetwork))
+    {
+      py_node->network = ((cPopMaBoSSNetworkObject*) py_network)->network;
+      
+    } else {
+      py_node = NULL;
+      PyErr_SetString(PyBNException, "Invalid network object");
+      return -1;
+    }
+    
+    if (py_node->network != NULL){
+      py_node->node = py_node->network->getOrMakeNode(PyUnicode_AsUTF8(name));
+    }
+    
+  } catch (BNException& e) 
+  {
+    py_node = NULL;
+    PyErr_SetString(PyBNException, e.getMessage().c_str());
+    return -1;
+  }
+  
+  return 0;
+}

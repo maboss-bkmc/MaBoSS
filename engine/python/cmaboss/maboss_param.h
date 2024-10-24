@@ -36,7 +36,7 @@
 #############################################################################
 
    Module:
-     maboss_param.h
+     maboss_param.cpp
 
    Authors:
      Vincent Noël <vincent.noel@curie.fr>
@@ -45,4 +45,47 @@
      January-March 2020
 */
 
-#define PY_SSIZE_T_CLEAN
+#ifndef MABOSS_PARAM
+#define MABOSS_PARAM
+
+#include "maboss_commons.h"
+
+#include "src/BooleanNetwork.h"
+#include "src/RunConfig.h"
+
+typedef struct {
+  PyObject_HEAD
+  Network* network;
+  RunConfig* config;
+} cMaBoSSParamObject;
+
+void cMaBoSSParam_dealloc(PyObject *self);
+PyObject* cMaBoSSParam_new(PyTypeObject* type, PyObject *args, PyObject* kwargs);
+int cMaBoSSParam_init(PyObject* self, PyObject *args, PyObject* kwargs);
+PyObject* cMaBoSSParam_update_parameters(cMaBoSSParamObject* self, PyObject *args, PyObject* kwargs);
+int cMaBoSSParam_SetItem(cMaBoSSParamObject* self, PyObject *key, PyObject* value);
+PyObject * cMaBoSSParam_GetItem(cMaBoSSParamObject* self, PyObject *key);
+Py_ssize_t cMaBoSSParam_Length(cMaBoSSParamObject* self);
+PyObject* cMaBoSSParam_getKeys(cMaBoSSParamObject* self);
+PyObject* cMaBoSSParam_getValues(cMaBoSSParamObject* self);
+PyObject* cMaBoSSParam_getItems(cMaBoSSParamObject* self);
+
+//     // .tp_repr = (reprfunc)myobj_repr,
+    
+    
+//     PyTypeObject net{PyVarObject_HEAD_INIT(NULL, 0)};
+
+//     net.tp_name = 
+//     net.tp_basicsize = ;
+//     net.tp_itemsize = 0;
+//     net.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
+//     net.tp_doc = ;
+//     net.tp_call = PyObject_Call;
+//     net.tp_init = ;
+//     net.tp_new = ;
+//     net.tp_dealloc = ;
+//     net;
+//     net;
+//     return net;
+// }();
+#endif

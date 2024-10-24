@@ -45,25 +45,87 @@
      January-March 2020
 */
 
-#ifndef MABOSS_PARAM
-#define MABOSS_PARAM
+#include "maboss_param.h"
+#include "maboss_net.h"
+#include "popmaboss_net.h"
+#include "maboss_cfg.h"
 
-#define PY_SSIZE_T_CLEAN
+PyMethodDef cMaBoSSParam_methods[] = {
+  {"keys", (PyCFunction) cMaBoSSParam_getKeys, METH_NOARGS, "returns the keys"},
+  {"values", (PyCFunction) cMaBoSSParam_getValues, METH_NOARGS, "returns the values"},
+  {"items", (PyCFunction) cMaBoSSParam_getItems, METH_NOARGS, "returns the items"},
+  {NULL}  /* Sentinel */
+};
 
-#include <Python.h>
+PyMappingMethods cMaBoSSParam_mapping = {
+	(lenfunc)cMaBoSSParam_Length,		// lenfunc PyMappingMethods.mp_length
+	(binaryfunc)cMaBoSSParam_GetItem,		// binaryfunc PyMappingMethods.mp_subscript
+	(objobjargproc)cMaBoSSParam_SetItem,		// objobjargproc PyMappingMethods.mp_ass_subscript
+};
 
-typedef struct {
-  PyObject_HEAD
-  Network* network;
-  RunConfig* config;
-} cMaBoSSParamObject;
+PyTypeObject cMaBoSSParam = {
+   PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = build_type_name("cMaBoSSParamObject"),
+    .tp_basicsize = sizeof(cMaBoSSParamObject),
+    .tp_itemsize = 0,
+    .tp_dealloc = (destructor) cMaBoSSParam_dealloc,
+    .tp_as_mapping = &cMaBoSSParam_mapping,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    .tp_doc = "cMaBoSS Params object",
+    .tp_methods = cMaBoSSParam_methods,
+    .tp_init = cMaBoSSParam_init,
+    .tp_new = cMaBoSSParam_new,
+    
+};
 
-static void cMaBoSSParam_dealloc(cMaBoSSParamObject *self)
+void cMaBoSSParam_dealloc(PyObject *self)
 {
-    Py_TYPE(self)->tp_free((PyObject *) self);
+  Py_TYPE(self)->tp_free(self);
 }
 
-static PyObject* cMaBoSSParam_update_parameters(cMaBoSSParamObject* self, PyObject *args, PyObject* kwargs) 
+PyObject* cMaBoSSParam_new(PyTypeObject* type, PyObject *args, PyObject* kwargs) 
+{
+  cMaBoSSParamObject* py_param = (cMaBoSSParamObject *) type->tp_alloc(type, 0);
+  py_param->network = NULL;
+  py_param->config = NULL; 
+  
+  return (PyObject*) py_param;
+}
+
+int cMaBoSSParam_init(PyObject* self, PyObject *args, PyObject* kwargs) 
+{
+  PyObject * py_network = Py_None;
+  PyObject * py_config = Py_None;
+  
+  const char *kwargs_list[] = {"network", "config", NULL};
+  if (!PyArg_ParseTupleAndKeywords(
+    args, kwargs, "OO", const_cast<char **>(kwargs_list), 
+    &py_network, &py_config
+  ))
+    return -1;
+  
+  cMaBoSSParamObject* py_param = (cMaBoSSParamObject *) self;
+
+  if (PyObject_IsInstance(py_network, (PyObject*)&cMaBoSSNetwork))
+  {
+    py_param->network = ((cMaBoSSNetworkObject*) py_network)->network;
+    
+  } else if (PyObject_IsInstance(py_network, (PyObject*)&cPopMaBoSSNetwork))
+  {
+    py_param->network = ((cPopMaBoSSNetworkObject*) py_network)->network;
+    
+  } else {
+    py_param = NULL;
+    PyErr_SetString(PyBNException, "Invalid network object");
+    return -1;
+  }
+
+  py_param->config = ((cMaBoSSConfigObject *) py_config)->config;
+  
+  return 0;
+}
+
+PyObject* cMaBoSSParam_update_parameters(cMaBoSSParamObject* self, PyObject *args, PyObject* kwargs) 
 {
   PyObject* key, *value;
   Py_ssize_t pos = 0;
@@ -109,10 +171,10 @@ static PyObject* cMaBoSSParam_update_parameters(cMaBoSSParamObject* self, PyObje
     }
   }
   
-  return Py_None;
+  Py_RETURN_NONE;
 }
 
-static int cMaBoSSParam_SetItem(cMaBoSSParamObject* self, PyObject *key, PyObject* value) 
+int cMaBoSSParam_SetItem(cMaBoSSParamObject* self, PyObject *key, PyObject* value) 
 {
   PyObject* empty_tumple = PyTuple_New(0);
   Py_INCREF(empty_tumple);
@@ -120,7 +182,7 @@ static int cMaBoSSParam_SetItem(cMaBoSSParamObject* self, PyObject *key, PyObjec
   return 0;
 }
 
-static PyObject * cMaBoSSParam_GetItem(cMaBoSSParamObject* self, PyObject *key) 
+PyObject * cMaBoSSParam_GetItem(cMaBoSSParamObject* self, PyObject *key) 
 {
   if (PyUnicode_CompareWithASCIIString(key, "time_tick") == 0) {
     PyObject* time_tick = PyFloat_FromDouble(self->config->getTimeTick());
@@ -209,12 +271,12 @@ static PyObject * cMaBoSSParam_GetItem(cMaBoSSParamObject* self, PyObject *key)
   return NULL;
 }
 
-static Py_ssize_t cMaBoSSParam_Length(cMaBoSSParamObject* self)
+Py_ssize_t cMaBoSSParam_Length(cMaBoSSParamObject* self)
 {
   return 15 + self->network->getSymbolTable()->getSymbolsNames().size();
 }
 
-static PyObject* cMaBoSSParam_getKeys(cMaBoSSParamObject* self)
+PyObject* cMaBoSSParam_getKeys(cMaBoSSParamObject* self)
 {
   SymbolTable* st = self->network->getSymbolTable();
   PyObject* keys = PyList_New(15 + st->getSymbolsNames().size());
@@ -241,7 +303,7 @@ static PyObject* cMaBoSSParam_getKeys(cMaBoSSParamObject* self)
   return keys;
 }
 
-static PyObject* cMaBoSSParam_getValues(cMaBoSSParamObject* self)
+PyObject* cMaBoSSParam_getValues(cMaBoSSParamObject* self)
 {
   SymbolTable* st = self->network->getSymbolTable();
   PyObject* values = PyList_New(15 + st->getSymbolsNames().size());
@@ -268,7 +330,7 @@ static PyObject* cMaBoSSParam_getValues(cMaBoSSParamObject* self)
   return values;
 }
 
-static PyObject* cMaBoSSParam_getItems(cMaBoSSParamObject* self)
+PyObject* cMaBoSSParam_getItems(cMaBoSSParamObject* self)
 {
   SymbolTable* st = self->network->getSymbolTable();
   PyObject* items = PyList_New(15 + st->getSymbolsNames().size());
@@ -294,32 +356,3 @@ static PyObject* cMaBoSSParam_getItems(cMaBoSSParamObject* self)
   }
   return items;
 }
-  
-static PyMethodDef cMaBoSSParam_methods[] = {
-  {"keys", (PyCFunction) cMaBoSSParam_getKeys, METH_NOARGS, "returns the keys"},
-  {"values", (PyCFunction) cMaBoSSParam_getValues, METH_NOARGS, "returns the values"},
-  {"items", (PyCFunction) cMaBoSSParam_getItems, METH_NOARGS, "returns the items"},
-  {NULL}  /* Sentinel */
-};
-
-static PyMappingMethods cMaBoSSParam_mapping = {
-	(lenfunc)cMaBoSSParam_Length,		// lenfunc PyMappingMethods.mp_length
-	(binaryfunc)cMaBoSSParam_GetItem,		// binaryfunc PyMappingMethods.mp_subscript
-	(objobjargproc)cMaBoSSParam_SetItem,		// objobjargproc PyMappingMethods.mp_ass_subscript
-};
-
-static PyTypeObject cMaBoSSParam = []{
-    PyTypeObject net{PyVarObject_HEAD_INIT(NULL, 0)};
-
-    net.tp_name = "cmaboss.cMaBoSSParamObject";
-    net.tp_basicsize = sizeof(cMaBoSSParamObject);
-    net.tp_itemsize = 0;
-    net.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
-    net.tp_doc = "cMaBoSS Params object";
-    // net.tp_new = cMaBoSSParam_new;
-    net.tp_dealloc = (destructor) cMaBoSSParam_dealloc;
-    net.tp_methods = cMaBoSSParam_methods;
-    net.tp_as_mapping = &cMaBoSSParam_mapping;
-    return net;
-}();
-#endif

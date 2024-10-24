@@ -45,21 +45,36 @@
      January-March 2020
 */
 
-#define PY_SSIZE_T_CLEAN
-
-#include <Python.h>
-#include <set>
-
 #ifndef MABOSS_NETWORK_H
 #define MABOSS_NETWORK_H
 
-#include "src/BooleanNetwork.h"
-#include "src/MaBEstEngine.h"
+#include "maboss_commons.h"
 
+#include "src/BooleanNetwork.h"
 typedef struct {
   PyObject_HEAD
   Network* network;
   PyObject* nodes;
 } cMaBoSSNetworkObject;
 
+
+void cMaBoSSNetwork_dealloc(cMaBoSSNetworkObject *self);
+PyObject *cMaBoSSNetwork_str(PyObject *self);
+int cMaBoSSNetwork_NodesSetItem(cMaBoSSNetworkObject* self, PyObject *key, PyObject* value);
+PyObject * cMaBoSSNetwork_NodesGetItem(cMaBoSSNetworkObject* self, PyObject *key);
+Py_ssize_t cMaBoSSNetwork_NodesLength(cMaBoSSNetworkObject* self);
+PyObject * cMaBoSSNetwork_Keys(cMaBoSSNetworkObject* self);
+PyObject * cMaBoSSNetwork_Values(cMaBoSSNetworkObject* self);
+PyObject * cMaBoSSNetwork_Items(cMaBoSSNetworkObject* self);
+PyObject* cMaBoSSNetwork_setOutput(cMaBoSSNetworkObject* self, PyObject *args);
+PyObject* cMaBoSSNetwork_getOutput(cMaBoSSNetworkObject* self);
+PyObject* cMaBoSSNetwork_setObservedGraphNode(cMaBoSSNetworkObject* self, PyObject *args);
+PyObject* cMaBoSSNetwork_getObservedGraphNode(cMaBoSSNetworkObject* self, PyObject *args);
+PyObject* cMaBoSSNetwork_addNode(cMaBoSSNetworkObject* self, PyObject *args);
+PyObject* cMaBoSSNetwork_setIState(cMaBoSSNetworkObject* self, PyObject *args); 
+PyObject* cMaBoSSNetwork_getIState(cMaBoSSNetworkObject* self);
+PyObject * cMaBoSSNetwork_new(PyTypeObject* type, PyObject *args, PyObject* kwargs);
+int cMaBoSSNetwork_init(PyObject* self, PyObject *args, PyObject* kwargs);
+
 #endif
+
