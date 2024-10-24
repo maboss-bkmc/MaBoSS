@@ -904,6 +904,12 @@ void IStateGroup::display(Network* network, std::ostream& os)
       os << (*nodes)[0]->getLabel() << ".istate = " << ((*state_value_list)[0] != 0. ? "1" : "0") << ";\n";
       continue;
     }
+    
+    if (nodes->size() == 1 && proba_istates->size() == 2 && (*proba_istates)[0]->getProbaValue() == 0.5 && (*proba_istates)[1]->getProbaValue() == 0.5)
+    {
+      continue;
+    }
+    
     os << '[';
     size_t nn = 0;
     for (const auto * node : *nodes) {

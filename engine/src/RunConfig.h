@@ -72,7 +72,7 @@ class RunConfig {
   unsigned int statdist_traj_count;
   double statdist_cluster_threshold;
   unsigned int statdist_similarity_cache_max_size;
-  void dump_perform(Network* network, std::ostream& os, bool is_template, std::string version) const;
+  void dump_perform(Network* network, std::ostream& os, bool is_template, std::string version, bool header=true) const;
   unsigned int init_pop;
   double pop_base;
   Expression* custom_pop_output_expression;
@@ -110,7 +110,7 @@ class RunConfig {
   unsigned int getStatDistSimilarityCacheMaxSize() const {return statdist_similarity_cache_max_size;}
 
   void generateTemplate(Network* network, std::ostream& os, std::string version) const;
-  void dump(Network* network, std::ostream& os, std::string version) const;
+  void dump(Network* network, std::ostream& os, std::string version, bool header=true) const;
 };
 
 extern FILE* RCin;

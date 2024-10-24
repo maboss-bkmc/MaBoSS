@@ -271,19 +271,21 @@ void RunConfig::generateTemplate(Network* network, std::ostream& os, std::string
   dump_perform(network, os, true, version);
 }
 
-void RunConfig::dump(Network* network, std::ostream& os, std::string version) const
+void RunConfig::dump(Network* network, std::ostream& os, std::string version, bool header) const
 {
-  dump_perform(network, os, false, version);
+  dump_perform(network, os, false, version, header);
 }
 
-void RunConfig::dump_perform(Network* network, std::ostream& os, bool is_template, std::string version) const
+void RunConfig::dump_perform(Network* network, std::ostream& os, bool is_template, std::string version, bool header) const
 {
   time_t now = time(NULL);
 
-  os << "//\n";
-  os << "// MaBoSS " << version << " configuration " << (is_template ? "template " : "") << "generated at " << ctime(&now);
-  os << "//\n\n";
-
+  if (header) {
+    os << "//\n";
+    os << "// MaBoSS " << version << " configuration " << (is_template ? "template " : "") << "generated at " << ctime(&now);
+    os << "//\n\n";
+  }
+  
   if (is_template) {
     os << "// global configuration variables\n";
   }

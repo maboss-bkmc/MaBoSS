@@ -635,7 +635,7 @@ public:
 
   int parse(const char* file = NULL, std::map<std::string, NodeIndex>* nodes_indexes = NULL, bool is_temp_file = false, bool useSBMLNames = false);
   int parseExpression(const char* content = NULL, std::map<std::string, NodeIndex>* nodes_indexes = NULL);
-  Expression* parseSingleExpression(const char* content, std::map<std::string, NodeIndex>* nodes_indexes);
+  Expression* parseSingleExpression(const char* content, std::map<std::string, NodeIndex>* nodes_indexes = NULL);
   
   #ifdef SBML_COMPAT
   int parseSBML(const char* file, std::map<std::string, NodeIndex>* nodes_indexes = NULL, bool useSBMLNames = false);
@@ -2586,8 +2586,8 @@ class PopNetwork : public Network {
   PopNetwork& operator=(const PopNetwork& network);
 
   int parse(const char* file = NULL, std::map<std::string, NodeIndex>* nodes_indexes = NULL, bool is_temp_file = false);
-  int parseExpression(const char* content, std::map<std::string, NodeIndex>* nodes_indexes);
-  Expression* parseSingleExpression(const char* content, std::map<std::string, NodeIndex>* nodes_indexes);
+  int parseExpression(const char* content, std::map<std::string, NodeIndex>* nodes_indexes = NULL);
+  Expression* parseSingleExpression(const char* content, std::map<std::string, NodeIndex>* nodes_indexes = NULL);
   void initPopStates(PopNetworkState& initial_pop_state, RandomGenerator* randgen, unsigned int pop);
 
   void addDivisionRule(DivisionRule* rule) { divisionRules.push_back(rule); }
@@ -2628,6 +2628,11 @@ public:
         NetworkState network_state;
         state_value_list->push_back(state_expr->eval(NULL, network_state));
 	    }
+    }
+  
+    ProbaIState(double proba_value, std::vector<double>* state_value_list) {
+      this->proba_value = proba_value;
+      this->state_value_list = state_value_list;
     }
   
     // only one node
@@ -2718,7 +2723,7 @@ public:
 
   bool isRandom() const {return is_random;}
 
-  bool hasNode(Node * node) {
+  bool hasNode(const Node * node) {
     for (auto * t_node : *nodes)
       if (node == t_node)
         return true;
@@ -2732,78 +2737,92 @@ public:
   static void reset(Network* network);
   
 
-    static void setNodeProba(Network * network, Node * node, double value) {
-
-    for (auto * istate_group : *(network->getIStateGroup()))
+  static void removeNode(Network * network, const Node * node) {
+      
+    int to_delete = -1;
+    for (size_t i=0; i < network->getIStateGroup()->size(); i++) 
     {
+      auto * istate_group = network->getIStateGroup()->at(i);  
       if (istate_group->hasNode(node)) {
-
-        std::vector<IStateGroup::ProbaIState*>* proba_istates = istate_group->getProbaIStates();
-        std::vector<const Node*>* group_nodes = istate_group->getNodes();
-
-        // Simple case, if the node is alone
-        if (group_nodes->size() == 1) {
-
-          // Do we also need to free memory for all ProbaIStaste ? 
-          for (size_t i=0; i < proba_istates->size(); i++) {
-            delete (*proba_istates)[i];
+        if (istate_group->getNodes()->size() == 1) {
+          if (to_delete != -1) {
+            throw BNException("Two IStateGroup with the same node");
           }
-          proba_istates->clear();
-
-          // Again, simple case, we just need one ProbaIState
-          if (value == 0.0 || value == 1.0) {            
-            proba_istates->push_back(new ProbaIState(1.0, value));
-
-          } else {
-            proba_istates->push_back(new ProbaIState(1.0-value, 0.0));
-            proba_istates->push_back(new ProbaIState(value, 1.0));
-          }
-        }
-        // Otherwise, the simplest might be to remove it and create a new IStateGroup with this node alone
-        else {
-
-          //First, we erase it from nodes, and get its index
+          to_delete = i;
+          // the node should be in a unique place, so it should work ?
+          break;
+          
+        } else {
           size_t i;
+          std::vector<const Node*>* group_nodes = istate_group->getNodes();
           for(i = 0; i < group_nodes->size(); i++) {
               if (group_nodes->at(i) == node) {
                 group_nodes->erase(group_nodes->begin() + (std::ptrdiff_t) i);
                 break;
               }
           }
-
+          
+          std::vector<IStateGroup::ProbaIState*>* proba_istates = istate_group->getProbaIStates();
           for (auto * proba_istate : *proba_istates)
           {
             proba_istate->state_value_list->erase(proba_istate->state_value_list->begin() + (std::ptrdiff_t) i);
           }
-
-          // Finally, we add a proba_istate with the desired value
-          std::vector<const Node*>* new_nodes = new std::vector<const Node*>();
-
-          new_nodes->push_back(node);
-
-          std::vector<IStateGroup::ProbaIState*>* new_proba_istates = new std::vector<IStateGroup::ProbaIState*>();
-
-          if (value == 0.0 || value == 1.0) {            
-            new_proba_istates->push_back(new ProbaIState(1.0, value));
-
-          } else {
-            new_proba_istates->push_back(new ProbaIState(1.0-value, 0.0));
-            new_proba_istates->push_back(new ProbaIState(value, 1.0));
-          }
-
-          std::string message = "";
-
-          new IStateGroup(network, new_nodes, new_proba_istates, message);
-        }
+        } 
       }
     }
+    if (to_delete != -1)
+      network->getIStateGroup()->erase(network->getIStateGroup()->begin() + (std::ptrdiff_t) to_delete);
+  }
+  
+  static void setStatesProbas(Network * network, std::vector<const Node*>* nodes, std::map<std::vector<bool>, double>& probas) {
+    for (auto* node: *nodes) {
+      IStateGroup::removeNode(network, node);
+    }
+    
+    std::vector<IStateGroup::ProbaIState*>* new_proba_istates = new std::vector<IStateGroup::ProbaIState*>();
+    for (auto& state_proba: probas) {
+      
+      std::vector<double>* state_values = new std::vector<double>();
+      for (auto node_state: state_proba.first) {
+        state_values->push_back(node_state ? 1.0 : 0.0);
+          
+      }
+      new_proba_istates->push_back(new ProbaIState(state_proba.second, state_values));
+        
+    }
+    
+    
+    std::string message = "";
+    new IStateGroup(network, nodes, new_proba_istates, message);
+  }
+  
+  static void setNodeProba(Network * network, Node * node, double value) {
+
+    IStateGroup::removeNode(network, node);
+
+    std::vector<const Node*>* new_nodes = new std::vector<const Node*>();
+
+    new_nodes->push_back(node);
+
+    std::vector<IStateGroup::ProbaIState*>* new_proba_istates = new std::vector<IStateGroup::ProbaIState*>();
+
+    if (value == 0.0 || value == 1.0) {            
+      new_proba_istates->push_back(new ProbaIState(1.0, value));
+
+    } else {
+      new_proba_istates->push_back(new ProbaIState(1.0-value, 0.0));
+      new_proba_istates->push_back(new ProbaIState(value, 1.0));
+    }
+
+    std::string message = "";
+
+    new IStateGroup(network, new_nodes, new_proba_istates, message);
   }
 
 static void setInitialState(Network * network, NetworkState * state) {
 
   for (auto * node : network->getNodes())
   {
-    // std::cout << "Setting " << (*it)->getLabel() << " to " << (*it)->getNodeState(*state) << std::endl;
     setNodeProba(network, node, node->getNodeState(*state));
   }
   
