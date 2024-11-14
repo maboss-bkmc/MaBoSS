@@ -892,6 +892,49 @@ void PopIStateGroup::initPopStates(PopNetwork* network, PopNetworkState& initial
   }
 }
 
+void PopIStateGroup::display(PopNetwork* network, std::ostream& os)
+{
+  for (auto * popistate_group: *network->getPopIStateGroup()) {
+    std::vector<const Node*>* nodes = popistate_group->getNodes();
+    std::vector<PopProbaIState*>* proba_istates = popistate_group->getPopProbaIStates();  
+    
+    os << '[';
+    size_t nn = 0;
+    for (const auto * node : *nodes) {
+      os << (nn > 0 ? ", " : "") << node->getLabel();
+      nn++;
+    }
+    os << "].pop_istate = ";
+
+    size_t jj = 0;
+    
+    for (auto * proba_istate: *proba_istates) 
+    {
+      os << (jj > 0 ? ", " : "") << proba_istate->getProbaValue() << " [";
+      
+      size_t kk = 0;
+      for (auto * individual: *(proba_istate->getIndividualList())) 
+      {
+        os << (kk > 0 ? ", " : "") << "{[";
+        size_t ll = 0;
+        for (const auto & value: individual->getStateValueList()) 
+        {
+          os << (ll > 0 ? ", " : "") << ((int) value);
+          ll++;
+        }
+
+        os << "]: " << individual->getPopSize() << "}";
+        kk++;
+      }
+
+
+      os << "]";
+      jj++;
+    }
+
+    os << ";\n";
+  }
+}
 
 void IStateGroup::display(Network* network, std::ostream& os)
 {

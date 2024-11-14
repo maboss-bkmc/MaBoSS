@@ -346,5 +346,10 @@ void RunConfig::dump_perform(Network* network, std::ostream& os, bool is_templat
     os << "// - random: NODE.istate = -1; OR [NODE].istate = 0.5 [0], 0.5 [1]; OR skip NODE.istate declaration\n";
     os << "// - weighted random: [NODE].istate = P0 [0], P1 [1]; where P0 and P1 are arithmetic expressions\n";
   }
-  IStateGroup::display(network, os);
+  if (network->isPopNetwork()) {
+    PopIStateGroup::display(static_cast<PopNetwork*>(network), os);
+  } else {
+    IStateGroup::display(network, os);
+  }
+  
 }

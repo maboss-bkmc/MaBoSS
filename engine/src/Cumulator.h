@@ -1258,7 +1258,7 @@ PyObject* getNumpyLastNodesDists(Network* network, std::vector<Node*> output_nod
 
 PyObject* getNumpySimpleStatesDists(Network* network) const 
 {
-  if (!isPopCumulator) { return Py_None; }
+  if (!isPopCumulator) { Py_RETURN_NONE; }
  
   std::set<NetworkState_Impl> result_states = getSimpleStates();
   
@@ -1409,7 +1409,7 @@ PyObject* getNumpySimpleStatesDists(Network* network) const
 
 PyObject* getNumpySimpleLastStatesDists(Network* network) const 
 {
-  if (!isPopCumulator) { return Py_None; }
+  if (!isPopCumulator) { Py_RETURN_NONE; }
  
   std::set<NetworkState_Impl> result_states = getSimpleLastStates();
   

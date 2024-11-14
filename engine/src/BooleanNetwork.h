@@ -744,6 +744,8 @@ public:
     }
   }
 
+  virtual bool isPopNetwork() { return false; }
+
   virtual ~Network();
 };
 
@@ -2515,6 +2517,8 @@ public:
         pop_size = (unsigned int) t_pop_size->eval(NULL, network_state);  
       }
       
+      PopIStateGroupIndividual(std::vector<double> state_value_list, unsigned int pop_size) : state_value_list(state_value_list), pop_size(pop_size) {}
+      
       std::vector<double> getStateValueList() { return state_value_list; }
       unsigned int getPopSize() { return pop_size; }  
     };
@@ -2533,6 +2537,9 @@ public:
       
       this->individual_list = individual_list;
     }
+    
+    PopProbaIState(double proba_value, std::vector<PopIStateGroupIndividual*>* individual_list) : proba_value(proba_value), proba_expr(NULL), individual_list(individual_list) {}
+    
     std::vector<PopIStateGroupIndividual*>* getIndividualList() { return individual_list; }
     double getProbaValue() { return proba_value; }
     ~PopProbaIState() {
@@ -2563,6 +2570,7 @@ public:
   std::vector<PopProbaIState*>* getPopProbaIStates() { return proba_istates; }
   
   static void initPopStates(PopNetwork* network, PopNetworkState& initial_state, RandomGenerator* randgen, unsigned int pop);
+  static void display(PopNetwork* network, std::ostream& os);
 
 };
 
@@ -2608,6 +2616,11 @@ class PopNetwork : public Network {
   }
 
   void display(std::ostream& os) const;
+  void clearPopIstates() {
+    pop_istate_group_list->clear();
+  }
+  bool isPopNetwork() { return true; }
+
 };
 
 

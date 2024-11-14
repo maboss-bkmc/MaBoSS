@@ -228,7 +228,7 @@ PyObject* ProbTrajEngine::getNumpyObservedGraph()
     return observed_graph->getNumpyObservedGraph(network);
   
   } else {
-    return Py_None;
+    Py_RETURN_NONE;
   }
 }
 PyObject* ProbTrajEngine::getNumpyObservedDurations()
@@ -238,7 +238,7 @@ PyObject* ProbTrajEngine::getNumpyObservedDurations()
     return observed_graph->getNumpyObservedDurations(network);
   
   } else {
-    return Py_None;
+    Py_RETURN_NONE;
   }
 }
 
