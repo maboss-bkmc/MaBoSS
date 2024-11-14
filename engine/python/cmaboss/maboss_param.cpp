@@ -164,6 +164,7 @@ PyObject* cMaBoSSParam_update_parameters(cMaBoSSParamObject* self, PyObject *arg
       if (key_str[0] == '$') {
         SymbolTable* st = self->network->getSymbolTable();
         st->setSymbolValue(st->getSymbol(key_str), PyFloat_AsDouble(value));
+        st->unsetSymbolExpressions();
       } else {
         PyErr_SetString(PyExc_KeyError, "Unknown parameter");
         return NULL;
