@@ -238,10 +238,17 @@ PyObject* cPopMaBoSSSim_copy(cPopMaBoSSSimObject* self) {
   
   std::ostringstream cfg;
   self->config->config->dump(self->network->network, cfg, PopMaBEstEngine::VERSION, false);
-   
-  cPopMaBoSSSimObject* simulation = (cPopMaBoSSSimObject *) PyObject_CallFunction((PyObject *) &cPopMaBoSSSim, 
-    "OO", bnd.str().c_str(), cfg.str().c_str()
-  );
   
+  PyObject* network_str = PyUnicode_FromString(bnd.str().c_str());
+  Py_INCREF(network_str);
+  PyObject* config_str = PyUnicode_FromString(cfg.str().c_str());
+  Py_INCREF(config_str);
+  
+  PyObject *args = PyTuple_New(0);
+  PyObject *kwargs = Py_BuildValue("{s:O,s:O}", "network_str", PyUnicode_FromString(bnd.str().c_str()), "config_str", PyUnicode_FromString(cfg.str().c_str()));
+
+  cPopMaBoSSSimObject* simulation = (cPopMaBoSSSimObject *) PyObject_Call(
+    (PyObject *) &cPopMaBoSSSim, args, kwargs
+  );
   return (PyObject *) simulation;
 }

@@ -61,6 +61,7 @@
 PyMethodDef cMaBoSSSim_methods[] = {
     {"run", (PyCFunction) cMaBoSSSim_run, METH_VARARGS | METH_KEYWORDS, "runs the simulation"},
     {"check", (PyCFunction) cMaBoSSSim_check, METH_VARARGS | METH_KEYWORDS, "checks the model"},
+    {"copy", (PyCFunction) cMaBoSSSim_copy, METH_NOARGS, "returns a copy of the simulation"},
     {"str_bnd", (PyCFunction) cMaBoSSSim_bnd_str, METH_VARARGS | METH_KEYWORDS, "returns the contents of the bnd file"},
     {"str_cfg", (PyCFunction) cMaBoSSSim_cfg_str, METH_VARARGS | METH_KEYWORDS, "checks the contents of the cfg file"},
     {"get_logical_rules", (PyCFunction) cMaBoSSSim_get_logical_rules, METH_VARARGS | METH_KEYWORDS, "returns logical formulas"},
@@ -278,4 +279,27 @@ PyObject* cMaBoSSSim_get_nodes(cMaBoSSSimObject* self) {
   }
 
   return list;
+}
+
+PyObject* cMaBoSSSim_copy(cMaBoSSSimObject* self) {
+  std::ostringstream bnd;
+  self->network->network->display(bnd);
+  
+  std::ostringstream cfg;
+  self->config->config->dump(self->network->network, cfg, MaBEstEngine::VERSION, false);
+   
+  PyObject* network_str = PyUnicode_FromString(bnd.str().c_str());
+  Py_INCREF(network_str);
+  PyObject* config_str = PyUnicode_FromString(cfg.str().c_str());
+  Py_INCREF(config_str);
+  
+  
+  PyObject *args = PyTuple_New(0);
+  PyObject *kwargs = Py_BuildValue("{s:O,s:O}", "network_str", PyUnicode_FromString(bnd.str().c_str()), "config_str", PyUnicode_FromString(cfg.str().c_str()));
+
+  cMaBoSSSimObject* simulation = (cMaBoSSSimObject *) PyObject_Call(
+    (PyObject *) &cMaBoSSSim, args, kwargs
+  );
+
+  return (PyObject *) simulation;
 }

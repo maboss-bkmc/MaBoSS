@@ -70,5 +70,6 @@ PyObject* cMaBoSSSim_bnd_str(cMaBoSSSimObject* self, PyObject *args, PyObject* k
 PyObject* cMaBoSSSim_cfg_str(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs);
 PyObject* cMaBoSSSim_update_parameters(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs);
 PyObject* cMaBoSSSim_get_nodes(cMaBoSSSimObject* self);
+PyObject* cMaBoSSSim_copy(cMaBoSSSimObject* self);
 
 #endif
