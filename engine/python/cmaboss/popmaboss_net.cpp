@@ -57,6 +57,9 @@ PyMethodDef cPopMaBoSSNetwork_methods[] = {
     {"get_death_rate", (PyCFunction) cPopMaBoSSNetwork_getDeathRate, METH_NOARGS, "gets the death rate"},
     {"add_division_rule", (PyCFunction) cPopMaBoSSNetwork_addDivisionRule, METH_VARARGS, "adds a division rule"},
     {"get_division_rules", (PyCFunction) cPopMaBoSSNetwork_getDivisionRules, METH_NOARGS, "gets the division rules"},
+    {"set_istate", (PyCFunction) cPopMaBoSSNetwork_setIstate, METH_VARARGS, "sets the initial state"},
+    {"set_pop_istate", (PyCFunction) cPopMaBoSSNetwork_setPopIstate, METH_VARARGS, "sets the initial population state"},
+    {"clear_pop_istate", (PyCFunction) cPopMaBoSSNetwork_clearPopIstate, METH_NOARGS, "clears the initial population state"},
     {"keys", (PyCFunction) cPopMaBoSSNetwork_Keys, METH_NOARGS, "returns the keys"},
     {"values", (PyCFunction) cPopMaBoSSNetwork_Values, METH_NOARGS, "returns the values"},
     {"items", (PyCFunction) cPopMaBoSSNetwork_Items, METH_NOARGS, "returns the items"},
@@ -329,4 +332,144 @@ int cPopMaBoSSNetwork_init(PyObject* self, PyObject *args, PyObject* kwargs)
   }
   
   return 0;
+}
+
+PyObject* cPopMaBoSSNetwork_setIstate(cPopMaBoSSNetworkObject* self, PyObject *args)
+{
+  PyObject* node = NULL;
+  PyObject* istate = NULL;
+  if (!PyArg_ParseTuple(args, "OO", &node, &istate))
+    return NULL;
+  
+  try {
+    if (PyObject_IsInstance(node, (PyObject*)&PyUnicode_Type) && (
+      PyObject_IsInstance(istate, (PyObject *)&PyFloat_Type) || PyObject_IsInstance(istate, (PyObject *)&PyLong_Type)
+    ))
+    {
+    
+      Node* maboss_node = self->network->getNode(PyUnicode_AsUTF8(node));
+      if (PyObject_IsInstance(istate, (PyObject *)&PyFloat_Type)) {
+        IStateGroup::setNodeProba(self->network, maboss_node, PyFloat_AsDouble(istate));
+      } else {
+        IStateGroup::setNodeProba(self->network, maboss_node, PyLong_AsDouble(istate));
+      }
+    
+    } else if (PyObject_IsInstance(node, (PyObject*)&PyUnicode_Type) && PyObject_IsInstance(istate, (PyObject *)&PyList_Type))
+    {
+      Node* maboss_node = self->network->getNode(PyUnicode_AsUTF8(node));
+      double proba = PyFloat_AsDouble(PyList_GetItem(istate, 1))/(PyFloat_AsDouble(PyList_GetItem(istate, 0)) + PyFloat_AsDouble(PyList_GetItem(istate, 1)));
+      if (PyObject_IsInstance(istate, (PyObject *)&PyFloat_Type)) {
+        IStateGroup::setNodeProba(self->network, maboss_node, proba);
+      } else {
+        IStateGroup::setNodeProba(self->network, maboss_node, proba);
+      }
+  
+  } else if (PyObject_IsInstance(node, (PyObject*)&PyList_Type) && PyObject_IsInstance(istate, (PyObject *)&PyDict_Type))
+  {
+    // [A,B,C] : { (0,1,1): 0.5, (1,0,1): 0.5 }
+    // [A,B,C] = { ((0,1,1),5):10, ((1,0,0),2): 0.5}
+    // [TumorCell,DC].pop_istate = 1.0 [{[1,0]:18} , {[0,1]:2}];
+
+      std::vector<const Node*>* istate_nodes = new std::vector<const Node*>();
+      std::map<std::vector<bool>, double> istate_map;
+      
+      for (Py_ssize_t i = 0; i < PyList_Size(node); i++) {
+        Node* maboss_node = self->network->getNode(PyUnicode_AsUTF8(PyList_GetItem(node, i)));
+        istate_nodes->push_back(maboss_node);
+      }
+      
+      for (Py_ssize_t i = 0; i < PyList_Size(PyDict_Keys(istate)); i++) {
+        
+        std::vector<bool> istate_state;
+        PyObject* boolean_state = PyList_GetItem(PyDict_Keys(istate), i);  
+    
+        if (PyTuple_Size(boolean_state) != PyList_Size(node)) {
+          PyErr_SetString(PyBNException, "The number of nodes and the number of boolean values do not match");
+          return NULL;
+        }
+    
+        for (Py_ssize_t j=0; j < PyTuple_Size(boolean_state); j++) {
+          istate_state.push_back(PyLong_AsLong(PyTuple_GetItem(boolean_state, j)) == 1);
+        }
+        istate_map.insert(std::pair<std::vector<bool>, double>(istate_state, PyFloat_AsDouble(PyDict_GetItem(istate, boolean_state))));
+      }
+      
+      IStateGroup::setStatesProbas(self->network, istate_nodes, istate_map);
+    } 
+  } catch (BNException& e) {
+    PyErr_SetString(PyBNException, e.getMessage().c_str());
+    return NULL;
+  }
+  
+  Py_RETURN_NONE;
+}
+
+PyObject* cPopMaBoSSNetwork_setPopIstate(cPopMaBoSSNetworkObject* self, PyObject *args)
+{
+  PyObject* node = NULL;
+  PyObject* istate = NULL;
+  if (!PyArg_ParseTuple(args, "OO", &node, &istate))
+    return NULL;
+  
+  try {
+    if (PyObject_IsInstance(node, (PyObject*)&PyList_Type) && PyObject_IsInstance(istate, (PyObject *)&PyDict_Type))
+    {
+    
+      // ['TumorCell','DC'] = { (((1,0),18), ((0,1),2)):1.0}
+      // [TumorCell,DC].pop_istate = 1.0 [{[1,0]:18} , {[0,1]:2}];
+
+      std::vector<const Node*>* istate_nodes = new std::vector<const Node*>();
+      std::vector<PopIStateGroup::PopProbaIState*>* istate_map = new std::vector<PopIStateGroup::PopProbaIState*>();
+      
+      for (Py_ssize_t i = 0; i < PyList_Size(node); i++) {
+        Node* maboss_node = self->network->getNode(PyUnicode_AsUTF8(PyList_GetItem(node, i)));
+        istate_nodes->push_back(maboss_node);
+      }
+      
+      //Parsing each key : each pop state
+      for (Py_ssize_t i = 0; i < PyList_Size(PyDict_Keys(istate)); i++) 
+      {  
+        PyObject* py_pop_state = PyList_GetItem(PyDict_Keys(istate), i);
+    
+        // if (PyObject_IsInstance(PyTuple_GetItem(py_pop_state, 0), (PyObject *)&PyTuple_Type) && PyObject_IsInstance(PyTuple_GetItem(py_pop_state, 1), (PyObject *)&PyLong_Type)) {
+        //   PyErr_SetString(PyBNException, "Keys should be tuples of tuples, integers");
+        //   return NULL;
+        // }
+        
+        std::vector<PopIStateGroup::PopProbaIState::PopIStateGroupIndividual*>* individual_pop_istates = new std::vector<PopIStateGroup::PopProbaIState::PopIStateGroupIndividual*>();
+        
+        // Parsing each cell state
+        for (Py_ssize_t j=0; j < PyTuple_Size(py_pop_state); j++) 
+        {  
+          PyObject* py_boolean_state = PyTuple_GetItem(PyTuple_GetItem(py_pop_state, j), 0);
+          std::vector<double> boolean_state;
+          for (Py_ssize_t k=0; k < PyTuple_Size(py_boolean_state); k++) {
+            boolean_state.push_back((double) (PyLong_AsLong(PyTuple_GetItem(py_boolean_state, k)) == 1));
+          }
+
+          unsigned int pop = PyLong_AsLong(PyTuple_GetItem(PyTuple_GetItem(py_pop_state, j), 1));
+          
+          individual_pop_istates->push_back(new PopIStateGroup::PopProbaIState::PopIStateGroupIndividual(boolean_state, pop));
+        }
+        
+        double proba = PyFloat_AsDouble(PyDict_GetItem(istate, py_pop_state));
+        istate_map->push_back(new PopIStateGroup::PopProbaIState(proba, individual_pop_istates));
+      }
+      
+      std::string message = "Error loading complex pop istates";
+      new PopIStateGroup(self->network, istate_nodes, istate_map, message);
+    } 
+  } catch (BNException& e) {
+    PyErr_SetString(PyBNException, e.getMessage().c_str());
+    return NULL;
+  }
+  
+  Py_RETURN_NONE;
+  
+}
+
+PyObject* cPopMaBoSSNetwork_clearPopIstate(cPopMaBoSSNetworkObject* self)
+{
+  self->network->clearPopIstates();
+  Py_RETURN_NONE;
 }

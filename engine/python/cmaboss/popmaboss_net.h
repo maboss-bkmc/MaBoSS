@@ -72,6 +72,9 @@ PyObject* cPopMaBoSSNetwork_setOutput(cPopMaBoSSNetworkObject* self, PyObject *a
 PyObject* cPopMaBoSSNetwork_getOutput(cPopMaBoSSNetworkObject* self);
 PyObject* cPopMaBoSSNetwork_addDivisionRule(cPopMaBoSSNetworkObject* self, PyObject *args);
 PyObject* cPopMaBoSSNetwork_getDivisionRules(cPopMaBoSSNetworkObject* self);
+PyObject* cPopMaBoSSNetwork_setIstate(cPopMaBoSSNetworkObject* self, PyObject *args);
+PyObject* cPopMaBoSSNetwork_setPopIstate(cPopMaBoSSNetworkObject* self, PyObject *args);
+PyObject* cPopMaBoSSNetwork_clearPopIstate(cPopMaBoSSNetworkObject* self);
 PyObject * cPopMaBoSSNetwork_new(PyTypeObject* type, PyObject *args, PyObject* kwargs);
 int cPopMaBoSSNetwork_init(PyObject* self, PyObject *args, PyObject* kwargs);
 
