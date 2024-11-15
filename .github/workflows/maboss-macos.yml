@@ -9,7 +9,7 @@ on:
 jobs:
   maboss_macos:
     name: MaBoSS
-    runs-on: macos-12
+    runs-on: macos-13
     env:
       CC: gcc-12
       CXX: g++-12
@@ -17,7 +17,7 @@ jobs:
       BUILD_PATH: /tmp/
       LIBXML_LIBDIR: /usr/local/opt/libxml2/lib/libxml2.2.dylib
       LIBXML_INCLUDEDIR: /usr/local/opt/libxml2/include/libxml2/
-      MACOSX_DEPLOYMENT_TARGET: 12.0
+      MACOSX_DEPLOYMENT_TARGET: 13.0
 
     steps:
     - uses: actions/checkout@v4
@@ -59,7 +59,7 @@ jobs:
         
   maboss_llvm_macos:
     name: MaBoSS (clang)
-    runs-on: macos-12
+    runs-on: macos-13
     env:
       CC: clang
       CXX: clang++
@@ -67,7 +67,7 @@ jobs:
       BUILD_PATH: /tmp/
       LIBXML_LIBDIR: /usr/local/opt/libxml2/lib/libxml2.dylib
       LIBXML_INCLUDEDIR: /usr/local/opt/libxml2/include/libxml2/
-      MACOSX_DEPLOYMENT_TARGET: 12.0
+      MACOSX_DEPLOYMENT_TARGET: 13.0
 
     steps:
     - uses: actions/checkout@v4
@@ -99,15 +99,17 @@ jobs:
       run: |
         cd engine/src
         make clean
-        make CXX=g++ install SBML_COMPAT=1
-        make CXX=g++ MAXNODES=128 install SBML_COMPAT=1
+        export CXXFLAGS="${CXXFLAGS} -I/usr/local/include -I/usr/local/include/libxml2"
+        export LDFLAGS="${LDFLAGS} -Wl,-rpath,/usr/local/lib"
+        make CXX=clang++ CC=clang install SBML_COMPAT=1 
+        make CXX=clang++ CC=clang MAXNODES=128 install SBML_COMPAT=1
         
     - name: Test MaBoSS
       run: bash scripts/run_tests.sh
    
   maboss_binary_macos:
     name: MaBoSS MacOSX x86_64 binary
-    runs-on: macos-12
+    runs-on: macos-13
     needs: [maboss_macos, maboss_llvm_macos]
     env:
       CC: clang
@@ -116,7 +118,7 @@ jobs:
       BUILD_PATH: /tmp/
       LIBXML_LIBDIR: /usr/local/opt/libxml2/lib/libxml2.dylib
       LIBXML_INCLUDEDIR: /usr/local/opt/libxml2/include/libxml2/
-      MACOSX_DEPLOYMENT_TARGET: 12.0
+      MACOSX_DEPLOYMENT_TARGET: 13.0
 
     steps:
     - uses: actions/checkout@v4
@@ -189,7 +191,7 @@ jobs:
       BUILD_PATH: /tmp/
       LIBXML_LIBDIR: /opt/homebrew/opt/libxml2/lib/libxml2.dylib
       LIBXML_INCLUDEDIR: /opt/homebrew/opt/libxml2/include/
-      MACOSX_DEPLOYMENT_TARGET: 12.0
+      MACOSX_DEPLOYMENT_TARGET: 13.0
 
     steps:
     - uses: actions/checkout@v4
@@ -254,7 +256,7 @@ jobs:
   maboss_binary_macos_universal:
     name: MaBoSS MacOSX universal binary
     needs: [maboss_binary_macos, maboss_binary_macos_m1]
-    runs-on: macos-12
+    runs-on: macos-13
 
     steps:
     - uses: actions/checkout@v4
@@ -312,7 +314,7 @@ jobs:
         
   maboss_library_macos:
     name: Building MaBoSS osx library
-    runs-on: macos-12
+    runs-on: macos-13
     needs: [maboss_macos, maboss_llvm_macos]
 
     steps:
@@ -405,7 +407,7 @@ jobs:
         
   maboss_library_sbml_macos:
     name: Building MaBoSS osx library with libSBML
-    runs-on: macos-12
+    runs-on: macos-13
     needs: [maboss_macos, maboss_llvm_macos]
     env:  
       CC: gcc-12
@@ -414,7 +416,7 @@ jobs:
       BUILD_PATH: /tmp/
       LIBXML_LIBDIR: /usr/local/opt/libxml2/lib/libxml2.dylib
       LIBXML_INCLUDEDIR: /usr/local/opt/libxml2/include/libxml2
-      MACOSX_DEPLOYMENT_TARGET: 12.0
+      MACOSX_DEPLOYMENT_TARGET: 13.0
 
     steps:
     - uses: actions/checkout@v4
@@ -490,7 +492,7 @@ jobs:
           {id: 0, name: "defaults"}, 
           {id: 1, name: "conda-forge"}
         ]
-    runs-on: macos-12
+    runs-on: macos-13
     defaults:
       run:
         shell: sh -l {0}
@@ -523,13 +525,13 @@ jobs:
     
     - name: Upload MaBoSS to Anaconda cloud on vincent-noel
       run: |   
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/local/miniconda/envs/test/conda-bld/osx-64/*.conda --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /Users/runner/miniconda3/envs/test/conda-bld/osx-64/*.conda --force;
  
     
     - name: Upload MaBoSS to Anaconda cloud on colomoto
       if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
       run: |   
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/local/miniconda/envs/test/conda-bld/osx-64/*.conda --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /Users/runner/miniconda3/envs/test/conda-bld/osx-64/*.conda --force;
 
   conda_maboss_macosx_m1:
     name: Build Conda MaBoSS package for arm64
@@ -538,8 +540,8 @@ jobs:
       fail-fast: false
       matrix:
         repo: [
-          {id: 0, name: "defaults", path: "/Users/runner/miniconda3"}, 
-          {id: 1, name: "conda-forge", path: "/Users/runner/miniconda3"}
+          {id: 0, name: "defaults"}, 
+          {id: 1, name: "conda-forge"}
         ]
     runs-on: macos-14
     defaults:
@@ -574,11 +576,11 @@ jobs:
     
     - name: Upload MaBoSS to Anaconda cloud on vincent-noel
       run: |   
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel ${{ matrix.repo.path }}/envs/test/conda-bld/osx-arm64/*.conda --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /Users/runner/miniconda3/envs/test/conda-bld/osx-arm64/*.conda --force;
   
     
     - name: Upload MaBoSS to Anaconda cloud on colomoto
       if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
       run: |   
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto ${{ matrix.repo.path }}/envs/test/conda-bld/osx-arm64/*.conda --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /Users/runner/miniconda3/envs/test/conda-bld/osx-arm64/*.conda --force;
       

@@ -9,7 +9,7 @@ on:
 jobs:
   cmaboss_macos:
     name: cMaBoSS
-    runs-on: macos-12
+    runs-on: macos-13
     env:
       CC: clang
       CXX: clang++
@@ -17,14 +17,10 @@ jobs:
       BUILD_PATH: /tmp/
       LIBXML_LIBDIR: /usr/local/opt/libxml2/lib/libxml2.dylib
       LIBXML_INCLUDEDIR: /usr/local/opt/libxml2/include/libxml2/
-      MACOSX_DEPLOYMENT_TARGET: 12.0
+      MACOSX_DEPLOYMENT_TARGET: 13.0
     steps:
     - uses: actions/checkout@v4 
 
-    - name: Downgrading to XCode 13.1
-      run: |
-        sudo xcode-select -s /Applications/Xcode_13.1.app/Contents/Developer
-    
     - name: Install dependencies
       run: |
         brew install flex bison python3 cmake libxml2
@@ -65,14 +61,12 @@ jobs:
      
   build_wheels_macos:
     name: Build MacOS wheels
-    runs-on: macos-12
+    runs-on: macos-13
     needs: cmaboss_macos
     
     steps:
       - uses: actions/checkout@v4
-      - name: Downgrading to XCode 13.1
-        run: |
-          sudo xcode-select -s /Applications/Xcode_13.1.app/Contents/Developer
+      
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12' 
@@ -82,7 +76,7 @@ jobs:
 
       - name: Build wheels
         env: 
-          MACOSX_DEPLOYMENT_TARGET: 12.0
+          MACOSX_DEPLOYMENT_TARGET: 13.0
           CIBW_ARCHS: x86_64
           CIBW_BEFORE_ALL: >
             brew install libxml2 &&
@@ -187,7 +181,7 @@ jobs:
       fail-fast: false
       matrix:
         version: [{python: "3.8", numpy: "1.24"}, {python: "3.9", numpy: "2.0"}, {python: "3.10", numpy: "2.0"}, {python: "3.11", numpy: "2.0"}, {python: "3.12", numpy: "2.0"}]
-    runs-on: macos-12
+    runs-on: macos-13
 
     defaults:
       run:
@@ -223,12 +217,12 @@ jobs:
        
     - name: Upload MaBoSS to Anaconda cloud on vincent-noel
       run: |   
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/local/miniconda/envs/test/conda-bld/osx-64/*.conda --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /Users/runner/miniconda3/envs/test/conda-bld/osx-64/*.conda --force;
     
     - name: Upload MaBoSS to Anaconda cloud on colomoto
       if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
       run: |   
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/local/miniconda/envs/test/conda-bld/osx-64/*.conda --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /Users/runner/miniconda3/envs/test/conda-bld/osx-64/*.conda --force;
 
   conda_cmaboss_macosx_condaforge:
     name: cMaBoSS Conda package (conda-forge)
@@ -238,7 +232,7 @@ jobs:
       fail-fast: false
       matrix:
         version: [{python: "3.8", numpy: "1.24"}, {python: "3.9", numpy: "2.0"}, {python: "3.10", numpy: "2.1"}, {python: "3.11", numpy: "2.1"}, {python: "3.12", numpy: "2.1"}]
-    runs-on: macos-12
+    runs-on: macos-13
 
     defaults:
       run:
@@ -274,12 +268,12 @@ jobs:
     
     - name: Upload MaBoSS to Anaconda cloud on vincent-noel
       run: |   
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/local/miniconda/envs/test/conda-bld/osx-64/*.conda --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /Users/runner/miniconda3/envs/test/conda-bld/osx-64/*.conda --force;
     
     - name: Upload MaBoSS to Anaconda cloud on colomoto
       if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
       run: |   
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/local/miniconda/envs/test/conda-bld/osx-64/*.conda --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /Users/runner/miniconda3/envs/test/conda-bld/osx-64/*.conda --force;
   
         
   conda_cmaboss_macosx_M1_defaults:
