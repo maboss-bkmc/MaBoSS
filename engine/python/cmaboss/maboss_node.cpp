@@ -46,8 +46,10 @@
 */
 
 #include "maboss_node.h"
+#include "maboss_commons.h"
 #include "maboss_net.h"
 #include "popmaboss_net.h"
+#include "src/BooleanNetwork.h"
 
 PyMethodDef cMaBoSSNode_methods[] = {
     {"getLabel", (PyCFunction) cMaBoSSNode_getLabel, METH_NOARGS, "returns the node object"},
@@ -155,19 +157,85 @@ PyObject * cMaBoSSNode_setRawRateDown(cMaBoSSNodeObject* self, PyObject* args)
 
 PyObject* cMaBoSSNode_setRate(cMaBoSSNodeObject* self, PyObject* args) 
 {
-  double rate_up = 0.0;
-  double rate_down = 0.0;
-  if (!PyArg_ParseTuple(args, "dd", &rate_up, &rate_down))
+  PyObject* rate_up = NULL;
+  PyObject* rate_down = NULL;
+  if (!PyArg_ParseTuple(args, "OO", &rate_up, &rate_down))
     return NULL;
 
   try{
-    self->node->setRateUpExpression(
-      new CondExpression(new AliasExpression("logic"), new ConstantExpression(rate_up), new ConstantExpression(0.0))
-    );
-    self->node->setRateDownExpression(
-      new CondExpression(new AliasExpression("logic"), new ConstantExpression(0.0), new ConstantExpression(rate_down))
-    );
+    if (rate_up != NULL) 
+    {
+      Expression* rate_up_expr = NULL;
+      
+      if (PyObject_IsInstance(rate_up, (PyObject*) &PyFloat_Type))
+      {
+        rate_up_expr = new ConstantExpression(PyFloat_AsDouble(rate_up));
+      } 
+      else if (PyObject_IsInstance(rate_up, (PyObject*) &PyLong_Type)) 
+      {
+        rate_up_expr = new ConstantExpression(PyLong_AsDouble(rate_up));
+      } 
+      else if (PyObject_IsInstance(rate_up, (PyObject*) &PyUnicode_Type)) 
+      {
+        Expression* rate_up_expr = self->network->parseSingleExpression(PyUnicode_AsUTF8(rate_up));
+        self->network->getSymbolTable()->defineUndefinedSymbols();
+      }
+      else {
+        PyErr_SetString(PyBNException, "Unsupported type for rate up !");
+        return NULL;
+      }  
     
+      if (rate_up_expr != NULL) 
+      {
+        if (self->node->getLogicalInputExpression() != NULL)
+        {
+          self->node->setRateUpExpression(
+            new CondExpression(new AliasExpression("logic"), new ConstantExpression(PyFloat_AsDouble(rate_up)), new ConstantExpression(0.0))
+          );
+        } 
+        else 
+        {
+          self->node->setRateUpExpression(rate_up_expr);
+        }
+      }
+    }
+    if (rate_down != NULL)
+    {
+      Expression* rate_down_expr  = NULL;
+      
+      if (PyObject_IsInstance(rate_down, (PyObject*) &PyFloat_Type))
+      {
+        rate_down_expr = new ConstantExpression(PyFloat_AsDouble(rate_down));
+      }
+      else if (PyObject_IsInstance(rate_down, (PyObject*) &PyLong_Type))
+      { 
+        rate_down_expr = new ConstantExpression(PyLong_AsDouble(rate_down));
+      }
+      else if (PyObject_IsInstance(rate_down, (PyObject*) &PyUnicode_Type))
+      {
+        Expression* rate_down_expr = self->network->parseSingleExpression(PyUnicode_AsUTF8(rate_down));
+        self->network->getSymbolTable()->defineUndefinedSymbols();
+      } 
+      else 
+      {
+        PyErr_SetString(PyBNException, "Unsupported type for rate down !");
+      }
+      
+      if (rate_down_expr != NULL)
+      {
+        if (self->node->getLogicalInputExpression() != NULL)
+        {
+          self->node->setRateDownExpression(
+            new CondExpression(new AliasExpression("logic"), new ConstantExpression(0.0), rate_down_expr)
+          );
+        } 
+        else 
+        {
+          self->node->setRateDownExpression(rate_down_expr);
+        }
+
+      }
+    }
   } catch (BNException& e) {
     PyErr_SetString(PyBNException, e.getMessage().c_str());
     return NULL;

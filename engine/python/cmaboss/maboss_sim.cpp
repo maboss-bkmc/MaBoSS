@@ -46,6 +46,7 @@
 */
 
 #include "maboss_sim.h"
+#include "maboss_commons.h"
 #include "maboss_res.h"
 #include "maboss_resfinal.h"
 
@@ -112,9 +113,9 @@ int cMaBoSSSim_init(PyObject* self, PyObject *args, PyObject* kwargs)
   if (!PyArg_ParseTupleAndKeywords(
     args, kwargs, "|OOOOOOOO", const_cast<char **>(kwargs_list), 
     &network_file, &config_file, &config_files, &network_str, &config_str, &net, &cfg, &use_sbml_names
-  ))
+  )) {
     return -1;
-  
+  }
   cMaBoSSSimObject* py_simulation = (cMaBoSSSimObject *) self;
 
   try {
@@ -129,6 +130,7 @@ int cMaBoSSSim_init(PyObject* self, PyObject *args, PyObject* kwargs)
     }
     
     if (py_simulation->network == NULL) {
+      PyErr_SetString(PyBNException, "Couldn't create the network");
       return -1;
     }
     
@@ -143,6 +145,7 @@ int cMaBoSSSim_init(PyObject* self, PyObject *args, PyObject* kwargs)
     }
     
     if (py_simulation->config == NULL) {
+      PyErr_SetString(PyBNException, "Couldn't create the config");
       return -1;
     }
     

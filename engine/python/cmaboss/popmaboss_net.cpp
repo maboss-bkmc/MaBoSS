@@ -56,6 +56,7 @@ PyMethodDef cPopMaBoSSNetwork_methods[] = {
     {"set_death_rate", (PyCFunction) cPopMaBoSSNetwork_setDeathRate, METH_VARARGS, "sets the death rate"},
     {"get_death_rate", (PyCFunction) cPopMaBoSSNetwork_getDeathRate, METH_NOARGS, "gets the death rate"},
     {"add_division_rule", (PyCFunction) cPopMaBoSSNetwork_addDivisionRule, METH_VARARGS, "adds a division rule"},
+    {"remove_division_rule", (PyCFunction) cPopMaBoSSNetwork_removeDivisionRule, METH_VARARGS, "removes a division rule"},
     {"get_division_rules", (PyCFunction) cPopMaBoSSNetwork_getDivisionRules, METH_NOARGS, "gets the division rules"},
     {"set_istate", (PyCFunction) cPopMaBoSSNetwork_setIstate, METH_VARARGS, "sets the initial state"},
     {"set_pop_istate", (PyCFunction) cPopMaBoSSNetwork_setPopIstate, METH_VARARGS, "sets the initial population state"},
@@ -106,6 +107,7 @@ int cPopMaBoSSNetwork_NodesSetItem(cPopMaBoSSNetworkObject* self, PyObject *key,
   Py_INCREF(value);
   return PyDict_SetItem(self->nodes, key, value);
 }
+
 PyObject * cPopMaBoSSNetwork_NodesGetItem(cPopMaBoSSNetworkObject* self, PyObject *key) 
 {
   PyObject* item = PyDict_GetItem(self->nodes, key);
@@ -157,22 +159,22 @@ PyObject* cPopMaBoSSNetwork_getDeathRate(cPopMaBoSSNetworkObject* self)
 PyObject* cPopMaBoSSNetwork_setDeathRate(cPopMaBoSSNetworkObject* self, PyObject *args) 
 {
 
-  char* death_rate = NULL;
-  if (!PyArg_ParseTuple(args, "s", &death_rate))
+  PyObject * death_rate = NULL;
+  if (!PyArg_ParseTuple(args, "|O", &death_rate))
     return NULL;
   
-  std::map<std::string, NodeIndex> nodes_indexes;
-  for (auto* node: self->network->getNodes()) {
-    nodes_indexes[node->getLabel()] = node->getIndex();
-  }
-  
-  std::string death_rate_str = std::string("death {\nrate=") + std::string(death_rate) + std::string(";\n}");
-  
-  try{
-    self->network->parseExpression(death_rate_str.c_str(), &nodes_indexes);
-  
+  try
+  {
+    if (death_rate != NULL) {
+      std::string death_rate_str = std::string("death {\nrate=") + std::string(PyUnicode_AsUTF8(death_rate)) + std::string(";\n}");
+      self->network->parseExpression(death_rate_str.c_str());
+    }
+    else 
+    {
+      self->network->setDeathRate(NULL);
+    }
   } catch (BNException& e) {
-    PyErr_SetString(PyBNException, (std::string(death_rate) + std::string(" is not a valid expression")).c_str());
+    PyErr_SetString(PyBNException, (std::string(PyUnicode_AsUTF8(death_rate)) + std::string(" is not a valid expression")).c_str());
     return NULL;
   }
   
@@ -217,11 +219,6 @@ PyObject* cPopMaBoSSNetwork_addDivisionRule(cPopMaBoSSNetworkObject* self, PyObj
   if (!PyArg_ParseTuple(args, "s|OO", &rule,&daugther_1,&daugther_2))
     return NULL;
   
-  std::map<std::string, NodeIndex> nodes_indexes;
-  for (auto* node: self->network->getNodes()) {
-    nodes_indexes[node->getLabel()] = node->getIndex();
-  }
-  
   try{
     std::string division_rule = std::string("division {\nrate=") + std::string(rule) + ";\n";
     if (daugther_1 != NULL){
@@ -244,7 +241,7 @@ PyObject* cPopMaBoSSNetwork_addDivisionRule(cPopMaBoSSNetworkObject* self, PyObj
     }
     
     division_rule += std::string("}");
-    self->network->parseExpression(division_rule.c_str(), &nodes_indexes);
+    self->network->parseExpression(division_rule.c_str());
   } catch (BNException& e) {
     PyErr_SetString(PyBNException, e.getMessage().c_str());
     return NULL;
@@ -255,7 +252,8 @@ PyObject* cPopMaBoSSNetwork_addDivisionRule(cPopMaBoSSNetworkObject* self, PyObj
 
 PyObject* cPopMaBoSSNetwork_getDivisionRules(cPopMaBoSSNetworkObject* self) 
 {
-  PyObject* rules = PyList_New(0);
+  PyObject* rules = PyDict_New();
+  size_t index = 0;
   for (auto rule: self->network->getDivisionRules()) 
   {
     PyObject* rate = PyUnicode_FromString(rule->rate->toString().c_str());
@@ -271,12 +269,35 @@ PyObject* cPopMaBoSSNetwork_getDivisionRules(cPopMaBoSSNetworkObject* self)
       PyDict_SetItemString(daugther_2, map.first->getLabel().c_str(), PyUnicode_FromString(map.second->toString().c_str()));
     }
     
-    PyList_Append(rules, PyTuple_Pack(3, rate, daugther_1, daugther_2));
+    PyDict_SetItem(rules, PyLong_FromUnsignedLong(index), PyTuple_Pack(3, rate, daugther_1, daugther_2));
     
+    index++;  
   }
   
   Py_INCREF(rules);
   return rules;
+}
+
+PyObject* cPopMaBoSSNetwork_removeDivisionRule(cPopMaBoSSNetworkObject* self, PyObject* args)
+{
+  PyObject* index = NULL;
+  if (!PyArg_ParseTuple(args, "O", &index))
+    return NULL;
+  
+  try
+  {
+    if (index != NULL && PyObject_IsInstance(index, (PyObject*) &PyLong_Type)) {
+      self->network->removeDivisionRule(PyLong_AsLong(index));
+    } else {
+      PyErr_SetString(PyBNException, "Bad index");
+      return NULL;
+    }
+  } catch (BNException& e) {
+    PyErr_SetString(PyBNException, e.getMessage().c_str());
+    return NULL;
+  }
+  
+  Py_RETURN_NONE;
 }
 
 PyObject * cPopMaBoSSNetwork_new(PyTypeObject* type, PyObject *args, PyObject* kwargs) 
@@ -300,7 +321,8 @@ int cPopMaBoSSNetwork_init(PyObject* self, PyObject *args, PyObject* kwargs)
   
   cPopMaBoSSNetworkObject* py_network = (cPopMaBoSSNetworkObject *) self;
   
-  try{
+  try
+  {
     if (network_file != Py_None) 
     {
       py_network->network->parse(PyUnicode_AsUTF8(network_file));  
@@ -427,7 +449,7 @@ PyObject* cPopMaBoSSNetwork_setPopIstate(cPopMaBoSSNetworkObject* self, PyObject
       for (Py_ssize_t i = 0; i < PyList_Size(PyDict_Keys(istate)); i++) 
       {  
         PyObject* py_pop_state = PyList_GetItem(PyDict_Keys(istate), i);
-    
+
         // if (PyObject_IsInstance(PyTuple_GetItem(py_pop_state, 0), (PyObject *)&PyTuple_Type) && PyObject_IsInstance(PyTuple_GetItem(py_pop_state, 1), (PyObject *)&PyLong_Type)) {
         //   PyErr_SetString(PyBNException, "Keys should be tuples of tuples, integers");
         //   return NULL;
@@ -439,11 +461,11 @@ PyObject* cPopMaBoSSNetwork_setPopIstate(cPopMaBoSSNetworkObject* self, PyObject
         for (Py_ssize_t j=0; j < PyTuple_Size(py_pop_state); j++) 
         {  
           PyObject* py_boolean_state = PyTuple_GetItem(PyTuple_GetItem(py_pop_state, j), 0);
+          
           std::vector<double> boolean_state;
           for (Py_ssize_t k=0; k < PyTuple_Size(py_boolean_state); k++) {
             boolean_state.push_back((double) (PyLong_AsLong(PyTuple_GetItem(py_boolean_state, k)) == 1));
           }
-
           unsigned int pop = PyLong_AsLong(PyTuple_GetItem(PyTuple_GetItem(py_pop_state, j), 1));
           
           individual_pop_istates->push_back(new PopIStateGroup::PopProbaIState::PopIStateGroupIndividual(boolean_state, pop));
