@@ -151,7 +151,7 @@ PyObject* cMaBoSSNetwork_setOutput(cMaBoSSNetworkObject* self, PyObject *args)
       node->isInternal(true);
     }
   }
-  return Py_None;
+  Py_RETURN_NONE;
 }
 
 PyObject* cMaBoSSNetwork_getOutput(cMaBoSSNetworkObject* self) 
@@ -181,7 +181,7 @@ PyObject* cMaBoSSNetwork_setObservedGraphNode(cMaBoSSNetworkObject* self, PyObje
       node->inGraph(false);
     }
   }
-  return Py_None;
+  Py_RETURN_NONE;
 }
 
 PyObject* cMaBoSSNetwork_getObservedGraphNode(cMaBoSSNetworkObject* self, PyObject *args) 
@@ -213,7 +213,7 @@ PyObject* cMaBoSSNetwork_addNode(cMaBoSSNetworkObject* self, PyObject *args)
     return NULL;
   }
   
-  return Py_None;
+  Py_RETURN_NONE;
 }
 
 PyObject* cMaBoSSNetwork_setIState(cMaBoSSNetworkObject* self, PyObject *args) 

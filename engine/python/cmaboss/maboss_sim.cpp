@@ -240,7 +240,7 @@ PyObject* cMaBoSSSim_check(cMaBoSSSimObject* self, PyObject *args, PyObject* kwa
     PyErr_SetString(PyBNException, e.getMessage().c_str());
     return NULL;
   }
-  return Py_None;
+  Py_RETURN_NONE;
 }
 
 PyObject* cMaBoSSSim_get_logical_rules(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs) {

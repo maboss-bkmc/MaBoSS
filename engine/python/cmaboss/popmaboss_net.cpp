@@ -143,8 +143,7 @@ PyObject* cPopMaBoSSNetwork_getDeathRate(cPopMaBoSSNetworkObject* self)
 {
   const Expression* death_rate = self->network->getDeathRate();
   if (death_rate == NULL) {
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
   }
   
   PyObject* death_rate_str = PyUnicode_FromString(
@@ -177,8 +176,7 @@ PyObject* cPopMaBoSSNetwork_setDeathRate(cPopMaBoSSNetworkObject* self, PyObject
     return NULL;
   }
   
-  Py_INCREF(Py_None);
-  return Py_None;
+  Py_RETURN_NONE;
 }
 
 PyObject* cPopMaBoSSNetwork_setOutput(cPopMaBoSSNetworkObject* self, PyObject *args) 
@@ -195,7 +193,7 @@ PyObject* cPopMaBoSSNetwork_setOutput(cPopMaBoSSNetworkObject* self, PyObject *a
       node->isInternal(true);
     }
   }
-  return Py_None;
+  Py_RETURN_NONE;
 }
 
 PyObject* cPopMaBoSSNetwork_getOutput(cPopMaBoSSNetworkObject* self) 
@@ -252,8 +250,7 @@ PyObject* cPopMaBoSSNetwork_addDivisionRule(cPopMaBoSSNetworkObject* self, PyObj
     return NULL;
   }
   
-  Py_INCREF(Py_None);
-  return Py_None;
+  Py_RETURN_NONE;
 }
 
 PyObject* cPopMaBoSSNetwork_getDivisionRules(cPopMaBoSSNetworkObject* self) 
