@@ -560,6 +560,11 @@ public:
     return symb_value[idx];
   }
 
+  void defineUndefinedSymbols() {
+    for (auto& symbol: symb_map) {
+        symb_def[symbol.second->getIndex()] = true;
+    }
+  }
   size_t getSymbolCount() const {return symb_map.size();}
 
   void setSymbolValue(const Symbol* symbol, double value) {
@@ -2599,6 +2604,11 @@ class PopNetwork : public Network {
   void initPopStates(PopNetworkState& initial_pop_state, RandomGenerator* randgen, unsigned int pop);
 
   void addDivisionRule(DivisionRule* rule) { divisionRules.push_back(rule); }
+  void removeDivisionRule(size_t index) { 
+    DivisionRule* dr = divisionRules[index]; 
+    divisionRules.erase(divisionRules.begin() + index); 
+    delete dr;
+  }
   void setDeathRate(Expression* expr) { deathRate = expr; }
   
   const std::vector<DivisionRule*> getDivisionRules() const { return divisionRules; }
