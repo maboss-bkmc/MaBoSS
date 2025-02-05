@@ -17,6 +17,7 @@ jobs:
       BUILD_PATH: /tmp/
       LIBXML_LIBDIR: /usr/lib/x86_64-linux-gnu/libxml2.so
       LIBXML_INCLUDEDIR: /usr/include/libxml2/
+      CPU_COUNT: 4
       
     steps:
     - uses: actions/checkout@v4
@@ -45,8 +46,8 @@ jobs:
       run: |
         cd engine/src
         make clean
-        make install SBML_COMPAT=1
-        make MAXNODES=128 install SBML_COMPAT=1
+        make install SBML_COMPAT=1 -j "${CPU_COUNT}"
+        make MAXNODES=128 install SBML_COMPAT=1 -j "${CPU_COUNT}"
     
     - name: Test MaBoSS
       run: bash scripts/run_tests.sh        
@@ -61,6 +62,7 @@ jobs:
       BUILD_PATH: /tmp/
       LIBXML_LIBDIR: /usr/lib/x86_64-linux-gnu/libxml2.so
       LIBXML_INCLUDEDIR: /usr/include/libxml2/
+      CPU_COUNT: 4
     steps:
     - uses: actions/checkout@v4
     - name: Install dependencies
@@ -87,8 +89,8 @@ jobs:
       run: |
         cd engine/src
         make clean
-        make CC=clang CXX=clang++ install SBML_COMPAT=1
-        make CC=clang CXX=clang++ MAXNODES=128 install SBML_COMPAT=1
+        make CC=clang CXX=clang++ install SBML_COMPAT=1 -j "${CPU_COUNT}"
+        make CC=clang CXX=clang++ MAXNODES=128 install SBML_COMPAT=1 -j "${CPU_COUNT}"
     
     - name: Test MaBoSS
       run: bash scripts/run_tests.sh
@@ -96,7 +98,9 @@ jobs:
   maboss_mpi:
     name: MaBoSS MPI
     runs-on: ubuntu-22.04
-
+    env: 
+      CPU_COUNT: 4
+      
     steps:
     - uses: actions/checkout@v4
     
@@ -110,10 +114,10 @@ jobs:
       run: |
         cd engine/src
         make clean
-        make maboss CC=mpicc CXX=mpic++ MPI_COMPAT=1
-        make popmaboss CC=mpicc CXX=mpic++ MPI_COMPAT=1
-        make maboss CC=mpicc CXX=mpic++ MPI_COMPAT=1 MAXNODES=128
-        make popmaboss CC=mpicc CXX=mpic++ MPI_COMPAT=1 MAXNODES=128
+        make maboss CC=mpicc CXX=mpic++ MPI_COMPAT=1 -j "${CPU_COUNT}"
+        make popmaboss CC=mpicc CXX=mpic++ MPI_COMPAT=1 -j "${CPU_COUNT}"
+        make maboss CC=mpicc CXX=mpic++ MPI_COMPAT=1 MAXNODES=128 -j "${CPU_COUNT}"
+        make popmaboss CC=mpicc CXX=mpic++ MPI_COMPAT=1 MAXNODES=128 -j "${CPU_COUNT}"
         
     - name: Test MaBoSS
       run: bash scripts/run_mpi_tests.sh
@@ -129,6 +133,7 @@ jobs:
       BUILD_PATH: /tmp/
       LIBXML_LIBDIR: /usr/lib/x86_64-linux-gnu/libxml2.so
       LIBXML_INCLUDEDIR: /usr/include/libxml2
+      CPU_COUNT: 4
     # if: github.event.workflow_run.conclusion == 'success' && (github.ref == 'refs/heads/master' || github.event_name == 'release')
 
     steps:
@@ -161,11 +166,11 @@ jobs:
         rm -fr engine/pub/*
         cd engine/src
         make clean
-        make install_static SBML_COMPAT=1
-        make install_static MAXNODES=128 SBML_COMPAT=1
-        make install_static MAXNODES=256 SBML_COMPAT=1
-        make install_static MAXNODES=512 SBML_COMPAT=1
-        make install_static MAXNODES=1024 SBML_COMPAT=1
+        make install_static SBML_COMPAT=1 -j "${CPU_COUNT}"
+        make install_static MAXNODES=128 SBML_COMPAT=1 -j "${CPU_COUNT}"
+        make install_static MAXNODES=256 SBML_COMPAT=1 -j "${CPU_COUNT}"
+        make install_static MAXNODES=512 SBML_COMPAT=1 -j "${CPU_COUNT}"
+        make install_static MAXNODES=1024 SBML_COMPAT=1 -j "${CPU_COUNT}"
         cd ../pub
         zip MaBoSS-linux64.zip *
         
@@ -191,6 +196,9 @@ jobs:
     runs-on: ubuntu-22.04
     needs: [maboss, maboss_llvm, maboss_mpi]
 
+    env:
+      CPU_COUNT: 4
+      
     steps:
     - uses: actions/checkout@v4
     
@@ -204,16 +212,16 @@ jobs:
         rm -fr engine/pub/*
         cd engine/src
         make clean
-        make install_lib 
-        make install_lib MAXNODES=128
-        make install_lib MAXNODES=256
-        make install_lib MAXNODES=512
-        make install_lib MAXNODES=1024
-        make install_alib 
-        make install_alib MAXNODES=128
-        make install_alib MAXNODES=256
-        make install_alib MAXNODES=512
-        make install_alib MAXNODES=1024
+        make install_lib  -j "${CPU_COUNT}"
+        make install_lib MAXNODES=128 -j "${CPU_COUNT}"
+        make install_lib MAXNODES=256 -j "${CPU_COUNT}"
+        make install_lib MAXNODES=512 -j "${CPU_COUNT}"
+        make install_lib MAXNODES=1024 -j "${CPU_COUNT}"
+        make install_alib  -j "${CPU_COUNT}"
+        make install_alib MAXNODES=128 -j "${CPU_COUNT}"
+        make install_alib MAXNODES=256 -j "${CPU_COUNT}"
+        make install_alib MAXNODES=512 -j "${CPU_COUNT}"
+        make install_alib MAXNODES=1024 -j "${CPU_COUNT}"
         make clean
         cd ../../../
         tar -zcvf libMaBoSS-linux64.tar.gz MaBoSS/README.md MaBoSS/LICENSE MaBoSS/engine/src MaBoSS/engine/include MaBoSS/engine/lib
@@ -245,6 +253,7 @@ jobs:
       BUILD_PATH: /tmp/
       LIBXML_LIBDIR: /usr/lib/x86_64-linux-gnu/libxml2.so
       LIBXML_INCLUDEDIR: /usr/include/libxml2
+      CPU_COUNT: 4
     # if: github.event.workflow_run.conclusion == 'success' && (github.ref == 'refs/heads/master' || github.event_name == 'release')
 
     steps:
@@ -274,16 +283,16 @@ jobs:
         rm -fr engine/pub/*
         cd engine/src
         make clean
-        make install_lib SBML_COMPAT=1
-        make install_lib SBML_COMPAT=1 MAXNODES=128
-        make install_lib SBML_COMPAT=1 MAXNODES=256
-        make install_lib SBML_COMPAT=1 MAXNODES=512
-        make install_lib SBML_COMPAT=1 MAXNODES=1024
-        make install_alib SBML_COMPAT=1 
-        make install_alib SBML_COMPAT=1 MAXNODES=128
-        make install_alib SBML_COMPAT=1 MAXNODES=256
-        make install_alib SBML_COMPAT=1 MAXNODES=512
-        make install_alib SBML_COMPAT=1 MAXNODES=1024
+        make install_lib SBML_COMPAT=1 -j "${CPU_COUNT}"
+        make install_lib SBML_COMPAT=1 MAXNODES=128 -j "${CPU_COUNT}"
+        make install_lib SBML_COMPAT=1 MAXNODES=256 -j "${CPU_COUNT}"
+        make install_lib SBML_COMPAT=1 MAXNODES=512 -j "${CPU_COUNT}"
+        make install_lib SBML_COMPAT=1 MAXNODES=1024 -j "${CPU_COUNT}"
+        make install_alib SBML_COMPAT=1  -j "${CPU_COUNT}"
+        make install_alib SBML_COMPAT=1 MAXNODES=128 -j "${CPU_COUNT}"
+        make install_alib SBML_COMPAT=1 MAXNODES=256 -j "${CPU_COUNT}"
+        make install_alib SBML_COMPAT=1 MAXNODES=512 -j "${CPU_COUNT}"
+        make install_alib SBML_COMPAT=1 MAXNODES=1024 -j "${CPU_COUNT}"
         make clean
         cd ../../../
         tar -zcvf libMaBoSS-sbml-linux64.tar.gz MaBoSS/README.md MaBoSS/LICENSE MaBoSS/engine/src MaBoSS/engine/include MaBoSS/engine/lib

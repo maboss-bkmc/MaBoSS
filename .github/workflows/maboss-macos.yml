@@ -18,6 +18,7 @@ jobs:
       LIBXML_LIBDIR: /usr/local/opt/libxml2/lib/libxml2.2.dylib
       LIBXML_INCLUDEDIR: /usr/local/opt/libxml2/include/libxml2/
       MACOSX_DEPLOYMENT_TARGET: 13.0
+      CPU_COUNT: 4
 
     steps:
     - uses: actions/checkout@v4
@@ -51,8 +52,8 @@ jobs:
         make clean
         export CXXFLAGS="${CXXFLAGS} -I/usr/local/include -I/usr/local/include/libxml2"
         export LDFLAGS="${LDFLAGS} -L/usr/local/lib -lxml2"
-        make CXX=g++-12 CC=gcc-12 install SBML_COMPAT=1
-        make CXX=g++-12 CC=gcc-12 MAXNODES=128 install SBML_COMPAT=1
+        make CXX=g++-12 CC=gcc-12 install SBML_COMPAT=1 -j "${CPU_COUNT}"
+        make CXX=g++-12 CC=gcc-12 MAXNODES=128 install SBML_COMPAT=1 -j "${CPU_COUNT}"
         
     - name: Test MaBoSS
       run: bash scripts/run_tests.sh
@@ -68,6 +69,7 @@ jobs:
       LIBXML_LIBDIR: /usr/local/opt/libxml2/lib/libxml2.dylib
       LIBXML_INCLUDEDIR: /usr/local/opt/libxml2/include/libxml2/
       MACOSX_DEPLOYMENT_TARGET: 13.0
+      CPU_COUNT: 4
 
     steps:
     - uses: actions/checkout@v4
@@ -101,8 +103,8 @@ jobs:
         make clean
         export CXXFLAGS="${CXXFLAGS} -I/usr/local/include -I/usr/local/include/libxml2"
         export LDFLAGS="${LDFLAGS} -Wl,-rpath,/usr/local/lib"
-        make CXX=clang++ CC=clang install SBML_COMPAT=1 
-        make CXX=clang++ CC=clang MAXNODES=128 install SBML_COMPAT=1
+        make CXX=clang++ CC=clang install SBML_COMPAT=1 -j "${CPU_COUNT}"
+        make CXX=clang++ CC=clang MAXNODES=128 install SBML_COMPAT=1 -j "${CPU_COUNT}"
         
     - name: Test MaBoSS
       run: bash scripts/run_tests.sh
@@ -119,6 +121,7 @@ jobs:
       LIBXML_LIBDIR: /usr/local/opt/libxml2/lib/libxml2.dylib
       LIBXML_INCLUDEDIR: /usr/local/opt/libxml2/include/libxml2/
       MACOSX_DEPLOYMENT_TARGET: 13.0
+      CPU_COUNT: 4
 
     steps:
     - uses: actions/checkout@v4
@@ -149,11 +152,11 @@ jobs:
         rm -fr engine/pub/*
         cd engine/src
         make clean
-        make install_static CC=clang CXX=clang++ SBML_COMPAT=1
-        make install_static CC=clang CXX=clang++ MAXNODES=128 SBML_COMPAT=1
-        make install_static CC=clang CXX=clang++ MAXNODES=256 SBML_COMPAT=1
-        make install_static CC=clang CXX=clang++ MAXNODES=512 SBML_COMPAT=1
-        make install_static CC=clang CXX=clang++ MAXNODES=1024 SBML_COMPAT=1
+        make install_static CC=clang CXX=clang++ SBML_COMPAT=1 -j "${CPU_COUNT}"
+        make install_static CC=clang CXX=clang++ MAXNODES=128 SBML_COMPAT=1 -j "${CPU_COUNT}"
+        make install_static CC=clang CXX=clang++ MAXNODES=256 SBML_COMPAT=1 -j "${CPU_COUNT}"
+        make install_static CC=clang CXX=clang++ MAXNODES=512 SBML_COMPAT=1 -j "${CPU_COUNT}"
+        make install_static CC=clang CXX=clang++ MAXNODES=1024 SBML_COMPAT=1 -j "${CPU_COUNT}"
         cd ../pub
         zip MaBoSS-osx64.zip *
       
@@ -192,6 +195,7 @@ jobs:
       LIBXML_LIBDIR: /opt/homebrew/opt/libxml2/lib/libxml2.dylib
       LIBXML_INCLUDEDIR: /opt/homebrew/opt/libxml2/include/
       MACOSX_DEPLOYMENT_TARGET: 13.0
+      CPU_COUNT: 3
 
     steps:
     - uses: actions/checkout@v4
@@ -222,11 +226,11 @@ jobs:
         rm -fr engine/pub/*
         cd engine/src
         make clean
-        make install_static CC=clang CXX=clang++ SBML_COMPAT=1
-        make install_static CC=clang CXX=clang++ MAXNODES=128 SBML_COMPAT=1
-        make install_static CC=clang CXX=clang++ MAXNODES=256 SBML_COMPAT=1
-        make install_static CC=clang CXX=clang++ MAXNODES=512 SBML_COMPAT=1
-        make install_static CC=clang CXX=clang++ MAXNODES=1024 SBML_COMPAT=1
+        make install_static CC=clang CXX=clang++ SBML_COMPAT=1 -j "${CPU_COUNT}"
+        make install_static CC=clang CXX=clang++ MAXNODES=128 SBML_COMPAT=1 -j "${CPU_COUNT}"
+        make install_static CC=clang CXX=clang++ MAXNODES=256 SBML_COMPAT=1 -j "${CPU_COUNT}"
+        make install_static CC=clang CXX=clang++ MAXNODES=512 SBML_COMPAT=1 -j "${CPU_COUNT}"
+        make install_static CC=clang CXX=clang++ MAXNODES=1024 SBML_COMPAT=1 -j "${CPU_COUNT}"
         cd ../pub
         zip MaBoSS-osx-arm64.zip *
     
@@ -316,7 +320,9 @@ jobs:
     name: Building MaBoSS osx library
     runs-on: macos-13
     needs: [maboss_macos, maboss_llvm_macos]
-
+    env: 
+      CPU_COUNT: 4
+      
     steps:
     - uses: actions/checkout@v4
     - name: Install dependencies
@@ -328,16 +334,16 @@ jobs:
         rm -fr engine/pub/*
         cd engine/src
         make clean
-        make install_lib CC=gcc-12 CXX=g++-12
-        make install_lib MAXNODES=128 CC=gcc-12 CXX=g++-12
-        make install_lib MAXNODES=256 CC=gcc-12 CXX=g++-12
-        make install_lib MAXNODES=512 CC=gcc-12 CXX=g++-12
-        make install_lib MAXNODES=1024 CC=gcc-12 CXX=g++-12
-        make install_alib CC=gcc-12 CXX=g++-12
-        make install_alib MAXNODES=128 CC=gcc-12 CXX=g++-12
-        make install_alib MAXNODES=256 CC=gcc-12 CXX=g++-12
-        make install_alib MAXNODES=512 CC=gcc-12 CXX=g++-12
-        make install_alib MAXNODES=1024 CC=gcc-12 CXX=g++-12
+        make install_lib CC=gcc-12 CXX=g++-12 -j "${CPU_COUNT}"
+        make install_lib MAXNODES=128 CC=gcc-12 CXX=g++-12 -j "${CPU_COUNT}"
+        make install_lib MAXNODES=256 CC=gcc-12 CXX=g++-12 -j "${CPU_COUNT}"
+        make install_lib MAXNODES=512 CC=gcc-12 CXX=g++-12 -j "${CPU_COUNT}"
+        make install_lib MAXNODES=1024 CC=gcc-12 CXX=g++-12 -j "${CPU_COUNT}"
+        make install_alib CC=gcc-12 CXX=g++-12 -j "${CPU_COUNT}"
+        make install_alib MAXNODES=128 CC=gcc-12 CXX=g++-12 -j "${CPU_COUNT}"
+        make install_alib MAXNODES=256 CC=gcc-12 CXX=g++-12 -j "${CPU_COUNT}"
+        make install_alib MAXNODES=512 CC=gcc-12 CXX=g++-12 -j "${CPU_COUNT}"
+        make install_alib MAXNODES=1024 CC=gcc-12 CXX=g++-12 -j "${CPU_COUNT}"
         make clean
         cd ../../../
         tar -zcvf libMaBoSS-osx64.tar.gz MaBoSS/README.md MaBoSS/LICENSE MaBoSS/engine/src MaBoSS/engine/include MaBoSS/engine/lib
@@ -362,7 +368,9 @@ jobs:
     name: Building MaBoSS osx library for arm64 
     runs-on: macos-14
     needs: [maboss_macos, maboss_llvm_macos]
-
+    env: 
+      CPU_COUNT: 3
+      
     steps:
     - uses: actions/checkout@v4
   
@@ -375,16 +383,16 @@ jobs:
         rm -fr engine/pub/*
         cd engine/src
         make clean
-        make install_lib CC=gcc-12 CXX=g++-12
-        make install_lib MAXNODES=128 CC=gcc-12 CXX=g++-12
-        make install_lib MAXNODES=256 CC=gcc-12 CXX=g++-12
-        make install_lib MAXNODES=512 CC=gcc-12 CXX=g++-12
-        make install_lib MAXNODES=1024 CC=gcc-12 CXX=g++-12
-        make install_alib CC=gcc-12 CXX=g++-12
-        make install_alib MAXNODES=128 CC=gcc-12 CXX=g++-12
-        make install_alib MAXNODES=256 CC=gcc-12 CXX=g++-12
-        make install_alib MAXNODES=512 CC=gcc-12 CXX=g++-12
-        make install_alib MAXNODES=1024 CC=gcc-12 CXX=g++-12
+        make install_lib CC=gcc-12 CXX=g++-12 -j "${CPU_COUNT}"
+        make install_lib MAXNODES=128 CC=gcc-12 CXX=g++-12 -j "${CPU_COUNT}"
+        make install_lib MAXNODES=256 CC=gcc-12 CXX=g++-12 -j "${CPU_COUNT}"
+        make install_lib MAXNODES=512 CC=gcc-12 CXX=g++-12 -j "${CPU_COUNT}"
+        make install_lib MAXNODES=1024 CC=gcc-12 CXX=g++-12 -j "${CPU_COUNT}"
+        make install_alib CC=gcc-12 CXX=g++-12 -j "${CPU_COUNT}"
+        make install_alib MAXNODES=128 CC=gcc-12 CXX=g++-12 -j "${CPU_COUNT}"
+        make install_alib MAXNODES=256 CC=gcc-12 CXX=g++-12 -j "${CPU_COUNT}"
+        make install_alib MAXNODES=512 CC=gcc-12 CXX=g++-12 -j "${CPU_COUNT}"
+        make install_alib MAXNODES=1024 CC=gcc-12 CXX=g++-12 -j "${CPU_COUNT}"
         make clean
         cd ../../../
         tar -zcvf libMaBoSS-macos-arm64.tar.gz MaBoSS/README.md MaBoSS/LICENSE MaBoSS/engine/src MaBoSS/engine/include MaBoSS/engine/lib
@@ -417,6 +425,7 @@ jobs:
       LIBXML_LIBDIR: /usr/local/opt/libxml2/lib/libxml2.dylib
       LIBXML_INCLUDEDIR: /usr/local/opt/libxml2/include/libxml2
       MACOSX_DEPLOYMENT_TARGET: 13.0
+      CPU_COUNT: 4
 
     steps:
     - uses: actions/checkout@v4
@@ -449,17 +458,17 @@ jobs:
         rm -fr engine/pub/*
         cd engine/src
         make clean
-        make install CC=gcc-12 CXX=g++-12
-        make install_lib SBML_COMPAT=1 CC=gcc-12 CXX=g++-12
-        make install_lib SBML_COMPAT=1 CC=gcc-12 MAXNODES=128 CXX=g++-12
-        make install_lib SBML_COMPAT=1 CC=gcc-12 MAXNODES=256 CXX=g++-12
-        make install_lib SBML_COMPAT=1 CC=gcc-12 MAXNODES=512 CXX=g++-12
-        make install_lib SBML_COMPAT=1 CC=gcc-12 MAXNODES=1024 CXX=g++-12
-        make install_alib SBML_COMPAT=1 CC=gcc-12 CXX=g++-12
-        make install_alib SBML_COMPAT=1 CC=gcc-12 MAXNODES=128 CXX=g++-12
-        make install_alib SBML_COMPAT=1 CC=gcc-12 MAXNODES=256 CXX=g++-12
-        make install_alib SBML_COMPAT=1 CC=gcc-12 MAXNODES=512 CXX=g++-12
-        make install_alib SBML_COMPAT=1 CC=gcc-12 MAXNODES=1024 CXX=g++-12
+        make install CC=gcc-12 CXX=g++-12 -j "${CPU_COUNT}"
+        make install_lib SBML_COMPAT=1 CC=gcc-12 CXX=g++-12 -j "${CPU_COUNT}"
+        make install_lib SBML_COMPAT=1 CC=gcc-12 MAXNODES=128 CXX=g++-12 -j "${CPU_COUNT}"
+        make install_lib SBML_COMPAT=1 CC=gcc-12 MAXNODES=256 CXX=g++-12 -j "${CPU_COUNT}"
+        make install_lib SBML_COMPAT=1 CC=gcc-12 MAXNODES=512 CXX=g++-12 -j "${CPU_COUNT}"
+        make install_lib SBML_COMPAT=1 CC=gcc-12 MAXNODES=1024 CXX=g++-12 -j "${CPU_COUNT}"
+        make install_alib SBML_COMPAT=1 CC=gcc-12 CXX=g++-12 -j "${CPU_COUNT}"
+        make install_alib SBML_COMPAT=1 CC=gcc-12 MAXNODES=128 CXX=g++-12 -j "${CPU_COUNT}"
+        make install_alib SBML_COMPAT=1 CC=gcc-12 MAXNODES=256 CXX=g++-12 -j "${CPU_COUNT}"
+        make install_alib SBML_COMPAT=1 CC=gcc-12 MAXNODES=512 CXX=g++-12 -j "${CPU_COUNT}"
+        make install_alib SBML_COMPAT=1 CC=gcc-12 MAXNODES=1024 CXX=g++-12 -j "${CPU_COUNT}"
         make clean
         cd ../../../
         tar -zcvf libMaBoSS-sbml-osx64.tar.gz MaBoSS/README.md MaBoSS/LICENSE MaBoSS/engine/src MaBoSS/engine/include MaBoSS/engine/lib

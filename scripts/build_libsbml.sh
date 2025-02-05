@@ -81,4 +81,12 @@ cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_PATH} \
 ..
 
 fi
-make
+
+
+if [ -z "${CPU_COUNT}" ]
+then
+	make
+else
+    echo "Building libsbml in parallel on ${CPU_COUNT} cores"
+	make -j "${CPU_COUNT}"
+fi
