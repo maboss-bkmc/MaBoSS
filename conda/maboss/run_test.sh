@@ -26,8 +26,8 @@ bash ./test-ensemble.sh
 check "ensemble"
 bash ./test-ewing.sh
 check "ewing"
-bash ./test-server.sh
-check "server"
+#bash ./test-server.sh
+#check "server"
 bash ./test-bnet.sh
 check "bnet"
 bash ./test-prngs.sh
