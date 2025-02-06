@@ -511,6 +511,7 @@ jobs:
     - uses: conda-incubator/setup-miniconda@v3
       with:
         auto-update-conda: true
+        conda-remove-defaults: "true"
         channels: ${{ matrix.repo.name }}
         python-version: 3.12
         use-mamba: true
@@ -562,6 +563,7 @@ jobs:
     - uses: conda-incubator/setup-miniconda@v3
       with:
         auto-update-conda: true
+        conda-remove-defaults: "true"
         channels: ${{ matrix.repo.name }}
         python-version: 3.12
         use-mamba: true
