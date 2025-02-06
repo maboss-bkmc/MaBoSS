@@ -463,9 +463,9 @@ jobs:
 
     - name: Upload MaBoSS Ananconda package on vincent-noel
       run: |
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/share/miniconda/envs/test/conda-bld/linux-64/*.tar.bz2 --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/share/miniconda/envs/test/conda-bld/linux-64/*.conda --force;
     
     - name: Upload MaBoSS Ananconda package on colomoto
       if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
       run: |
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/share/miniconda/envs/test/conda-bld/linux-64/*.tar.bz2 --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/share/miniconda/envs/test/conda-bld/linux-64/*.conda --force;

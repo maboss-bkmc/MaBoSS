@@ -223,12 +223,12 @@ jobs:
        
     - name: Upload MaBoSS to Anaconda cloud on vincent-noel
       run: |   
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/local/miniconda/envs/test/conda-bld/osx-64/*.tar.bz2 --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/local/miniconda/envs/test/conda-bld/osx-64/*.conda --force;
     
     - name: Upload MaBoSS to Anaconda cloud on colomoto
       if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
       run: |   
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/local/miniconda/envs/test/conda-bld/osx-64/*.tar.bz2 --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/local/miniconda/envs/test/conda-bld/osx-64/*.conda --force;
 
   conda_cmaboss_macosx_condaforge:
     name: cMaBoSS Conda package (conda-forge)
@@ -274,12 +274,12 @@ jobs:
     
     - name: Upload MaBoSS to Anaconda cloud on vincent-noel
       run: |   
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/local/miniconda/envs/test/conda-bld/osx-64/*.tar.bz2 --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/local/miniconda/envs/test/conda-bld/osx-64/*.conda --force;
     
     - name: Upload MaBoSS to Anaconda cloud on colomoto
       if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
       run: |   
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/local/miniconda/envs/test/conda-bld/osx-64/*.tar.bz2 --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/local/miniconda/envs/test/conda-bld/osx-64/*.conda --force;
   
         
   conda_cmaboss_macosx_M1_defaults:
@@ -326,12 +326,12 @@ jobs:
         
     - name: Upload MaBoSS to Anaconda cloud on vincent-noel
       run: |   
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /Users/runner/miniconda3/envs/test/conda-bld/osx-arm64/*.tar.bz2 --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /Users/runner/miniconda3/envs/test/conda-bld/osx-arm64/*.conda --force;
     
     - name: Upload MaBoSS to Anaconda cloud on colomoto
       if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
       run: |   
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /Users/runner/miniconda3/envs/test/conda-bld/osx-arm64/*.tar.bz2 --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /Users/runner/miniconda3/envs/test/conda-bld/osx-arm64/*.conda --force;
 
   conda_cmaboss_macosx_M1_condaforge:
     name: cMaBoSS Conda package for arm64 (conda-forge)
@@ -377,10 +377,10 @@ jobs:
         
     - name: Upload MaBoSS to Anaconda cloud on vincent-noel
       run: |   
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /Users/runner/miniconda3/envs/test/conda-bld/osx-arm64/*.tar.bz2 --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /Users/runner/miniconda3/envs/test/conda-bld/osx-arm64/*.conda --force;
     
     - name: Upload MaBoSS to Anaconda cloud on colomoto
       if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
       run: |   
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /Users/runner/miniconda3/envs/test/conda-bld/osx-arm64/*.tar.bz2 --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /Users/runner/miniconda3/envs/test/conda-bld/osx-arm64/*.conda --force;
   
