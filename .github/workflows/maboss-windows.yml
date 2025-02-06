@@ -55,7 +55,9 @@ jobs:
         
     - name: Build MaBoSS
       run: |
+        rm -fr engine/pub/*
         cd engine/src
+        make clean
         make MAXNODES=128 SBML_COMPAT=1 maboss popmaboss -j "${CPU_COUNT}"
         make SBML_COMPAT=1 maboss popmaboss -j "${CPU_COUNT}"
 
