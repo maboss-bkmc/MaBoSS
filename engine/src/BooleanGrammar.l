@@ -103,6 +103,9 @@ exppart		[eE](\-|\+)?[0-9]+
     if (!strcasecmp(yytext, "CELL")) {
        return CELL_NUMBER;
     }
+    if (!strcasecmp(yytext, "SINGLE_EXPRESSION")) {
+      return SINGLE_EXPRESSION;
+    }
   }
   yylval.str = strdup(yytext);
   return IDENTIFIER;

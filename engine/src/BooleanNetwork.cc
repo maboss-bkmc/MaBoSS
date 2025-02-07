@@ -166,7 +166,12 @@ int Network::parseExpression(const char* content, std::map<std::string, NodeInde
 Expression* Network::parseSingleExpression(const char* content, std::map<std::string, NodeIndex>* nodes_indexes)
 {
   set_expression(NULL);
-  Network::parseExpression(content, nodes_indexes);
+  const char * se = "SINGLE_EXPRESSION ";
+  const char * ee = ";";
+  std::string new_content = se;
+  new_content += content;
+  new_content += ee;
+  Network::parseExpression(new_content.c_str(), nodes_indexes);
   
   return get_expression();
 }
@@ -268,7 +273,12 @@ Expression* PopNetwork::parseSingleExpression(const char* content, std::map<std:
 {
   set_pop_network(this);
   set_expression(NULL);
-  Network::parseExpression(content, nodes_indexes);
+  const char * se = "SINGLE_EXPRESSION ";
+  const char * ee = ";";
+  std::string new_content = se;
+  new_content += content;
+  new_content += ee;
+  Network::parseExpression(new_content.c_str(), nodes_indexes);
   
   set_pop_network(NULL);
   return get_expression();

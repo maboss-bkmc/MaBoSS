@@ -100,7 +100,7 @@ static Expression* current_expression;
 %token<d> DOUBLE
 %token<l> INTEGER
 
-%token LOGAND LOGOR LOGXOR LOGNOT EQUAL NOT_EQUAL NODE GTEQ LTEQ DIVISION DEATH RATE DAUGHTER1 DAUGHTER2 CELL_NUMBER
+%token LOGAND LOGOR LOGXOR LOGNOT EQUAL NOT_EQUAL NODE GTEQ LTEQ DIVISION DEATH RATE DAUGHTER1 DAUGHTER2 CELL_NUMBER SINGLE_EXPRESSION
 
 %%
 
@@ -121,9 +121,9 @@ decl: node_decl
 | death_decl
 {
 }
-| expression
+| SINGLE_EXPRESSION expression ';'
 {
-  current_expression = $1;
+  current_expression = $2;
 }
 ;
 
