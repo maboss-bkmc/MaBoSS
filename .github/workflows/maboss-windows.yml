@@ -58,8 +58,8 @@ jobs:
         rm -fr engine/pub/*
         cd engine/src
         make clean
-        make MAXNODES=128 SBML_COMPAT=1 maboss popmaboss -j "${CPU_COUNT}"
-        make SBML_COMPAT=1 maboss popmaboss -j "${CPU_COUNT}"
+        make MAXNODES=128 SBML_COMPAT=1 maboss popmaboss
+        make SBML_COMPAT=1 maboss popmaboss
 
     - name: Test MaBoSS
       run: bash scripts/run_tests.sh
@@ -114,11 +114,11 @@ jobs:
         rm -fr engine/pub/*
         cd engine/src
         make clean
-        make install_static SBML_COMPAT=1 -j "${CPU_COUNT}"
-        make install_static MAXNODES=128 SBML_COMPAT=1 -j "${CPU_COUNT}"
-        make install_static MAXNODES=256 SBML_COMPAT=1 -j "${CPU_COUNT}"
-        make install_static MAXNODES=512 SBML_COMPAT=1 -j "${CPU_COUNT}"
-        make install_static MAXNODES=1024 SBML_COMPAT=1 -j "${CPU_COUNT}"
+        make install_static SBML_COMPAT=1
+        make install_static MAXNODES=128 SBML_COMPAT=1
+        make install_static MAXNODES=256 SBML_COMPAT=1
+        make install_static MAXNODES=512 SBML_COMPAT=1
+        make install_static MAXNODES=1024 SBML_COMPAT=1
         cd ../pub
         zip MaBoSS-win64.zip *
     
@@ -166,16 +166,16 @@ jobs:
         rm -fr engine/pub/*
         cd engine/src
         make clean
-        make install_lib  -j "${CPU_COUNT}"
-        make install_lib MAXNODES=128 -j "${CPU_COUNT}"
-        make install_lib MAXNODES=256 -j "${CPU_COUNT}"
-        make install_lib MAXNODES=512 -j "${CPU_COUNT}"
-        make install_lib MAXNODES=1024 -j "${CPU_COUNT}"
-        make install_alib  -j "${CPU_COUNT}"
-        make install_alib MAXNODES=128 -j "${CPU_COUNT}"
-        make install_alib MAXNODES=256 -j "${CPU_COUNT}"
-        make install_alib MAXNODES=512 -j "${CPU_COUNT}"
-        make install_alib MAXNODES=1024 -j "${CPU_COUNT}"
+        make install_lib
+        make install_lib MAXNODES=128
+        make install_lib MAXNODES=256
+        make install_lib MAXNODES=512
+        make install_lib MAXNODES=1024
+        make install_alib
+        make install_alib MAXNODES=128
+        make install_alib MAXNODES=256
+        make install_alib MAXNODES=512
+        make install_alib MAXNODES=1024
         make clean
         cd ../../../
         tar -zcvf libMaBoSS-win64.tar.gz MaBoSS/README.md MaBoSS/LICENSE MaBoSS/engine/src MaBoSS/engine/include MaBoSS/engine/lib
@@ -249,16 +249,16 @@ jobs:
         rm -fr engine/pub/*
         cd engine/src
         make clean
-        make install_lib SBML_COMPAT=1 -j "${CPU_COUNT}"
-        make install_lib MAXNODES=128 SBML_COMPAT=1 -j "${CPU_COUNT}"
-        make install_lib MAXNODES=256 SBML_COMPAT=1 -j "${CPU_COUNT}"
-        make install_lib MAXNODES=512 SBML_COMPAT=1 -j "${CPU_COUNT}"
-        make install_lib MAXNODES=1024 SBML_COMPAT=1 -j "${CPU_COUNT}"
-        make install_alib SBML_COMPAT=1 -j "${CPU_COUNT}"
-        make install_alib MAXNODES=128 SBML_COMPAT=1 -j "${CPU_COUNT}"
-        make install_alib MAXNODES=256 SBML_COMPAT=1 -j "${CPU_COUNT}"
-        make install_alib MAXNODES=512 SBML_COMPAT=1 -j "${CPU_COUNT}"
-        make install_alib MAXNODES=1024 SBML_COMPAT=1 -j "${CPU_COUNT}"
+        make install_lib SBML_COMPAT=1
+        make install_lib MAXNODES=128 SBML_COMPAT=1
+        make install_lib MAXNODES=256 SBML_COMPAT=1
+        make install_lib MAXNODES=512 SBML_COMPAT=1
+        make install_lib MAXNODES=1024 SBML_COMPAT=1
+        make install_alib SBML_COMPAT=1
+        make install_alib MAXNODES=128 SBML_COMPAT=1
+        make install_alib MAXNODES=256 SBML_COMPAT=1
+        make install_alib MAXNODES=512 SBML_COMPAT=1
+        make install_alib MAXNODES=1024 SBML_COMPAT=1
         make clean
         cd ../../../
         tar -zcvf libMaBoSS-sbml-win64.tar.gz MaBoSS/README.md MaBoSS/LICENSE MaBoSS/engine/src MaBoSS/engine/include MaBoSS/engine/lib
