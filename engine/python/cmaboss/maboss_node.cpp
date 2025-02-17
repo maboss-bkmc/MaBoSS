@@ -96,7 +96,16 @@ PyObject* cMaBoSSNode_setLogic(cMaBoSSNodeObject* self, PyObject* args)
   
   try{
     if (logic != NULL) {
-      Expression* logic_expr = self->network->parseSingleExpression(PyUnicode_AsUTF8(logic));
+      Expression* logic_expr;
+      if (self->network->isPopNetwork())
+      {
+        logic_expr = static_cast<PopNetwork*>(self->network)->parseSingleExpression(PyUnicode_AsUTF8(logic));
+      } 
+      else 
+      {
+        logic_expr = self->network->parseSingleExpression(PyUnicode_AsUTF8(logic));
+      }
+    
       self->node->setLogicalInputExpression(logic_expr);
     }
     
@@ -125,7 +134,16 @@ PyObject * cMaBoSSNode_setRawRateUp(cMaBoSSNodeObject* self, PyObject* args)
     return NULL;
   
   try{
-    Expression* rate_up_expr = self->network->parseSingleExpression(PyUnicode_AsUTF8(rate_up));
+    Expression* rate_up_expr;
+    if (self->network->isPopNetwork())
+    {
+      rate_up_expr = static_cast<PopNetwork*>(self->network)->parseSingleExpression(PyUnicode_AsUTF8(rate_up));
+    } 
+    else 
+    {
+      rate_up_expr = self->network->parseSingleExpression(PyUnicode_AsUTF8(rate_up));
+    }    
+    
     self->node->setRateUpExpression(rate_up_expr);
     
   } catch (BNException& e) {
@@ -144,7 +162,16 @@ PyObject * cMaBoSSNode_setRawRateDown(cMaBoSSNodeObject* self, PyObject* args)
     return NULL;
   
   try{
-    Expression* rate_down_expr = self->network->parseSingleExpression(PyUnicode_AsUTF8(rate_down));
+    Expression* rate_down_expr;
+    if (self->network->isPopNetwork())
+    {
+      rate_down_expr = static_cast<PopNetwork*>(self->network)->parseSingleExpression(PyUnicode_AsUTF8(rate_down));
+    } 
+    else 
+    {
+      rate_down_expr = self->network->parseSingleExpression(PyUnicode_AsUTF8(rate_down));  
+    }    
+    
     self->node->setRateUpExpression(rate_down_expr);
     
   } catch (BNException& e) {
@@ -177,8 +204,16 @@ PyObject* cMaBoSSNode_setRate(cMaBoSSNodeObject* self, PyObject* args)
       } 
       else if (PyObject_IsInstance(rate_up, (PyObject*) &PyUnicode_Type)) 
       {
-        Expression* rate_up_expr = self->network->parseSingleExpression(PyUnicode_AsUTF8(rate_up));
-        self->network->getSymbolTable()->defineUndefinedSymbols();
+        // I'm not sure why, but this is failing if I'm not casting properly before
+        if (self->network->isPopNetwork())
+        {
+          rate_up_expr = static_cast<PopNetwork*>(self->network)->parseSingleExpression(PyUnicode_AsUTF8(rate_up));
+          static_cast<PopNetwork*>(self->network)->getSymbolTable()->defineUndefinedSymbols();  
+        } else {
+          rate_up_expr = self->network->parseSingleExpression(PyUnicode_AsUTF8(rate_up));
+          self->network->getSymbolTable()->defineUndefinedSymbols();
+        }
+        
       }
       else {
         PyErr_SetString(PyBNException, "Unsupported type for rate up !");
@@ -190,7 +225,7 @@ PyObject* cMaBoSSNode_setRate(cMaBoSSNodeObject* self, PyObject* args)
         if (self->node->getLogicalInputExpression() != NULL)
         {
           self->node->setRateUpExpression(
-            new CondExpression(new AliasExpression("logic"), new ConstantExpression(PyFloat_AsDouble(rate_up)), new ConstantExpression(0.0))
+            new CondExpression(new AliasExpression("logic"), rate_up_expr, new ConstantExpression(0.0))
           );
         } 
         else 
@@ -213,12 +248,20 @@ PyObject* cMaBoSSNode_setRate(cMaBoSSNodeObject* self, PyObject* args)
       }
       else if (PyObject_IsInstance(rate_down, (PyObject*) &PyUnicode_Type))
       {
-        Expression* rate_down_expr = self->network->parseSingleExpression(PyUnicode_AsUTF8(rate_down));
-        self->network->getSymbolTable()->defineUndefinedSymbols();
+        if (self->network->isPopNetwork())
+        {
+          rate_down_expr = static_cast<PopNetwork*>(self->network)->parseSingleExpression(PyUnicode_AsUTF8(rate_down));
+          static_cast<PopNetwork*>(self->network)->getSymbolTable()->defineUndefinedSymbols();
+        } else {
+          rate_down_expr = self->network->parseSingleExpression(PyUnicode_AsUTF8(rate_down));
+          self->network->getSymbolTable()->defineUndefinedSymbols();
+        }
+        
       } 
       else 
       {
         PyErr_SetString(PyBNException, "Unsupported type for rate down !");
+        return NULL;
       }
       
       if (rate_down_expr != NULL)
