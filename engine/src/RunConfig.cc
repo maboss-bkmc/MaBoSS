@@ -352,4 +352,11 @@ void RunConfig::dump_perform(Network* network, std::ostream& os, bool is_templat
     IStateGroup::display(network, os);
   }
   
+  if (network->isPopNetwork() && this->hasCustomPopOutput()) {
+    os << '\n';
+    os << "custom_pop_output = ";
+    this->getCustomPopOutputExpression()->display(os);
+    os << ";\n";
+  }
+  
 }
