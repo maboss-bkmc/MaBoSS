@@ -465,7 +465,7 @@ jobs:
         
     - name: Install conda-build
       run: |
-        conda install conda-build anaconda-client conda-verify
+        conda install conda-build==25.1.1 anaconda-client conda-verify
       
     - name: Build Anaconda package
       run: |
