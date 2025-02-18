@@ -1,6 +1,6 @@
 from setuptools import setup, Extension, find_packages
 
-maboss_version = '1.0.0b25'
+maboss_version = '1.0.0b26'
 
 maboss_sources = [
    # PopMaBoSS
