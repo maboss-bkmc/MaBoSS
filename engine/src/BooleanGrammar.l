@@ -1,4 +1,4 @@
-
+%option prefix="ctbndl"
 %{
 /*
 #############################################################################
@@ -234,7 +234,7 @@ static void yyerror(const char *)
   throw BNException("BND syntax error at line #" + std::string(tok));
 }
 
-void yy_scan_expression(const char* str)
+void ctbndl_scan_expression(const char* str)
 {
     yy_switch_to_buffer(yy_scan_string(str));
 }

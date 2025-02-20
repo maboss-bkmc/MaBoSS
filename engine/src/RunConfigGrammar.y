@@ -1,3 +1,4 @@
+%define api.prefix {rc}
 
 %{
 /*
@@ -536,7 +537,7 @@ void runconfig_setConfig(RunConfig* _config)
 
 #include "lex.RC.cc"
 
-void yy_scan_expression(const char* str)
+void rc_scan_expression(const char* str)
 {
     yy_switch_to_buffer(yy_scan_string(str));
 }

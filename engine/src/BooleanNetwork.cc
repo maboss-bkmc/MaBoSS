@@ -59,10 +59,10 @@
 #endif
 
 
-extern FILE* CTBNDLin;
-extern void CTBNDL_scan_expression(const char *);
-extern int CTBNDLparse();
-extern void CTBNDLlex_destroy();
+extern FILE* ctbndlin;
+extern void ctbndl_scan_expression(const char *);
+extern int ctbndlparse();
+extern void ctbndllex_destroy();
 const bool backward_istate = getenv("MABOSS_BACKWARD_ISTATE") != NULL;
 bool MaBoSS_quiet = false;
 
@@ -138,25 +138,25 @@ PopNetwork::PopNetwork() : Network()
 int Network::parseExpression(const char* content, std::map<std::string, NodeIndex>* nodes_indexes){
   
   set_current_network(this);
-  CTBNDL_scan_expression(content);
+  ctbndl_scan_expression(content);
 
   try 
   {
-    int r = CTBNDLparse();
+    int r = ctbndlparse();
     set_current_network(NULL);
 
     if (r) {
-      CTBNDLlex_destroy();
+      ctbndllex_destroy();
       return 1;
     }
     compile(nodes_indexes);
-    CTBNDLlex_destroy();
+    ctbndllex_destroy();
     return 0;
   }
   catch (const BNException& e) 
   {
     set_current_network(NULL);
-    CTBNDLlex_destroy();
+    ctbndllex_destroy();
 
     throw;
   }
@@ -185,8 +185,8 @@ int Network::parse(const char* file, std::map<std::string, NodeIndex>* nodes_ind
 #endif
 
   if (NULL != file) {
-    CTBNDLin = fopen(file, "r");
-    if (CTBNDLin == NULL) {
+    ctbndlin = fopen(file, "r");
+    if (ctbndlin == NULL) {
       throw BNException("network parsing: cannot open file:" + std::string(file) + " for reading");
     }
     if (is_temp_file) {
@@ -197,33 +197,33 @@ int Network::parse(const char* file, std::map<std::string, NodeIndex>* nodes_ind
   set_current_network(this);
 
   try{
-    int r = CTBNDLparse();
+    int r = ctbndlparse();
 
     set_current_network(NULL);
 
     if (r) {
       if (NULL != file)
-        fclose(CTBNDLin);
-      CTBNDLlex_destroy();
+        fclose(ctbndlin);
+      ctbndllex_destroy();
 
       return 1;
     }
     compile(nodes_indexes);
 
     if (NULL != file)
-      fclose(CTBNDLin);
+      fclose(ctbndlin);
     
-    CTBNDLlex_destroy();
+    ctbndllex_destroy();
 
     return 0;
   }
   catch (const BNException& e) 
   {  
     if (NULL != file)
-      fclose(CTBNDLin);
+      fclose(ctbndlin);
     
     set_current_network(NULL);
-    CTBNDLlex_destroy();
+    ctbndllex_destroy();
 
     throw;
   }

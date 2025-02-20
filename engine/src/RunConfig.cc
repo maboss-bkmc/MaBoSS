@@ -56,7 +56,7 @@
 // #include "PopMaBEstEngine.h"
 // #include "FinalStateSimulationEngine.h"
 
-extern void RClex_destroy();
+extern void rclex_destroy();
 
 RunConfig::RunConfig()
 {
@@ -208,22 +208,22 @@ int RunConfig::parse(Network* network, const char* file)
   runconfig_setNetwork(network);
   runconfig_setConfig(this);
   if (NULL != file) {
-    RCin = fopen(file, "r");
-    if (RCin == NULL) {
+    rcin = fopen(file, "r");
+    if (rcin == NULL) {
       throw BNException("variable parsing: cannot open file:" + std::string(file) + " for reading");
     }
   }
-  RC_set_file(file);
+  rc_set_file(file);
 
   try
   {
-    int res = RCparse();
+    int res = rcparse();
     runconfig_setNetwork(NULL);
     runconfig_setConfig(NULL);
 
     if (NULL != file)
-      fclose(RCin);
-    RClex_destroy();
+      fclose(rcin);
+    rclex_destroy();
 
     return res;
   }
@@ -233,8 +233,8 @@ int RunConfig::parse(Network* network, const char* file)
     runconfig_setConfig(NULL);
 
     if (NULL != file)
-      fclose(RCin);
-    RClex_destroy();
+      fclose(rcin);
+    rclex_destroy();
     
     throw;
   } 
@@ -244,15 +244,15 @@ int RunConfig::parseExpression(Network* network, const char* expr)
 {
   runconfig_setNetwork(network);
   runconfig_setConfig(this);
-  RC_scan_expression(expr);
+  rc_scan_expression(expr);
 
   try
   {
-    int res = RCparse();
+    int res = rcparse();
     runconfig_setNetwork(NULL);
     runconfig_setConfig(NULL);
     
-    RClex_destroy();
+    rclex_destroy();
     
     return res;
   }
@@ -260,7 +260,7 @@ int RunConfig::parseExpression(Network* network, const char* expr)
   {
     runconfig_setNetwork(NULL);
     runconfig_setConfig(NULL);
-    RClex_destroy();
+    rclex_destroy();
     
     throw;
   }

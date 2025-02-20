@@ -217,21 +217,19 @@ depend: $(CORE_LIB_SRC)
 
 BooleanGrammar.cc: lex.CTBNDL.cc BooleanGrammar.y
 	@$(CHECK_BISON)
-	$(BISON) -v BooleanGrammar.y
-	sed -e 's/yy/CTBNDL/g' -e 's/register //g' BooleanGrammar.tab.c > BooleanGrammar.cc
+	$(BISON) -v BooleanGrammar.y --output=BooleanGrammar.cc
 
 lex.CTBNDL.cc: BooleanGrammar.l
 	@$(CHECK_FLEX)
-	$(FLEX) -t $+ | sed -e 's/yy/CTBNDL/g' -e 's/register //g' > lex.CTBNDL.cc
+	$(FLEX) --outfile=lex.CTBNDL.cc $+
 
 RunConfigGrammar.cc: lex.RC.cc RunConfigGrammar.y
 	@$(CHECK_BISON)
-	$(BISON) -v RunConfigGrammar.y
-	sed -e 's/yy/RC/g' -e 's/register //g' RunConfigGrammar.tab.c > RunConfigGrammar.cc
-
+	$(BISON) -v RunConfigGrammar.y --output RunConfigGrammar.cc
+	
 lex.RC.cc: RunConfigGrammar.l
 	@$(CHECK_FLEX)
-	$(FLEX) -t $+ | sed -e 's/yy/RC/g' -e 's/register //g' > lex.RC.cc
+	$(FLEX) --outfile=lex.RC.cc $+ 
 
 .PHONY: mbdyn
 mbdyn: test_MBDynBitset

@@ -1,4 +1,4 @@
-
+%option prefix="rc"
 %{
 /*
 #############################################################################
@@ -109,7 +109,7 @@ int yywrap(void)
   return 1;
 }
 
-void yy_set_file(const char* _file)
+void rc_set_file(const char* _file)
 {
   input_lineno = 1;
   file = _file;

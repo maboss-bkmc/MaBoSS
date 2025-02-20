@@ -113,13 +113,13 @@ class RunConfig {
   void dump(Network* network, std::ostream& os, std::string version, bool header=true) const;
 };
 
-extern FILE* RCin;
-extern int RCparse();
-extern void RC_scan_expression(const char *);
+extern FILE* rcin;
+extern int rcparse();
+extern void rc_scan_expression(const char *);
 
 extern void runconfig_setNetwork(Network* network);
 extern void runconfig_setConfig(RunConfig* config);
-extern void RC_set_file(const char* file);
-extern void RC_set_expr(const char* expr);
+extern void rc_set_file(const char* file);
+extern void rc_set_expr(const char* expr);
 
 #endif
