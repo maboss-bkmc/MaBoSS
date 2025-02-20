@@ -48,6 +48,11 @@ jobs:
         
     - name: Build MaBoSS
       run: |
+        export PATH=/usr/local/opt/flex/bin:/usr/local/opt/bison/bin:$PATH
+        which flex
+        flex --version
+        which bison
+        bison --version
         cd engine/src
         make clean
         export CXXFLAGS="${CXXFLAGS} -I/usr/local/include -I/usr/local/include/libxml2"
@@ -56,7 +61,9 @@ jobs:
         make CXX=g++-12 CC=gcc-12 MAXNODES=128 install SBML_COMPAT=1 -j "${CPU_COUNT}"
         
     - name: Test MaBoSS
-      run: bash scripts/run_tests.sh
+      run: |
+        export PATH=/usr/local/opt/flex/bin:/usr/local/opt/bison/bin:$PATH
+        bash scripts/run_tests.sh
         
   maboss_llvm_macos:
     name: MaBoSS (clang)
@@ -99,6 +106,7 @@ jobs:
 
     - name: Build MaBoSS
       run: |
+        export PATH=/usr/local/opt/flex/bin:/usr/local/opt/bison/bin:$PATH
         cd engine/src
         make clean
         export CXXFLAGS="${CXXFLAGS} -I/usr/local/include -I/usr/local/include/libxml2"
@@ -107,7 +115,9 @@ jobs:
         make CXX=clang++ CC=clang MAXNODES=128 install SBML_COMPAT=1 -j "${CPU_COUNT}"
         
     - name: Test MaBoSS
-      run: bash scripts/run_tests.sh
+      run: |
+        export PATH=/usr/local/opt/flex/bin:/usr/local/opt/bison/bin:$PATH
+        bash scripts/run_tests.sh
    
   maboss_binary_macos:
     name: MaBoSS MacOSX x86_64 binary
@@ -149,6 +159,7 @@ jobs:
           
     - name: Build binary
       run: |
+        export PATH=/usr/local/opt/flex/bin:/usr/local/opt/bison/bin:$PATH
         rm -fr engine/pub/*
         cd engine/src
         make clean
@@ -223,6 +234,7 @@ jobs:
           
     - name: Build binary
       run: |
+        export PATH=/opt/homebrew/opt/flex/bin:/opt/homebrew/opt/bison/bin:$PATH
         rm -fr engine/pub/*
         cd engine/src
         make clean
@@ -331,6 +343,7 @@ jobs:
               
     - name: Build library
       run: |
+        export PATH=/usr/local/opt/flex/bin:/usr/local/opt/bison/bin:$PATH
         rm -fr engine/pub/*
         cd engine/src
         make clean
@@ -380,6 +393,7 @@ jobs:
               
     - name: Build library
       run: |
+        export PATH=/opt/homebrew/opt/flex/bin:/opt/homebrew/opt/bison/bin:$PATH
         rm -fr engine/pub/*
         cd engine/src
         make clean
@@ -453,6 +467,7 @@ jobs:
               
     - name: Build library
       run: |
+        export PATH=/usr/local/opt/flex/bin:/usr/local/opt/bison/bin:$PATH
         export CXXFLAGS="${CXXFLAGS} -I/usr/local/include -I/usr/local/include/libxml2"
         export LDFLAGS="${LDFLAGS} -L/usr/local/lib -lxml2"
         rm -fr engine/pub/*

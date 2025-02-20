@@ -47,6 +47,7 @@ jobs:
             
     - name: Build cMaBoSS
       run: |
+        export PATH=/usr/local/opt/flex/bin:/usr/local/opt/bison/bin:$PATH
         cd engine/src
         make grammars
         cd ../python
@@ -56,7 +57,9 @@ jobs:
         pip3 install `ls fixed_wheels/cmaboss*.whl` 
         
     - name: Test cMaBoSS
-      run: bash scripts/run_cmaboss_tests.sh
+      run: |
+        export PATH=/usr/local/opt/flex/bin:/usr/local/opt/bison/bin:$PATH
+        bash scripts/run_cmaboss_tests.sh
 
      
   build_wheels_macos:
@@ -70,7 +73,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12' 
-
+      
+      - name: Install dependencies
+        run: |
+          brew install flex bison 
+        
       - name: Install cibuildwheel
         run: python -m pip install cibuildwheel numpy twine
 
@@ -89,6 +96,7 @@ jobs:
             DYLD_LIBRARY_PATH=/usr/local/lib/ delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}
 
         run: |
+          export PATH=/usr/local/opt/flex/bin:/usr/local/opt/bison/bin:$PATH
           cd engine/src
           make grammars
           cd ../../
@@ -117,7 +125,7 @@ jobs:
           python -m twine upload --skip-existing wheelhouse/cmaboss*
           
   build_wheels_macos_arm64:
-    name: Build MacOS wheels
+    name: Build MacOS wheels (M1)
     runs-on: macos-14
     needs: cmaboss_macos
     
@@ -127,6 +135,10 @@ jobs:
         with:
           python-version: '3.12' 
 
+      - name: Install dependencies
+        run: |
+          brew install flex bison 
+      
       - name: Install cibuildwheel
         run: python -m pip install cibuildwheel numpy twine
 
@@ -145,6 +157,7 @@ jobs:
             DYLD_LIBRARY_PATH=/usr/local/lib/ delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}
 
         run: |
+          export PATH=/opt/homebrew/opt/flex/bin:/opt/homebrew/opt/bison/bin:$PATH
           cd engine/src
           make grammars
           cd ../../
