@@ -543,7 +543,11 @@ void EnsembleEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int 
 
 void EnsembleEngine::run(std::ostream* output_traj)
 {
+#ifdef STD_THREAD
+  std::vector<std::thread *> tid(thread_count);
+#else
   pthread_t* tid = new pthread_t[thread_count];
+#endif
   RandomGeneratorFactory* randgen_factory = runconfig->getRandomGeneratorFactory();
   int seed = runconfig->getSeedPseudoRandom();
   unsigned int start_sample_count = 0;
@@ -552,13 +556,21 @@ void EnsembleEngine::run(std::ostream* output_traj)
     FixedPoints* fixpoint_map = new FixedPoints();
     fixpoint_map_v.push_back(fixpoint_map);
     EnsembleArgWrapper* warg = new EnsembleArgWrapper(this, start_sample_count, cumulator_v[nn]->getSampleCount(), cumulator_v[nn], simulation_indices_v[nn], cumulator_models_v[nn], fixpoints_models_v[nn], observed_graph_models_v[nn], randgen_factory, seed, fixpoint_map, observed_graph, output_traj);
+#ifdef STD_THREAD
+    tid[nn] = new std::thread(EnsembleEngine::threadWrapper, warg);
+#else
     pthread_create(&tid[nn], NULL, EnsembleEngine::threadWrapper, warg);
+#endif
     arg_wrapper_v.push_back(warg);
 
     start_sample_count += cumulator_v[nn]->getSampleCount();
   }
   for (unsigned int nn = 0; nn < thread_count; ++nn) {
+#ifdef STD_THREAD
+    tid[nn]->join();
+#else
     pthread_join(tid[nn], NULL);
+#endif
   }
   probe.stop();
   elapsed_core_runtime = probe.elapsed_msecs();
@@ -568,7 +580,15 @@ void EnsembleEngine::run(std::ostream* output_traj)
   probe.stop();
   elapsed_epilogue_runtime = probe.elapsed_msecs();
   user_epilogue_runtime = probe.user_msecs();
+#ifdef STD_THREAD
+  for (std::thread * t: tid)
+  {
+    delete t;
+  }
+  tid.clear();
+#else
   delete [] tid;
+#endif
 }  
 
 #ifdef MPI_COMPAT

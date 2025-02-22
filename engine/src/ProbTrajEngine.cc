@@ -97,28 +97,46 @@ void ProbTrajEngine::mergeResults(std::vector<Cumulator<NetworkState>*>& cumulat
     
       unsigned int step_lvl = pow(2, lvl-1);
       unsigned int width_lvl = floor(size/(step_lvl*2)) + 1;
+#ifdef STD_THREAD
+      std::vector<std::thread *> tid(width_lvl);
+#else
       pthread_t* tid = new pthread_t[width_lvl];
+#endif
       unsigned int nb_threads = 0;
       std::vector<MergeWrapper*> wargs;
       for(unsigned int i=0; i < size; i+=(step_lvl*2)) {
         
         if (i+step_lvl < size) {
           MergeWrapper* warg = new MergeWrapper(cumulator_v[i], cumulator_v[i+step_lvl], fixpoint_map_v[i], fixpoint_map_v[i+step_lvl], observed_graph_v[i], observed_graph_v[i+step_lvl]);
+#ifdef STD_THREAD
+          tid[nb_threads] = new std::thread(ProbTrajEngine::threadMergeWrapper, warg);
+#else
           pthread_create(&tid[nb_threads], NULL, ProbTrajEngine::threadMergeWrapper, warg);
+#endif
           nb_threads++;
           wargs.push_back(warg);
         } 
       }
       
       for(unsigned int i=0; i < nb_threads; i++) {   
+#ifdef STD_THREAD
+          tid[i]->join();
+#else
           pthread_join(tid[i], NULL);
-          
+#endif     
       }
       
       for (auto warg: wargs) {
         delete warg;
       }
+#ifdef STD_THREAD
+      for (std::thread* t: tid) {
+        delete t;
+      }
+      tid.clear();
+#else
       delete [] tid;
+#endif
       lvl++;
     }
   

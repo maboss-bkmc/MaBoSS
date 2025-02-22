@@ -63,6 +63,11 @@
 #include "RunConfig.h"
 #include "FixedPointDisplayer.h"
 
+#ifdef STD_THREAD
+#include <thread>
+#else
+#include <pthread.h>
+#endif
 struct EnsembleArgWrapper;
 
 class MetaEngine {

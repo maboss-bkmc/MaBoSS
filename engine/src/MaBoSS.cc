@@ -588,6 +588,11 @@ int main(int argc, char* argv[])
 #else
     std::cerr << "MaBoSS use standard std::map\n";
 #endif
+#ifdef STD_THREAD
+    std::cerr << "MaBoSS uses std::thread" << std::endl;
+#else
+    std::cerr << "MaBoSS uses POSIX threads" << std::endl;
+#endif
   }
 
   for (int nn = 1; nn < argc; ++nn) {

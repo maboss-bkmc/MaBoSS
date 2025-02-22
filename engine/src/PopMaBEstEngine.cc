@@ -474,7 +474,11 @@ void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, Cumulator
 
 void PopMaBEstEngine::run(std::ostream *output_traj)
 {
+#ifdef STD_THREAD
+  std::vector<std::thread*> tid(thread_count);
+#else
   pthread_t *tid = new pthread_t[thread_count];
+#endif
   RandomGeneratorFactory *randgen_factory = runconfig->getRandomGeneratorFactory();
   int seed = runconfig->getSeedPseudoRandom();
   
@@ -501,15 +505,22 @@ void PopMaBEstEngine::run(std::ostream *output_traj)
 #else
     ArgWrapper* warg = new ArgWrapper(this, start_sample_count, cumulator_v[nn]->getSampleCount(), cumulator_v[nn], custom_pop_cumulator_v[nn], randgen_factory, &(thread_elapsed_runtimes[nn]), seed, fixpoint_map, output_traj);
 #endif
-
+#ifdef STD_THREAD
+    tid[nn] = new std::thread(PopMaBEstEngine::threadWrapper, warg);
+#else
     pthread_create(&tid[nn], NULL, PopMaBEstEngine::threadWrapper, warg);
+#endif
     arg_wrapper_v.push_back(warg);
 
     start_sample_count += cumulator_v[nn]->getSampleCount();
   }
   for (unsigned int nn = 0; nn < thread_count; ++nn)
   {
+#ifdef STD_THREAD
+    tid[nn]->join();
+#else
     pthread_join(tid[nn], NULL);
+#endif
   }
   probe.stop();
   elapsed_core_runtime = probe.elapsed_msecs();
@@ -519,7 +530,14 @@ void PopMaBEstEngine::run(std::ostream *output_traj)
   probe.stop();
   elapsed_epilogue_runtime = probe.elapsed_msecs();
   user_epilogue_runtime = probe.user_msecs();
+
+#ifdef STD_THREAD
+  for (std::thread* t:tid)
+    delete t;
+  tid.clear();
+#else
   delete[] tid;
+#endif
   
 #ifdef MPI_COMPAT
   
@@ -602,28 +620,45 @@ void PopMaBEstEngine::mergeResults()
     
       unsigned int step_lvl = pow(2, lvl-1);
       unsigned int width_lvl = floor(size/(step_lvl*2)) + 1;
+#ifdef STD_THREAD
+      std::vector<std::thread*> tid(width_lvl);
+#else
       pthread_t* tid = new pthread_t[width_lvl];
+#endif
       unsigned int nb_threads = 0;
       std::vector<PopMergeWrapper*> wargs;
       for(unsigned int i=0; i < size; i+=(step_lvl*2)) {
         
         if (i+step_lvl < size) {
           PopMergeWrapper* warg = new PopMergeWrapper(cumulator_v[i], cumulator_v[i+step_lvl], custom_pop_cumulator_v[i], custom_pop_cumulator_v[i+step_lvl], fixpoint_map_v[i], fixpoint_map_v[i+step_lvl]);
+#ifdef STD_THREAD
+          tid[nb_threads] = new std::thread(PopMaBEstEngine::threadMergeWrapper, warg);
+#else
           pthread_create(&tid[nb_threads], NULL, PopMaBEstEngine::threadMergeWrapper, warg);
+#endif
           nb_threads++;
           wargs.push_back(warg);
         } 
       }
       
       for(unsigned int i=0; i < nb_threads; i++) {   
+#ifdef STD_THREAD
+          tid[i]->join();
+#else
           pthread_join(tid[i], NULL);
-          
+#endif
       }
       
       for (auto warg: wargs) {
         delete warg;
       }
+#ifdef STD_THREAD
+      for (std::thread * t: tid)
+        delete t;
+      tid.clear();
+#else
       delete [] tid;
+#endif
       lvl++;
     }   
   }

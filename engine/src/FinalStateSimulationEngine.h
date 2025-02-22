@@ -36,7 +36,7 @@
 #############################################################################
 
    Module:
-     MaBEstEngine.h
+     FinalStateSimulationEngine.h
 
    Authors:
      Eric Viara <viara@sysra.com>

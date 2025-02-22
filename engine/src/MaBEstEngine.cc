@@ -257,7 +257,11 @@ void MaBEstEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int st
 
 void MaBEstEngine::run(std::ostream* output_traj)
 {
+#ifdef STD_THREAD
+  std::vector<std::thread*> tid(thread_count);
+#else
   pthread_t* tid = new pthread_t[thread_count];
+#endif
   RandomGeneratorFactory* randgen_factory = runconfig->getRandomGeneratorFactory();
   int seed = runconfig->getSeedPseudoRandom();
 #ifdef MPI_COMPAT
@@ -283,13 +287,21 @@ void MaBEstEngine::run(std::ostream* output_traj)
     ArgWrapper* warg = new ArgWrapper(this, start_sample_count, cumulator_v[nn]->getSampleCount(), cumulator_v[nn], randgen_factory, &(thread_elapsed_runtimes[nn]), seed, fixpoint_map, observed_graph_v[nn], output_traj);
 #endif
 
+#ifdef STD_THREAD
+    tid[nn] = new std::thread(MaBEstEngine::threadWrapper, warg);
+#else
     pthread_create(&tid[nn], NULL, MaBEstEngine::threadWrapper, warg);
+#endif
     arg_wrapper_v.push_back(warg);
 
     start_sample_count += cumulator_v[nn]->getSampleCount();
   }
   for (unsigned int nn = 0; nn < thread_count; ++nn) {
+#ifdef STD_THREAD
+    tid[nn]->join();
+#else
     pthread_join(tid[nn], NULL);
+#endif
   }
   probe.stop();
   elapsed_core_runtime = probe.elapsed_msecs();
@@ -319,8 +331,14 @@ void MaBEstEngine::run(std::ostream* output_traj)
   
 #endif
   
-  
+#ifdef STD_THREAD
+  for (std::thread * t: tid) {
+    delete t;
+  }
+  tid.clear();
+#else
   delete [] tid;
+#endif
 }  
 
 void MaBEstEngine::displayRunStats(std::ostream& os, time_t start_time, time_t end_time) const {

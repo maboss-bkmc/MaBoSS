@@ -248,7 +248,11 @@ void FinalStateSimulationEngine::runThread(unsigned int start_count_thread, unsi
 
 void FinalStateSimulationEngine::run(std::ostream* output_traj)
 {
+#ifdef STD_THREAD
+  std::vector<std::thread *> tid(thread_count);
+#else
   pthread_t* tid = new pthread_t[thread_count];
+#endif
   RandomGeneratorFactory* randgen_factory = runconfig->getRandomGeneratorFactory();
   int seed = runconfig->getSeedPseudoRandom();
   unsigned int start_sample_count = 0;
@@ -257,16 +261,33 @@ void FinalStateSimulationEngine::run(std::ostream* output_traj)
     FixedPoints* final_states_map = new FixedPoints();
     final_states_map_v.push_back(final_states_map);
     FinalStateArgWrapper* warg = new FinalStateArgWrapper(this, start_sample_count, sample_count_per_thread[nn], randgen_factory, seed, final_states_map, output_traj);
+#ifdef STD_THREAD
+    tid[nn] = new std::thread(FinalStateSimulationEngine::threadWrapper, warg);
+#else
     pthread_create(&tid[nn], NULL, FinalStateSimulationEngine::threadWrapper, warg);
+#endif
+  
     arg_wrapper_v.push_back(warg);
 
     start_sample_count += sample_count_per_thread[nn];
   }
   for (unsigned int nn = 0; nn < thread_count; ++nn) {
+#ifdef STD_THREAD
+    tid[nn]->join();
+#else
     pthread_join(tid[nn], NULL);
+#endif
   }
   epilogue();
+#ifdef STD_THREAD
+  for (std::thread* t: tid)
+  {
+    delete t;
+  }
+  tid.clear();
+#else
   delete [] tid;
+#endif
 }  
 
 FixedPoints* FinalStateSimulationEngine::mergeFinalStateMaps()
