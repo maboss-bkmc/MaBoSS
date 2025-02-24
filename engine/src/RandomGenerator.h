@@ -57,7 +57,13 @@
 #include <assert.h>
 #include <fcntl.h>
 #include <stdio.h>
+
+#ifdef _MSC_VER
+#include <io.h>
+#else
 #include <unistd.h>
+#endif
+
 #include <stdlib.h>
 #include <string.h>
 #include <string>
@@ -89,60 +95,6 @@ class RandomGenerator {
   static size_t getGeneratedNumberCount() {return generated_number_count;}
 
   virtual ~RandomGenerator() {}
-};
-
-class PhysicalRandomGenerator : public RandomGenerator {
-  int fd;
-
- public:
-  PhysicalRandomGenerator() {
-    fd = open("/dev/urandom", O_RDONLY);
-    assert(fd >= 0);
-  }
-
-  bool isPseudoRandom() const {
-    return false;
-  }
-
-  std::string getName() const {
-    return "physical";
-  }
-
-  unsigned int generateUInt32() {
-    incrGeneratedNumberCount();
-#ifdef USE_DUMMY_RANDOM
-    return ~0U/2;
-#endif
-    unsigned int result;
-    // When compiling with NDEBUG, we don't have asserts, to res is not used
-    // This is just to make the compiler happy even in this case
-#ifndef NDEBUG 
-    int ret = read(fd, &result, sizeof(result));
-    assert(ret == sizeof(result));
-#else
-    int res = read(fd, &result, sizeof(result));
-    if (res != sizeof(result)) 
-      throw std::exception();
-#endif
-#ifdef RANDOM_TRACE
-    std::cout << result << '\n';
-#endif
-    return result;
-  }
-
-  virtual double generate() {
-    double result = ((double)generateUInt32())/~0U; // fixed this 2014-10-17, but I think I added /2 because it did not work
-#ifdef RANDOM_TRACE
-    std::cout << result << '\n';
-#endif
-    return result;
-  }
-
-  ~PhysicalRandomGenerator() {
-    if (fd >= 0) {
-      close(fd);
-    }
-  }
 };
 
 class Rand48RandomGenerator: public RandomGenerator
@@ -377,6 +329,78 @@ class MT19937RandomGenerator : public RandomGenerator
 
 };
 
+class PhysicalRandomGenerator : public RandomGenerator {
+#ifndef _MSC_VER
+  int fd;
+#else
+  MT19937RandomGenerator * mt_randgen;
+#endif
+
+  public:
+  PhysicalRandomGenerator() {
+#ifndef _MSC_VER 
+    fd = open("/dev/urandom", O_RDONLY);
+    assert(fd >= 0);
+# else 
+    mt_randgen = new MT19937RandomGenerator(42);
+#endif
+  }
+
+  bool isPseudoRandom() const {
+    return false;
+  }
+
+  std::string getName() const {
+    return "physical";
+  }
+
+  unsigned int generateUInt32() {
+
+    incrGeneratedNumberCount();
+#ifndef _MSC_VER
+
+#ifdef USE_DUMMY_RANDOM
+    return ~0U/2;
+#endif
+
+unsigned int result;
+    // When compiling with NDEBUG, we don't have asserts, to res is not used
+    // This is just to make the compiler happy even in this case
+#ifndef NDEBUG 
+    int ret = read(fd, &result, sizeof(result));
+    assert(ret == sizeof(result));
+#else
+    int res = read(fd, &result, sizeof(result));
+    if (res != sizeof(result)) 
+      throw std::exception();
+#endif
+#ifdef RANDOM_TRACE
+    std::cout << result << '\n';
+#endif
+    return result;
+#else
+    return mt_randgen->generateUInt32();
+#endif
+  }
+
+  virtual double generate() {
+    double result = ((double)generateUInt32())/~0U; // fixed this 2014-10-17, but I think I added /2 because it did not work
+#ifdef RANDOM_TRACE
+    std::cout << result << '\n';
+#endif
+    return result;
+  }
+
+  ~PhysicalRandomGenerator() {
+#ifndef _MSC_VER 
+    if (fd >= 0) {
+      close(fd);
+    }
+#else
+    delete mt_randgen;
+#endif
+  }
+};
 
 class RandomGeneratorFactory {
 
