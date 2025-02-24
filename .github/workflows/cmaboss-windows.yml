@@ -1,0 +1,93 @@
+name: cMaBoSS Windows
+
+on:
+  push:
+  pull_request:
+  release:
+    types: [created]
+
+jobs:
+  cmaboss_conda_defaults:
+    name: Build cMaBoSS Anaconda package
+    runs-on: windows-2022
+
+    strategy:
+      fail-fast: false
+      matrix:
+        version: [{python: "3.8", numpy: "1.24"}, {python: "3.9", numpy: "2.0"}, {python: "3.10", numpy: "2.0"}, {python: "3.11", numpy: "2.0"}, {python: "3.12", numpy: "2.0"}]
+    
+    defaults:
+      run:
+        shell: pwsh -Command {0}
+                
+    steps:
+    - uses: actions/checkout@v4
+    - uses: conda-incubator/setup-miniconda@v3
+      with:
+        auto-update-conda: true
+        conda-remove-defaults: "true"
+        channels: defaults
+        python-version: 3.12
+        use-mamba: true
+    
+    - name: Install conda-build
+      run: |
+        conda install conda-build anaconda-client conda-verify
+      
+    - name: Build cMaBoSS Anaconda package
+      env: 
+        CUSTOM_BUILD_NUMBER: 0
+      run: |
+        conda build -c colomoto --variants "{python: [${{ matrix.version.python }}], numpy: [${{ matrix.version.numpy }}]}" conda/cmaboss;
+     
+    - name: Upload cMaBoSS Ananconda package on vincent-noel
+      run: |
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/share/miniconda/envs/test/conda-bld/linux-64/*.conda --force;
+
+    - name: Upload cMaBoSS Ananconda package on colomoto
+      if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
+      run: |
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/share/miniconda/envs/test/conda-bld/linux-64/*.conda --force;
+
+  cmaboss_conda_condaforge:
+    name: Build cMaBoSS Anaconda package (conda-forge)
+    runs-on: windows-2022
+
+    strategy:
+      fail-fast: false
+      matrix:
+        version: [{python: "3.8", numpy: "1.24"}, {python: "3.9", numpy: "2.0"}, {python: "3.10", numpy: "2.1"}, {python: "3.11", numpy: "2.1"}, {python: "3.12", numpy: "2.1"}]
+    
+    defaults:
+      run:
+        shell: powershell -Command {0}
+                
+    steps:
+    - uses: actions/checkout@v4
+    - uses: conda-incubator/setup-miniconda@v3
+      with:
+        auto-update-conda: true
+        conda-remove-defaults: "true"
+        channels: conda-forge
+        python-version: 3.12
+        use-mamba: true
+    
+    - name: Install conda-build
+      run: |
+        conda install conda-build==25.1.1 anaconda-client conda-verify
+      
+    - name: Build cMaBoSS Anaconda package
+      env: 
+        CUSTOM_BUILD_NUMBER: 1
+      run: |
+        conda build -c colomoto --variants {"python": ["${{ matrix.version.python }}"], "numpy": ["${{ matrix.version.numpy }}"] conda/cmaboss;
+      
+    - name: Upload cMaBoSS Ananconda package on vincent-noel
+      run: |
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/share/miniconda/envs/test/conda-bld/linux-64/*.conda --force;
+
+    - name: Upload cMaBoSS Ananconda package on colomoto
+      if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
+      run: |
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/share/miniconda/envs/test/conda-bld/linux-64/*.conda --force;
+      

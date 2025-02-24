@@ -21,8 +21,9 @@ requirements:
     - setuptools
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
-    - flex
-    - bison
+    - flex  # [not win]
+    - bison  # [not win]
+    - winflexbison  # [win]
     - make
     - python {{ python }}
     - numpy
