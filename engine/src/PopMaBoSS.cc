@@ -186,7 +186,7 @@ int main(int argc, char* argv[])
 #else
     std::cerr << "PopMaBoSS use long long mask\n";
 #endif
-#ifdef HAS_UNORDERED_MAP
+#ifdef USE_UNORDERED_MAP
     bool unordered = true;
     std::cerr << "PopMaBoSS use std::unordered_map\n";
 #else

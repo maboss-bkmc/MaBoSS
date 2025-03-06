@@ -357,7 +357,7 @@ public:
   }
 };
 
-#ifdef HAS_UNORDERED_MAP
+#ifdef USE_UNORDERED_MAP
 namespace std {
   template <> struct HASH_STRUCT<MBDynBitset >
   {

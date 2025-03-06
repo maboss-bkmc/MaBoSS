@@ -583,7 +583,7 @@ int main(int argc, char* argv[])
 #else
     std::cerr << "MaBoSS use long long mask\n";
 #endif
-#ifdef HAS_UNORDERED_MAP
+#ifdef USE_UNORDERED_MAP
     std::cerr << "MaBoSS use std::unordered_map\n";
 #else
     std::cerr << "MaBoSS use standard std::map\n";

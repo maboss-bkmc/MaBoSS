@@ -71,10 +71,16 @@
 // To be defined only when comparing bitset with ulong implementation
 //#define COMPARE_BITSET_AND_ULONG
 
-#ifdef HAS_UNORDERED_MAP
-#define USE_UNORDERED_MAP
-#endif
+#ifndef NETWORKSTATE_STD_MAP
 
+#define USE_UNORDERED_MAP
+#include <unordered_map>
+#define STATE_MAP std::unordered_map
+#define HASH_STRUCT hash
+
+#else
+#define STATE_MAP std::map
+#endif
 
 #ifdef SBML_COMPAT
 #include <sbml/SBMLTypes.h>
@@ -816,7 +822,7 @@ public:
   void reset() {
 #ifdef USE_STATIC_BITSET
     state.reset();
-#elif defined(USE_BOOST_BITSET) || defined(USE_DYNAMIC_BITSET)
+#elif defined(USE_DYNAMIC_BITSET)
     // EV: 2020-10-23
     //output_mask.resize(MAXNODES);
     state.resize(Network::getMaxNodeSize());
