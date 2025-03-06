@@ -20,17 +20,20 @@ build:
 requirements:
   build:
     - {{ compiler('cxx') }}
-    - flex
-    - bison
-    - make
-    - libsbml-plus-packages
+    - {{ compiler('c') }}
+    - flex  # [not win]
+    - bison  # [not win]
+    - winflexbison  # [win]
+    - make  # [not win]
+    - cmake  # [win]
+    - ninja  # [win]
         
   host:
     - libsbml-plus-packages
     
   run:
     - libsbml-plus-packages
-
+    
 test:
   requires:
     - numpy
