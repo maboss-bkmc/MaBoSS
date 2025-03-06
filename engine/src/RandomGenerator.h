@@ -70,7 +70,6 @@
 #include <iostream>
 #include <random>
 #include <exception>
-#include "maboss-config.h"
 
 class RandomGenerator {
 

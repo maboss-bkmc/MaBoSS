@@ -3,7 +3,6 @@
 #include <sstream>
 #include <iostream>
 #include <cstdint>
-#include "maboss-config.h"
 
 #include <assert.h>
 

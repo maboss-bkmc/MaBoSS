@@ -50,13 +50,6 @@
 #ifndef _BOOLEANNETWORK_H_
 #define _BOOLEANNETWORK_H_
 
-#define EV_OPTIM_2021_10
-
-// #include <iostream>
-// #include <functional>
-
-#include "maboss-config.h"
-
 #ifdef USE_DYNAMIC_BITSET
 
 #undef MAXNODES

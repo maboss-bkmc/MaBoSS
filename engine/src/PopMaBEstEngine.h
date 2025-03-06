@@ -114,11 +114,8 @@ public:
   void display(ProbTrajDisplayer<PopNetworkState>* pop_probtraj_displayer, FixedPointDisplayer* fp_displayer) const;
   
   std::vector<ArgWrapper*> arg_wrapper_v;
-#ifdef EV_OPTIM_2021_10
   PopNetworkState getTargetNode(RandomGenerator* random_generator, const PopNetworkStateMap& popNodeTransitionRates, double total_rate) const;
-#else
-  PopNetworkState getTargetNode(RandomGenerator* random_generator, const PopNetworkStateMap popNodeTransitionRates, double total_rate) const;
-#endif
+
   double computeTH(const MAP<NodeIndex, double>& nodeTransitionRates, double total_rate) const;
   void epilogue();
   static void* threadWrapper(void *arg);

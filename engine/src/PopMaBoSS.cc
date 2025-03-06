@@ -198,9 +198,6 @@ int main(int argc, char* argv[])
 #else
     std::cerr << "PopMaBoSS use " << (unordered ? "std::unordered_map" : "std::map" ) << "<PopNetworkState, double>\n";
 #endif
-#ifdef EV_OPTIM_2021_10
-    std::cerr << "PopMaBoSS use EV_OPTIM_2021_10\n";
-#endif
   }
 
   for (int nn = 1; nn < argc; ++nn) {
