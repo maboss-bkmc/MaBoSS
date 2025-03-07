@@ -1629,37 +1629,40 @@ PyObject* getNumpySimpleLastStatesDists(Network* network) const
   {
     assert(sample_num < sample_count);
 
-    auto curtraj_proba_dist_iter = curtraj_proba_dist.iterator();
+    if (sample_num < statdist_trajcount) 
+    {
+      auto curtraj_proba_dist_iter = curtraj_proba_dist.iterator();
 
-    double proba_max_time = 0.;
+      double proba_max_time = 0.;
 
-    while (curtraj_proba_dist_iter.hasNext()) {
-      double tm_slice;
-      curtraj_proba_dist_iter.next(tm_slice);
-      proba_max_time += tm_slice;
-    }
+      while (curtraj_proba_dist_iter.hasNext()) {
+        double tm_slice;
+        curtraj_proba_dist_iter.next(tm_slice);
+        proba_max_time += tm_slice;
+      }
 
-    //std::cout << "Trajepilogue #" << (sample_num+1) << " " << proba_max_time << '\n';
+      //std::cout << "Trajepilogue #" << (sample_num+1) << " " << proba_max_time << '\n';
 #ifdef DEBUG
-    double proba = 0;
+      double proba = 0;
 #endif
-    curtraj_proba_dist_iter.rewind();
+      curtraj_proba_dist_iter.rewind();
 
-    ProbaDist<S>& proba_dist = proba_dist_v[sample_num++];
-    while (curtraj_proba_dist_iter.hasNext()) {
-      S state;
-      double tm_slice;
-      curtraj_proba_dist_iter.next(state, tm_slice);
-      //assert(proba_dist.find(state) == proba_dist.end());
-      double new_tm_slice = tm_slice / proba_max_time;
-      proba_dist.set(state, new_tm_slice);
+      ProbaDist<S>& proba_dist = proba_dist_v[sample_num++];
+      while (curtraj_proba_dist_iter.hasNext()) {
+        S state;
+        double tm_slice;
+        curtraj_proba_dist_iter.next(state, tm_slice);
+        //assert(proba_dist.find(state) == proba_dist.end());
+        double new_tm_slice = tm_slice / proba_max_time;
+        proba_dist.set(state, new_tm_slice);
 #ifdef DEBUG      
-      proba += new_tm_slice;
+        proba += new_tm_slice;
+#endif
+      }
+#ifdef DEBUG      
+      assert(proba >= 0.9999 && proba <= 1.0001);
 #endif
     }
-#ifdef DEBUG      
-    assert(proba >= 0.9999 && proba <= 1.0001);
-#endif
   }
 
   unsigned int getSampleCount() const {return sample_count;}
