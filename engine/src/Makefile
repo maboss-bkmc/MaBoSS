@@ -70,6 +70,10 @@ HDF5_FLAG = -DHDF5_COMPAT
 HDF5_LIB = -lhdf5_serial -lhdf5_serial_hl
 endif
 
+ifdef STD_THREAD
+THREAD_FLAG = -DSTD_THREAD
+endif
+
 MABOSS_SERVER := MaBoSS$(INFIX)-server
 MABOSS_CLIENT := MaBoSS-client
 
@@ -101,10 +105,14 @@ CXX = mpic++
 endif
 endif
 
-EXTRA_CXXOPT = -O2
-EXTRA_CXXFLAGS = $(EXTRA_CXXOPT) -Wall -DMAXNODES=$(MAXNODES) $(MPI_FLAG) $(BITSET_FLAG) $(USER_FLAGS) $(EXTRA_FLAGS) -fpic -DNDEBUG -ggdb
+ifdef DEBUG
+DEBUG_FLAGS = -ggdb -D_GLIBCXX_DEBUG -DDEBUG
+else
+DEBUG_FLAGS = -DNDEBUG
+endif
 
-MAKEDEPEND = $(CC) -M $(EXTRA_FLAGS)
+EXTRA_CXXOPT = -O2
+EXTRA_CXXFLAGS = $(EXTRA_CXXOPT) -Wall -DMAXNODES=$(MAXNODES) $(MPI_FLAG) $(THREAD_FLAG) $(BITSET_FLAG) $(USER_FLAGS) $(EXTRA_FLAGS) -fpic ${DEBUG_FLAGS}
 
 ifndef FLEX
 FLEX = flex
@@ -198,9 +206,6 @@ endif
 
 $(MABOSS_CLIENT): MaBoSS-client.o Client.o DataStreamer.o MaBoSS-RPC.o Utils$(INFIX).o
 	$(CXX) -o $(MABOSS_CLIENT) $+ -lpthread $(LDL_FLAG)
-
-init:
-	@CXX=$(CXX) bash init-config.sh
 
 %$(INFIX).o: %.cc
 	$(CXX) $(CXXFLAGS) $(EXTRA_CXXFLAGS) $(WINDOWS_FLAG) $(SBML_FLAG) $(HDF5_FLAG) -c $*.cc -o $*$(INFIX).o
