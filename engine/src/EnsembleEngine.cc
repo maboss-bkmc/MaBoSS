@@ -53,12 +53,8 @@
 #include <stdlib.h>
 #include <math.h>
 #include <iomanip>
-#ifndef WINDOWS
-  #include <dlfcn.h>
-#else
-  #include <windows.h>
-#endif
 #include <iostream>
+
 
 const std::string EnsembleEngine::VERSION = "1.2.0";
 

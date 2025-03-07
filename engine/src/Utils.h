@@ -70,12 +70,12 @@ public:
   static unsigned int getFileCount() {return runconfig_file_cnt;}
   static unsigned int getExprCount() {return runconfig_expr_cnt;}
 };
-
+#ifndef _MSC_VER
 extern int checkArgMissing(const char* prog, const char* opt, int nn, int argc);
 extern int fileGetContents(const std::string& file, std::string& contents);
 extern int filePutContents(const std::string& file, const std::string& data);
 extern std::string stringReplaceAll(const std::string& subject, const std::string& from, const std::string& to);
-
+#endif
 extern const std::string NL_PATTERN;
 extern const char* fmthexdouble(double d, bool add_quotes = false);
 

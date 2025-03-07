@@ -3,7 +3,11 @@
 #include <iostream>
 #include <vector>
 #include <bitset>
+#ifndef _MSC_VER
 #include <unistd.h>
+#else
+#include "io.h"
+#endif
 #include <sys/types.h>
 #include <assert.h>
 

@@ -55,11 +55,6 @@
 #include <math.h>
 #include <iomanip>
 #include <iostream>
-#ifndef WINDOWS
-#include <dlfcn.h>
-#else
-#include <windows.h>
-#endif
 
 const std::string PopMaBEstEngine::VERSION = "0.0.1";
 int PopMaBEstEngine::verbose = 0;

@@ -61,6 +61,17 @@
 
 #endif
 
+
+#ifdef _MSC_VER 
+#define WINDOWS
+//not #if defined(_WIN32) || defined(_WIN64) because we have strncasecmp in mingw
+#define strncasecmp _strnicmp
+#define strcasecmp _stricmp
+#define strdup _strdup
+#define unlink _unlink
+#endif
+
+
 // To be defined only when comparing bitset with ulong implementation
 //#define COMPARE_BITSET_AND_ULONG
 
@@ -93,7 +104,6 @@ LIBSBML_CPP_NAMESPACE_USE
 #include <assert.h>
 #include <sstream>
 #include <iostream>
-#include <strings.h>
 #include <string.h>
 #ifdef USE_STATIC_BITSET
 #include <bitset>

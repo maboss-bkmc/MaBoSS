@@ -48,11 +48,14 @@
 
 #include "Utils.h"
 #include "MaBEstEngine.h"
-#include <sys/stat.h>
 
 const std::string NL_PATTERN = "@--NL--@";
 unsigned int ConfigOpt::runconfig_file_cnt = 0;
 unsigned int ConfigOpt::runconfig_expr_cnt = 0;
+
+#ifndef _MSC_VER
+#include <sys/stat.h>
+
 
 int checkArgMissing(const char* prog, const char* opt, int nn, int argc)
 {
@@ -133,7 +136,7 @@ std::string stringReplaceAll(const std::string& subject, const std::string& from
   return str;
 
 }
-
+#endif
 // EV: 2018-12-19
 // std::hexfloat is missing on some gcc compiler version
 // introduced this function to print double in hexa format

@@ -50,7 +50,7 @@
 #ifndef _PROBE_H_
 #define _PROBE_H_
 
-#ifndef WINDOWS
+#if !defined (_MSC_VER) && !defined (WINDOWS)
 
 #include <sys/time.h>
 #include <sys/times.h>

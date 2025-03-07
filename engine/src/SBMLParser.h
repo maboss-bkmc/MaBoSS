@@ -55,6 +55,10 @@
 
 LIBSBML_CPP_NAMESPACE_USE
 
+
+#ifdef _MSC_VER
+#include <locale>
+#endif
 class SBMLParser
 {
   public:
@@ -96,7 +100,13 @@ class SBMLParser
             new_name = specie->getName();
             new_name.erase(std::remove_if(
                 new_name.begin(), new_name.end(), 
-                [](char c) { return !std::isalnum(c) && c != '_'; }
+                [](char c) { 
+#ifdef _MSC_VER
+                    return !std::isalnum(c, std::locale::classic()) && c != '_'; 
+#else
+                    return !std::isalnum(c) && c != '_'; 
+#endif
+                }
                 ), new_name.end()
             );
         } else {
