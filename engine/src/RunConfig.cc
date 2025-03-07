@@ -56,7 +56,7 @@
 // #include "PopMaBEstEngine.h"
 // #include "FinalStateSimulationEngine.h"
 
-extern void rclex_destroy();
+extern int rclex_destroy();
 
 RunConfig::RunConfig()
 {

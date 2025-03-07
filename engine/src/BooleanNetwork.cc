@@ -62,7 +62,7 @@
 extern FILE* ctbndlin;
 extern void ctbndl_scan_expression(const char *);
 extern int ctbndlparse();
-extern void ctbndllex_destroy();
+extern int ctbndllex_destroy();
 const bool backward_istate = getenv("MABOSS_BACKWARD_ISTATE") != NULL;
 bool MaBoSS_quiet = false;
 
