@@ -49,7 +49,7 @@
 #define _SERVER_H_
 
 #include <string>
-#include "RPC.h"
+#include "MaBoSS-RPC.h"
 #include "Utils.h"
 
 class ClientData;

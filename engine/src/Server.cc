@@ -55,7 +55,7 @@
 #include "Client.h"
 #include "Server.h"
 #include "DataStreamer.h"
-#include "RPC.h"
+#include "MaBoSS-RPC.h"
 #include "Utils.h"
 #include "MaBEstEngine.h"
 #include "FinalStateSimulationEngine.h"

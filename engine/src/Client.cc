@@ -61,7 +61,7 @@
 #include "Client.h"
 #include "Server.h"
 #include "DataStreamer.h"
-#include "RPC.h"
+#include "MaBoSS-RPC.h"
 
 void Client::send(const ClientData& client_data, ServerData& server_data)
 {

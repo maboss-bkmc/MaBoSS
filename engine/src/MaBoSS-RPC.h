@@ -36,7 +36,7 @@
 #############################################################################
 
    Module:
-     RPC.h
+     MaBoSS-RPC.h
 
    Authors:
      Eric Viara <viara@sysra.com>
@@ -46,8 +46,8 @@
      May 2018
 */
 
-#ifndef _RPC_H_
-#define _RPC_H_
+#ifndef _MaBoSS_RPC_H_
+#define _MaBoSS_RPC_H_
 
 #include <sys/types.h>
 #include <sys/socket.h>

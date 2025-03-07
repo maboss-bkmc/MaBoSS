@@ -51,7 +51,7 @@
 #include <string>
 #include <vector>
 
-#include "RPC.h"
+#include "MaBoSS-RPC.h"
 
 class ServerData;
 

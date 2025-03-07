@@ -36,7 +36,7 @@
 #############################################################################
 
    Module:
-     RPC.cc
+     MaBoSS-RPC.cc
      
      Authors:
      Eric Viara <viara@sysra.com>
@@ -47,7 +47,7 @@
 
 #include <iostream>
 
-#include "RPC.h"
+#include "MaBoSS-RPC.h"
 
 static int rpc_hostNameToAddr(const char *name, struct in_addr *address)
 {
