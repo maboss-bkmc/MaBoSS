@@ -73,6 +73,11 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
     std::cerr << "Warning: non reentrant random, may not work properly in multi-threaded mode\n";
   }
   
+  if (save_individual_result && (networks.size() > runconfig->getSampleCount()))
+  {
+    std::cerr << "Warning: The number of models is greater than the number of simulations. Individual results will be saved for each model, but some models will not be simulated.\n";
+  }
+  
   const std::vector<Node*>& nodes = networks[0]->getNodes();
   
   NetworkState internal_state;
@@ -633,6 +638,7 @@ void EnsembleEngine::mergeIndividual() {
     }
     else {
       cumulators_per_model[i] = new Cumulator<NetworkState>(runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), 0, 0);
+      cumulators_per_model[i]->epilogue(networks[i], reference_state);
     }
   }
 }
