@@ -101,6 +101,7 @@ LIBSBML_CPP_NAMESPACE_USE
 #include "MBDynBitset.h"
 #endif
 #include "Function.h"
+#include "BNException.h"
 
 #ifdef MPI_COMPAT
 #include <mpi.h>
@@ -268,16 +269,6 @@ static const std::string ATTR_RATE_DOWN = "rate_down";
 static const std::string ATTR_LOGIC = "logic";
 static const std::string ATTR_DESCRIPTION = "description";
 static const NodeIndex INVALID_NODE_INDEX = (NodeIndex)~0U;
-
-class BNException {
-
-  std::string msg;
-
-public:
-  BNException(const std::string& msg) : msg(msg) { }
-
-  const std::string& getMessage() const {return msg;}
-};
 
 extern std::ostream& operator<<(std::ostream& os, const BNException& e);
 
