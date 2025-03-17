@@ -71,6 +71,8 @@
 #include <random>
 #include <exception>
 
+#include "BNException.h"
+
 class RandomGenerator {
 
   static size_t generated_number_count;
@@ -428,8 +430,7 @@ public:
     case PHYSICAL:
       return new PhysicalRandomGenerator();
     default:
-      abort();
-      return NULL;
+      throw BNException("Unknown random number generator !");
     }
   }
 
@@ -444,8 +445,7 @@ public:
     case PHYSICAL:
       return "physical";
     default:
-      abort();
-      return NULL;
+      throw BNException("Unknown random number generator !");
     }
   }
 
@@ -460,8 +460,7 @@ public:
     case PHYSICAL:
       return false;
     default:
-      abort();
-      return false;
+      throw BNException("Unknown random number generator !");
     }
   }
 
@@ -476,8 +475,7 @@ public:
     case PHYSICAL:
       return true;
     default:
-      abort();
-      return false;
+      throw BNException("Unknown random number generator !");
     }
   }
 };
