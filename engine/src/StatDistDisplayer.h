@@ -69,14 +69,14 @@ protected:
   StatDistDisplayer(Network* network) : network(network), current_line(0) { }
 
 public:
-  void begin(size_t max_size, size_t statdist_traj_count) {
-    this->max_size = max_size;
-    this->statdist_traj_count = statdist_traj_count;
+  void begin(size_t _max_size, size_t _statdist_traj_count) {
+    this->max_size = _max_size;
+    this->statdist_traj_count = _statdist_traj_count;
     beginDisplay();
   }
 
-  void beginStateProba(size_t num) {
-    this->num = num;
+  void beginStateProba(size_t _num) {
+    this->num = _num;
     beginStateProbaDisplay();
   }
 

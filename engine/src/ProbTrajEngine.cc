@@ -91,12 +91,12 @@ void ProbTrajEngine::mergeResults(std::vector<Cumulator<NetworkState>*>& cumulat
     
     
     unsigned int lvl=1;
-    unsigned int max_lvl = ceil(log2(size));
+    unsigned int max_lvl = (unsigned int) ceil(log2(size));
 
     while(lvl <= max_lvl) {      
     
-      unsigned int step_lvl = pow(2, lvl-1);
-      unsigned int width_lvl = floor(size/(step_lvl*2)) + 1;
+      unsigned int step_lvl = (unsigned int) pow(2, lvl-1);
+      unsigned int width_lvl = (unsigned int) floor(size/(step_lvl*2)) + 1;
 #ifdef STD_THREAD
       std::vector<std::thread *> tid(width_lvl);
 #else
@@ -186,7 +186,7 @@ void ProbTrajEngine::displayProbTraj(ProbTrajDisplayer<NetworkState>* displayer)
 if (getWorldRank() == 0) {
 #endif
 
-  merged_cumulator->displayProbTraj(network, refnode_count, displayer);
+  merged_cumulator->displayProbTraj(refnode_count, displayer);
 
 #ifdef MPI_COMPAT
 }
@@ -200,7 +200,7 @@ if (getWorldRank() == 0) {
 #endif
 
   Probe probe;
-  merged_cumulator->displayStatDist(network, refnode_count, statdist_displayer);
+  merged_cumulator->displayStatDist(statdist_displayer);
   probe.stop();
   elapsed_statdist_runtime = probe.elapsed_msecs();
   user_statdist_runtime = probe.user_msecs();

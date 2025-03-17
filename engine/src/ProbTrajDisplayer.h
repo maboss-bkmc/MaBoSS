@@ -90,51 +90,51 @@ public:
     double proba;
     double err_proba;
 
-    Proba(const S& state, double proba, double err_proba) : state(state), proba(proba), err_proba(err_proba) { }
+    Proba(const S& _state, double _proba, double _err_proba) : state(_state), proba(_proba), err_proba(_err_proba) { }
   };
 
   std::vector<Proba> proba_v;
 
-  ProbTrajDisplayer(Network* network, bool hexfloat = false) : network(network), hexfloat(hexfloat), current_line(0), HD_v(NULL) { }
+  ProbTrajDisplayer(Network* _network, bool _hexfloat = false) : network(_network), hexfloat(_hexfloat), current_line(0), HD_v(NULL) { }
 
 // public:
-  void begin(bool compute_errors, size_t maxrows, size_t maxcols, size_t max_simplecols, size_t refnode_count, std::vector<S>& states, std::vector<NetworkState_Impl>& simple_states) {
-    this->compute_errors = compute_errors;
-    this->refnode_count = refnode_count;
-    this->maxrows = maxrows;
-    this->maxcols = maxcols;
-    this->max_simplecols = max_simplecols;
-    this->HD_v = new double[refnode_count+1];
-    this->states = states;
-    this->simple_states = simple_states;
+  void begin(bool _compute_errors, size_t _maxrows, size_t _maxcols, size_t _max_simplecols, size_t _refnode_count, std::vector<S>& _states, std::vector<NetworkState_Impl>& _simple_states) {
+    this->compute_errors = _compute_errors;
+    this->maxrows = _maxrows;
+    this->maxcols = _maxcols;
+    this->max_simplecols = _max_simplecols;
+    this->refnode_count = _refnode_count;
+    this->HD_v = new double[_refnode_count+1];
+    this->states = _states;
+    this->simple_states = _simple_states;
     
-    for (size_t i = 0; i < states.size(); ++i) {
-      state_to_index[states[i]] = i;
+    for (size_t i = 0; i < _states.size(); ++i) {
+      state_to_index[_states[i]] = i;
     }
     
-    for (size_t i = 0; i < simple_states.size(); ++i) {
-      simple_state_to_index[simple_states[i]] = i;
+    for (size_t i = 0; i < _simple_states.size(); ++i) {
+      simple_state_to_index[_simple_states[i]] = i;
     }
 
     beginDisplay();
   }
 
-  void beginTimeTick(double time_tick) {
-    this->time_tick = time_tick;
+  void beginTimeTick(double _time_tick) {
+    this->time_tick = _time_tick;
     proba_v.clear();
     beginTimeTickDisplay();
   }
 
-  void setTH(double TH) {
-    this->TH = TH;
+  void setTH(double _TH) {
+    this->TH = _TH;
   }
 
-  void setErrorTH(double err_TH) {
-    this->err_TH = err_TH;
+  void setErrorTH(double _err_TH) {
+    this->err_TH = _err_TH;
   }
 
-  void setH(double H) {
-    this->H = H;
+  void setH(double _H) {
+    this->H = _H;
   }
 
   void setHD(unsigned int ind, double HD) {
@@ -233,7 +233,7 @@ class JSONProbTrajDisplayer : public ProbTrajDisplayer<S> {
   std::ostream& os_probtraj;
 
 public:
-  JSONProbTrajDisplayer(Network* network, std::ostream& os_probtraj, bool hexfloat = false) : ProbTrajDisplayer<S>(network, hexfloat), os_probtraj(os_probtraj) { }
+  JSONProbTrajDisplayer(Network* _network, std::ostream& _os_probtraj, bool _hexfloat = false) : ProbTrajDisplayer<S>(_network, _hexfloat), os_probtraj(_os_probtraj) { }
 
   virtual void beginDisplay() {
     // void JSONProbTrajDisplayer<N, S>::beginDisplay() {

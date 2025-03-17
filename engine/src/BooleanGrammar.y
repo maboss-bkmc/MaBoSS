@@ -151,8 +151,8 @@ node_decl: NODE IDENTIFIER '{' node_decl_item_list '}'
 
   NodeDecl* node_decl = new NodeDecl($1, decl_item_v);
   free($1);
-  for (auto * decl_item : *decl_item_v) {
-    delete decl_item;
+  for (auto * d_decl_item : *decl_item_v) {
+    delete d_decl_item;
   }
   delete decl_item_v;
   delete node_decl;
@@ -291,7 +291,7 @@ primary_expression: IDENTIFIER
 }
 | INTEGER
 {
-  $$ = new ConstantExpression($1);
+  $$ = new ConstantExpression((double) $1);
   
 }
 | DOUBLE

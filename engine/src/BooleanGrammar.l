@@ -174,7 +174,7 @@ static char *yytokstr()
    s = (unsigned char *)malloc(s_size);
 
    int n, backslash;
-   for (n = 0, backslash = 0; (c = yyinput()) != 0 && c != 255; n++) {
+   for (n = 0, backslash = 0; (c = (unsigned char) yyinput()) != 0 && c != 255; n++) {
        if (c == '\n') {
          input_lineno++;
        }

@@ -227,7 +227,7 @@ class Probe {
 
   long long sys_msecs() const {
 
-    return (1000.0 * (c_stop - c_start) / CLOCKS_PER_SEC);
+    return (1000 * (c_stop - c_start) / CLOCKS_PER_SEC);
 
   }
 

@@ -56,9 +56,9 @@
 
 const std::string StochasticSimulationEngine::VERSION = "1.0.0";
 
-NodeIndex StochasticSimulationEngine::getTargetNode(RandomGenerator *random_generator, const std::vector<double> &nodeTransitionRates, double total_rate) const
+NodeIndex StochasticSimulationEngine::getTargetNode(RandomGenerator *_random_generator, const std::vector<double> &nodeTransitionRates, double total_rate) const
 {
-  double U_rand2 = random_generator->generate();
+  double U_rand2 = _random_generator->generate();
   double random_rate = U_rand2 * total_rate;
   NodeIndex node_idx = INVALID_NODE_INDEX;
   

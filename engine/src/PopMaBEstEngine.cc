@@ -609,12 +609,12 @@ void PopMaBEstEngine::mergeResults()
     
     
     unsigned int lvl=1;
-    unsigned int max_lvl = ceil(log2(size));
+    unsigned int max_lvl = (unsigned int) ceil(log2(size));
 
     while(lvl <= max_lvl) {      
     
-      unsigned int step_lvl = pow(2, lvl-1);
-      unsigned int width_lvl = floor(size/(step_lvl*2)) + 1;
+      unsigned int step_lvl = (unsigned int) pow(2, lvl-1);
+      unsigned int width_lvl = (unsigned int) floor(size/(step_lvl*2)) + 1;
 #ifdef STD_THREAD
       std::vector<std::thread*> tid(width_lvl);
 #else
@@ -878,7 +878,7 @@ void PopMaBEstEngine::displayPopProbTraj(ProbTrajDisplayer<PopNetworkState> *dis
 if (getWorldRank() == 0) {
 #endif
   if (!runconfig->hasCustomPopOutput())
-    merged_cumulator->displayProbTraj(pop_network, refnode_count, displayer);
+    merged_cumulator->displayProbTraj(refnode_count, displayer);
   
 #ifdef MPI_COMPAT
 }
@@ -932,7 +932,7 @@ if (getWorldRank() == 0) {
 
 void PopMaBEstEngine::displayCustomPopProbTraj(ProbTrajDisplayer<PopSize>* displayer) const
 {
-  custom_pop_cumulator->displayProbTraj(pop_network, refnode_count, displayer);
+  custom_pop_cumulator->displayProbTraj(refnode_count, displayer);
 }
 const std::map<unsigned int, std::pair<NetworkState, double> > PopMaBEstEngine::getFixPointsDists() const {
   
@@ -941,7 +941,7 @@ const std::map<unsigned int, std::pair<NetworkState, double> > PopMaBEstEngine::
     return res;
   }
 
-  size_t nn = 0;
+  unsigned int nn = 0;
   for (const auto & fp : *fixpoints) {
     const NetworkState& network_state = fp.first;
     res[nn++] = std::make_pair(network_state,(double) fp.second / sample_count);

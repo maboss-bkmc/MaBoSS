@@ -130,9 +130,9 @@ class Rand48RandomGenerator: public RandomGenerator
   unsigned x[3] = { RAND48_X0, RAND48_X1, RAND48_X2 }, a[3] = { RAND48_A0, RAND48_A1, RAND48_A2 }, c = RAND48_C;
   int seed;
 public:
-  Rand48RandomGenerator(int seed)
+  Rand48RandomGenerator(int _seed)
   {
-    setSeed(seed);
+    setSeed(_seed);
   }
   bool isPseudoRandom() const {
     return true;
@@ -187,9 +187,9 @@ public:
     return (two16m * (two16m * (two16m * x[0] + x[1]) + x[2]));
   }
 
-  virtual void setSeed(int seed) {
-    this->seed = seed;
-	  RAND48_SEED(RAND48_X0, RAND48_LOW(seed), RAND48_HIGH(seed));
+  virtual void setSeed(int _seed) {
+    this->seed = _seed;
+	  RAND48_SEED(RAND48_X0, RAND48_LOW(_seed), RAND48_HIGH(_seed));
   }
 };
 
@@ -210,16 +210,16 @@ class GLibCRandomGenerator : public RandomGenerator
   int n;
   int r[SIZE_R];
 
-  void glibc_srand(int seed) {
+  void glibc_srand(int _seed) {
 
     /* We must make sure the seed is not 0.  Take arbitrarily 1 in this case.  
        Source: https://sourceware.org/git/?p=glibc.git;a=blob;f=stdlib/random_r.c;hb=glibc-2.15#l180
     */
-    if (seed == 0)
-      seed = 1;
+    if (_seed == 0)
+      _seed = 1;
     
     int i;
-    r[0] = seed;
+    r[0] = _seed;
     for (i=1; i<31; i++) {
         r[i] = (16807LL * r[i-1]) % GLIBCRAND_MAX;
         if (r[i] < 0) {
@@ -242,8 +242,8 @@ class GLibCRandomGenerator : public RandomGenerator
   }
 
  public:
-  GLibCRandomGenerator(int seed) : seed(seed) {
-    glibc_srand(seed);
+  GLibCRandomGenerator(int _seed) : seed(_seed) {
+    glibc_srand(_seed);
   }
 
   bool isPseudoRandom() const {
@@ -270,9 +270,9 @@ class GLibCRandomGenerator : public RandomGenerator
     return double(glibc_rand()) / GLIBCRAND_MAX;
   }
 
-  virtual void setSeed(int seed) {
-    this->seed = seed;
-    glibc_srand(seed);
+  virtual void setSeed(int _seed) {
+    this->seed = _seed;
+    glibc_srand(_seed);
   }
 
 };
@@ -285,8 +285,8 @@ class MT19937RandomGenerator : public RandomGenerator
   std::mt19937 generator;
   std::uniform_real_distribution<double> dis;
 
-  void mt19937_srand(int seed) {
-    generator = std::mt19937(seed);
+  void mt19937_srand(int _seed) {
+    generator = std::mt19937(_seed);
   }
 
   unsigned int mt19937_rand() {
@@ -294,8 +294,8 @@ class MT19937RandomGenerator : public RandomGenerator
   }
 
  public:
-  MT19937RandomGenerator(int seed) : seed(seed) {
-    mt19937_srand(seed);
+  MT19937RandomGenerator(int _seed) : seed(_seed) {
+    mt19937_srand(_seed);
     dis = std::uniform_real_distribution<double>(0.0, 1.0);
   }
 
@@ -323,9 +323,9 @@ class MT19937RandomGenerator : public RandomGenerator
     return dis(generator);
   }
 
-  virtual void setSeed(int seed) {
-    this->seed = seed;
-    mt19937_srand(seed);
+  virtual void setSeed(int _seed) {
+    this->seed = _seed;
+    mt19937_srand(_seed);
   }
 
 };
@@ -417,7 +417,7 @@ private:
   Type type;
 
 public:
-  RandomGeneratorFactory(Type type) : type(type) { }
+  RandomGeneratorFactory(Type _type) : type(_type) { }
 
   RandomGenerator* generateRandomGenerator(int seed=1) const {
     switch(type) {

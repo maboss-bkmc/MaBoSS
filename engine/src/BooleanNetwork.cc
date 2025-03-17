@@ -100,9 +100,9 @@ void Node::reset()
   rateDownExpr = NULL;
 }
 
-void Node::setLogicalInputExpression(const Expression* logicalInputExpr) {
+void Node::setLogicalInputExpression(const Expression* _logicalInputExpr) {
   delete this->logicalInputExpr;
-  this->logicalInputExpr = logicalInputExpr;
+  this->logicalInputExpr = _logicalInputExpr;
 }
 
 void Node::setRateUpExpression(const Expression* expr) {
@@ -153,7 +153,7 @@ int Network::parseExpression(const char* content, std::map<std::string, NodeInde
     ctbndllex_destroy();
     return 0;
   }
-  catch (const BNException& e) 
+  catch (const BNException&) 
   {
     set_current_network(NULL);
     ctbndllex_destroy();
@@ -217,7 +217,7 @@ int Network::parse(const char* file, std::map<std::string, NodeIndex>* nodes_ind
 
     return 0;
   }
-  catch (const BNException& e) 
+  catch (const BNException&) 
   {  
     if (NULL != file)
       fclose(ctbndlin);
@@ -285,8 +285,8 @@ Expression* PopNetwork::parseSingleExpression(const char* content, std::map<std:
 }
 
 
-void DivisionRule::setRate(Expression* rate) {  
-  this->rate = rate;
+void DivisionRule::setRate(Expression* _rate) {  
+  this->rate = _rate;
 }
 
 double DivisionRule::getRate(const NetworkState& state, const PopNetworkState& pop) {
@@ -866,7 +866,7 @@ void PopIStateGroup::initPopStates(PopNetwork* network, PopNetworkState& initial
         assert(rand >= 0. && rand <= 1.);
         
         NetworkState network_state;
-        double pop_size = 0;
+        unsigned int pop_size = 0;
         double proba_sum = 0;
         
         // std::cout << "Creating a random initial state from " << proba_istates->size() << " possibilities " << std::endl;

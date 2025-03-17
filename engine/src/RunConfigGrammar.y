@@ -315,7 +315,7 @@ custom_pop_output_decl: CUSTOM_POP_OUTPUT '=' expression ';'
 
 primary_expression: INTEGER
 {
-  $$ = new ConstantExpression($1);
+  $$ = new ConstantExpression((double) $1);
 }
 | DOUBLE
 {

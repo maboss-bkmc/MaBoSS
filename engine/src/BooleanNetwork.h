@@ -317,8 +317,8 @@ class Node {
     return label;
   }
 
-  void setDescription(const std::string& description) {
-    this->description = description;
+  void setDescription(const std::string& _description) {
+    this->description = _description;
   }
 
   const std::string& getDescription() const {
@@ -363,9 +363,9 @@ class Node {
 
   NodeState getIState(const Network* network, RandomGenerator* randgen) const;
 
-  void setIState(NodeState istate) {
+  void setIState(NodeState _istate) {
     istate_set = true;
-    this->istate = istate;
+    this->istate = _istate;
   }
 
   bool istateSetRandomly() const {
@@ -380,29 +380,29 @@ class Node {
     return in_graph;
   }
 
-  void isInternal(bool is_internal) {
-    this->is_internal = is_internal;
+  void isInternal(bool _is_internal) {
+    this->is_internal = _is_internal;
   }
   
-  void inGraph(bool in_graph) {
-    this->in_graph = in_graph;
+  void inGraph(bool _in_graph) {
+    this->in_graph = _in_graph;
   }
 
   bool isReference() const {
     return is_reference;
   }
 
-  void setReference(bool is_reference) {
-    this->is_reference = is_reference;
+  void setReference(bool _is_reference) {
+    this->is_reference = _is_reference;
   }
 
   NodeState getReferenceState() const {
     return referenceState;
   }
 
-  void setReferenceState(NodeState referenceState) {
+  void setReferenceState(NodeState _referenceState) {
     this->is_reference = true;
-    this->referenceState = referenceState;
+    this->referenceState = _referenceState;
   }
 
   const Expression* getAttributeExpression(const std::string& attr_name) const {
@@ -478,14 +478,14 @@ class Node {
   Expression* generateRawLogicalExpression() const;
   void generateLogicalExpression(LogicalExprGenContext& gen) const;
 
-  static void setOverride(bool override) {
-    Node::override = override;
+  static void setOverride(bool _override) {
+    Node::override = _override;
   }
 
   static bool isOverride() {return override;}
 
-  static void setAugment(bool augment) {
-    Node::augment = augment;
+  static void setAugment(bool _augment) {
+    Node::augment = _augment;
   }
 
   static bool isAugment() {return augment;}
@@ -1342,7 +1342,7 @@ namespace std {
 class PopSize {
   unsigned int size;
 public:
-  PopSize(unsigned int size) : size(size) { }
+  PopSize(unsigned int _size) : size(_size) { }
   PopSize() : size(0) { }
   PopSize(const PopSize& p, int copy ) {
     this->size = p.getSize();
@@ -1458,8 +1458,8 @@ public:
     return (double)node->getNodeState(network_state);
   }
 
-  bool hasCycle(Node* node) const {
-    return this->node == node;
+  bool hasCycle(Node* _node) const {
+    return this->node == _node;
   }
 
   void display(std::ostream& os) const {
@@ -2651,7 +2651,6 @@ public:
       state_value_list = new std::vector<double>();
       for (auto * state_expr : *state_expr_list)
       {
-        NetworkState network_state;
         state_value_list->push_back(state_expr->eval(NULL, network_state));
 	    }
     }
@@ -2765,13 +2764,14 @@ public:
 
   static void removeNode(Network * network, const Node * node) {
       
-    int to_delete = -1;
+    // Initialized at size(), so we can use < size() to check if something changed
+    size_t to_delete = network->getIStateGroup()->size();
     for (size_t i=0; i < network->getIStateGroup()->size(); i++) 
     {
       auto * istate_group = network->getIStateGroup()->at(i);  
       if (istate_group->hasNode(node)) {
         if (istate_group->getNodes()->size() == 1) {
-          if (to_delete != -1) {
+          if (to_delete < network->getIStateGroup()->size()) {
             throw BNException("Two IStateGroup with the same node");
           }
           to_delete = i;
@@ -2779,11 +2779,11 @@ public:
           break;
           
         } else {
-          size_t i;
+          size_t ii;
           std::vector<const Node*>* group_nodes = istate_group->getNodes();
-          for(i = 0; i < group_nodes->size(); i++) {
-              if (group_nodes->at(i) == node) {
-                group_nodes->erase(group_nodes->begin() + (std::ptrdiff_t) i);
+          for(ii = 0; ii < group_nodes->size(); ii++) {
+              if (group_nodes->at(ii) == node) {
+                group_nodes->erase(group_nodes->begin() + (std::ptrdiff_t) ii);
                 break;
               }
           }
@@ -2796,7 +2796,7 @@ public:
         } 
       }
     }
-    if (to_delete != -1)
+    if (to_delete < network->getIStateGroup()->size())
       network->getIStateGroup()->erase(network->getIStateGroup()->begin() + (std::ptrdiff_t) to_delete);
   }
   

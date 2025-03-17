@@ -409,10 +409,10 @@ class SBMLParser
             
             if (tree->getChild(0)->getType() == AST_NAME && tree->getChild(1)->getType() == AST_INTEGER) {
                 name = tree->getChild(0)->getName();
-                value = tree->getChild(1)->getValue();
+                value = (int) tree->getChild(1)->getValue();
             } else if (tree->getChild(1)->getType() == AST_NAME && tree->getChild(0)->getType() == AST_INTEGER) {
                 name = tree->getChild(1)->getName();
-                value = tree->getChild(0)->getValue();
+                value = (int) tree->getChild(0)->getValue();
             } else throw BNException("Not Implemented : SBML qual multivalued formulas nodeA == nodeB");
             
             // Here when we ask for a specific level i, what we mean in boolean is A_b1 & A_b2 & ... & A_bi & !A_b(i+1) We don't need the following ones, 
@@ -451,10 +451,10 @@ class SBMLParser
         {
             if (tree->getChild(0)->getType() == AST_NAME && tree->getChild(1)->getType() == AST_INTEGER) {
                 name = tree->getChild(0)->getName();
-                value = tree->getChild(1)->getValue();
+                value = (int) tree->getChild(1)->getValue();
             } else if (tree->getChild(1)->getType() == AST_NAME && tree->getChild(0)->getType() == AST_INTEGER) {
                 name = tree->getChild(1)->getName();
-                value = tree->getChild(0)->getValue();
+                value = (int) tree->getChild(0)->getValue();
             } else throw BNException("Not Implemented : SBML qual multivalued formulas nodeA <= nodeB");
             
             // First one :
@@ -491,10 +491,10 @@ class SBMLParser
         {
             if (tree->getChild(0)->getType() == AST_NAME && tree->getChild(1)->getType() == AST_INTEGER) {
                 name = tree->getChild(0)->getName();
-                value = tree->getChild(1)->getValue();
+                value = (int) tree->getChild(1)->getValue();
             } else if (tree->getChild(1)->getType() == AST_NAME && tree->getChild(0)->getType() == AST_INTEGER) {
                 name = tree->getChild(1)->getName();
-                value = tree->getChild(0)->getValue();
+                value = (int) tree->getChild(0)->getValue();
             } else throw BNException("Not Implemented : SBML qual multivalued formulas nodeA >= nodeB");
             
             if (value == 0) {

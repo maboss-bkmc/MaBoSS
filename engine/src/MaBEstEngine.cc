@@ -92,7 +92,6 @@ MaBEstEngine::MaBEstEngine(Network* network, RunConfig* runconfig) :
     }
   }
 
-  observed_graph = new ObservedGraph(network);
 
   merged_cumulator = NULL;
   cumulator_v.resize(thread_count);
@@ -155,7 +154,7 @@ void* MaBEstEngine::threadWrapper(void *arg)
   return NULL;
 }
 
-void MaBEstEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, long long int* elapsed_time, int seed, FixedPoints* fixpoint_map, ObservedGraph* observed_graph, std::ostream* output_traj)
+void MaBEstEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, long long int* elapsed_time, int seed, FixedPoints* fixpoint_map, ObservedGraph* _observed_graph, std::ostream* output_traj)
 {
   const std::vector<Node*>& nodes = network->getNodes();
   std::vector<Node*>::const_iterator begin = nodes.begin();
@@ -179,7 +178,7 @@ void MaBEstEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int st
       (*output_traj) << '\n';
     }
     
-    observed_graph->addFirstTransition(network_state);
+    _observed_graph->addFirstTransition(network_state);
 
     while (tm < max_time) {
       double total_rate = 0.;
@@ -244,7 +243,7 @@ void MaBEstEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int st
       NodeIndex node_idx = getTargetNode(network, random_generator, nodeTransitionRates, total_rate);
       network_state.flipState(network->getNode(node_idx));
       
-      observed_graph->addTransition(network_state, tm);
+      _observed_graph->addTransition(network_state, tm);
     }
     cumulator->trajectoryEpilogue();
   }

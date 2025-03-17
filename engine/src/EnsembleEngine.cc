@@ -141,15 +141,15 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
     for (unsigned int nn = 0; nn < networks.size(); ++nn) {
       if (nn == 0) {
 #ifdef MPI_COMPAT    
-        simulations_per_model[nn] = floor(global_sample_count/networks.size()) + (global_sample_count % networks.size());
+        simulations_per_model[nn] = (unsigned int) floor(global_sample_count/networks.size()) + (global_sample_count % networks.size());
 #else
-        simulations_per_model[nn] = floor(sample_count/networks.size()) + (sample_count % networks.size());
+        simulations_per_model[nn] = (unsigned int) floor(sample_count/networks.size()) + (sample_count % networks.size());
 #endif
       } else {
 #ifdef MPI_COMPAT
-        simulations_per_model[nn] = floor(global_sample_count/networks.size());
+        simulations_per_model[nn] = (unsigned int) floor(global_sample_count/networks.size());
 #else
-        simulations_per_model[nn] = floor(sample_count/networks.size());
+        simulations_per_model[nn] = (unsigned int) floor(sample_count/networks.size());
 #endif
       }
     }
@@ -407,15 +407,14 @@ void* EnsembleEngine::threadWrapper(void *arg)
 }
 
 void EnsembleEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, 
-  RandomGeneratorFactory* randgen_factory, int seed, FixedPoints* fixpoint_map, ObservedGraph* observed_graph, std::ostream* output_traj, 
+  RandomGeneratorFactory* randgen_factory, int seed, FixedPoints* fixpoint_map, ObservedGraph* _observed_graph, std::ostream* output_traj, 
   std::vector<unsigned int> simulation_ind, std::vector<Cumulator<NetworkState>*> t_models_cumulators, std::vector<FixedPoints* > t_models_fixpoints, std::vector<ObservedGraph*> t_models_observed_graphs)
 {
   NetworkState network_state; 
 
   int model_ind = 0;
   RandomGenerator* random_generator = randgen_factory->generateRandomGenerator(seed);
-  const std::vector<Node*>& nodes = networks[0]->getNodes();
-  std::vector<double> nodeTransitionRates(nodes.size(), 0.0);
+  std::vector<double> nodeTransitionRates(networks[0]->getNodes().size(), 0.0);
   for (unsigned int nn = 0; nn < sample_count_thread; ++nn) {
 
 #ifdef MPI_COMPAT
@@ -429,8 +428,8 @@ void EnsembleEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int 
       model_ind++;
     }
 
-    Network* network = networks[network_index];
-    const std::vector<Node*>& nodes = network->getNodes();
+    Network* chosen_network = networks[network_index];
+    const std::vector<Node*>& nodes = chosen_network->getNodes();
     std::vector<Node*>::const_iterator begin = nodes.begin();
     // std::vector<Node*>::const_iterator end = nodes.end();
   
@@ -439,16 +438,16 @@ void EnsembleEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int 
       t_models_cumulators[model_ind]->rewind();
     }
     
-    network->initStates(network_state, random_generator);
+    chosen_network->initStates(network_state, random_generator);
     double tm = 0.;
     if (NULL != output_traj) {
       (*output_traj) << "\nTrajectory #" << (nn+1) << '\n';
       (*output_traj) << " istate\t";
-      network_state.displayOneLine(*output_traj, network);
+      network_state.displayOneLine(*output_traj, chosen_network);
       (*output_traj) << '\n';
     }
     
-    observed_graph->addFirstTransition(network_state);
+    _observed_graph->addFirstTransition(network_state);
     
     while (tm < max_time) {
       double total_rate = 0.;
@@ -487,7 +486,7 @@ void EnsembleEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int 
 
         if (save_individual_result) {
           FixedPoints* t_fixpoint_map = t_models_fixpoints[model_ind];
-          FixedPoints::iterator iter = t_fixpoint_map->find(network_state.getState());
+          iter = t_fixpoint_map->find(network_state.getState());
           if (iter == t_fixpoint_map->end()) {
             (*t_fixpoint_map)[network_state.getState()] = 1;
           } else {
@@ -505,12 +504,12 @@ void EnsembleEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int 
         }
         
         tm += transition_time;
-        TH = computeTH(network, nodeTransitionRates, total_rate);
+        TH = computeTH(chosen_network, nodeTransitionRates, total_rate);
       }
 
       if (NULL != output_traj) {
 	(*output_traj) << std::setprecision(10) << tm << '\t';
-	network_state.displayOneLine(*output_traj, network);
+	network_state.displayOneLine(*output_traj, chosen_network);
 	(*output_traj) << '\t' << TH << '\n';
       }
 
@@ -523,10 +522,10 @@ void EnsembleEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int 
 	      break;
       }
 
-      NodeIndex node_idx = getTargetNode(network, random_generator, nodeTransitionRates, total_rate);
-      network_state.flipState(network->getNode(node_idx));
+      NodeIndex node_idx = getTargetNode(chosen_network, random_generator, nodeTransitionRates, total_rate);
+      network_state.flipState(chosen_network->getNode(node_idx));
       
-      observed_graph->addTransition(network_state, tm);
+      _observed_graph->addTransition(network_state, tm);
     }
 
     cumulator->trajectoryEpilogue();
@@ -689,8 +688,8 @@ if (world_rank == 0){
 #endif
 
   if (cumulators_per_model[model_id] != NULL) {
-    cumulators_per_model[model_id]->displayProbTraj(networks[model_id], refnode_count, probtraj_displayer);
-    cumulators_per_model[model_id]->displayStatDist(networks[model_id], refnode_count, statdist_displayer);
+    cumulators_per_model[model_id]->displayProbTraj(refnode_count, probtraj_displayer);
+    cumulators_per_model[model_id]->displayStatDist(statdist_displayer);
   }
 
   displayIndividualFixpoints(model_id, fp_displayer);

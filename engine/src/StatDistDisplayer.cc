@@ -112,11 +112,11 @@ void JSONStatDistDisplayer::endFactoryCluster() {
     cluster_mode = false;
 }
 
-void JSONStatDistDisplayer::beginCluster(size_t num, size_t size) {
-  if (num > 1) {
+void JSONStatDistDisplayer::beginCluster(size_t _num, size_t size) {
+  if (_num > 1) {
     os_statdist_cluster << ",";
   }
-  os_statdist_cluster << "{\"num\":" << num << ",\"size\":" << size << ",\"cluster\":[";
+  os_statdist_cluster << "{\"num\":" << _num << ",\"size\":" << size << ",\"cluster\":[";
   current_state_proba = 0;
   current_line = 0;
 }
@@ -133,11 +133,11 @@ void JSONStatDistDisplayer::endClusterFactoryStationaryDistribution() {
   os_statdist_distrib << "]";
 }
 
-void JSONStatDistDisplayer::beginClusterStationaryDistribution(size_t num) {
-  if (num > 1) {
+void JSONStatDistDisplayer::beginClusterStationaryDistribution(size_t _num) {
+  if (_num > 1) {
     os_statdist_distrib << ",";
   }
-  os_statdist_distrib << "{\"num\":" << num << ",\"proba_variances\":[";
+  os_statdist_distrib << "{\"num\":" << _num << ",\"proba_variances\":[";
   current_state_proba = 0;
 }
 
@@ -201,8 +201,8 @@ void CSVStatDistDisplayer::endStatDistDisplay() {
 void CSVStatDistDisplayer::endDisplay() {
 }
 
-void CSVStatDistDisplayer::beginCluster(size_t num, size_t size) {
-  os_statdist << "\nTrajectory[cluster=#" << num << ",size=" << size << "]\tState\tProba\tState\tProba\tState\tProba\tState\tProba ...\n";
+void CSVStatDistDisplayer::beginCluster(size_t _num, size_t size) {
+  os_statdist << "\nTrajectory[cluster=#" << _num << ",size=" << size << "]\tState\tProba\tState\tProba\tState\tProba\tState\tProba ...\n";
 }
 
 void CSVStatDistDisplayer::endCluster() {
@@ -215,8 +215,8 @@ void CSVStatDistDisplayer::beginClusterFactoryStationaryDistribution() {
 void CSVStatDistDisplayer::endClusterFactoryStationaryDistribution() {
 }
 
-void CSVStatDistDisplayer::beginClusterStationaryDistribution(size_t num) {
-  os_statdist << "#" << num;
+void CSVStatDistDisplayer::beginClusterStationaryDistribution(size_t _num) {
+  os_statdist << "#" << _num;
 }
 
 void CSVStatDistDisplayer::endClusterStationaryDistribution() {
@@ -266,7 +266,7 @@ void HDF5StatDistDisplayer::beginFactoryCluster() {
 void HDF5StatDistDisplayer::endFactoryCluster() {
 }
 
-void HDF5StatDistDisplayer::beginCluster(size_t num, size_t size) {
+void HDF5StatDistDisplayer::beginCluster(size_t _num, size_t size) {
 }
 
 void HDF5StatDistDisplayer::endCluster() {
@@ -278,7 +278,7 @@ void HDF5StatDistDisplayer::beginClusterFactoryStationaryDistribution() {
 void HDF5StatDistDisplayer::endClusterFactoryStationaryDistribution() {
 }
 
-void HDF5StatDistDisplayer::beginClusterStationaryDistribution(size_t num) {
+void HDF5StatDistDisplayer::beginClusterStationaryDistribution(size_t _num) {
 }
 
 void HDF5StatDistDisplayer::endClusterStationaryDistribution() {

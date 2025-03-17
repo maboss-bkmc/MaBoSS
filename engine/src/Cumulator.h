@@ -592,7 +592,7 @@ public:
         int level;
         // std::cout << "base = " << base << std::endl;
         if (base > 1.001)
-          level = pow(base, (round(log(i)/log(base))));
+          level = (int) pow(base, (round(log(i)/log(base))));
         else  
           level = i;  
         // int level = pow(2, (ceil(log2(i))));
@@ -611,7 +611,7 @@ public:
           // std::cout << value << ", ";
           mean += value;
         }
-        unsigned int imean = round(mean/scale_value.second.size());
+        unsigned int imean = (unsigned int) round(mean/scale_value.second.size());
         // std::cout << "Mean: " << imean << std::endl;
         replace[scale_value.first] = imean;
       }
@@ -702,19 +702,19 @@ public:
     last_tm = tm;
   }
 
-  void setOutputMask(const S& output_mask) {
-    this->output_mask = output_mask;
+  void setOutputMask(const S& _output_mask) {
+    this->output_mask = _output_mask;
   }
   
   S getOutputMask() const {
     return output_mask;
   }
   
-  void setRefnodeMask(const NetworkState_Impl& refnode_mask) {
-    this->refnode_mask = refnode_mask;
+  void setRefnodeMask(const NetworkState_Impl& _refnode_mask) {
+    this->refnode_mask = _refnode_mask;
   }
 
-  void displayProbTraj(Network* network, unsigned int refnode_count, ProbTrajDisplayer<S>* displayer) const 
+  void displayProbTraj(unsigned int _refnode_count, ProbTrajDisplayer<S>* displayer) const 
   {
     std::set<S> result_states = getStates();
     std::vector<S> list_states(result_states.begin(), result_states.end());
@@ -722,7 +722,7 @@ public:
     std::set<NetworkState_Impl> result_simple_states = getSimpleStates();
     std::vector<NetworkState_Impl> list_simple_states(result_simple_states.begin(), result_simple_states.end());
     
-    displayer->begin(COMPUTE_ERRORS, max_tick_index, maxcols, max_simplecols, refnode_count, list_states, list_simple_states);
+    displayer->begin(COMPUTE_ERRORS, max_tick_index, maxcols, max_simplecols, _refnode_count, list_states, list_simple_states);
 
     double time_tick2 = time_tick * time_tick;
     double ratio = time_tick*sample_count;
@@ -756,7 +756,7 @@ public:
       std::string zero_hexfloat = fmthexdouble(0.0);
       // HD
       const MAP<unsigned int, double>& hd_m = HD_v[nn];
-      for (unsigned int hd = 0; hd <= refnode_count; ++hd) { 
+      for (unsigned int hd = 0; hd <= _refnode_count; ++hd) { 
         auto hd_m_iter = hd_m.find(hd);
         if (hd_m_iter != hd_m.end()) {
     displayer->setHD(hd, hd_m_iter->second);
@@ -789,7 +789,7 @@ public:
     }
     displayer->end();
   }
-  void displayStatDist(Network* network, unsigned int refnode_count, StatDistDisplayer* displayer) const {
+  void displayStatDist(StatDistDisplayer* displayer) const {
     // should not be in cumulator, but somehwere in ProbaDist*
 
     // Probability distribution
@@ -798,13 +798,13 @@ public:
       return;
     }
 
-    unsigned int max_size = 0;
+    unsigned int t_max_size = 0;
     unsigned int cnt = 0;
-    unsigned int proba_dist_size = proba_dist_v.size();
+    unsigned int proba_dist_size = (unsigned int) proba_dist_v.size();
     for (unsigned int nn = 0; nn < proba_dist_size; ++nn) {
       const ProbaDist<S>& proba_dist = proba_dist_v[nn];
-      if (proba_dist.size() > max_size) {
-        max_size = proba_dist.size();
+      if (proba_dist.size() > t_max_size) {
+        t_max_size = (unsigned int) proba_dist.size();
       }
       cnt++;
       if (cnt > statdist_traj_count) {
@@ -812,7 +812,7 @@ public:
       }
     }
 
-    displayer->begin(max_size, statdist_traj_count);
+    displayer->begin(t_max_size, statdist_traj_count);
     cnt = 0;
     displayer->beginStatDistDisplay();
     for (unsigned int nn = 0; nn < proba_dist_size; ++nn) {
@@ -1596,10 +1596,10 @@ PyObject* getNumpySimpleLastStatesDists(Network* network) const
       }
       TH_v[nn] /= time_tick;
       if (mp.size() > maxcols) {
-        maxcols = mp.size();
+        maxcols = (unsigned int) mp.size();
       }
       if (network_states.size() > max_simplecols) {
-        max_simplecols = network_states.size();
+        max_simplecols = (unsigned int) network_states.size();
       }
       
       network_states.clear();
@@ -1670,8 +1670,7 @@ PyObject* getNumpySimpleLastStatesDists(Network* network) const
 static void mergePairOfCumulators(Cumulator<S>* cumulator_1, Cumulator<S>* cumulator_2) {
     
   cumulator_1->sample_count += cumulator_2->sample_count;
-  
-  unsigned int rr = cumulator_1->proba_dist_v.size();
+  size_t rr = cumulator_1->proba_dist_v.size();
   cumulator_1->statdist_trajcount += cumulator_2->statdist_trajcount;
   cumulator_1->proba_dist_v.resize(cumulator_1->statdist_trajcount);
   
@@ -1686,15 +1685,16 @@ static void mergePairOfCumulators(Cumulator<S>* cumulator_1, Cumulator<S>* cumul
   size_t t_cumul_size = cumulator_2->cumul_map_v.size();
   for (unsigned int nn = 0; nn < t_cumul_size; ++nn) {
     size_t index = t_cumul_size-nn-1;
-    cumulator_1->add(index, cumulator_2->cumul_map_v[index]);
+    cumulator_1->add((unsigned int) index, cumulator_2->cumul_map_v[index]);
     cumulator_2->cumul_map_v.pop_back();
-    cumulator_1->add(index, cumulator_2->hd_cumul_map_v[index]);
+    cumulator_1->add((unsigned int) index, cumulator_2->hd_cumul_map_v[index]);
     cumulator_2->hd_cumul_map_v.pop_back();
     cumulator_1->TH_square_v[index] += cumulator_2->TH_square_v[index];
     cumulator_2->TH_square_v.pop_back();
   }
-  unsigned int proba_dist_size = cumulator_2->proba_dist_v.size();
-  for (unsigned int ii = 0; ii < proba_dist_size; ++ii) {
+  
+  size_t proba_dist_size = cumulator_2->proba_dist_v.size();
+  for (size_t ii = 0; ii < proba_dist_size; ++ii) {
     assert(cumulator_1->proba_dist_v.size() > rr);
     cumulator_1->proba_dist_v[rr++] = cumulator_2->proba_dist_v[ii];
   }

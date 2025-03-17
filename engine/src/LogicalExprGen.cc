@@ -78,7 +78,6 @@ Expression* Expression::cloneAndShrinkRecursive(Expression* expr)
       return shrinked_expr;
     }
   }
-  return NULL;
 }
 
 Expression* Node::rewriteLogicalExpression(Expression* ref_rateUpExpr, Expression* ref_rateDownExpr) const
@@ -205,8 +204,8 @@ void ConstantExpression::generateLogicalExpression(LogicalExprGenContext& genctx
 void SymbolExpression::generateLogicalExpression(LogicalExprGenContext& genctx) const
 {
   std::ostream& os = genctx.getOStream();
-  double value = symbol_table->getSymbolValue(symbol);
-  os << (value != 0 ? 1 : 0);
+  double t_value = symbol_table->getSymbolValue(symbol);
+  os << (t_value != 0 ? 1 : 0);
 }
 
 void ParenthesisExpression::generateLogicalExpression(LogicalExprGenContext& genctx) const
@@ -427,12 +426,12 @@ void NodeExpression::generateLogicalExpression(LogicalExprGenContext& genctx) co
 
 void AliasExpression::generateLogicalExpression(LogicalExprGenContext& genctx) const
 {
-  const Expression* alias_expr = getAliasExpression(genctx.getNode());
-  if (NULL == alias_expr) {
+  const Expression* t_alias_expr = getAliasExpression(genctx.getNode());
+  if (NULL == t_alias_expr) {
     throw BNException("invalid use of alias attribute @" + identifier + " in node " + genctx.getNode()->getLabel());
   }
 
-  Expression* shrinked_expr = cloneAndShrinkRecursive(alias_expr->clone());
+  Expression* shrinked_expr = cloneAndShrinkRecursive(t_alias_expr->clone());
   shrinked_expr->generateLogicalExpression(genctx);
   delete shrinked_expr;
 }

@@ -53,7 +53,7 @@
 
 //static char *yytokstr();
 static unsigned int input_lineno = 1;
-static const char* file;
+static const char* rc_file;
 static const char* expr;
 static void skip_comment(void);
 %}
@@ -112,14 +112,14 @@ int yywrap(void)
 void rc_set_file(const char* _file)
 {
   input_lineno = 1;
-  file = _file;
+  rc_file = _file;
   expr = NULL;
 }
 
 void yy_set_expr(const char* _expr)
 {
   input_lineno = 1;
-  file = NULL;
+  rc_file = NULL;
   expr = _expr;
 }
 
@@ -127,8 +127,8 @@ static void yyerror(const char *)
 {
   char tok[32];
   snprintf(tok, 32, "%u", input_lineno);
-  if (file) {
-    throw BNException("configuration syntax error at line #" + std::string(tok) + " in file \"" + file + "\"");
+  if (rc_file) {
+    throw BNException("configuration syntax error at line #" + std::string(tok) + " in file \"" + rc_file + "\"");
   } else {
     throw BNException("configuration syntax error in expression '" + std::string(expr) + "'");
   }

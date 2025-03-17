@@ -290,7 +290,7 @@ int run_ensemble_istates(std::vector<char *> ctbndl_files, std::vector<ConfigOpt
   first_network->parse(ctbndl_files[0]);
   networks.push_back(first_network);
 
-  const ConfigOpt& cfg = runconfig_file_or_expr_v[0];
+  ConfigOpt& cfg = runconfig_file_or_expr_v[0];
 	if (cfg.isExpr()) {
 	  runconfig->parseExpression(networks[0], (cfg.getExpr() + ";").c_str());
 	} else {
@@ -312,7 +312,7 @@ int run_ensemble_istates(std::vector<char *> ctbndl_files, std::vector<ConfigOpt
     network->parse(ctbndl_files[i], &nodes_indexes);
     networks.push_back(network);
 
-    const ConfigOpt& cfg = runconfig_file_or_expr_v[i];
+    cfg = runconfig_file_or_expr_v[i];
     if (cfg.isExpr()) {
       runconfig->parseExpression(networks[i], (cfg.getExpr() + ";").c_str());
     } else {
@@ -489,7 +489,7 @@ nodes[j]->isInternal(first_network_nodes[j]->isInternal());
   return 0;
 }
 
-int run_single(const char* ctbndl_file, std::vector<std::string> runconfig_var_v, std::vector<ConfigOpt> runconfig_file_or_expr_v, const char* output, OutputFormat format, bool hexfloat, bool generate_config_template) 
+int run_single(const char* ctbndl_file, std::vector<std::string> runconfig_var_v, std::vector<ConfigOpt> runconfig_file_or_expr_v, const char* output, bool generate_config_template) 
 {
   Network* network = new Network();
 
@@ -780,7 +780,7 @@ int main(int argc, char* argv[])
     } else if (single_simulation) {
       run_single(
         ctbndl_file, runconfig_var_v, runconfig_file_or_expr_v, 
-        output, format, hexfloat, generate_config_template
+        output, generate_config_template
       ); 
       
     } else {

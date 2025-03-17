@@ -227,7 +227,7 @@ int RunConfig::parse(Network* network, const char* file)
 
     return res;
   }
-  catch(const BNException& e)
+  catch(const BNException&)
   {
     runconfig_setNetwork(NULL);
     runconfig_setConfig(NULL);
@@ -256,7 +256,7 @@ int RunConfig::parseExpression(Network* network, const char* expr)
     
     return res;
   }
-  catch(const BNException& e)
+  catch(const BNException&)
   {
     runconfig_setNetwork(NULL);
     runconfig_setConfig(NULL);

@@ -156,12 +156,12 @@ void ProbaDistCluster::computeStationaryDistribution()
     while (iter.hasNext()) {
       double proba;
       const NetworkState& state = iter.next2(proba);
-      auto iter = stat_dist_map.find(state);
-      if (iter == stat_dist_map.end()) {
+      auto iter2 = stat_dist_map.find(state);
+      if (iter2 == stat_dist_map.end()) {
 	      stat_dist_map[state] = Proba(proba, proba*proba);
       } else {
-        iter->second.proba += proba;
-        iter->second.probaSquare += proba*proba;
+        iter2->second.proba += proba;
+        iter2->second.probaSquare += proba*proba;
       }
     }
   }
@@ -169,8 +169,8 @@ void ProbaDistCluster::computeStationaryDistribution()
 
 void ProbaDistClusterFactory::computeStationaryDistribution()
 {
-  unsigned int size = proba_dist_cluster_v.size();
-  for (unsigned int nn = 0; nn < size; ++nn) {
+  size_t size = proba_dist_cluster_v.size();
+  for (size_t nn = 0; nn < size; ++nn) {
     ProbaDistCluster* cluster = proba_dist_cluster_v[nn];
     cluster->computeStationaryDistribution();
   }
@@ -211,9 +211,9 @@ void ProbaDistCluster::display(StatDistDisplayer* displayer) const
 
 void ProbaDistClusterFactory::display(StatDistDisplayer* displayer) const
 {
-  unsigned int size = proba_dist_cluster_v.size();
+  size_t size = proba_dist_cluster_v.size();
   displayer->beginFactoryCluster();
-  for (unsigned int nn = 0; nn < size; ++nn) {
+  for (size_t nn = 0; nn < size; ++nn) {
     ProbaDistCluster* cluster = proba_dist_cluster_v[nn];
 
     displayer->beginCluster(nn+1, cluster->size());
@@ -225,7 +225,7 @@ void ProbaDistClusterFactory::display(StatDistDisplayer* displayer) const
 
 void ProbaDistCluster::displayStationaryDistribution(StatDistDisplayer* displayer) const
 {
-  unsigned int sz = size();
+  size_t sz = size();
   const double minsquaredouble = DBL_MIN*DBL_MIN;
   for (const auto & stat_dist_entry : stat_dist_map) {
     const NetworkState& state = stat_dist_entry.first;
@@ -245,9 +245,9 @@ void ProbaDistCluster::displayStationaryDistribution(StatDistDisplayer* displaye
 
 void ProbaDistClusterFactory::displayStationaryDistribution(StatDistDisplayer* displayer) const
 {
-  unsigned int size = proba_dist_cluster_v.size();
+  size_t size = proba_dist_cluster_v.size();
   displayer->beginClusterFactoryStationaryDistribution();
-  for (unsigned int nn = 0; nn < size; ++nn) {
+  for (size_t nn = 0; nn < size; ++nn) {
     ProbaDistCluster* cluster = proba_dist_cluster_v[nn];
     displayer->beginClusterStationaryDistribution(nn+1);
     cluster->displayStationaryDistribution(displayer);

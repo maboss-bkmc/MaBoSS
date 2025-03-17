@@ -23,7 +23,7 @@ ObservedGraph::ObservedGraph(const Network* network)
     }
     graph_mask = state_mask.getState();
     
-    graph_states.resize(pow(2, graph_nodes.size()));
+    graph_states.resize((int) pow(2, graph_nodes.size()));
 
     unsigned int i=0;
     for (auto graph_state : graph_states) {
