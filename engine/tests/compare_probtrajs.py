@@ -47,8 +47,10 @@ def main(args):
         table1 = build_table(raw_states1, raw_probas1, states, states_indexes)
         table2 = build_table(raw_states2, raw_probas2, states, states_indexes)    
             
+        return_code = 1
+        
         if len(args) > 3 and args[3] == "--exact":
-            sys.exit(0 if numpy.all(table1 == table2) else 1)
+            return_code = 0 if numpy.all(table1 == table2) else 1
             
         elif len(args) > 3 and args[3] == "--auto":
             
@@ -62,8 +64,8 @@ def main(args):
             
             rtol = numpy.max(numpy.max(table_rtol1)) + numpy.max(numpy.max(table_rtol2))
             
-            sys.exit(0 if numpy.all(numpy.isclose(table1, table2, rtol=rtol, atol=atol)) else 1)
-
+            return_code = 0 if numpy.all(numpy.isclose(table1, table2, rtol=rtol, atol=atol)) else 1
+            
         else:
             rtol = 1e-4
             atol = 1e-8
@@ -72,7 +74,14 @@ def main(args):
             if len(args) > 4:
                 atol = float(args[4])
             
-            sys.exit(0 if numpy.all(numpy.isclose(table1, table2, rtol=rtol, atol=atol)) else 1)
+            return_code = 0 if numpy.all(numpy.isclose(table1, table2, rtol=rtol, atol=atol)) else 1
+            
+        if return_code > 0:
+                print("Reference : ")
+                print(table1)
+                print("Simulation : ")
+                print(table2)
+        sys.exit(return_code)
     else:
         print("Wrong argument number, or files do not exist")    
         sys.exit(1)
