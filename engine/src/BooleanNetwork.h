@@ -1334,6 +1334,9 @@ class PopSize {
 public:
   PopSize(unsigned int size) : size(size) { }
   PopSize() : size(0) { }
+  PopSize(const PopSize& p, int copy ) {
+    this->size = p.getSize();
+  }
   void set() {size = 0;}
   unsigned int getSize() const {return size;}
   static bool isPopState() {return false;}

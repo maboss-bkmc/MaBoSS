@@ -236,6 +236,10 @@ public:
     }
     return 1;
   }
+  
+  bool operator!=(const MBDynBitset& bitset) const {
+    return !((*this) == bitset);
+  }
 
   MBDynBitset operator&(const MBDynBitset& bitset) const {
     if (num_bits != bitset.num_bits) {
@@ -372,6 +376,13 @@ namespace std {
     }
   };
 
+  template <> struct not_equal_to<MBDynBitset >
+  {
+    size_t operator()(const MBDynBitset& val1, const MBDynBitset& val2) const {
+      return val1 != val2;
+    }
+  };
+  
   // Added less operator, necessary for maps, sets. Code from https://stackoverflow.com/a/21245301/11713763
   template <> struct less<MBDynBitset>
   {
