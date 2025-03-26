@@ -3,11 +3,11 @@ cd engine/src
 # export CXXFLAGS="${CXXFLAGS} -I${PREFIX}/include -I${PREFIX}/include/libxml2"
 export LDFLAGS="${LDFLAGS} -L${BUILD_PREFIX}/lib -lxml2"
 
-make SBML_COMPAT=1 install
-make SBML_COMPAT=1 MAXNODES=128 install
-make SBML_COMPAT=1 MAXNODES=256 install
-make SBML_COMPAT=1 MAXNODES=512 install
-make SBML_COMPAT=1 MAXNODES=1024 install
+make SBML_COMPAT=1 CLIENT_SERVER=1 install
+make SBML_COMPAT=1 CLIENT_SERVER=1 MAXNODES=128 install
+make SBML_COMPAT=1 CLIENT_SERVER=1 MAXNODES=256 install
+make SBML_COMPAT=1 CLIENT_SERVER=1 MAXNODES=512 install
+make SBML_COMPAT=1 CLIENT_SERVER=1 MAXNODES=1024 install
 mkdir -p ${PREFIX}/bin
 mv ../pub/MaBoSS  ../pub/MaBoSS_*n ${PREFIX}/bin
 mv ../pub/PopMaBoSS  ../pub/PopMaBoSS_*n ${PREFIX}/bin

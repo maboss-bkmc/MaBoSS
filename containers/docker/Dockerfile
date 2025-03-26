@@ -41,11 +41,11 @@ RUN wget https://github.com/sbmlteam/libsbml/archive/refs/tags/v5.20.4.tar.gz \
 # Installing MaBoSS
 ADD engine/src /opt/MaBoSS/engine/src
 RUN bash -c "rm -fr /opt/MaBoSS/.git"
-RUN bash -c "cd /opt/MaBoSS/engine/src/; make install SBML_COMPAT=1"
-RUN bash -c "cd /opt/MaBoSS/engine/src/; make MAXNODES=128 install SBML_COMPAT=1"
-RUN bash -c "cd /opt/MaBoSS/engine/src/; make MAXNODES=256 install SBML_COMPAT=1"
-RUN bash -c "cd /opt/MaBoSS/engine/src/; make MAXNODES=512 install SBML_COMPAT=1"
-RUN bash -c "cd /opt/MaBoSS/engine/src/; make MAXNODES=1024 install SBML_COMPAT=1"
+RUN bash -c "cd /opt/MaBoSS/engine/src/; make install SBML_COMPAT=1 CLIENT_SERVER=1"
+RUN bash -c "cd /opt/MaBoSS/engine/src/; make MAXNODES=128 install SBML_COMPAT=1 CLIENT_SERVER=1"
+RUN bash -c "cd /opt/MaBoSS/engine/src/; make MAXNODES=256 install SBML_COMPAT=1 CLIENT_SERVER=1"
+RUN bash -c "cd /opt/MaBoSS/engine/src/; make MAXNODES=512 install SBML_COMPAT=1 CLIENT_SERVER=1"
+RUN bash -c "cd /opt/MaBoSS/engine/src/; make MAXNODES=1024 install SBML_COMPAT=1 CLIENT_SERVER=1"
 
 # Exposing port 7777
 EXPOSE 7777

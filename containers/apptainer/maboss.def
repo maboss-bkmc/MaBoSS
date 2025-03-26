@@ -39,11 +39,11 @@ from: ubuntu:22.04
     rm -fr libsbml-5.20.4
     rm -fr /opt/MaBoSS/.git
     
-    bash -c "cd /opt/MaBoSS/engine/src/; make install SBML_COMPAT=1"
-    bash -c "cd /opt/MaBoSS/engine/src/; make MAXNODES=128 install SBML_COMPAT=1"
-    bash -c "cd /opt/MaBoSS/engine/src/; make MAXNODES=256 install SBML_COMPAT=1"
-    bash -c "cd /opt/MaBoSS/engine/src/; make MAXNODES=512 install SBML_COMPAT=1"
-    bash -c "cd /opt/MaBoSS/engine/src/; make MAXNODES=1024 install SBML_COMPAT=1"
+    bash -c "cd /opt/MaBoSS/engine/src/; make install CLIENT_SERVER=1 SBML_COMPAT=1"
+    bash -c "cd /opt/MaBoSS/engine/src/; make install MAXNODES=128 CLIENT_SERVER=1 SBML_COMPAT=1"
+    bash -c "cd /opt/MaBoSS/engine/src/; make install MAXNODES=256 CLIENT_SERVER=1 SBML_COMPAT=1"
+    bash -c "cd /opt/MaBoSS/engine/src/; make install MAXNODES=512 CLIENT_SERVER=1 SBML_COMPAT=1"
+    bash -c "cd /opt/MaBoSS/engine/src/; make install MAXNODES=1024 CLIENT_SERVER=1 SBML_COMPAT=1"
 
 
 %runscript
