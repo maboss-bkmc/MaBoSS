@@ -108,8 +108,14 @@ EXTRA_CXXFLAGS = $(EXTRA_CXXOPT) -Wall -DMAXNODES=$(MAXNODES) $(MPI_FLAG) $(BITS
 
 MAKEDEPEND = $(CC) -M $(EXTRA_FLAGS)
 
+ifndef FLEX
 FLEX = flex
+endif
+
+ifndef BISON
 BISON = bison
+endif bison 
+
 
 CHECK_FLEX  = $(FLEX) --version > /dev/null
 CHECK_BISON = $(BISON) --version > /dev/null
