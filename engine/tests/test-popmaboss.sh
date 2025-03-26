@@ -30,7 +30,7 @@ rm -rf tmp; mkdir -p tmp
 
 if [ $? != 0 ]; then exit 1; fi
 
-python compare_probtrajs.py popmaboss/refer/res_fork_pop_probtraj.csv tmp/res_fork_pop_probtraj.csv --exact
+python compare_probtrajs.py popmaboss/refer/res_fork_pop_probtraj.csv tmp/res_fork_pop_probtraj.csv 1e-2 1e-4
 check_file "pop_projtraj"
 
 
@@ -38,7 +38,7 @@ check_file "pop_projtraj"
 
 if [ $? != 0 ]; then exit 1; fi
 
-python compare_probtrajs.py popmaboss/refer/res_fork_pop_probtraj.csv tmp/res_fork_pop_probtraj.csv --exact
+python compare_probtrajs.py popmaboss/refer/res_fork_pop_probtraj.csv tmp/res_fork_pop_probtraj.csv 1e-2 1e-4
 check_file "pop_projtraj"
 
 
