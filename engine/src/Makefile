@@ -146,25 +146,42 @@ MABOSS_OBJS = $(CORE_LIB_OBJS) $(LIB_OBJS)
 POPMABOSS_OBJS = $(CORE_LIB_OBJS) $(POP_LIB_OBJS)
 endif
 
+ifdef FUNC_MODULE
+.PHONY: func_module
+func_module: $(FUNC_MODULE)
+
+$(FUNC_MODULE): $(FUNC_MODULE).o Function$(INFIX).o
+	$(CXX) -shared -o lib$(FUNC_MODULE).so $(FUNC_MODULE).o Function$(INFIX).o -lpthread -L.
+
+endif
+
 .PHONY: maboss
-maboss: $(MABOSS_LIB) $(FUNC_MODULE) $(MABOSS)
+maboss: $(MABOSS_LIB) $(MABOSS)
+	mkdir -p ../pub
+	cp $(MABOSS) ../pub
 
 .PHONY: popmaboss
-popmaboss: $(POPMABOSS_LIB) $(FUNC_MODULE) $(POPMABOSS)
+popmaboss: $(POPMABOSS_LIB) $(POPMABOSS)
+	mkdir -p ../pub
+	cp $(POPMABOSS) ../pub
 
 .PHONY: client
 client: $(MABOSS_CLIENT)
+	mkdir -p ../pub
+	cp $(MABOSS_CLIENT) ../pub
 
 .PHONY: server
 server: $(MABOSS_SERVER)
+	mkdir -p ../pub
+	cp $(MABOSS_SERVER) ../pub
 
 .PHONY: grammars
 grammars: BooleanGrammar.cc RunConfigGrammar.cc
 
-ifdef MPI_COMPAT
-all: $(MABOSS_LIB) $(MABOSS) $(POPMABOSS) $(FUNC_MODULE)
+ifndef CLIENT_SERVER
+all: maboss popmaboss
 else
-all: $(MABOSS_LIB) $(MABOSS) $(POPMABOSS) $(MABOSS_SERVER) $(MABOSS_CLIENT) $(FUNC_MODULE)
+all: maboss popmaboss client server
 endif
 
 $(MABOSS_ALIB): $(CORE_LIB_OBJS) $(LIB_OBJS)
@@ -178,10 +195,6 @@ $(POPMABOSS_ALIB): $(CORE_LIB_OBJS) $(POP_LIB_OBJS)
 
 $(POPMABOSS_LIB): $(CORE_LIB_OBJS) $(POP_LIB_OBJS)
 	$(CXX) -shared -o $(POPMABOSS_LIB) $+ -lpthread $(LDL_FLAG) $(LDFLAGS) $(SBML_LIB) $(HDF5_LIB)
-
-
-$(FUNC_MODULE): $(FUNC_MODULE).o Function$(INFIX).o
-	$(CXX) -shared -o $(FUNC_MODULE).so $(FUNC_MODULE).o Function$(INFIX).o -lpthread -L.
 
 $(MABOSS): MaBoSS$(INFIX).o $(MABOSS_OBJS)
 ifdef USE_LIB
@@ -254,11 +267,13 @@ tar: all
 tar_perform: clean
 	(cd ../..; basename=$$(basename $$(pwd)); cd ..; tar cvfz backup/$${basename}-$$(date +"20%y-%m-%d-%H%M").tgz $${basename}/engine/examples/*/*.bnd $${basename}/engine/examples/*/*.cfg $${basename}/engine/src/*.[hly] $${basename}/engine/src/*.cc $${basename}/engine/src/Makefile $${basename}/engine/src/Makefile.maboss $${basename}/engine/src/init-config.sh $${basename}/engine/tests/*.sh $${basename}/engine/tests/*.bnd $${basename}/engine/tests/*.cfg)
 
-install: all
+ifndef CLIENT_SERVER
+install: $(MABOSS) $(POPMABOSS)
 	mkdir -p ../pub
-ifdef MPI_COMPAT
 	cp $(MABOSS) $(POPMABOSS) ../pub
 else
+install: $(MABOSS) $(MABOSS_SERVER) $(MABOSS_CLIENT) $(POPMABOSS)
+	mkdir -p ../pub
 	cp $(MABOSS) $(MABOSS_SERVER) $(MABOSS_CLIENT) $(POPMABOSS) ../pub
 endif
 
