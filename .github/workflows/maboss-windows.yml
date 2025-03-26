@@ -131,14 +131,7 @@ jobs:
         -DLIBXML_LIBRARY="C:/vcpkg/installed/x64-windows/lib/libxml2.lib" `
         -DLIBXML_INCLUDE_DIR="C:/vcpkg/installed/x64-windows/include/" `
         -DWITH_SWIG=OFF `
-        -DENABLE_COMP=ON `
-        -DENABLE_FBC=ON `
-        -DENABLE_GROUPS=ON `
-        -DENABLE_LAYOUT=ON `
-        -DENABLE_MULTI=ON `
         -DENABLE_QUAL=ON `
-        -DENABLE_RENDER=ON `
-        -DENABLE_DISTRIB=ON `
         -DWITH_CPP_NAMESPACE=ON
         cmake --build libsbml-5.20.4/build --parallel 4
         

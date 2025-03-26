@@ -22,14 +22,7 @@ RUN wget https://github.com/sbmlteam/libsbml/archive/refs/tags/v5.20.4.tar.gz \
     -DWITH_SWIG=OFF \
     -DLIBXML_LIBRARY=/usr/lib/x86_64-linux-gnu/libxml2.so \
     -DLIBXML_INCLUDE_DIR=/usr/include/libxml2 \
-    -DENABLE_COMP=ON \
-    -DENABLE_FBC=ON \
-    -DENABLE_GROUPS=ON \
-    -DENABLE_LAYOUT=ON \
-    -DENABLE_MULTI=ON \
     -DENABLE_QUAL=ON \
-    -DENABLE_RENDER=ON \
-    -DENABLE_DISTRIB=ON \
     -DWITH_CPP_NAMESPACE=ON \
     .. \
     && make \
