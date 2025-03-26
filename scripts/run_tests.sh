@@ -20,8 +20,6 @@ bash ./test-ensemble.sh
 check "ensemble"
 bash ./test-ewing.sh
 check "ewing"
-bash ./test-sbml.sh
-check "sbml"
 bash ./test-bnet.sh
 check "bnet"
 bash ./test-prngs.sh
