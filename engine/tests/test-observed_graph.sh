@@ -28,7 +28,7 @@ echo
 echo "Test: Sizek observed graph one thread"
 rm -rf tmp; mkdir -p tmp
 if [ "$MULTI_THREAD_ONLY" = "" ]; then
-    /usr/bin/time -p $LAUNCHER $MABOSS_128n sizek/sizek.bnd -c sizek/sizek_wgraph.cfg -e thread_count=1 -o tmp/sizek_1_thread $EXTRA_ARGS
+    $LAUNCHER $MABOSS_128n sizek/sizek.bnd -c sizek/sizek_wgraph.cfg -e thread_count=1 -o tmp/sizek_1_thread $EXTRA_ARGS
     if [ $? != 0 ]; then exit 1; fi
 
     diff sizek/refer/sizek_1_thread_observed_graph.csv tmp/sizek_1_thread_observed_graph.csv
@@ -39,7 +39,7 @@ if [ "$MULTI_THREAD_ONLY" = "" ]; then
 fi
 
 if [ "$ONE_THREAD_ONLY" != "" ]; then exit 0; fi
-/usr/bin/time -p $LAUNCHER $MABOSS_128n sizek/sizek.bnd -c sizek/sizek_wgraph.cfg -e thread_count=6 -o tmp/sizek_6_thread $EXTRA_ARGS
+$LAUNCHER $MABOSS_128n sizek/sizek.bnd -c sizek/sizek_wgraph.cfg -e thread_count=6 -o tmp/sizek_6_thread $EXTRA_ARGS
 if [ $? != 0 ]; then exit 1; fi
 
 diff sizek/refer/sizek_6_thread_observed_graph.csv tmp/sizek_6_thread_observed_graph.csv

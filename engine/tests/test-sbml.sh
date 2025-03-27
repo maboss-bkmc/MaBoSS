@@ -27,12 +27,12 @@ check_file()
 echo
 echo "Testing SBML compatibility"
 rm -rf tmp; mkdir -p tmp
-$LAUNCHER /usr/bin/time -p $MABOSS sbml/cell_fate.sbml -c sbml/cell_fate.cfg -o tmp/sbml_cell_fate
+$LAUNCHER $MABOSS sbml/cell_fate.sbml -c sbml/cell_fate.cfg -o tmp/sbml_cell_fate
 if [ $? != 0 ]; then exit 1; fi
 python compare_probtrajs.py sbml/refer/cell_fate_probtraj.csv tmp/sbml_cell_fate_probtraj.csv --exact
 check_file "projtraj"
 
-$LAUNCHER /usr/bin/time -p $MABOSS sbml/cell_fate.bnd -c sbml/cell_fate.bnd.cfg -o tmp/cell_fate
+$LAUNCHER $MABOSS sbml/cell_fate.bnd -c sbml/cell_fate.bnd.cfg -o tmp/cell_fate
 if [ $? != 0 ]; then exit 1; fi
 python compare_probtrajs.py tmp/sbml_cell_fate_probtraj.csv tmp/cell_fate_probtraj.csv --exact
 check_file "projtraj"

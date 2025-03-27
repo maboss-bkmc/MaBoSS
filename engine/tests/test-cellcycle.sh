@@ -28,7 +28,7 @@ echo
 echo "Non regression test: Cell Cycle one thread"
 rm -rf tmp; mkdir -p tmp
 if [ "$MULTI_THREAD_ONLY" = "" ]; then
-    /usr/bin/time -p $LAUNCHER $MABOSS cellcycle/cellcycle.bnd -c cellcycle/cellcycle_runcfg.cfg -c cellcycle/cellcycle_runcfg-thread_1.cfg -o tmp/Cell_cycle_thread_1 $FINAL $EXTRA_ARGS
+    $LAUNCHER $MABOSS cellcycle/cellcycle.bnd -c cellcycle/cellcycle_runcfg.cfg -c cellcycle/cellcycle_runcfg-thread_1.cfg -o tmp/Cell_cycle_thread_1 $FINAL $EXTRA_ARGS
     if [ $? != 0 ]; then exit 1; fi
 
     if [[ -z "$FINAL" ]]; then
@@ -54,7 +54,7 @@ if [ "$ONE_THREAD_ONLY" != "" ]; then exit 0; fi
 
 echo
 echo "Non regression test: Cell Cycle 6 threads"
-/usr/bin/time -p $LAUNCHER $MABOSS cellcycle/cellcycle.bnd -c cellcycle/cellcycle_runcfg.cfg -c cellcycle/cellcycle_runcfg-thread_6.cfg -o tmp/Cell_cycle_thread_6 $FINAL $EXTRA_ARGS
+$LAUNCHER $MABOSS cellcycle/cellcycle.bnd -c cellcycle/cellcycle_runcfg.cfg -c cellcycle/cellcycle_runcfg-thread_6.cfg -o tmp/Cell_cycle_thread_6 $FINAL $EXTRA_ARGS
 
 echo
 if [[ -z "$FINAL" ]]; then

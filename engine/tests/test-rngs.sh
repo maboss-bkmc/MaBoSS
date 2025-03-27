@@ -26,7 +26,7 @@ check_file()
 
 rm -rf tmp; mkdir -p tmp
 
-$LAUNCHER /usr/bin/time -p $MABOSS prngs/cellcycle.bnd -c prngs/cellcycle_runcfg.cfg -c prngs/physical.cfg -o tmp/Cell_cycle_phys
+$LAUNCHER $MABOSS prngs/cellcycle.bnd -c prngs/cellcycle_runcfg.cfg -c prngs/physical.cfg -o tmp/Cell_cycle_phys
 if [ $? != 0 ]; then return_code=1; fi
 
 # echo "Comparing aproximatively the results of the different prngs"
