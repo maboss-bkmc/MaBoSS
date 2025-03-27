@@ -58,8 +58,8 @@ jobs:
         rm -fr engine/pub/*
         cd engine/src
         make clean
-        make MAXNODES=128 SBML_COMPAT=1 maboss popmaboss
-        make SBML_COMPAT=1 maboss popmaboss
+        make install MAXNODES=128 SBML_COMPAT=1
+        make install SBML_COMPAT=1
 
     - name: Test MaBoSS
       run: bash scripts/run_tests.sh
