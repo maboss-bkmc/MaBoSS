@@ -61,6 +61,73 @@ jobs:
         export PATH=/usr/local/opt/flex/bin:/usr/local/opt/bison/bin:$PATH
         bash scripts/run_tests.sh
         
+  maboss_macos_cmake:
+    name: MaBoSS (cmake)
+    runs-on: macos-13
+    env:
+      CC: clang
+      CXX: clang++
+      INSTALL_PATH: /usr/local
+      BUILD_PATH: /tmp/
+      LIBXML_LIBDIR: /usr/local/opt/libxml2/lib/libxml2.dylib
+      LIBXML_INCLUDEDIR: /usr/local/opt/libxml2/include/libxml2/
+      MACOSX_DEPLOYMENT_TARGET: 13.0
+      CPU_COUNT: 4
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install dependencies
+      run : |
+        brew install flex bison cmake hdf5 libxml2
+        pip install numpy
+
+    - name: Set cmake version variable
+      run: |
+        echo "CMAKE_VERSION=$(cmake --version | head -n 1)" >> $GITHUB_ENV
+    
+    - name: Cache compiled libSBML
+      id: cache-libsbml-clang
+      uses: actions/cache@v4
+      with:
+        path: /tmp/libsbml-5.20.4
+        key: ${{ runner.os }}-${{ env.CMAKE_VERSION }}-libSBML-5.20.4-clang++-namespace
+
+    - name: Compiling libSBML
+      if: steps.cache-libsbml-clang.outputs.cache-hit != 'true'
+      run: bash scripts/build_libsbml.sh
+    
+    - name: Install libSBML
+      run: |
+        sudo bash scripts/install_libsbml.sh
+    - name: Build MaBoSS
+      run: |
+        export PATH=/usr/local/opt/flex/bin:/usr/local/opt/bison/bin:$PATH
+        cmake -B build -S . \
+          -DCMAKE_INSTALL_PREFIX=engine \
+          -DCMAKE_C_COMPILER=${CC} \
+          -DCMAKE_CXX_COMPILER=${CXX} \
+          -DBUILD_SERVER=1 -DBUILD_CLIENT=1 \
+          -DSBML=1 
+        cmake --build build --parallel ${{ env.CPU_COUNT }}
+        cmake --install build --component executables 
+        
+        cmake -B build -S . \
+          -DCMAKE_INSTALL_PREFIX=engine \
+          -DCMAKE_C_COMPILER=${CC} \
+          -DCMAKE_CXX_COMPILER=${CXX} \
+          -DBUILD_SERVER=1 \
+          -DMAXNODES=128 \
+          -DSBML=1
+        cmake --build build --parallel ${{ env.CPU_COUNT }}
+        cmake --install build --component executables 
+        
+    - name: Test MaBoSS
+      env: 
+        MABOSS_BIN_PATH: ../bin
+      run: |
+        export PATH=/usr/local/opt/flex/bin:/usr/local/opt/bison/bin:$PATH
+        bash scripts/run_tests.sh   
+        
   maboss_llvm_macos:
     name: MaBoSS (clang)
     runs-on: macos-13

@@ -63,7 +63,119 @@ jobs:
 
     - name: Test MaBoSS
       run: bash scripts/run_tests.sh
+      
+  maboss_windows_cmake:
+    name: MaBoSS Windows (cmake)
+    runs-on: windows-2019
+    
+    steps:
+    - uses: actions/checkout@v4
+    - uses: ilammy/msvc-dev-cmd@v1 
+    
+    - name: Install dependencies
+      run: |
+        choco install winflexbison3
+        python -m pip install numpy
+       
+    - name: Build MaBoSS
+      run: |
+        cmake -B build -S . -G Ninja `
+          -DCMAKE_INSTALL_PREFIX=engine `
+          -DSTD_THREAD=1
+        cmake --build build --parallel "${CPU_COUNT}"
+        cmake --install build --component executables 
+        
+        cmake -B build -S . -G Ninja `
+          -DMAXNODES=128 `
+          -DCMAKE_INSTALL_PREFIX=engine `
+          -DSTD_THREAD=1
+        cmake --build build --parallel "${CPU_COUNT}"
+        cmake --install build --component executables 
 
+    - name: Test MaBoSS
+      env: 
+        MABOSS_BIN_PATH: ../bin
+      run: |
+        bash scripts/run_tests.sh
+   
+  maboss_windows_cmake_sbml:
+    name: MaBoSS Windows with SBML support (cmake)
+    runs-on: windows-2022
+    
+    steps:
+    - uses: actions/checkout@v4
+    - uses: ilammy/msvc-dev-cmd@v1 
+    
+    - name: Install dependencies
+      run: |
+        vcpkg install libxml2
+        choco install winflexbison3
+        python -m pip install numpy
+        
+    - name: Download libSBML
+      run: |
+        curl -L https://github.com/sbmlteam/libsbml/archive/refs/tags/v5.20.4.tar.gz --output v5.20.4.tar.gz
+        7z e v5.20.4.tar.gz  && 7z x v5.20.4.tar
+        
+    - name: Cache compiled libSBML
+      id: cache-libsbml-msvc
+      uses: actions/cache@v4
+      with:
+        path: D:\a\MaBoSS\MaBoSS\libsbml-5.20.4\
+        key: ${{ runner.os }}-libSBML-5.20.4-msvc-namespace
+
+    - name: Compiling libSBML
+      if: steps.cache-libsbml-msvc.outputs.cache-hit != 'true'
+      run: |
+        cmake -B libsbml-5.20.4/build -S libsbml-5.20.4 -G"Ninja" `
+        -DLIBXML_LIBRARY="C:/vcpkg/installed/x64-windows/lib/libxml2.lib" `
+        -DLIBXML_INCLUDE_DIR="C:/vcpkg/installed/x64-windows/include/" `
+        -DWITH_SWIG=OFF `
+        -DENABLE_COMP=ON `
+        -DENABLE_FBC=ON `
+        -DENABLE_GROUPS=ON `
+        -DENABLE_LAYOUT=ON `
+        -DENABLE_MULTI=ON `
+        -DENABLE_QUAL=ON `
+        -DENABLE_RENDER=ON `
+        -DENABLE_DISTRIB=ON `
+        -DWITH_CPP_NAMESPACE=ON
+        cmake --build libsbml-5.20.4/build --parallel 4
+        
+    - name: Install libSBML
+      run: |
+        cmake --install libsbml-5.20.4/build
+
+    - name: Build MaBoSS
+      run: |
+        cmake -B build -S . -G Ninja `
+          -DCMAKE_INSTALL_PREFIX=engine `
+          -DLIBSBML_INCLUDE_DIR="C:/Program Files (x86)/libsbml/include" `
+          -DLIBSBML_LIBRARY="C:/Program Files (x86)/libsbml/lib/libsbml.lib" `
+          -DSTD_THREAD=1 `
+          -DSBML=1
+        cmake --build build --parallel "${CPU_COUNT}"
+        cmake --install build --component executables 
+        
+        cmake -B build -S . -G Ninja `
+          -DMAXNODES=128 `
+          -DCMAKE_INSTALL_PREFIX=engine `
+          -DLIBSBML_INCLUDE_DIR="C:/Program Files (x86)/libsbml/include" `
+          -DLIBSBML_LIBRARY="C:/Program Files (x86)/libsbml/lib/libsbml.lib" `
+          -DSTD_THREAD=1 `
+          -DSBML=1
+        cmake --build build --parallel "${CPU_COUNT}"
+        cmake --install build --component executables 
+      
+    - name: Test MaBoSS
+      env: 
+        MABOSS_BIN_PATH: ../bin
+      run: |
+        engine/bin/MaBoSS.exe --version
+        bash scripts/run_tests.sh
+        
+
+    
   maboss_binary_windows:
     runs-on: windows-latest
     name: Building MaBoSS Windows 64bits binary
