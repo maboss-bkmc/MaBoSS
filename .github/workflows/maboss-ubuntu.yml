@@ -46,8 +46,8 @@ jobs:
       run: |
         cd engine/src
         make clean
-        make install SBML_COMPAT=1 -j "${CPU_COUNT}"
-        make MAXNODES=128 install SBML_COMPAT=1 -j "${CPU_COUNT}"
+        make install SBML_COMPAT=1 CLIENT_SERVER=1 -j "${CPU_COUNT}"
+        make MAXNODES=128 install SBML_COMPAT=1 CLIENT_SERVER=1 -j "${CPU_COUNT}"
     
     - name: Test MaBoSS
       run: bash scripts/run_tests.sh        
@@ -89,8 +89,8 @@ jobs:
       run: |
         cd engine/src
         make clean
-        make CC=clang CXX=clang++ install SBML_COMPAT=1 -j "${CPU_COUNT}"
-        make CC=clang CXX=clang++ MAXNODES=128 install SBML_COMPAT=1 -j "${CPU_COUNT}"
+        make CC=clang CXX=clang++ install SBML_COMPAT=1 CLIENT_SERVER=1 -j "${CPU_COUNT}"
+        make CC=clang CXX=clang++ MAXNODES=128 install SBML_COMPAT=1 CLIENT_SERVER=1 -j "${CPU_COUNT}"
     
     - name: Test MaBoSS
       run: bash scripts/run_tests.sh
@@ -166,11 +166,11 @@ jobs:
         rm -fr engine/pub/*
         cd engine/src
         make clean
-        make install_static SBML_COMPAT=1 -j "${CPU_COUNT}"
-        make install_static MAXNODES=128 SBML_COMPAT=1 -j "${CPU_COUNT}"
-        make install_static MAXNODES=256 SBML_COMPAT=1 -j "${CPU_COUNT}"
-        make install_static MAXNODES=512 SBML_COMPAT=1 -j "${CPU_COUNT}"
-        make install_static MAXNODES=1024 SBML_COMPAT=1 -j "${CPU_COUNT}"
+        make install_static SBML_COMPAT=1 CLIENT_SERVER=1 -j "${CPU_COUNT}"
+        make install_static MAXNODES=128 SBML_COMPAT=1 CLIENT_SERVER=1 -j "${CPU_COUNT}"
+        make install_static MAXNODES=256 SBML_COMPAT=1 CLIENT_SERVER=1 -j "${CPU_COUNT}"
+        make install_static MAXNODES=512 SBML_COMPAT=1 CLIENT_SERVER=1 -j "${CPU_COUNT}"
+        make install_static MAXNODES=1024 SBML_COMPAT=1 CLIENT_SERVER=1 -j "${CPU_COUNT}"
         cd ../pub
         zip MaBoSS-linux64.zip *
         

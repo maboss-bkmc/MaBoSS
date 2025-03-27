@@ -53,8 +53,8 @@ jobs:
         make clean
         export CXXFLAGS="${CXXFLAGS} -I/usr/local/include -I/usr/local/include/libxml2"
         export LDFLAGS="${LDFLAGS} -L/usr/local/lib -lxml2"
-        make CXX=g++-12 CC=gcc-12 install SBML_COMPAT=1 -j "${CPU_COUNT}"
-        make CXX=g++-12 CC=gcc-12 MAXNODES=128 install SBML_COMPAT=1 -j "${CPU_COUNT}"
+        make CXX=g++-12 CC=gcc-12 install SBML_COMPAT=1 CLIENT_SERVER=1 -j "${CPU_COUNT}"
+        make CXX=g++-12 CC=gcc-12 MAXNODES=128 install SBML_COMPAT=1 CLIENT_SERVER=1 -j "${CPU_COUNT}"
         
     - name: Test MaBoSS
       run: |
@@ -107,8 +107,8 @@ jobs:
         make clean
         export CXXFLAGS="${CXXFLAGS} -I/usr/local/include -I/usr/local/include/libxml2"
         export LDFLAGS="${LDFLAGS} -Wl,-rpath,/usr/local/lib"
-        make CXX=clang++ CC=clang install SBML_COMPAT=1 -j "${CPU_COUNT}"
-        make CXX=clang++ CC=clang MAXNODES=128 install SBML_COMPAT=1 -j "${CPU_COUNT}"
+        make CXX=clang++ CC=clang install SBML_COMPAT=1 CLIENT_SERVER=1 -j "${CPU_COUNT}"
+        make CXX=clang++ CC=clang MAXNODES=128 install SBML_COMPAT=1 CLIENT_SERVER=1 -j "${CPU_COUNT}"
         
     - name: Test MaBoSS
       run: |
