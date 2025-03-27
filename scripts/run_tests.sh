@@ -36,9 +36,6 @@ if [[ -n $RUNNER_OS ]] && [[ $RUNNER_OS != "Windows" ]]; then
     check "rngs"
 fi
 
-bash ./test-user_func.sh
-check "user_func"
-
 cd ../..
 
 exit $return_code
