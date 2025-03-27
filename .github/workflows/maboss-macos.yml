@@ -613,7 +613,7 @@ jobs:
         
     - name: Build MaBoSS Anaconda package
       run: |
-        CUSTOM_BUILD_NUMBER=${{ matrix.repo.id }} conda build -c ${{ matrix.repo.name }} -c colomoto conda/maboss
+        CUSTOM_BUILD_NUMBER=${{ matrix.repo.id }} conda build -c ${{ matrix.repo.name }} -c vincent-noel conda/maboss
     
     - name: Upload MaBoSS to Anaconda cloud on vincent-noel
       run: |   
@@ -665,7 +665,7 @@ jobs:
         
     - name: Build MaBoSS Anaconda package
       run: |
-        CUSTOM_BUILD_NUMBER=${{ matrix.repo.id }} conda build -c ${{ matrix.repo.name }} -c colomoto conda/maboss
+        CUSTOM_BUILD_NUMBER=${{ matrix.repo.id }} conda build -c ${{ matrix.repo.name }} -c vincent-noel conda/maboss
     
     - name: Upload MaBoSS to Anaconda cloud on vincent-noel
       run: |   
