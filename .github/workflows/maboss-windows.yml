@@ -62,7 +62,10 @@ jobs:
         make install SBML_COMPAT=1
 
     - name: Test MaBoSS
-      run: bash scripts/run_tests.sh
+      run: 
+        bash scripts/run_tests.sh
+        bash scripts/run_sbml_tests.sh
+        bash scripts/run_userfunc_tests.sh
       
   maboss_windows_cmake:
     name: MaBoSS Windows (cmake)
