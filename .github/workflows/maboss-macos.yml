@@ -60,6 +60,8 @@ jobs:
       run: |
         export PATH=/usr/local/opt/flex/bin:/usr/local/opt/bison/bin:$PATH
         bash scripts/run_tests.sh
+        bash scripts/run_sbml_tests.sh
+        bash scripts/run_userfunc_tests.sh
         
   maboss_macos_cmake:
     name: MaBoSS (cmake)
@@ -181,7 +183,9 @@ jobs:
       run: |
         export PATH=/usr/local/opt/flex/bin:/usr/local/opt/bison/bin:$PATH
         bash scripts/run_tests.sh
-   
+        bash scripts/run_sbml_tests.sh
+        bash scripts/run_userfunc_tests.sh
+      
   maboss_binary_macos:
     name: MaBoSS MacOSX x86_64 binary
     runs-on: macos-13
