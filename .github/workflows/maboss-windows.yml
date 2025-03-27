@@ -95,6 +95,7 @@ jobs:
     - name: Test MaBoSS
       env: 
         MABOSS_BIN_PATH: ../bin
+        LAUNCHER: ""
       run: |
         bash scripts/run_tests.sh
    
