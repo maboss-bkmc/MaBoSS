@@ -49,10 +49,6 @@ jobs:
     - name: Build MaBoSS
       run: |
         export PATH=/usr/local/opt/flex/bin:/usr/local/opt/bison/bin:$PATH
-        which flex
-        flex --version
-        which bison
-        bison --version
         cd engine/src
         make clean
         export CXXFLAGS="${CXXFLAGS} -I/usr/local/include -I/usr/local/include/libxml2"
