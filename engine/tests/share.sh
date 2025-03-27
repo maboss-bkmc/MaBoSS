@@ -26,7 +26,7 @@ elif [[ ! -z "$USE_BITSET" ]]; then
     MABOSS=${MABOSS_BITSET}
 fi
 
-if [ -z "$LAUNCHER" ] ; then LAUNCHER="/usr/bin/time -p"; fi
+if [ -z ${LAUNCHER+x} ] ; then LAUNCHER="/usr/bin/time -p"; fi
 
 diff_sort() {
     file1="$1"
