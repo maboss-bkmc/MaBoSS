@@ -393,3 +393,67 @@ jobs:
         asset_path: D:\a\MaBoSS/libMaBoSS-sbml-win64.tar.gz
         asset_content_type: application/gzip
   
+        
+  maboss_conda:
+    name: Build MaBoSS Anaconda package
+    strategy:
+      fail-fast: false
+      matrix:
+        repo: [
+          { id: 0, name: "defaults"},
+          { id: 1, name: "conda-forge"}
+        ]
+        
+    runs-on: windows-2019
+
+    # needs: [maboss_windows]
+    
+    defaults:
+      run:
+        shell: pwsh -Command {0}
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: conda-incubator/setup-miniconda@v3
+      with:
+        auto-update-conda: true
+        conda-remove-defaults: "true"
+        channels: ${{ matrix.repo.name }}
+        python-version: 3.12
+        use-mamba: true
+        
+    - name: Install conda-build
+      run: |
+        conda install conda-build anaconda-client conda-verify
+        
+    - name: Install winflexbison from conda-forge if building for defaults
+      if: matrix.repo.name == 'defaults'
+      run: |        
+        conda install -c conda-forge winflexbison
+        Get-Content .\conda\maboss\meta.yaml | Where-Object {$_ -notmatch 'winflexbison'} | Set-Content out.yaml
+        xcopy out.yaml .\conda\maboss\meta.yaml /y
+        
+    - name: Build Anaconda package
+      if: matrix.repo.name == 'defaults'
+      env: 
+        CUSTOM_BUILD_NUMBER: ${{ matrix.repo.id }}
+        FLEX_ROOT: C:\Miniconda\envs\test\Library\bin\
+        BISON_ROOT: C:\Miniconda\envs\test\Library\bin\
+      run: |
+        conda build -c ${{ matrix.repo.name }} -c vincent-noel conda/maboss
+    
+    - name: Build Anaconda package
+      if: matrix.repo.name == 'conda-forge'
+      env: 
+        CUSTOM_BUILD_NUMBER: ${{ matrix.repo.id }}
+      run: |
+        conda build -c ${{ matrix.repo.name }} -c vincent-noel conda/maboss
+          
+    - name: Upload MaBoSS Ananconda package on vincent-noel
+      run: |
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/share/miniconda/envs/test/conda-bld/linux-64/*.conda --force;
+    
+    - name: Upload MaBoSS Ananconda package on colomoto
+      if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
+      run: |
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/share/miniconda/envs/test/conda-bld/linux-64/*.conda --force;
