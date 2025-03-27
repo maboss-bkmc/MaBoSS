@@ -114,6 +114,60 @@ jobs:
         bash scripts/run_sbml_tests.sh
         bash scripts/run_userfunc_tests.sh cmake
       
+  
+  maboss_dynbitset:
+    name: MaBoSS DynBitSet (cmake)
+    runs-on: ubuntu-22.04
+    env:
+      CC: gcc
+      CXX: g++
+      INSTALL_PATH: /usr/
+      BUILD_PATH: /tmp/
+      LIBXML_LIBDIR: /usr/lib/x86_64-linux-gnu/libxml2.so
+      LIBXML_INCLUDEDIR: /usr/include/libxml2/
+      CPU_COUNT: 4
+      
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install flex bison libhdf5-dev
+        pip install numpy
+    
+    - name: Cache compiled libSBML
+      id: cache-libsbml-gcc
+      uses: actions/cache@v4
+      with:
+        path: /tmp/libsbml-5.20.4
+        key: ${{ runner.os }}-libSBML-5.20.4-gcc-namespace
+
+    - name: Compiling libSBML
+      if: steps.cache-libsbml-gcc.outputs.cache-hit != 'true'
+      run: bash scripts/build_libsbml.sh
+        
+    - name: Install libSBML
+      run: sudo bash scripts/install_libsbml.sh
+
+    - name: Build MaBoSS
+      run: |
+        cmake -B build . -DCMAKE_INSTALL_PREFIX=engine -DSBML=1 -DDYNBITSET=1 -DBUILD_SERVER=1 -DBUILD_CLIENT=1
+        cmake --build build --parallel "${CPU_COUNT}"
+        cmake --install build --component executables 
+        
+    - name: Test MaBoSS
+      env:
+        MABOSS_BIN_PATH: ../bin
+        MABOSS: ../bin/MaBoSS_dn
+        MABOSS_128n: ../bin/MaBoSS_dn
+        MABOSS_SERVER: ../bin/MaBoSS_dn-server
+        POPMABOSS: ../bin/PopMaBoSS_dn
+      run: |
+        bash scripts/run_tests.sh   
+        bash scripts/run_sbml_tests.sh
+        bash scripts/run_userfunc_tests.sh
+                
   maboss_llvm:
     name: MaBoSS (clang)
     runs-on: ubuntu-22.04
