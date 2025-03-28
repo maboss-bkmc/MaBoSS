@@ -21,8 +21,8 @@ class ObservedGraph {
 
 public:
 
-    ObservedGraph(const Network* network);    
-    void init(int count=0, double duration=0.0);    
+    ObservedGraph(const Network* network);  
+    void init(unsigned int count=0, double duration=0.0);    
     void addFirstTransition(NetworkState origin_state);    
     void addTransition(NetworkState destination_state, double time);
     const std::map<NetworkState_Impl, std::map<NetworkState_Impl, unsigned int>>& getCounts() const;  

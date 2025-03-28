@@ -479,7 +479,11 @@ void EnsembleEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int 
         TH = 0.;
         FixedPoints::iterator iter = fixpoint_map->find(network_state.getState());
         if (iter == fixpoint_map->end()) {
+  #ifdef USE_DYNAMIC_BITSET
+          (*fixpoint_map)[network_state.getState(1)] = 1;
+  #else
           (*fixpoint_map)[network_state.getState()] = 1;
+  #endif
         } else {
           iter->second++;
         }
@@ -488,7 +492,11 @@ void EnsembleEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int 
           FixedPoints* t_fixpoint_map = t_models_fixpoints[model_ind];
           iter = t_fixpoint_map->find(network_state.getState());
           if (iter == t_fixpoint_map->end()) {
+#ifdef USE_DYNAMIC_BITSET
+            (*t_fixpoint_map)[network_state.getState(1)] = 1;
+#else
             (*t_fixpoint_map)[network_state.getState()] = 1;
+#endif
           } else {
             iter->second++;
           }

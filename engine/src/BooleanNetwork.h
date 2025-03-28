@@ -781,11 +781,19 @@ public:
 #endif
 
   NetworkState operator&(const NetworkState& mask) const { 
+#ifdef USE_DYNAMIC_BITSET
+    return NetworkState(state & mask.getState(), 1);
+#else
     return NetworkState(state & mask.getState());
+#endif
   }
   
   NetworkState applyMask(const NetworkState& mask, std::map<unsigned int, unsigned int>& scale) const {
+#ifdef USE_DYNAMIC_BITSET
+    return NetworkState(state & mask.getState(), 1);
+#else
     return NetworkState(state & mask.getState());
+#endif
   }
 
 #ifdef USE_STATIC_BITSET
@@ -1079,7 +1087,11 @@ public:
  PopNetworkState(std::map<NetworkState_Impl, unsigned int> mp ) : mp(mp), hash(0), hash_init(false) { }
 
  PopNetworkState(NetworkState_Impl state, unsigned int value) : mp(std::map<NetworkState_Impl, unsigned int>()), hash(0) , hash_init(false) {
-    mp[state] = value;
+#ifdef USE_DYNAMIC_BITSET
+  mp[NetworkState_Impl(state, 1)] = value;
+#else
+  mp[state] = value;
+#endif
   }
   
   void set() {
@@ -1088,7 +1100,11 @@ public:
     hash = 0;
     NetworkState new_state;
     new_state.set();
+#ifdef USE_DYNAMIC_BITSET
+    mp[new_state.getState(1)] = 1;
+#else
     mp[new_state.getState()] = 1;
+#endif
   }
   
   PopNetworkState& operator=(const PopNetworkState &p ) 
@@ -1114,7 +1130,11 @@ public:
   void addStatePop(const NetworkState_Impl& state, unsigned int pop) {
     auto iter = mp.find(state);
     if (iter == mp.end()) {
+#ifdef USE_DYNAMIC_BITSET
+      mp[NetworkState_Impl(state,1)] = pop;
+#else
       mp[state] = pop;
+#endif
     } else {
       iter->second += pop;
     }
@@ -1172,10 +1192,14 @@ public:
   
   // Increases the population of the state
   void incr(const NetworkState& net_state) {
-    NetworkState_Impl t_state = net_state.getState();
-    auto iter = mp.find(t_state);
+    
+    auto iter = mp.find(net_state.getState());
     if (iter == mp.end()) {
-      mp[t_state] = 1;
+#ifdef USE_DYNAMIC_BITSET
+        mp[net_state.getState(1)] = 1;
+#else
+        mp[net_state.getState()] = 1;
+#endif
     } else {
       iter->second++;
     }

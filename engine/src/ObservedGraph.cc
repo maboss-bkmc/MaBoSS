@@ -15,7 +15,7 @@ NetworkState_Impl ObservedGraph::getObservedState(NetworkState state) const
 ObservedGraph::ObservedGraph(const Network* network) 
 {
     NetworkState state_mask;
-    for (auto * node : network->getNodes()) {
+    for (const auto * node : network->getNodes()) {
         if (node->inGraph()) {
             graph_nodes.push_back(node);
             state_mask.flipState(node);
@@ -25,28 +25,25 @@ ObservedGraph::ObservedGraph(const Network* network)
     
     graph_states.resize((int) pow(2, graph_nodes.size()));
 
-    unsigned int i=0;
-    for (auto graph_state : graph_states) {
-        NetworkState state(graph_state);
-        
-        unsigned int j=0;
+    for (size_t i=0; i < graph_states.size(); i++) {
+        NetworkState state;
+        size_t j = 0;
         for (auto* node: graph_nodes){
-        if ((i & (1ULL << j)) > 0)
-        {
-            state.flipState(node);
+            if ((i & (1ULL << j)) > 0)
+            {
+                state.flipState(node);
+            }
+            j++;
         }
-        j++;
-        }
-        
         graph_states[i] = state.getState();
-        i++;
     }
 }
 
-void ObservedGraph::init(int count, double duration)
+
+void ObservedGraph::init(unsigned int count, double duration)
 {
-    for (auto origin_state : graph_states){
-        for (auto destination_state: graph_states){
+    for (const auto& origin_state : graph_states){
+        for (const auto& destination_state: graph_states){
             counts[origin_state][destination_state] = count;
             durations[origin_state][destination_state] = duration;
         }
@@ -96,15 +93,15 @@ void ObservedGraph::display(std::ostream * output_observed_graph, std::ostream *
     if (counts.size() > 0)
     {
         (*output_observed_graph) << "State";
-        for (auto state: graph_states) {
+        for (const auto& state: graph_states) {
             (*output_observed_graph) << "\t" << NetworkState(state).getName(network);
         }
         (*output_observed_graph) << std::endl;
         
-        for (auto row: counts) {
+        for (const auto& row: counts) {
             (*output_observed_graph) << NetworkState(row.first).getName(network);
         
-            for (auto cell: row.second) {
+            for (const auto& cell: row.second) {
                 (*output_observed_graph) << "\t" << cell.second;
             }
             
@@ -112,15 +109,15 @@ void ObservedGraph::display(std::ostream * output_observed_graph, std::ostream *
         }
         
         (*output_observed_durations) << "State";
-        for (auto state: graph_states) {
+        for (const auto& state: graph_states) {
             (*output_observed_durations) << "\t" << NetworkState(state).getName(network);
         }
         (*output_observed_durations) << std::endl;
         
-        for (auto row: durations) {
+        for (const auto& row: durations) {
             (*output_observed_durations) << NetworkState(row.first).getName(network);
         
-            for (auto cell: row.second) {
+            for (const auto& cell: row.second) {
                 (*output_observed_durations) << "\t" << cell.second;
             }
             
@@ -131,8 +128,8 @@ void ObservedGraph::display(std::ostream * output_observed_graph, std::ostream *
 
 void ObservedGraph::mergePairOfObservedGraph(const ObservedGraph* observed_graph_2)
 {
-    for (auto origin_state: observed_graph_2->getCounts()){
-        for (auto destination_state: origin_state.second) {
+    for (const auto& origin_state: observed_graph_2->getCounts()){
+        for (const auto& destination_state: origin_state.second) {
             counts[origin_state.first][destination_state.first] += destination_state.second;
             durations[origin_state.first][destination_state.first] += observed_graph_2->getDurations().at(origin_state.first).at(destination_state.first);
         }
@@ -144,8 +141,8 @@ void ObservedGraph::mergePairOfObservedGraph(const ObservedGraph* observed_graph
 
 void ObservedGraph::epilogue()
 {
-    for (auto origin_state: counts){
-        for (auto destination_state: origin_state.second) {
+    for (const auto& origin_state: counts){
+        for (const auto& destination_state: origin_state.second) {
             if (destination_state.second > 0)
                 durations[origin_state.first][destination_state.first] /= destination_state.second;
         }

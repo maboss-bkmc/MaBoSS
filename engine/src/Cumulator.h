@@ -669,13 +669,13 @@ public:
   }
 
   void cumul(const S& network_state, double tm, double TH) { 
-#ifdef USE_DYNAMIC_BITSET
-    S fullstate(network_state & refnode_mask, 1);
-#else
-    S fullstate(network_state & refnode_mask);
-#endif    
-
-
+// #ifdef USE_DYNAMIC_BITSET
+//     S fullstate(network_state & refnode_mask, 1);
+// #else
+//     S fullstate(network_state & refnode_mask);
+// #endif    
+    
+    S fullstate = network_state & refnode_mask;
     S state = network_state.applyMask(output_mask, output_scale);
 
     double time_1 = cumultime(tick_index+1);
