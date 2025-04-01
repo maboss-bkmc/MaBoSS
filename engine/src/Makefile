@@ -218,7 +218,7 @@ else
 endif
 
 $(MABOSS_CLIENT): MaBoSS-client.o Client.o DataStreamer.o MaBoSS-RPC.o Utils$(INFIX).o
-	$(CXX) -o $(MABOSS_CLIENT) $+ -lpthread $(LDL_FLAG)
+	$(CXX) -o $(MABOSS_CLIENT) $+ -lpthread $(LDL_FLAG) $(LDFLAGS) $(EXTRA_LDFLAGS)
 
 %$(INFIX).o: %.cc
 	$(CXX) $(CXXFLAGS) $(EXTRA_CXXFLAGS) $(WINDOWS_FLAG) $(SBML_FLAG) $(HDF5_FLAG) -c $*.cc -o $*$(INFIX).o
