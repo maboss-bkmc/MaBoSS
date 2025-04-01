@@ -17,7 +17,7 @@ jobs:
       BUILD_PATH: /tmp/
       LIBXML_LIBDIR: /usr/local/opt/libxml2/lib/libxml2.2.dylib
       LIBXML_INCLUDEDIR: /usr/local/opt/libxml2/include/libxml2/
-      MACOSX_DEPLOYMENT_TARGET: 13.0
+      MACOSX_DEPLOYMENT_TARGET: 10.13
       CPU_COUNT: 4
 
     steps:
@@ -73,7 +73,7 @@ jobs:
       BUILD_PATH: /tmp/
       LIBXML_LIBDIR: /usr/local/opt/libxml2/lib/libxml2.dylib
       LIBXML_INCLUDEDIR: /usr/local/opt/libxml2/include/libxml2/
-      MACOSX_DEPLOYMENT_TARGET: 13.0
+      MACOSX_DEPLOYMENT_TARGET: 10.13
       CPU_COUNT: 4
 
     steps:
@@ -140,7 +140,7 @@ jobs:
       BUILD_PATH: /tmp/
       LIBXML_LIBDIR: /usr/local/opt/libxml2/lib/libxml2.dylib
       LIBXML_INCLUDEDIR: /usr/local/opt/libxml2/include/libxml2/
-      MACOSX_DEPLOYMENT_TARGET: 13.0
+      MACOSX_DEPLOYMENT_TARGET: 10.13
       CPU_COUNT: 4
 
     steps:
@@ -197,7 +197,7 @@ jobs:
       BUILD_PATH: /tmp/
       LIBXML_LIBDIR: /usr/local/opt/libxml2/lib/libxml2.dylib
       LIBXML_INCLUDEDIR: /usr/local/opt/libxml2/include/libxml2/
-      MACOSX_DEPLOYMENT_TARGET: 13.0
+      MACOSX_DEPLOYMENT_TARGET: 10.13
       CPU_COUNT: 4
 
     steps:
@@ -272,7 +272,7 @@ jobs:
       BUILD_PATH: /tmp/
       LIBXML_LIBDIR: /opt/homebrew/opt/libxml2/lib/libxml2.dylib
       LIBXML_INCLUDEDIR: /opt/homebrew/opt/libxml2/include/
-      MACOSX_DEPLOYMENT_TARGET: 13.0
+      MACOSX_DEPLOYMENT_TARGET: 11.0
       CPU_COUNT: 3
 
     steps:
@@ -401,7 +401,7 @@ jobs:
     needs: [maboss_macos, maboss_llvm_macos]
     env: 
       CPU_COUNT: 4
-      
+      MACOSX_DEPLOYMENT_TARGET: 10.13 
     steps:
     - uses: actions/checkout@v4
     - name: Install dependencies
@@ -450,6 +450,7 @@ jobs:
     needs: [maboss_macos, maboss_llvm_macos]
     env: 
       CPU_COUNT: 3
+      MACOSX_DEPLOYMENT_TARGET: 11.0
       
     steps:
     - uses: actions/checkout@v4
@@ -505,7 +506,7 @@ jobs:
       BUILD_PATH: /tmp/
       LIBXML_LIBDIR: /usr/local/opt/libxml2/lib/libxml2.dylib
       LIBXML_INCLUDEDIR: /usr/local/opt/libxml2/include/libxml2
-      MACOSX_DEPLOYMENT_TARGET: 13.0
+      MACOSX_DEPLOYMENT_TARGET: 10.13
       CPU_COUNT: 4
 
     steps:
@@ -587,6 +588,9 @@ jobs:
     defaults:
       run:
         shell: sh -l {0}
+        
+    env:
+        MACOSX_DEPLOYMENT_TARGET: 10.13
             
     steps:
     - uses: actions/checkout@v4
@@ -639,7 +643,10 @@ jobs:
     defaults:
       run:
         shell: sh -l {0}
-            
+    
+    env:
+      MACOSX_DEPLOYMENT_TARGET: 11.0
+    
     steps:
     - uses: actions/checkout@v4
     - uses: conda-incubator/setup-miniconda@v3
