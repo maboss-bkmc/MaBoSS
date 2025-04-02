@@ -162,6 +162,7 @@ jobs:
         MABOSS: ../bin/MaBoSS_dn
         MABOSS_128n: ../bin/MaBoSS_dn
         MABOSS_SERVER: ../bin/MaBoSS_dn-server
+        MABOSS_SERVER_128n: ../bin/MaBoSS_dn-server
         POPMABOSS: ../bin/PopMaBoSS_dn
       run: |
         bash scripts/run_tests.sh   
@@ -219,6 +220,7 @@ jobs:
         MABOSS: ../bin/MaBoSS_dn
         MABOSS_128n: ../bin/MaBoSS_dn
         MABOSS_SERVER: ../bin/MaBoSS_dn-server
+        MABOSS_SERVER_128n: ../bin/MaBoSS_dn-server
         POPMABOSS: ../bin/PopMaBoSS_dn
       run: |
         bash scripts/run_tests.sh   
