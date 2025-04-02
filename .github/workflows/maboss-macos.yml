@@ -129,7 +129,8 @@ jobs:
       run: |
         export PATH=/usr/local/opt/flex/bin:/usr/local/opt/bison/bin:$PATH
         bash scripts/run_tests.sh   
-        
+        bash scripts/run_userfunc_tests.sh cmake
+
   maboss_llvm_macos:
     name: MaBoSS (clang)
     runs-on: macos-13

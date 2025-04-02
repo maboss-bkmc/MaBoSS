@@ -167,7 +167,7 @@ jobs:
       run: |
         bash scripts/run_tests.sh   
         bash scripts/run_sbml_tests.sh
-        bash scripts/run_userfunc_tests.sh
+        bash scripts/run_userfunc_tests.sh cmake
       
   maboss_dynbitset_std_alloc:
     name: MaBoSS DynBitSet STD alloc (cmake)
@@ -225,7 +225,7 @@ jobs:
       run: |
         bash scripts/run_tests.sh   
         bash scripts/run_sbml_tests.sh
-        bash scripts/run_userfunc_tests.sh
+        bash scripts/run_userfunc_tests.sh cmake
                 
   maboss_llvm:
     name: MaBoSS (clang)
