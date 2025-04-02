@@ -161,7 +161,8 @@ node_decl: NODE IDENTIFIER '{' node_decl_item_list '}'
 {
   if (strcmp($1, "targets") == 0 && strcmp($3->toString().c_str(), "factors") == 0) {
     current_network->removeLastNode($3->toString());
-    free($3);
+    delete $3;
+    free($1);
   } else {
     NodeDeclItem* decl_item = new NodeDeclItem("logic", $3);
     std::vector<NodeDeclItem*>* decl_item_v = new std::vector<NodeDeclItem*>();

@@ -745,7 +745,8 @@ public:
       if (to_delete->getIndex() == (last_index-1)) {
         last_index--;
       }
-      free(to_delete);
+      delete to_delete;
+      MAX_NODE_SIZE--;
     }
   }
 
