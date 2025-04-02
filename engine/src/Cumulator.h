@@ -128,7 +128,12 @@ class Cumulator {
     void incr(const S& state, double tm_slice, double TH) {
       auto iter = mp.find(state);
       if (iter == mp.end()) {
-	mp[state] = TickValue(tm_slice, tm_slice * TH);
+#ifdef USE_DYNAMIC_BITSET
+  S state_copy(state, 1);
+	mp[state_copy] = TickValue(tm_slice, tm_slice * TH);
+#else
+  mp[state] = TickValue(tm_slice, tm_slice * TH);
+#endif
       } else {
 	(*iter).second.tm_slice += tm_slice;
 	(*iter).second.TH += tm_slice * TH;
@@ -144,7 +149,12 @@ class Cumulator {
     void add(const S& state, const TickValue& tick_value) {
       auto iter = mp.find(state);
       if (iter == mp.end()) {
+#ifdef USE_DYNAMIC_BITSET
+  S state_copy(state, 1);    
+  mp[state_copy] = tick_value;
+#else
 	mp[state] = tick_value;
+#endif
       } else {
 	TickValue& to_tick_value = (*iter).second;
 	to_tick_value.tm_slice += tick_value.tm_slice;
@@ -293,7 +303,12 @@ class Cumulator {
     void incr(const S& fullstate, double tm_slice) {
       auto iter = mp.find(fullstate);
       if (iter == mp.end()) {
-	mp[fullstate] = tm_slice;
+#ifdef USE_DYNAMIC_BITSET
+	S fullstate_copy(fullstate, 1);
+  mp[fullstate_copy] = tm_slice;
+#else
+  mp[fullstate] = tm_slice;
+#endif
       } else {
 	(*iter).second += tm_slice;
       }
@@ -302,7 +317,12 @@ class Cumulator {
     void add(const S& fullstate, double tm_slice) {
       auto iter = mp.find(fullstate);
       if (iter == mp.end()) {
-	mp[fullstate] = tm_slice;
+#ifdef USE_DYNAMIC_BITSET
+        S fullstate_copy(fullstate, 1);
+        mp[fullstate_copy] = tm_slice;
+#else
+      	mp[fullstate] = tm_slice;
+#endif
       } else {
 	(*iter).second += tm_slice;
       }
@@ -516,7 +536,12 @@ class Cumulator {
 
     auto last_tick_iter = last_tick_map.find(state);
     if (last_tick_iter == last_tick_map.end()) {
+#ifdef USE_DYNAMIC_BITSET
+      S t_state(state, 1);
+      last_tick_map[t_state] = LastTickValue(tm_slice, tm_slice * TH);
+#else
       last_tick_map[state] = LastTickValue(tm_slice, tm_slice * TH);
+#endif
     } else {
       (*last_tick_iter).second.tm_slice += tm_slice;
       (*last_tick_iter).second.TH += tm_slice * TH;

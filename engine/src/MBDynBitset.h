@@ -360,9 +360,8 @@ public:
   }
 };
 
-#ifdef USE_UNORDERED_MAP
 namespace std {
-  template <> struct HASH_STRUCT<MBDynBitset >
+  template <> struct hash<MBDynBitset>
   {
     size_t operator()(const MBDynBitset& val) const {
       return val.to_ulong();
@@ -391,4 +390,3 @@ namespace std {
     }
   };
 }
-#endif

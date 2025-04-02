@@ -775,7 +775,7 @@ public:
   NetworkState(const NetworkState& state) : state(state.getState()) {}
 #ifdef USE_DYNAMIC_BITSET
   NetworkState(const NetworkState_Impl& state, int copy) : state(state, 1) { }
-  NetworkState(const NetworkState& state, int copy) : state(state.getState(), 1) {}
+  NetworkState(const NetworkState& state, int copy) : state(state.getState(1), 1) {}
 #else
   NetworkState(const NetworkState_Impl& state, int copy) : state(state) { }
   NetworkState(const NetworkState& state, int copy) : state(state.getState()) {}
@@ -1036,17 +1036,27 @@ public:
 
 };
 namespace std {
-  template <> struct HASH_STRUCT<NetworkState>
+  template <> struct hash<NetworkState>
   {
     size_t operator()(const NetworkState& val) const {
+#ifdef USE_DYNAMIC_BITSET
+      return std::hash<NetworkState_Impl>{}(val.getState(1));
+#else
       return std::hash<NetworkState_Impl>{}(val.getState());
+#endif
     }
   };
   
   template <> struct equal_to<NetworkState>
   {
     size_t operator()(const NetworkState& val1, const NetworkState& val2) const {
+#ifdef USE_DYNAMIC_BITSET
+      NetworkState_Impl state_1(val1.getState(1));
+      NetworkState_Impl state_2(val2.getState(1));
+      return std::equal_to<NetworkState_Impl>{}(state_1, state_2);
+#else
       return std::equal_to<NetworkState_Impl>{}(val1.getState(), val2.getState());
+#endif
     }
   };
 
@@ -1054,7 +1064,13 @@ namespace std {
   template <> struct less<NetworkState>
   {
     size_t operator()(const NetworkState& val1, const NetworkState& val2) const {
+#ifdef USE_DYNAMIC_BITSET
+      const NetworkState_Impl& state_1 = val1.getState(1);
+      const NetworkState_Impl& state_2 = val2.getState(1);
+      return std::less<NetworkState_Impl>{}(state_1, state_2);
+#else
       return std::less<NetworkState_Impl>{}(val1.getState(), val2.getState());
+#endif
     }
   };
 }
