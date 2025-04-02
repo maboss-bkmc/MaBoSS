@@ -1109,7 +1109,18 @@ public:
   
   PopNetworkState& operator=(const PopNetworkState &p ) 
   {     
+#ifdef USE_DYNAMIC_BITSET
+    mp.clear();
+    for (const auto& item : p.getMap())
+    {
+      NetworkState_Impl state(item.first, 1);
+      mp[state] = item.second;
+    }
+#else
     mp = std::map<NetworkState_Impl, unsigned int>(p.getMap());
+
+    
+#endif  
     // EV 2021-10-28
     hash = 0;
     hash_init = false;
@@ -1122,7 +1133,11 @@ public:
         
     for (const auto & elem: mp) {
       NetworkState_Impl new_state = elem.first & networkstate_mask.getState();
+#ifdef USE_DYNAMIC_BITSET
+      new_map[NetworkState_Impl(new_state, 1)] = scale[elem.second];
+#else
       new_map[new_state] = scale[elem.second];
+#endif
     }
     return PopNetworkState(new_map);
   }
@@ -1148,11 +1163,15 @@ public:
     
     PopNetworkState masked_pop_state;
     for (const auto &network_state_pop : mp) {
-      NetworkState_Impl masked_network_state = network_state_pop.first & mask;
+#ifdef USE_DYNAMIC_BITSET
+      NetworkState_Impl masked_network_state(network_state_pop.first & mask, 1);
+#else
+      NetworkState_Impl masked_network_state(network_state_pop.first & mask);
+#endif
       masked_pop_state.addStatePop(masked_network_state, network_state_pop.second);
     }
     
-    return masked_pop_state; 
+    return PopNetworkState(masked_pop_state); 
   }
   
   // & operator for applying the mask
@@ -1160,7 +1179,11 @@ public:
     
     PopNetworkState masked_pop_state;
     for (const auto &network_state_pop : mp) {
-      NetworkState_Impl masked_network_state = network_state_pop.first & mask.getState();
+#ifdef USE_DYNAMIC_BITSET
+      NetworkState_Impl masked_network_state(network_state_pop.first & mask.getState(), 1);
+#else
+NetworkState_Impl masked_network_state(network_state_pop.first & mask.getState());
+#endif
       masked_pop_state.addStatePop(masked_network_state, network_state_pop.second);
     }
     
@@ -1249,7 +1272,16 @@ public:
   }
 
   size_t compute_hash() const {
+
+#ifdef USE_DYNAMIC_BITSET
     
+    size_t result = 1;
+    for (const auto &network_state_pop: mp) {
+      result += std::hash<NetworkState_Impl>{}(network_state_pop.first);
+      result += std::hash<unsigned int>{}(network_state_pop.second);
+    }
+    return result;
+#else    
     // New one : for all state:pop, compute sum_i = state_i * pop_i;
     // Expensive, but should be a good one ?
     
@@ -1271,6 +1303,7 @@ public:
       }
     }
     return result;
+#endif
     // EV: 2021-11-24 note: returning another hash code changes the results, for instance:
     // return (size_t)(result*1.1);
   }
@@ -1359,6 +1392,28 @@ namespace std {
     size_t operator()(const PopNetworkState & x) const
     {
       return x.getHash();
+    }
+  };
+  
+  template <> struct equal_to<PopNetworkState >
+  {
+    size_t operator()(const PopNetworkState& val1, const PopNetworkState& val2) const {
+      return val1 == val2;
+    }
+  };
+
+  template <> struct not_equal_to<PopNetworkState >
+  {
+    size_t operator()(const PopNetworkState& val1, const PopNetworkState& val2) const {
+      return !(val1 == val2);
+    }
+  };
+  
+  // Added less operator, necessary for maps, sets. Code from https://stackoverflow.com/a/21245301/11713763
+  template <> struct less<PopNetworkState>
+  {
+    size_t operator()(const PopNetworkState& val1, const PopNetworkState& val2) const {
+      return val1 < val2;
     }
   };
 }

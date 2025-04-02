@@ -294,8 +294,11 @@ double DivisionRule::getRate(const NetworkState& state, const PopNetworkState& p
 }
 
 NetworkState DivisionRule::applyRules(int daughter, const NetworkState& state, const PopNetworkState& pop) {
+#ifdef USE_DYNAMIC_BITSET
+  NetworkState res(state, 1);
+#else
   NetworkState res(state);
-  
+#endif
   for (auto daughter_rule : daughters[daughter]) {
     res.setNodeState(daughter_rule.first, (bool)daughter_rule.second->eval(NULL, state, pop));
   }

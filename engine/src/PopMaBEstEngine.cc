@@ -276,8 +276,11 @@ void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, Cumulator
         if (pop.second > 0)
         {
 
+#ifdef USE_DYNAMIC_BITSET
+          NetworkState t_network_state(pop.first, 1);
+#else
           NetworkState t_network_state(pop.first);
-
+#endif
           double total_pop_rate = 0.;
           // forall S' such that there is only one different node state compare to S do
           for (auto node : nodes)
@@ -314,7 +317,11 @@ void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, Cumulator
               new_pop_network_state.decr(t_network_state);
               
               // ψ'(S') ≡ ψ(S') + 1
+#ifdef USE_DYNAMIC_BITSET
+              NetworkState new_network_state(t_network_state, 1);
+#else
               NetworkState new_network_state = t_network_state;
+#endif
               new_network_state.flipState(node);
               new_pop_network_state.incr(new_network_state); 
               
