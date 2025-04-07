@@ -59,12 +59,18 @@
 #include "ProbTrajDisplayer.h"
 #include "StatDistDisplayer.h"
 #include "RandomGenerator.h"
+#ifdef SBML_COMPAT
+#include "SBMLParser.h"
 #include "SBMLExporter.h"
-
+#ifdef SEDML_COMPAT
+#include "SEDMLParser.h"
+#endif
+#endif
 #ifdef MPI_COMPAT
 #include <mpi.h>
 int world_size, world_rank;
 #endif
+
 
 const char* prog = "MaBoSS";
 
@@ -76,6 +82,9 @@ static int usage(std::ostream& os = std::cerr)
   os << "  " << prog << " [-c|--config CONF_FILE] [-v|--config-vars VAR1=NUMERICzC[,VAR2=...]] [-e|--config-expr CONFIG_EXPR] -d|--dump-config BOOLEAN_NETWORK_FILE\n\n";
   os << "  " << prog << " [-c|--config CONF_FILE] [-v|--config-vars VAR1=NUMERIC[,VAR2=...]] [-e|--config-expr CONFIG_EXPR] -l|--generate-logical-expressions BOOLEAN_NETWORK_FILE\n\n";
   os << "  " << prog << " [-c|--config CONF_FILE] [-v|--config-vars VAR1=NUMERIC[,VAR2=...]] [-e|--config-expr CONFIG_EXPR] -x|--export-sbml SBML_FILE BOOLEAN_NETWORK_FILE\n\n";
+#ifdef SEDML_COMPAT
+  os << "  " << prog << " [-s|--sedml CONF_FILE]\n\n";
+#endif
   os << "  " << prog << " -t|--generate-config-template BOOLEAN_NETWORK_FILE\n";
   os << "  " << prog << " [-q|--quiet]\n";
   os << "  " << prog << " [--verbose level\n";
@@ -101,6 +110,7 @@ static int help()
   std::cout << "\nOptions:\n\n";
   std::cout << "  -V --version                            : displays MaBoSS version\n";
   std::cout << "  -c --config CONF_FILE                   : uses CONF_FILE as a configuration file\n";
+  std::cout << "  -s --sedml SEDML_FILE                   : uses SEDML_FILE as a configuration file\n";
   std::cout << "  -v --config-vars VAR=NUMERIC[,VAR2=...] : sets the value of the given variables to the given numeric values\n";
   //  std::cout << "                                        the VAR value in the configuration file (if present) will be overriden\n";
   std::cout << "  -e --config-expr CONFIG_EXPR            : evaluates the configuration expression; may have multiple expressions\n";
@@ -540,6 +550,17 @@ int run_single(const char* ctbndl_file, std::vector<std::string> runconfig_var_v
   return 0;
 }
 
+#ifdef SEDML_COMPAT
+int run_sedml(std::string sedml_file) 
+{
+
+  SEDMLParser* parser = new SEDMLParser();
+  parser->parse(sedml_file);
+  Function::destroyFuncMap();  
+  return 0;
+}
+#endif
+
 int main(int argc, char* argv[])
 {
 
@@ -554,6 +575,7 @@ int main(int argc, char* argv[])
   const char* output = NULL;
   std::vector<ConfigOpt> runconfig_file_or_expr_v;
   std::vector<std::string> runconfig_var_v;
+  std::string sedml_file = "";
   const char* ctbndl_file = NULL;
   bool single_simulation = false;
   bool final_simulation = false;
@@ -688,6 +710,9 @@ int main(int argc, char* argv[])
       } else if (!strcmp(s, "-c") || !strcmp(s, "--config")) {
 	if (nn == argc-1) {std::cerr << '\n' << prog << ": missing value after option " << s << '\n'; return usage();}
 	runconfig_file_or_expr_v.push_back(ConfigOpt(argv[++nn], false));
+      } else if (!strcmp(s, "-s") || !strcmp(s, "--sedml")) {
+  if (nn == argc-1) {std::cerr << '\n' << prog << ": missing value after option " << s << '\n'; return usage();}
+  sedml_file = argv[++nn];
       } else if (!strcmp(s, "--override")) {
 	if (Node::isAugment()) {
 	  std::cerr << '\n' << prog << ": --override and --augment are exclusive options\n"; return usage();
@@ -719,7 +744,7 @@ int main(int argc, char* argv[])
     }
   }
 
-  if (!ensemble && NULL == ctbndl_file)
+  if (!ensemble && sedml_file.empty() && NULL == ctbndl_file)
     {
       std::cerr << '\n'
 		<< prog << ": boolean network file is missing\n";
@@ -732,7 +757,7 @@ int main(int argc, char* argv[])
     return usage();
   }
     
-  if (!dump_config && !generate_config_template && !generate_logical_expressions && !check && !generate_bnd_file && sbml_file == NULL && output == NULL) {
+  if (!dump_config && !generate_config_template && !generate_logical_expressions && !check && !generate_bnd_file && sbml_file == NULL && sedml_file.empty() && output == NULL) {
     std::cerr << '\n' << prog << ": ouput option is not set\n";
     return usage();
   }
@@ -801,7 +826,10 @@ int main(int argc, char* argv[])
         ctbndl_file, runconfig_var_v, runconfig_file_or_expr_v, 
         output, generate_config_template
       ); 
-      
+#ifdef SEDML_COMPAT
+    } else if (!sedml_file.empty()) {
+      run_sedml(sedml_file);
+#endif
     } else {
         
       Network* network = new Network();

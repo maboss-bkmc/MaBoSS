@@ -10,6 +10,8 @@ ifndef MAXNODES
 MAXNODES = 64
 endif
 
+CXX_VERSION = c++11
+
 ifeq ($(USE_DYNAMIC_BITSET_STD_ALLOC), 1)
 INFIX := _dn
 BITSET_FLAG := -DUSE_DYNAMIC_BITSET -DUSE_DYNAMIC_BITSET_STD_ALLOC
@@ -65,6 +67,13 @@ SBML_LIB_STATIC = -static -lsbml-static -lxml2
 endif
 endif
 
+ifdef SEDML_COMPAT
+SEDML_FLAG = -DSEDML_COMPAT
+SEDML_LIB = -lsedml-static -lnuml
+SBML_LIB = -lsbml-static -lxml2 -lbz2 -lz
+CXX_VERSION = c++17
+endif
+
 ifdef HDF5_COMPAT
 HDF5_FLAG = -DHDF5_COMPAT
 HDF5_LIB = -lhdf5_serial -lhdf5_serial_hl
@@ -85,7 +94,8 @@ MABOSS_ALIB = lib$(MABOSS_LIBNAME)-static.a
 POPMABOSS_LIB = lib$(POPMABOSS_LIBNAME).so
 POPMABOSS_ALIB = lib$(POPMABOSS_LIBNAME)-static.a
 
-EXTRA_FLAGS = -std=c++11 -Wpedantic
+
+EXTRA_FLAGS = -std=$(CXX_VERSION) -Wpedantic
 
 ifndef CC
 CC = gcc
@@ -188,7 +198,7 @@ $(MABOSS_ALIB): $(CORE_LIB_OBJS) $(LIB_OBJS)
 	ar rcs $(MABOSS_ALIB) $+
 
 $(MABOSS_LIB): $(CORE_LIB_OBJS) $(LIB_OBJS)
-	$(CXX) -shared -o $(MABOSS_LIB) $+ -lpthread $(LDL_FLAG) $(LDFLAGS) $(SBML_LIB) $(HDF5_LIB)
+	$(CXX) -shared -o $(MABOSS_LIB) $+ -lpthread $(LDL_FLAG) $(LDFLAGS) $(SBML_LIB) $(SEDML_LIB) $(HDF5_LIB)
 
 $(POPMABOSS_ALIB): $(CORE_LIB_OBJS) $(POP_LIB_OBJS)
 	ar rcs $(POPMABOSS_ALIB) $+
@@ -198,9 +208,9 @@ $(POPMABOSS_LIB): $(CORE_LIB_OBJS) $(POP_LIB_OBJS)
 
 $(MABOSS): MaBoSS$(INFIX).o $(MABOSS_OBJS)
 ifdef USE_LIB
-	$(CXX) -o $(MABOSS) MaBoSS$(INFIX).o -l$(MABOSS_LIBNAME) -lpthread -L. $(LDL_FLAG) $(SBML_LIB) $(HDF5_LIB) $(LDFLAGS) $(EXTRA_LDFLAGS)
+	$(CXX) -o $(MABOSS) MaBoSS$(INFIX).o -l$(MABOSS_LIBNAME) -lpthread -L. $(LDL_FLAG) $(SBML_LIB) $(SEDML_LIB) $(HDF5_LIB) $(LDFLAGS) $(EXTRA_LDFLAGS)
 else
-	$(CXX) -o $(MABOSS) $+ -lpthread $(LDL_FLAG) $(SBML_LIB) $(HDF5_LIB) $(LDFLAGS) $(EXTRA_LDFLAGS)
+	$(CXX) -o $(MABOSS) $+ -lpthread $(LDL_FLAG) $(SBML_LIB) $(SEDML_LIB) $(HDF5_LIB) $(LDFLAGS) $(EXTRA_LDFLAGS)
 endif
 
 $(POPMABOSS): PopMaBoSS$(INFIX).o $(POPMABOSS_OBJS)
@@ -221,13 +231,13 @@ $(MABOSS_CLIENT): MaBoSS-client.o Client.o DataStreamer.o MaBoSS-RPC.o Utils$(IN
 	$(CXX) -o $(MABOSS_CLIENT) $+ -lpthread $(LDL_FLAG) $(LDFLAGS) $(EXTRA_LDFLAGS)
 
 %$(INFIX).o: %.cc
-	$(CXX) $(CXXFLAGS) $(EXTRA_CXXFLAGS) $(WINDOWS_FLAG) $(SBML_FLAG) $(HDF5_FLAG) -c $*.cc -o $*$(INFIX).o
+	$(CXX) $(CXXFLAGS) $(EXTRA_CXXFLAGS) $(WINDOWS_FLAG) $(SBML_FLAG) $(SEDML_FLAG) $(HDF5_FLAG) -c $*.cc -o $*$(INFIX).o
 
 %$(INFIX)-server.o: %-server.cc
-	$(CXX) $(CXXFLAGS) $(EXTRA_CXXFLAGS) $(SBML_FLAG) $(HDF5_FLAG) -c $*-server.cc -o $*$(INFIX)-server.o
+	$(CXX) $(CXXFLAGS) $(EXTRA_CXXFLAGS) $(SBML_FLAG) $(SEDML_FLAG) $(HDF5_FLAG) -c $*-server.cc -o $*$(INFIX)-server.o
 
 %.o: %.cc
-	$(CXX) $(CXXFLAGS) $(EXTRA_CXXFLAGS) $(WINDOWS_FLAG) $(SBML_FLAG) $(HDF5_FLAG) -c $*.cc -o $*.o
+	$(CXX) $(CXXFLAGS) $(EXTRA_CXXFLAGS) $(WINDOWS_FLAG) $(SBML_FLAG) $(SEDML_FLAG) $(HDF5_FLAG) -c $*.cc -o $*.o
 
 BooleanGrammar.cc: lex.CTBNDL.cc BooleanGrammar.y
 	@$(CHECK_BISON)
