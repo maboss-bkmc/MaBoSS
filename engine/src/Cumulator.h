@@ -863,6 +863,34 @@ public:
     delete clusterFactory;
   }
 
+
+std::map<std::string, std::vector<double> > getVariablesTimecourse(std::map<std::string, Expression*> variables) const 
+{  
+  std::map<std::string, std::vector<double> > ret;
+  for (auto& variable: variables)
+    ret[variable.first] = std::vector<double>(getMaxTickIndex(),0.0);
+  
+  
+  double ratio = time_tick*sample_count;
+  for (int nn=0; nn < getMaxTickIndex(); nn++) 
+  {      
+    const CumulMap& mp = get_map(nn);
+    auto iter = mp.iterator();
+ 
+    while (iter.hasNext()) {
+      TickValue tick_value;
+      const S& state = iter.next2(tick_value);
+      double proba = tick_value.tm_slice / ratio;
+      
+      for (auto& variable: variables)
+        ret[variable.first][nn] += proba * variable.second->eval(state, time_tick*nn);
+
+    }
+  }
+  
+  return ret;
+}  
+  
 std::set<S> getStates() const
 {
   std::set<S> result_states;
