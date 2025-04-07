@@ -1502,7 +1502,9 @@ class Expression {
 public:
   virtual double eval(const Node* this_node, const NetworkState& network_state) const = 0;
   virtual double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop_state) const = 0;
-  
+  virtual double eval(const NetworkState& network_state, double time){
+    return 0;
+  }
   virtual bool hasCycle(Node* node) const = 0;
 
   std::string toString() const {
@@ -1538,6 +1540,54 @@ public:
   }
 };
 
+
+class TimeExpression : public Expression {
+
+public:
+  TimeExpression() { }
+
+  Expression* clone() const {return new TimeExpression();}
+
+  double eval(const Node* this_node, const NetworkState& network_state) const {
+    return 0;
+  }
+
+  double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop_state) const {
+    return 0;
+  }
+  
+  double eval(const NetworkState& network_state, double time)
+  {
+    return time;
+  }
+
+  bool hasCycle(Node* _node) const {
+    return false;
+  }
+
+  void display(std::ostream& os) const {
+    os << "#time";
+  }
+
+  bool isLogicalExpression() const {return false;}
+  
+  std::vector<Node*> getNodes() const{
+    std::vector<Node*> vec;
+    return vec;
+  }
+
+#ifdef SBML_COMPAT
+  ASTNode* writeSBML(LogicalExprGenContext& genctx) const {
+    ASTNode* time_node = new ASTNode(AST_NAME_TIME);
+    return time_node;
+  }
+#endif
+  void generateLogicalExpression(LogicalExprGenContext& genctx) const {}
+
+  ~TimeExpression() {
+  }
+};
+
 class NodeExpression : public Expression {
   Node* node;
 
@@ -1551,6 +1601,11 @@ public:
   }
 
   double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop_state) const {
+    return (double)node->getNodeState(network_state);
+  }
+  
+  double eval(const NetworkState& network_state, double time)
+  {
     return (double)node->getNodeState(network_state);
   }
 
