@@ -80,7 +80,7 @@ public:
   MaBEstEngine(Network* network, RunConfig* runconfig);
 #endif
 
-  void run(std::ostream* output_traj);
+  void run(std::ostream* output_traj = NULL);
   void displayRunStats(std::ostream& os, time_t start_time, time_t end_time) const;
   
   ~MaBEstEngine();
