@@ -234,15 +234,11 @@ int Network::parse(const char* file, std::map<std::string, NodeIndex>* nodes_ind
 int Network::parseSBML(const char* file, std::map<std::string, NodeIndex>* nodes_indexes, bool useSBMLNames) 
 {  
   SBMLParser* parser = new SBMLParser(this, file, useSBMLNames);
-  
-  // try{
-    parser->build();
-  // } catch (BNException e) {
-  //   std::cerr << "ERROR : " << e.getMessage() << std::endl;
-  //   return 1;
-  // }
+    
+  parser->build();
   compile(nodes_indexes);
-
+  parser->setIStates();
+        
   return 0;
 }
 

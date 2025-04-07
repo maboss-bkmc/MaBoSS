@@ -68,6 +68,7 @@ class SBMLParser
   Model* model;
   QualModelPlugin* qual_model;
   std::map<std::string, int> maxLevels;
+  std::map<std::string, int> initialLevels;
   std::map<std::string, std::vector<std::string> > fixedNames;
   
   SBMLParser(Network* network, const char* file, bool useSBMLNames) : network(network), useSBMLNames(useSBMLNames) {
@@ -112,7 +113,9 @@ class SBMLParser
         } else {
             new_name = specie->getId();
         }
-        
+        if (specie->isSetInitialLevel()) {
+            this->initialLevels[specie->getId()] = specie->getInitialLevel();
+        }
         this->maxLevels[specie->getId()] = specie->isSetMaxLevel() ? specie->getMaxLevel() : 1;
         std::vector<std::string> t_fixed_names;
         if (this->maxLevels[specie->getId()] > 1) {
@@ -173,6 +176,18 @@ class SBMLParser
         }
     }
   } 
+  
+  void setIStates() 
+  {
+    for (auto initialLevel: initialLevels)
+    {
+        for (int i=1; i <= maxLevels[initialLevel.first]; i++)
+        {
+            Node* node = network->getNode(getName(initialLevel.first, i));
+            IStateGroup::setNodeProba(network, node, initialLevel.second >= i ? 1 : 0);
+        }
+    }    
+  }
   
   void parseTransition(Transition* transition) 
   {
