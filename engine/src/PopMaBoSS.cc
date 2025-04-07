@@ -239,7 +239,7 @@ int main(int argc, char* argv[])
           const char* level_chr = argv[++nn];
           if (isdigit(*level_chr)) {
             const int level = atoi(level_chr);
-            PopMaBEstEngine::setVerbose(level);
+            RunConfig::setVerbose(level);
           } else {
             std::cerr << "\n" << prog << ": unknown level for verbose " << level_chr << std::endl;
             return usage();

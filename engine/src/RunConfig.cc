@@ -57,6 +57,7 @@
 // #include "FinalStateSimulationEngine.h"
 
 extern int rclex_destroy();
+unsigned int RunConfig::verbose = 0;
 
 RunConfig::RunConfig()
 {

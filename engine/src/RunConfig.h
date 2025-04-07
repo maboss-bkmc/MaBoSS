@@ -77,6 +77,8 @@ class RunConfig {
   double pop_base;
   Expression* custom_pop_output_expression;
   
+  static unsigned int verbose;
+  
  public:
   RunConfig();
   ~RunConfig();
@@ -111,6 +113,9 @@ class RunConfig {
 
   void generateTemplate(Network* network, std::ostream& os, std::string version) const;
   void dump(Network* network, std::ostream& os, std::string version, bool header=true) const;
+  
+  static void setVerbose(unsigned int level) {verbose = level;}
+  static unsigned int getVerbose() { return verbose; }
 };
 
 extern FILE* rcin;

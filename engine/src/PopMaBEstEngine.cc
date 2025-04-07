@@ -57,12 +57,8 @@
 #include <iostream>
 
 const std::string PopMaBEstEngine::VERSION = "0.0.1";
-int PopMaBEstEngine::verbose = 0;
 // extern size_t RandomGenerator::generated_number_count;
 
-void PopMaBEstEngine::setVerbose(int level) {
-  PopMaBEstEngine::verbose = level;
-}
 
 #ifdef MPI_COMPAT
 PopMaBEstEngine::PopMaBEstEngine(PopNetwork *pop_network, RunConfig *runconfig, int world_size, int world_rank) : MetaEngine(pop_network, runconfig, world_size, world_rank), pop_network(pop_network)
@@ -247,12 +243,12 @@ void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, Cumulator
     cumulator->rewind();
     custom_cumulator->rewind();
     
-    if (verbose > 1) 
+    if (RunConfig::getVerbose() > 1) 
       std::cout << "> New simulation" << std::endl;
   
     pop_network->initPopStates(pop_network_state, random_generator, runconfig->getInitPop());
     
-    if (verbose > 1) {
+    if (RunConfig::getVerbose() > 1) {
       std::cout << ">> Initial state : ";
       pop_network_state.displayOneLine(std::cout, pop_network);
       std::cout << std::endl;
@@ -390,7 +386,7 @@ void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, Cumulator
         }
       }
       
-      if (verbose > 2) {
+      if (RunConfig::getVerbose() > 2) {
         for (const auto &transition : popNodeTransitionRates)
         {
           std::cout << ">>> Transition : ";
@@ -452,17 +448,17 @@ void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, Cumulator
 
       pop_network_state = getTargetNode(random_generator, popNodeTransitionRates, total_rate);
 
-      if (verbose > 0) 
+      if (RunConfig::getVerbose() > 0) 
         std::cout << "> time = " << tm << std::endl;
         
-      if (verbose > 1) {
+      if (RunConfig::getVerbose() > 1) {
         std::cout << ">> Present state : ";
         pop_network_state.displayOneLine(std::cout, pop_network);
         std::cout << std::endl;
       }
       
     }
-    if (verbose > 0)
+    if (RunConfig::getVerbose() > 0)
       std::cout << std::endl;
       
     if (runconfig->hasCustomPopOutput())

@@ -78,6 +78,7 @@ static int usage(std::ostream& os = std::cerr)
   os << "  " << prog << " [-c|--config CONF_FILE] [-v|--config-vars VAR1=NUMERIC[,VAR2=...]] [-e|--config-expr CONFIG_EXPR] -x|--export-sbml SBML_FILE BOOLEAN_NETWORK_FILE\n\n";
   os << "  " << prog << " -t|--generate-config-template BOOLEAN_NETWORK_FILE\n";
   os << "  " << prog << " [-q|--quiet]\n";
+  os << "  " << prog << " [--verbose level\n";
 #ifdef HDF5_COMPAT
   os << "  " << prog << " [--format csv|json|hdf5]\n";
 #else
@@ -111,6 +112,7 @@ static int help()
 #endif
   std::cout << "  --override                              : if set, a new node definition will replace a previous one\n";
   std::cout << "  --augment                               : if set, a new node definition will complete (add non existing attributes) / override (replace existing attributes) a previous one\n";
+  std::cout << "  --verbose level                         : Set level of verbose (0-3, default 0)\n";
   std::cout << "  -o --output OUTPUT                      : prefix to be used for output files; when present run MaBoSS simulation process\n";
   std::cout << "  -d --dump-config                        : dumps configuration and exits\n";
   std::cout << "  -t --generate-config-template           : generates template configuration and exits\n";
@@ -658,8 +660,25 @@ int main(int argc, char* argv[])
       } else if (!strcmp(s, "-x") || !strcmp(s, "--export-sbml")) {
         if (nn == argc-1) {std::cerr << '\n' << prog << ": missing value after option " << s << '\n'; return usage();}
         sbml_file = argv[++nn];
+      
       } else if (!strcmp(s, "--use-sbml-names")) {
         use_sbml_names = true;
+        
+      } else if (!strcmp(s, "--verbose")) {
+        if ((nn+1) < argc) {
+          const char* level_chr = argv[++nn];
+          if (isdigit(*level_chr)) {
+            const int level = atoi(level_chr);
+            RunConfig::setVerbose(level);
+          } else {
+            std::cerr << "\n" << prog << ": unknown level for verbose " << level_chr << std::endl;
+            return usage();
+          }        
+        } else {
+          std::cerr << "\n" << prog << ": please choose a level of verbosity (0-3) " << std::endl;
+          return usage();
+        }
+  	  
       } else if (!strcmp(s, "--load-user-functions")) {
 	if (nn == argc-1) {std::cerr << '\n' << prog << ": missing value after option " << s << '\n'; return usage();}
 	MaBEstEngine::loadUserFuncs(argv[++nn]);

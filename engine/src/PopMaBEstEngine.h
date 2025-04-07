@@ -85,8 +85,6 @@ class PopMaBEstEngine : public MetaEngine {
   std::vector<Cumulator<PopSize>* > custom_pop_cumulator_v;  
 public:
   static const std::string VERSION;
-  static int verbose;
-  static void setVerbose(int level);
 
 #ifdef MPI_COMPAT
   PopMaBEstEngine(PopNetwork* pop_network, RunConfig* runconfig, int world_size, int world_rank);
