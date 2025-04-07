@@ -71,62 +71,22 @@ class SBMLParser
   std::map<std::string, int> initialLevels;
   std::map<std::string, std::vector<std::string> > fixedNames;
   
-  SBMLParser(Network* network, const char* file, bool useSBMLNames) : network(network), useSBMLNames(useSBMLNames) {
-    
+  SBMLParser(Network* network, const char* file, bool useSBMLNames) : network(network), useSBMLNames(useSBMLNames) 
+  {
+  
     SBMLDocument* document;
     SBMLReader reader;
     
     document = reader.readSBML(file);
-    // unsigned int errors = document->getNumErrors();
-    
-    // if (errors > 0) {
-    //     for (int i=0; i < document->getNumErrors(); i++) {
-    //         std::cout << "Error #" << i << " : " << document->getError(i)->getMessage() << std::endl;
-    //     }
-    //     throw BNException("There are errors in the sbml file");  
-    // }
-    
-    SBasePlugin* qual = document->getPlugin("qual");
-    if (qual == NULL) {
-        throw BNException("This SBML model is not a qualitative sbml");
-    }
-    
-    this->model = document->getModel();
-    this->qual_model = static_cast<QualModelPlugin*>(model->getPlugin("qual"));
-
-    for (unsigned int i=0; i < qual_model->getNumQualitativeSpecies(); i++) {
-        QualitativeSpecies* specie = qual_model->getQualitativeSpecies(i);
-        std::string new_name;
-        if (useSBMLNames && specie->isSetName()) {
-            new_name = specie->getName();
-            new_name.erase(std::remove_if(
-                new_name.begin(), new_name.end(), 
-                [](char c) { 
-#ifdef _MSC_VER
-                    return !std::isalnum(c, std::locale::classic()) && c != '_'; 
-#else
-                    return !std::isalnum(c) && c != '_'; 
-#endif
-                }
-                ), new_name.end()
-            );
-        } else {
-            new_name = specie->getId();
-        }
-        if (specie->isSetInitialLevel()) {
-            this->initialLevels[specie->getId()] = specie->getInitialLevel();
-        }
-        this->maxLevels[specie->getId()] = specie->isSetMaxLevel() ? specie->getMaxLevel() : 1;
-        std::vector<std::string> t_fixed_names;
-        if (this->maxLevels[specie->getId()] > 1) {
-            for (int j=1; j <= this->maxLevels[specie->getId()]; j++) {
-                t_fixed_names.push_back(new_name + "_b" + std::to_string(j));
-            }
-        } else t_fixed_names.push_back(new_name);
-        
-        this->fixedNames[specie->getId()] = t_fixed_names;
-    }
+    parseDocument(document);
   }
+  
+  SBMLParser(Network* network, SBMLDocument* document, bool useSBMLNames) : network(network), useSBMLNames(useSBMLNames) 
+  {  
+    parseDocument(document);
+  }
+  
+  
   std::string getName(std::string id, int level) {
     return this->fixedNames[id][level-1];
   }
@@ -187,6 +147,50 @@ class SBMLParser
             IStateGroup::setNodeProba(network, node, initialLevel.second >= i ? 1 : 0);
         }
     }    
+  }
+  
+  void parseDocument(SBMLDocument* document)
+  {
+    SBasePlugin* qual = document->getPlugin("qual");
+    if (qual == NULL) {
+        throw BNException("This SBML model is not a qualitative sbml");
+    }
+    
+    this->model = document->getModel();
+    this->qual_model = static_cast<QualModelPlugin*>(model->getPlugin("qual"));
+
+    for (unsigned int i=0; i < qual_model->getNumQualitativeSpecies(); i++) {
+        QualitativeSpecies* specie = qual_model->getQualitativeSpecies(i);
+        std::string new_name;
+        if (useSBMLNames && specie->isSetName()) {
+            new_name = specie->getName();
+            new_name.erase(std::remove_if(
+                new_name.begin(), new_name.end(), 
+                [](char c) { 
+#ifdef _MSC_VER
+                    return !std::isalnum(c, std::locale::classic()) && c != '_'; 
+#else
+                    return !std::isalnum(c) && c != '_'; 
+#endif
+                }
+                ), new_name.end()
+            );
+        } else {
+            new_name = specie->getId();
+        }
+        if (specie->isSetInitialLevel()) {
+            this->initialLevels[specie->getId()] = specie->getInitialLevel();
+        }
+        this->maxLevels[specie->getId()] = specie->isSetMaxLevel() ? specie->getMaxLevel() : 1;
+        std::vector<std::string> t_fixed_names;
+        if (this->maxLevels[specie->getId()] > 1) {
+            for (int j=1; j <= this->maxLevels[specie->getId()]; j++) {
+                t_fixed_names.push_back(new_name + "_b" + std::to_string(j));
+            }
+        } else t_fixed_names.push_back(new_name);
+        
+        this->fixedNames[specie->getId()] = t_fixed_names;
+    }  
   }
   
   void parseTransition(Transition* transition) 
