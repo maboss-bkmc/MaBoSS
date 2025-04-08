@@ -291,6 +291,7 @@ class Node {
   bool is_internal;
   bool is_reference;
   bool in_graph;
+  bool is_mutable;
   NodeState referenceState;
   const Expression* logicalInputExpr;
   const Expression* rateUpExpr;
@@ -360,7 +361,7 @@ class Node {
   }
 
   void mutate(double value);
-
+  void makeMutable(Network* network);
   NodeState getIState(const Network* network, RandomGenerator* randgen) const;
 
   void setIState(NodeState _istate) {

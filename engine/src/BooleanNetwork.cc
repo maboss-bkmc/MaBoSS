@@ -53,6 +53,7 @@
 #include "RunConfig.h"
 #include "Utils.h"
 #include <iostream>
+#include <limits>
 
 #ifdef SBML_COMPAT
 #include "SBMLParser.h"
@@ -91,6 +92,7 @@ void Node::reset()
   is_internal = false;
   is_reference = false;
   in_graph = false;
+  is_mutable = false;
   referenceState = false;
   delete logicalInputExpr;
   logicalInputExpr = NULL;
@@ -483,9 +485,76 @@ double Node::getRateDown(const NetworkState& network_state, const PopNetworkStat
 
 void Node::mutate(double value) 
 {
+    delete logicalInputExpr;
     logicalInputExpr = new ConstantExpression(value);
+    delete rateUpExpr;
     rateUpExpr = NULL;
+    delete rateDownExpr;
     rateDownExpr = NULL;
+}
+
+void Node::makeMutable(Network* network)
+{
+  if (!this->is_mutable) 
+  {
+    
+    
+    const Symbol* lowvar = network->getSymbolTable()->getOrMakeSymbol("$Low_" + label);
+    const Symbol* highvar = network->getSymbolTable()->getOrMakeSymbol("$High_" + label);
+    const Symbol* nb_mutable = network->getSymbolTable()->getOrMakeSymbol("$nb_mutable");
+    
+    Expression* new_rate_up = NULL;
+    Expression* new_rate_down = NULL;
+    
+    if (rateUpExpr == NULL) {
+      
+      new_rate_up = new CondExpression(
+        logicalInputExpr->clone(),
+        new ConstantExpression(1.0),
+        new ConstantExpression(0.0)
+      );
+       
+    } else {
+      new_rate_up = rateUpExpr->clone();  
+      delete rateUpExpr;
+    }
+    
+    new_rate_up = new CondExpression(
+      new EqualExpression(new SymbolExpression(network->getSymbolTable(), highvar), new ConstantExpression(1.0)),
+      new DivExpression(new ConstantExpression(std::numeric_limits<double>::max()), new SymbolExpression(network->getSymbolTable(), nb_mutable)),
+      new_rate_up
+    );
+    rateUpExpr = new CondExpression(
+      new EqualExpression(new SymbolExpression(network->getSymbolTable(), lowvar), new ConstantExpression(1.0)),
+      new ConstantExpression(0.0),
+      new_rate_up
+    );
+    
+    if (rateDownExpr == NULL) {
+      new_rate_down = new CondExpression(
+        logicalInputExpr->clone(),
+        new ConstantExpression(0.0),
+        new ConstantExpression(1.0)
+      );
+    } else {
+      new_rate_down = rateDownExpr->clone();
+      delete rateDownExpr;
+    }
+    
+    new_rate_down = new CondExpression(
+      new EqualExpression(new SymbolExpression(network->getSymbolTable(), lowvar), new ConstantExpression(1.0)),
+      new DivExpression(new ConstantExpression(std::numeric_limits<double>::max()), new SymbolExpression(network->getSymbolTable(), nb_mutable)),
+      new_rate_down
+    );
+    rateDownExpr = new CondExpression(
+      new EqualExpression(new SymbolExpression(network->getSymbolTable(), highvar), new ConstantExpression(1.0)),
+      new ConstantExpression(0.0),
+      new_rate_down
+    );
+  
+    network->getSymbolTable()->setSymbolValue(nb_mutable, network->getSymbolTable()->getSymbolValue(nb_mutable) + 1);
+    this->is_mutable = true;
+  }
 }
 
 NodeState Node::getNodeState(const NetworkState& network_state) const
