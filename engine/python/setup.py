@@ -28,9 +28,10 @@ maboss_module_sources = [
    'cmaboss/popmaboss_net.cpp',
    'cmaboss/popmaboss_sim.cpp',
    'cmaboss/popmaboss_res.cpp',
+   'cmaboss/sedml_sim.cpp',
    'cmaboss/maboss_module.cpp', 
 ]
-extra_compile_args = ['-std=c++11', '-DPYTHON_API', '-DSBML_COMPAT']
+extra_compile_args = ['-std=c++17', '-DPYTHON_API', '-DSBML_COMPAT', '-DSEDML_COMPAT']
 
 def getExtensionByMaxnodes(maxnodes=64):
    import numpy
@@ -39,7 +40,7 @@ def getExtensionByMaxnodes(maxnodes=64):
       sources=maboss_module_sources + ["cmaboss/src/%s" % source for source in maboss_sources], 
       include_dirs=[numpy.get_include()],
       extra_compile_args=(extra_compile_args + (['-DMAXNODES=%d' % max(maxnodes, 64)])),
-      libraries=["sbml"],
+      libraries=["sbml", "sedml"],
       language="c++"
    )
 

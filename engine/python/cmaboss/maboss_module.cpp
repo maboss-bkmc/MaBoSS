@@ -56,6 +56,7 @@
 #include "maboss_res.h"
 #include "maboss_resfinal.h"
 #include "popmaboss_res.h"
+#include "sedml_sim.h"
 
 #if ! defined (MAXNODES) || MAXNODES <= 64 
     const char module_name[] = "cmaboss";
@@ -126,7 +127,6 @@ MODULE_INIT_NAME(void)
     if (PyType_Ready(&cPopMaBoSSNetwork) < 0){
         return NULL;
     }
-    
     if (PyType_Ready(&cPopMaBoSSResult) < 0){
         return NULL;
     }
@@ -134,6 +134,9 @@ MODULE_INIT_NAME(void)
         return NULL;
     }
     if (PyType_Ready(&cMaBoSSNode) < 0){
+        return NULL;
+    }
+    if (PyType_Ready(&sedmlSim) < 0){
         return NULL;
     }
     
@@ -214,6 +217,13 @@ MODULE_INIT_NAME(void)
     Py_INCREF(&cPopMaBoSSResult);
     if (PyModule_AddObject(m, "cPopMaBoSSResult", (PyObject *) &cPopMaBoSSResult) < 0) {
         Py_DECREF(&cPopMaBoSSResult);
+        Py_DECREF(m);
+        return NULL;
+    }
+    
+    Py_INCREF(&sedmlSim);
+    if (PyModule_AddObject(m, "sedmlSim", (PyObject *) &sedmlSim) < 0) {
+        Py_DECREF(&sedmlSim);
         Py_DECREF(m);
         return NULL;
     }

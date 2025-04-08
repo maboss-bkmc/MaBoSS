@@ -36,50 +36,38 @@
 #############################################################################
 
    Module:
-     maboss_commons.h
+     sedml_sim.h
 
    Authors:
      Vincent Noël <vincent.noel@curie.fr>
  
    Date:
-     January-March 2020
+     April 2025
 */
 
+#ifndef SEDML_SIM
+#define SEDML_SIM
+
+#include "maboss_commons.h"
 
 
-#ifndef _COMMONS_H_
-#define _COMMONS_H_
+typedef struct {
+  PyObject_HEAD
+  // cMaBoSSNetworkObject* network;
+  // cMaBoSSConfigObject* config;
+  // cMaBoSSParamObject* param;
+} sedmlSimObject;
 
-#define PY_SSIZE_T_CLEAN
+void sedmlSim_dealloc(sedmlSimObject *self);
+int sedmlSim_init(PyObject* self, PyObject *args, PyObject* kwargs);
+PyObject * sedmlSim_new(PyTypeObject* type, PyObject *args, PyObject* kwargs);
+// PyObject* cMaBoSSSim_run(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs);
+// PyObject* cMaBoSSSim_check(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs);
+// PyObject* cMaBoSSSim_get_logical_rules(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs);
+// PyObject* cMaBoSSSim_bnd_str(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs);
+// PyObject* cMaBoSSSim_cfg_str(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs);
+// PyObject* cMaBoSSSim_update_parameters(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs);
+// PyObject* cMaBoSSSim_get_nodes(cMaBoSSSimObject* self);
+// PyObject* cMaBoSSSim_copy(cMaBoSSSimObject* self);
 
-#include <Python.h>
-#include <structmember.h>
-
-// I use these to define the name of the library, and the init function
-// Not sure why we need this 2 level thingy... Came from https://stackoverflow.com/a/1489971/11713763
-#if defined (MAXNODES) && MAXNODES > 64 
-#define NAME2(fun,suffix) fun ## suffix
-#define NAME1(fun,suffix) NAME2(fun,suffix)
-#define STR_HELPER(x) #x
-#define STR(x) STR_HELPER(x)
-#define MODULE_NODES NAME1(MAXNODES, n)
-#define MODULE_NAME NAME1(cmaboss_, MODULE_NODES)
-#endif
-
-extern PyObject *PyBNException;
-extern const char module_name[];
-
-extern PyTypeObject cMaBoSSNetwork;
-extern PyTypeObject cMaBoSSConfig;
-extern PyTypeObject cMaBoSSSim;
-extern PyTypeObject cMaBoSSResult;
-extern PyTypeObject cMaBoSSResultFinal;
-extern PyTypeObject cPopMaBoSSSim;
-extern PyTypeObject cPopMaBoSSNetwork;
-extern PyTypeObject cPopMaBoSSResult;
-extern PyTypeObject cMaBoSSNode;
-extern PyTypeObject cMaBoSSParam;
-extern PyTypeObject sedmlSim;
-
-extern const char * build_type_name(const char * name);
 #endif
