@@ -68,6 +68,7 @@ PyMethodDef cMaBoSSSim_methods[] = {
     {"get_logical_rules", (PyCFunction) cMaBoSSSim_get_logical_rules, METH_VARARGS | METH_KEYWORDS, "returns logical formulas"},
     {"update_parameters", (PyCFunction) cMaBoSSSim_update_parameters, METH_VARARGS | METH_KEYWORDS, "changes the parameters of the simulation"},
     {"get_nodes", (PyCFunction) cMaBoSSSim_get_nodes, METH_NOARGS, "returns the list of nodes"},
+    {"mutate", (PyCFunction) cMaBoSSSim_mutate, METH_VARARGS | METH_KEYWORDS, "mutates a node of the network"},
     {NULL}  /* Sentinel */
 };
 
@@ -282,6 +283,38 @@ PyObject* cMaBoSSSim_get_nodes(cMaBoSSSimObject* self) {
   }
 
   return list;
+}
+
+PyObject* cMaBoSSSim_mutate(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs)
+{
+  PyObject *node_name = Py_None;
+  PyObject *mutation = Py_None;
+  PyObject* simple = Py_True;
+  const char *kwargs_list[] = {"node_name", "mutation", "simple", NULL};
+  if (!PyArg_ParseTupleAndKeywords(
+    args, kwargs, "|OOO", const_cast<char **>(kwargs_list), 
+    &node_name, &mutation, &simple
+  ))
+    return NULL;
+
+  std::string node_name_str = PyUnicode_AsUTF8(node_name);
+  std::string mutation_str = PyUnicode_AsUTF8(mutation);
+  
+  Node* node = self->network->network->getNode(node_name_str);
+  bool is_activation = (mutation_str.compare("ON") == 0 || mutation_str.compare("on") == 0);
+  if (simple == Py_True) {
+    node->mutate((is_activation ? 1.0 : 0.0));
+  } else {
+    
+    node->makeMutable(self->network->network);
+    SymbolTable* symbol_table = self->network->network->getSymbolTable();
+    const Symbol* lowvar = symbol_table->getSymbol("$Low_" + node_name_str);
+    const Symbol* highvar = symbol_table->getSymbol("$High_" + node_name_str);
+    symbol_table->setSymbolValue(lowvar, (is_activation ? 0.0 : 1.0));
+    symbol_table->setSymbolValue(highvar, (is_activation ? 1.0 : 0.0));
+  }
+  
+  Py_RETURN_NONE;
 }
 
 PyObject* cMaBoSSSim_copy(cMaBoSSSimObject* self) {

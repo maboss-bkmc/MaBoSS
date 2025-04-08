@@ -332,6 +332,7 @@ int cMaBoSSNetwork_init(PyObject* self, PyObject *args, PyObject* kwargs)
       return -1;
     }
       
+    IStateGroup::checkAndComplete(py_network->network);
     // Building dictionary of nodes
     for (auto* node: py_network->network->getNodes()) 
     {
