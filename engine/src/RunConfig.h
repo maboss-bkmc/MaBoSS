@@ -82,7 +82,7 @@ class RunConfig {
  public:
   RunConfig();
   ~RunConfig();
-  
+  RunConfig(const RunConfig& other);
   int parse(Network* network, const char* file = NULL);
   int parseExpression(Network* network, const char* expr);
   void setParameter(const std::string& param, double value);

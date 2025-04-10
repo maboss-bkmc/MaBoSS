@@ -63,7 +63,7 @@
 #include "SBMLParser.h"
 #include "SBMLExporter.h"
 #ifdef SEDML_COMPAT
-#include "SEDMLParser.h"
+#include "sedml/SedEngine.h"
 #endif
 #endif
 #ifdef MPI_COMPAT
@@ -554,8 +554,10 @@ int run_single(const char* ctbndl_file, std::vector<std::string> runconfig_var_v
 int run_sedml(std::string sedml_file) 
 {
 
-  SEDMLParser* parser = new SEDMLParser();
-  parser->parse(sedml_file);
+  SedEngine sed_engine;
+  sed_engine.parse(sedml_file);
+  sed_engine.run();
+  sed_engine.writeReports();
   Function::destroyFuncMap();  
   return 0;
 }

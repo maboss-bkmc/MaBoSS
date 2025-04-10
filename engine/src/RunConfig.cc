@@ -86,6 +86,26 @@ RunConfig::~RunConfig()
   delete randgen_factory;
   delete custom_pop_output_expression;
 }
+RunConfig::RunConfig(const RunConfig& other)
+{
+  time_tick = other.getTimeTick();
+  max_time = other.getMaxTime();
+  sample_count = other.getSampleCount();
+  discrete_time = other.isDiscreteTime();
+  use_physrandgen = other.usePhysRandGen();
+  use_glibcrandgen = other.useGlibcRandGen();
+  use_mtrandgen = other.useMTRandGen();
+  seed_pseudorand = other.getSeedPseudoRandom();
+  randgen_factory = NULL;
+  display_traj = other.getDisplayTrajectories();
+  thread_count = other.getThreadCount();
+  statdist_traj_count = other.getStatDistTrajCount();
+  statdist_cluster_threshold = other.getStatdistClusterThreshold();
+  statdist_similarity_cache_max_size = other.getStatDistSimilarityCacheMaxSize();
+  init_pop = other.getInitPop();
+  pop_base = other.getPopBase();
+  custom_pop_output_expression = other.getCustomPopOutputExpression() == NULL ? NULL : other.getCustomPopOutputExpression()->clone();
+}
 
 void RunConfig::setParameter(const std::string& param, double value)
 {

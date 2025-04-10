@@ -1664,6 +1664,11 @@ public:
     return state.getState() == network_state.getState() ? 1.0 : 0.0;
   }
   
+  double eval(const NetworkState& network_state, double time)
+  {
+    return state.getState() == network_state.getState() ? 1.0 : 0.0;
+  }
+  
   bool hasCycle(Node* node) const {
     return false;
   }
@@ -2321,6 +2326,11 @@ public:
     return (double)((bool)left->eval(this_node, network_state, pop) && (bool)right->eval(this_node, network_state, pop));
   }
 
+  double eval(const NetworkState& network_state, double time)
+  {
+    return (double)((bool)left->eval(network_state, time ) && (bool)right->eval(network_state, time));
+  }
+  
   bool generationWillAddParenthesis() const {return true;}
 
   void display(std::ostream& os) const {
@@ -2398,7 +2408,11 @@ public:
   double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop) const {
     return (double)(!((bool)expr->eval(this_node, network_state, pop)));
   }
-
+  
+  double eval(const NetworkState& network_state, double time) {
+    return (double)(!((bool)expr->eval(network_state, time)));
+  }
+  
   bool hasCycle(Node* node) const {
     return expr->hasCycle(node);
   }

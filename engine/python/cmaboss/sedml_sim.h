@@ -49,25 +49,17 @@
 #define SEDML_SIM
 
 #include "maboss_commons.h"
-
+#include "src/sedml/SedEngine.h"
 
 typedef struct {
   PyObject_HEAD
-  // cMaBoSSNetworkObject* network;
-  // cMaBoSSConfigObject* config;
-  // cMaBoSSParamObject* param;
+  SedEngine* engine;
 } sedmlSimObject;
 
 void sedmlSim_dealloc(sedmlSimObject *self);
 int sedmlSim_init(PyObject* self, PyObject *args, PyObject* kwargs);
 PyObject * sedmlSim_new(PyTypeObject* type, PyObject *args, PyObject* kwargs);
-// PyObject* cMaBoSSSim_run(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs);
-// PyObject* cMaBoSSSim_check(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs);
-// PyObject* cMaBoSSSim_get_logical_rules(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs);
-// PyObject* cMaBoSSSim_bnd_str(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs);
-// PyObject* cMaBoSSSim_cfg_str(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs);
-// PyObject* cMaBoSSSim_update_parameters(cMaBoSSSimObject* self, PyObject *args, PyObject* kwargs);
-// PyObject* cMaBoSSSim_get_nodes(cMaBoSSSimObject* self);
-// PyObject* cMaBoSSSim_copy(cMaBoSSSimObject* self);
+PyObject* sedmlSim_get_plots(sedmlSimObject* self);
+PyObject* sedmlSim_get_reports(sedmlSimObject* self);
 
 #endif

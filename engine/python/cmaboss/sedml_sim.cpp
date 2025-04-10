@@ -48,28 +48,19 @@
 #include "sedml_sim.h"
 #include "maboss_commons.h"
 
-#include "src/SEDMLParser.h"
+#include "src/sedml/SedEngine.h"
 
 #ifdef __GLIBC__
 #include <malloc.h>
 #endif
 
 PyMethodDef sedmlSim_methods[] = {
-    // {"run", (PyCFunction) sedmlSim_run, METH_VARARGS | METH_KEYWORDS, "runs the simulation"},
-    // {"check", (PyCFunction) sedmlSim_check, METH_VARARGS | METH_KEYWORDS, "checks the model"},
-    // {"copy", (PyCFunction) sedmlSim_copy, METH_NOARGS, "returns a copy of the simulation"},
-    // {"str_bnd", (PyCFunction) sedmlSim_bnd_str, METH_VARARGS | METH_KEYWORDS, "returns the contents of the bnd file"},
-    // {"str_cfg", (PyCFunction) sedmlSim_cfg_str, METH_VARARGS | METH_KEYWORDS, "checks the contents of the cfg file"},
-    // {"get_logical_rules", (PyCFunction) sedmlSim_get_logical_rules, METH_VARARGS | METH_KEYWORDS, "returns logical formulas"},
-    // {"update_parameters", (PyCFunction) sedmlSim_update_parameters, METH_VARARGS | METH_KEYWORDS, "changes the parameters of the simulation"},
-    // {"get_nodes", (PyCFunction) sedmlSim_get_nodes, METH_NOARGS, "returns the list of nodes"},
-    {NULL}  /* Sentinel */
+  {"get_plots", (PyCFunction) sedmlSim_get_plots, METH_NOARGS, "returns the list of plots"},
+  {"get_reports", (PyCFunction) sedmlSim_get_reports, METH_NOARGS, "returns the list of reports"},
+  {NULL}  /* Sentinel */
 };
 
 PyMemberDef sedmlSim_members[] = {
-    // {"network", T_OBJECT_EX, offsetof(sedmlSimObject, network), READONLY},
-    // {"config", T_OBJECT_EX, offsetof(sedmlSimObject, config), READONLY},
-    // {"param", T_OBJECT_EX, offsetof(sedmlSimObject, param), READONLY},
     {NULL}  /* Sentinel */
 };
 
@@ -107,8 +98,10 @@ int sedmlSim_init(PyObject* self, PyObject *args, PyObject* kwargs)
   sedmlSimObject* py_simulation = (sedmlSimObject *) self;
 
   try {
-    SEDMLParser* parser = new SEDMLParser();
-    parser->parse(PyUnicode_AsUTF8(sedml_file));
+    SedEngine* engine = new SedEngine();
+    py_simulation->engine = engine;  
+    engine->parse(PyUnicode_AsUTF8(sedml_file));
+    engine->run();
   }
   catch (BNException& e) {
     PyErr_SetString(PyBNException, e.getMessage().c_str());
@@ -121,9 +114,40 @@ int sedmlSim_init(PyObject* self, PyObject *args, PyObject* kwargs)
 PyObject * sedmlSim_new(PyTypeObject* type, PyObject *args, PyObject* kwargs) 
 {
   sedmlSimObject* py_simulation = (sedmlSimObject *) type->tp_alloc(type, 0);
-  // py_simulation->network = NULL;
-  // py_simulation->config = NULL;
-  // py_simulation->param = NULL;
-
+  py_simulation->engine = NULL;
   return (PyObject *) py_simulation;
+}
+
+PyObject* sedmlSim_get_plots(sedmlSimObject* self)
+{
+  std::vector<Plot2D> sedplots = self->engine->getPlots();
+  PyObject* list_plots = PyList_New(sedplots.size());
+  size_t i=0;
+  
+  for (const auto& plot: sedplots)
+  {
+    PyObject* plot_data = plot.getPlotData();
+    PyList_SetItem(list_plots, i, plot_data);
+    i++;
+  }
+  
+  Py_INCREF(list_plots);
+  return list_plots;
+}
+
+PyObject* sedmlSim_get_reports(sedmlSimObject* self)
+{
+  std::vector<Report> sedreports = self->engine->getReports();
+  PyObject* list_reports = PyList_New(sedreports.size());
+  size_t i=0;
+  
+  for (const auto& report: sedreports)
+  {
+    PyObject* report_data = report.getReportData();
+    PyList_SetItem(list_reports, i, report_data);
+    i++;
+  }
+  
+  Py_INCREF(list_reports);
+  return list_reports;
 }

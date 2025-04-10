@@ -526,6 +526,16 @@ class SBMLParser
                 );
             }
         }
+        
+        case AST_CONSTANT_TRUE:
+        {
+            return new ConstantExpression(1.0);
+        }
+        
+        case AST_CONSTANT_FALSE:
+        {
+            return new ConstantExpression(0.0);
+        }
         default:
             throw BNException("Not Implemented : Unknown sbml operator : " + std::string(tree->getName()));
     }

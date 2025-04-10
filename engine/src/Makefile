@@ -68,10 +68,15 @@ endif
 endif
 
 ifdef SEDML_COMPAT
-SEDML_FLAG = -DSEDML_COMPAT
+LIBXML2_FLAG = $(shell xml2-config --cflags)
+SEDML_FLAG = -DSEDML_COMPAT $(LIBXML2_FLAG)
 SEDML_LIB = -lsedml-static -lnuml
 SBML_LIB = -lsbml-static -lxml2 -lbz2 -lz
 CXX_VERSION = c++17
+
+SEDML_LIB_SRC := sedml/XMLPatcher.cc
+SEDML_LIB_OBJS := sedml/XMLPatcher$(INFIX).o
+
 endif
 
 ifdef HDF5_COMPAT
@@ -152,7 +157,7 @@ ifdef USE_LIB
 MABOSS_OBJS = $(MABOSS_LIB)
 POPMABOSS_OBJS = $(POPMABOSS_LIB)
 else
-MABOSS_OBJS = $(CORE_LIB_OBJS) $(LIB_OBJS)
+MABOSS_OBJS = $(CORE_LIB_OBJS) $(LIB_OBJS) $(SEDML_LIB_OBJS) 
 POPMABOSS_OBJS = $(CORE_LIB_OBJS) $(POP_LIB_OBJS)
 endif
 
