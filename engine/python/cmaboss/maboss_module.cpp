@@ -56,7 +56,9 @@
 #include "maboss_res.h"
 #include "maboss_resfinal.h"
 #include "popmaboss_res.h"
+#ifdef SEDML_COMPAT
 #include "sedml_sim.h"
+#endif
 
 #if ! defined (MAXNODES) || MAXNODES <= 64 
     const char module_name[] = "cmaboss";
@@ -136,10 +138,12 @@ MODULE_INIT_NAME(void)
     if (PyType_Ready(&cMaBoSSNode) < 0){
         return NULL;
     }
+#ifdef SEDML_COMPAT
     if (PyType_Ready(&sedmlSim) < 0){
         return NULL;
     }
-    
+#endif
+
     m = PyModule_Create(&cMaBoSSDef);
 
 #if ! defined (MAXNODES) || MAXNODES <= 64 
@@ -221,12 +225,13 @@ MODULE_INIT_NAME(void)
         return NULL;
     }
     
+#ifdef SEDML_COMPAT
     Py_INCREF(&sedmlSim);
     if (PyModule_AddObject(m, "sedmlSim", (PyObject *) &sedmlSim) < 0) {
         Py_DECREF(&sedmlSim);
         Py_DECREF(m);
         return NULL;
     }
-    
+#endif
     return m;
 }

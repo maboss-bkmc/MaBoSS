@@ -4,7 +4,8 @@ requires = [
     "wheel",
     "Cython",
     "oldest-supported-numpy; python_version<'3.9'",
-    "numpy>=2; python_version>='3.9'"
+    "numpy>=2; python_version>='3.9'",
+    "lxml"
 ]
 
 build-backend = "setuptools.build_meta"
