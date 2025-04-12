@@ -32,6 +32,7 @@ RUN cd /opt/libSEDML/submodules/libSBML \
         -DWITH_STABLE_PACKAGES=ON \
         -DWITH_CPP_NAMESPACE=ON \
         -DWITH_ZLIB=ON \
+        -DLIBSBML_SKIP_SHARED_LIBRARY=ON \
     && cmake --build build --parallel 16 \
     && cmake --install build
 
@@ -40,6 +41,7 @@ RUN cd /opt/libSEDML/submodules/NuML/libnuml \
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_INSTALL_PREFIX=/usr \
         -DWITH_CPP_NAMESPACE=ON \
+        -DLIBNUML_SKIP_SHARED_LIBRARY=ON \
     && cmake --build build --parallel 16 \
     && cmake --install build
     
@@ -60,47 +62,49 @@ ADD engine/src /opt/MaBoSS/engine/src
 ADD CMakeLists.txt /opt/MaBoSS/CMakeLists.txt
 ADD cmake /opt/MaBoSS/cmake
 RUN cd /opt/MaBoSS \
-    && ls -al /usr/share/cmake/Modules \
     && cmake -B build -S . \
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_INSTALL_PREFIX=/usr/ \
         -DSEDML=1 -DSBML=1 \
         -DBUILD_SERVER=1 \
-    && cmake --build build --parallel 16 --verbose \
-    && cmake --install build \
+    && cmake --build build --parallel 16 \
+    && cmake --install build --component executables \
     && cmake -B build -S . \
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_INSTALL_PREFIX=/usr/ \
         -DMAXNODES=128 \
         -DSEDML=1 -DSBML=1 \
         -DBUILD_SERVER=1 \
-    && cmake --build build --parallel 16 --verbose \
-    && cmake --install build \
+    && cmake --build build --parallel 16 \
+    && cmake --install build --component executables \
     && cmake -B build -S . \
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_INSTALL_PREFIX=/usr/ \
         -DMAXNODES=256 \
         -DSEDML=1 -DSBML=1 \
         -DBUILD_SERVER=1 \
-    && cmake --build build --parallel 16 --verbose \
-    && cmake --install build \
+    && cmake --build build --parallel 16 \
+    && cmake --install build --component executables \
     && cmake -B build -S . \
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_INSTALL_PREFIX=/usr/ \
         -DMAXNODES=512 \
         -DSEDML=1 -DSBML=1 \
         -DBUILD_SERVER=1 \
-    && cmake --build build --parallel 16 --verbose \
-    && cmake --install build \
+    && cmake --build build --parallel 16 \
+    && cmake --install build --component executables \
     && cmake -B build -S . \
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_INSTALL_PREFIX=/usr/ \
         -DMAXNODES=1024 \
         -DSEDML=1 -DSBML=1 \
         -DBUILD_SERVER=1 \
-    && cmake --build build --parallel 16 --verbose \
-    && cmake --install build 
+    && cmake --build build --parallel 16 \
+    && cmake --install build  --component executables
 
+RUN rm -fr /opt/libSEDML \
+    && rm -fr /opt/MaBoSS/ 
+    
 # Exposing port 7777
 EXPOSE 7777
 EXPOSE 7778

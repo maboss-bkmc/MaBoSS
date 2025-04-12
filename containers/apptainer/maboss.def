@@ -1,47 +1,117 @@
+#include <sbml/SBMLReader.h>
 Bootstrap: docker
-from: ubuntu:22.04
+from: ubuntu:24.04
 
 %files
-    . /opt/MaBoSS
-
+    engine/src/ /opt/MaBoSS/engine/src
+    CMakeLists.txt /opt/MaBoSS/CMakeLists.txt
+    cmake/ /opt/MaBoSS/cmake
+    
 %post
     apt-get --quiet update
     DEBIAN_FRONTEND=noninteractive apt-get install --assume-yes --no-install-recommends \
-        flex bison gcc g++ make libxml2-dev cmake wget ca-certificates 
+        git flex bison gcc g++ make cmake wget ca-certificates 
     apt clean -y 
     rm -rf /var/lib/apt/lists/*
-    wget https://github.com/sbmlteam/libsbml/archive/refs/tags/v5.20.4.tar.gz
-    tar -zxf v5.20.4.tar.gz
-    cd libsbml-5.20.4
-    mkdir build
-    cd build
-    cmake -DCMAKE_INSTALL_PREFIX=/usr \
-    -DCMAKE_INSTALL_LIBDIR=/usr/lib \
-    -DCMAKE_CXX_COMPILER=g++ \
-    -DCMAKE_C_COMPILER=gcc \
-    -DCMAKE_CXX_STANDARD_LIBRARIES=-lxml2 \
-    -DWITH_SWIG=OFF \
-    -DLIBXML_LIBRARY=/usr/lib/x86_64-linux-gnu/libxml2.so \
-    -DLIBXML_INCLUDE_DIR=/usr/include/libxml2 \
-    -DENABLE_QUAL=ON \
-    -DWITH_CPP_NAMESPACE=ON \
-    ..
-    make
-    make install
-    cd ../../
-    rm -fr libsbml-5.20.4
-    rm -fr /opt/MaBoSS/.git
     
-    bash -c "cd /opt/MaBoSS/engine/src/; make install CLIENT_SERVER=1 SBML_COMPAT=1"
-    bash -c "cd /opt/MaBoSS/engine/src/; make install MAXNODES=128 CLIENT_SERVER=1 SBML_COMPAT=1"
-    bash -c "cd /opt/MaBoSS/engine/src/; make install MAXNODES=256 CLIENT_SERVER=1 SBML_COMPAT=1"
-    bash -c "cd /opt/MaBoSS/engine/src/; make install MAXNODES=512 CLIENT_SERVER=1 SBML_COMPAT=1"
-    bash -c "cd /opt/MaBoSS/engine/src/; make install MAXNODES=1024 CLIENT_SERVER=1 SBML_COMPAT=1"
+    git clone --recurse-submodules https://github.com/fbergmann/libSEDML.git /opt/libSEDML
+    cd /opt/libSEDML/submodules/libSBML-dependencies 
+    
+    cmake -B build -S . \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DWITH_LIBXML=ON \
+        -DWITH_ZLIB=ON \
+        -DWITH_ICONV=ON \
+        -DWITH_BZIP2=ON \
+        -DLIBXML2_WITH_ZLIB=ON
+    cmake --build build --parallel 16
+    cmake --install build
+    
+    cd /opt/libSEDML/submodules/libSBML
+    git checkout 7c26715
+    cmake -B build -S . -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DWITH_STABLE_PACKAGES=ON \
+        -DWITH_CPP_NAMESPACE=ON \
+        -DWITH_ZLIB=ON \
+        -DLIBSBML_SKIP_SHARED_LIBRARY=ON
+    cmake --build build --parallel 16
+    cmake --install build
+
+    cd /opt/libSEDML/submodules/NuML/libnuml
+    cmake -B build -S . \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DWITH_CPP_NAMESPACE=ON \
+        -DLIBNUML_SKIP_SHARED_LIBRARY=ON
+    cmake --build build --parallel 16
+    cmake --install build
+    
+    cd /opt/libSEDML/
+    cmake -B build -S . \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DWITH_CPP_NAMESPACE=ON \
+        -DEXTRA_LIBS="/usr/lib/x86_64-linux-gnu/libxml2.a;/usr/lib/libbz2.a;/lib/libzlib.a" \
+        -DBUILD_TESTS=OFF \
+        -DLIBSEDML_SKIP_SHARED_LIBRARY=ON
+    cmake --build build --parallel 16
+    cmake --install build
+
+
+    cd /opt/MaBoSS
+    cmake -B build -S . \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/usr/ \
+        -DSEDML=1 -DSBML=1 \
+        -DBUILD_SERVER=1
+    cmake --build build --parallel 16
+    cmake --install build --component executables
+    
+    cmake -B build -S . \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/usr/ \
+        -DMAXNODES=128 \
+        -DSEDML=1 -DSBML=1 \
+        -DBUILD_SERVER=1
+    cmake --build build --parallel 16
+    cmake --install build --component executables
+    
+    cmake -B build -S . \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/usr/ \
+        -DMAXNODES=256 \
+        -DSEDML=1 -DSBML=1 \
+        -DBUILD_SERVER=1
+    cmake --build build --parallel 16
+    cmake --install build --component executables
+    
+    cmake -B build -S . \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/usr/ \
+        -DMAXNODES=512 \
+        -DSEDML=1 -DSBML=1 \
+        -DBUILD_SERVER=1
+    cmake --build build --parallel 16
+    cmake --install build --component executables
+    
+    cmake -B build -S . \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/usr/ \
+        -DMAXNODES=1024 \
+        -DSEDML=1 -DSBML=1 \
+        -DBUILD_SERVER=1
+    cmake --build build --parallel 16
+    cmake --install build --component executables 
+
+    rm -fr /opt/libSEDML
+    rm -fr /opt/MaBoSS/
 
 
 %runscript
-    /opt/MaBoSS/engine/pub/MaBoSS-server -q --host 0.0.0.0 --port 7777 \
-    & /opt/MaBoSS/engine/pub/MaBoSS_128n-server -q --host 0.0.0.0 --port 7778 \
-    & /opt/MaBoSS/engine/pub/MaBoSS_256n-server -q --host 0.0.0.0 --port 7779 \
-    & /opt/MaBoSS/engine/pub/MaBoSS_512n-server -q --host 0.0.0.0 --port 7780 \
-    & /opt/MaBoSS/engine/pub/MaBoSS_1024n-server -q --host 0.0.0.0 --port 7781
+    MaBoSS-server -q --host 0.0.0.0 --port 7777 \
+    & MaBoSS_128n-server -q --host 0.0.0.0 --port 7778 \
+    & MaBoSS_256n-server -q --host 0.0.0.0 --port 7779 \
+    & MaBoSS_512n-server -q --host 0.0.0.0 --port 7780 \
+    & MaBoSS_1024n-server -q --host 0.0.0.0 --port 7781
