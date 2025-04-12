@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sedML xmlns="http://sed-ml.org/sed-ml/level1/version3" level="1" version="5">
+  <listOfModels>
+    <model id="model_tnf" language="urn:sedml:language:sbml" source="cell_fate.sbml">
+      <listOfChanges>
+        <changeAttribute target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;TNF&apos;]/@qual:initialLevel" newValue="1"/>
+      </listOfChanges>
+    </model>
+  </listOfModels>
+  <listOfSimulations>
+    <uniformTimeCourse id="simulation" initialTime="0" outputStartTime="0" outputEndTime="100" numberOfSteps="1000">
+      <algorithm id="algo" name="BKMC" kisaoID="KISAO:0000581">
+        <listOfAlgorithmParameters>
+          <algorithmParameter name="parallelism" kisaoID="KISAO:0000529" value="8"/>
+          <algorithmParameter name="number of runs" kisaoID="KISAO:0000498" value="10000"/>
+          <algorithmParameter name="seed" kisaoID="KISAO:0000488" value="100"/>
+        </listOfAlgorithmParameters>
+      </algorithm>
+    </uniformTimeCourse>
+  </listOfSimulations>
+  <listOfTasks>
+    <task id="task_tnf" modelReference="model_tnf" simulationReference="simulation"/>
+  </listOfTasks>
+  <listOfDataGenerators>
+    <dataGenerator id="data_time_tnf" name="time">
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <ci> t </ci>
+      </math>
+      <listOfVariables>
+        <variable id="t" name="time" symbol="urn:sedml:symbol:time" taskReference="task_tnf"/>
+      </listOfVariables>
+    </dataGenerator>
+    <dataGenerator id="data_survival_tnf" name="Survival">
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <ci> Survival </ci>
+      </math>
+      <listOfVariables>
+        <variable id="Survival" name="Survival" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;Survival&apos;]" taskReference="task_tnf"/>
+      </listOfVariables>
+    </dataGenerator>
+    <dataGenerator id="data_nonacd_tnf" name="NonACD">
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <ci> NonACD </ci>
+      </math>
+      <listOfVariables>
+        <variable id="NonACD" name="NonACD" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;NonACD&apos;]" taskReference="task_tnf"/>
+      </listOfVariables>
+    </dataGenerator>
+    <dataGenerator id="data_apoptosis_tnf" name="Apoptosis">
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <ci> Apoptosis </ci>
+      </math>
+      <listOfVariables>
+        <variable id="Apoptosis" name="Apoptosis" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;Apoptosis&apos;]" taskReference="task_tnf"/>
+      </listOfVariables>
+    </dataGenerator>
+    <dataGenerator id="dg_nil" name="nil">
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <apply>
+          <and/>
+          <apply>
+            <not/>
+            <ci> Survival </ci>
+          </apply>
+          <apply>
+            <not/>
+            <ci> NonACD </ci>
+          </apply>
+          <apply>
+            <not/>
+            <ci> Apoptosis </ci>
+          </apply>
+        </apply>
+      </math>
+      <listOfVariables>
+        <variable id="Survival" name="t_var" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;Survival&apos;]" taskReference="task_tnf"/>
+        <variable id="NonACD" name="t_var" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;NonACD&apos;]" taskReference="task_tnf"/>
+        <variable id="Apoptosis" name="t_var" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;Apoptosis&apos;]" taskReference="task_tnf"/>
+      </listOfVariables>
+    </dataGenerator>
+    <dataGenerator id="dg_survival" name="Survival">
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <apply>
+          <and/>
+          <ci> Survival </ci>
+          <apply>
+            <not/>
+            <ci> NonACD </ci>
+          </apply>
+          <apply>
+            <not/>
+            <ci> Apoptosis </ci>
+          </apply>
+        </apply>
+      </math>
+      <listOfVariables>
+        <variable id="Survival" name="t_var" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;Survival&apos;]" taskReference="task_tnf"/>
+        <variable id="NonACD" name="t_var" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;NonACD&apos;]" taskReference="task_tnf"/>
+        <variable id="Apoptosis" name="t_var" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;Apoptosis&apos;]" taskReference="task_tnf"/>
+      </listOfVariables>
+    </dataGenerator>
+    <dataGenerator id="dg_nonacd" name="NonACD">
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <apply>
+          <and/>
+          <apply>
+            <not/>
+            <ci> Survival </ci>
+          </apply>
+          <ci> NonACD </ci>
+          <apply>
+            <not/>
+            <ci> Apoptosis </ci>
+          </apply>
+        </apply>
+      </math>
+      <listOfVariables>
+        <variable id="Survival" name="t_var" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;Survival&apos;]" taskReference="task_tnf"/>
+        <variable id="NonACD" name="t_var" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;NonACD&apos;]" taskReference="task_tnf"/>
+        <variable id="Apoptosis" name="t_var" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;Apoptosis&apos;]" taskReference="task_tnf"/>
+      </listOfVariables>
+    </dataGenerator>
+    <dataGenerator id="dg_apoptosis" name="Apoptosis">
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <apply>
+          <and/>
+          <apply>
+            <not/>
+            <ci> Survival </ci>
+          </apply>
+          <apply>
+            <not/>
+            <ci> NonACD </ci>
+          </apply>
+          <ci> Apoptosis </ci>
+        </apply>
+      </math>
+      <listOfVariables>
+        <variable id="Survival" name="t_var" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;Survival&apos;]" taskReference="task_tnf"/>
+        <variable id="NonACD" name="t_var" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;NonACD&apos;]" taskReference="task_tnf"/>
+        <variable id="Apoptosis" name="t_var" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;Apoptosis&apos;]" taskReference="task_tnf"/>
+      </listOfVariables>
+    </dataGenerator>
+    <dataGenerator id="dg_survival_nonacd" name="Survival -- NonACD">
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <apply>
+          <and/>
+          <ci> Survival </ci>
+          <ci> NonACD </ci>
+          <apply>
+            <not/>
+            <ci> Apoptosis </ci>
+          </apply>
+        </apply>
+      </math>
+      <listOfVariables>
+        <variable id="Survival" name="t_var" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;Survival&apos;]" taskReference="task_tnf"/>
+        <variable id="NonACD" name="t_var" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;NonACD&apos;]" taskReference="task_tnf"/>
+        <variable id="Apoptosis" name="t_var" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;Apoptosis&apos;]" taskReference="task_tnf"/>
+      </listOfVariables>
+    </dataGenerator>
+    <dataGenerator id="dg_survival_apoptosis" name="Survival -- Apoptosis">
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <apply>
+          <and/>
+          <ci> Survival </ci>
+          <apply>
+            <not/>
+            <ci> NonACD </ci>
+          </apply>
+          <ci> Apoptosis </ci>
+        </apply>
+      </math>
+      <listOfVariables>
+        <variable id="Survival" name="t_var" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;Survival&apos;]" taskReference="task_tnf"/>
+        <variable id="NonACD" name="t_var" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;NonACD&apos;]" taskReference="task_tnf"/>
+        <variable id="Apoptosis" name="t_var" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;Apoptosis&apos;]" taskReference="task_tnf"/>
+      </listOfVariables>
+    </dataGenerator>
+    <dataGenerator id="dg_nonacd_apoptosis" name="NonACD -- Apoptosis">
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <apply>
+          <and/>
+          <apply>
+            <not/>
+            <ci> Survival </ci>
+          </apply>
+          <ci> NonACD </ci>
+          <ci> Apoptosis </ci>
+        </apply>
+      </math>
+      <listOfVariables>
+        <variable id="Survival" name="t_var" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;Survival&apos;]" taskReference="task_tnf"/>
+        <variable id="NonACD" name="t_var" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;NonACD&apos;]" taskReference="task_tnf"/>
+        <variable id="Apoptosis" name="t_var" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;Apoptosis&apos;]" taskReference="task_tnf"/>
+      </listOfVariables>
+    </dataGenerator>
+    <dataGenerator id="dg_survival_nonacd_apoptosis" name="Survival -- NonACD -- Apoptosis">
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <apply>
+          <and/>
+          <ci> Survival </ci>
+          <ci> NonACD </ci>
+          <ci> Apoptosis </ci>
+        </apply>
+      </math>
+      <listOfVariables>
+        <variable id="Survival" name="t_var" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;Survival&apos;]" taskReference="task_tnf"/>
+        <variable id="NonACD" name="t_var" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;NonACD&apos;]" taskReference="task_tnf"/>
+        <variable id="Apoptosis" name="t_var" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;Apoptosis&apos;]" taskReference="task_tnf"/>
+      </listOfVariables>
+    </dataGenerator>
+  </listOfDataGenerators>
+  <listOfOutputs>
+    <report id="report_tnf" name="report_tnf.csv">
+      <listOfDataSets>
+        <dataSet id="ds1" label="time" dataReference="data_time_tnf"/>
+        <dataSet id="ds2" label="Survival" dataReference="data_survival_tnf"/>
+        <dataSet id="ds3" label="NonACD" dataReference="data_nonacd_tnf"/>
+        <dataSet id="ds4" label="Apoptosis" dataReference="data_apoptosis_tnf"/>
+      </listOfDataSets>
+    </report>
+    <report id="report_states_tnf" name="report_states_tnf.csv">
+      <listOfDataSets>
+        <dataSet id="states_time" label="time" dataReference="data_time_tnf"/>
+        <dataSet id="ds_dg_nil" label="nil" dataReference="dg_nil"/>
+        <dataSet id="ds_dg_survival" label="Survival" dataReference="dg_survival"/>
+        <dataSet id="ds_dg_nonacd" label="NonACD" dataReference="dg_nonacd"/>
+        <dataSet id="ds_dg_apoptosis" label="Apoptosis" dataReference="dg_apoptosis"/>
+        <dataSet id="ds_dg_survival_nonacd" label="Survival -- NonACD" dataReference="dg_survival_nonacd"/>
+        <dataSet id="ds_dg_survival_apoptosis" label="Survival -- Apoptosis" dataReference="dg_survival_apoptosis"/>
+        <dataSet id="ds_dg_nonacd_apoptosis" label="NonACD -- Apoptosis" dataReference="dg_nonacd_apoptosis"/>
+        <dataSet id="ds_dg_survival_nonacd_apoptosis" label="Survival -- NonACD -- Apoptosis" dataReference="dg_survival_nonacd_apoptosis"/>
+      </listOfDataSets>
+    </report>
+    <plot2D id="plot_trajectories_tnf" legend="true">
+      <listOfCurves>
+        <curve id="curve_survival_tnf" name="Survival" order="0" style="line_purple" xDataReference="data_time_tnf" yDataReference="data_survival_tnf"/>
+        <curve id="curve_apoptosis_tnf" name="Apoptosis" order="0" style="line_green" xDataReference="data_time_tnf" yDataReference="data_apoptosis_tnf"/>
+        <curve id="curve_nonacd_tnf" name="NonACD" order="0" style="line_red" xDataReference="data_time_tnf" yDataReference="data_nonacd_tnf"/>
+      </listOfCurves>
+    </plot2D>
+    <plot2D id="plot_states_trajectories_tnf" legend="true">
+      <listOfCurves>
+        <curve id="curve_dg_nil" name="&lt;nil&gt;" order="0" style="C0" xDataReference="data_time_tnf" yDataReference="dg_nil"/>
+        <curve id="curve_dg_survival" name="Survival" order="1" style="C1" xDataReference="data_time_tnf" yDataReference="dg_survival"/>
+        <curve id="curve_dg_nonacd" name="NonACD" order="2" style="C2" xDataReference="data_time_tnf" yDataReference="dg_nonacd"/>
+        <curve id="curve_dg_apoptosis" name="Apoptosis" order="3" style="C3" xDataReference="data_time_tnf" yDataReference="dg_apoptosis"/>
+        <curve id="curve_dg_survival_nonacd" name="Survival -- NonACD" order="4" style="C4" xDataReference="data_time_tnf" yDataReference="dg_survival_nonacd"/>
+        <curve id="curve_dg_survival_apoptosis" name="Survival -- Apoptosis" order="5" style="C5" xDataReference="data_time_tnf" yDataReference="dg_survival_apoptosis"/>
+        <curve id="curve_dg_nonacd_apoptosis" name="NonACD -- Apoptosis" order="6" style="C6" xDataReference="data_time_tnf" yDataReference="dg_nonacd_apoptosis"/>
+        <curve id="curve_dg_survival_nonacd_apoptosis" name="Survival -- NonACD -- Apoptosis" order="7" style="C7" xDataReference="data_time_tnf" yDataReference="dg_survival_nonacd_apoptosis"/>
+      </listOfCurves>
+    </plot2D>
+  </listOfOutputs>
+  <listOfStyles>
+    <style id="C0">
+      <line color="#1f77b4"/>
+    </style>
+    <style id="C1">
+      <line color="#ff7f0e"/>
+    </style>
+    <style id="C2">
+      <line color="#2ca02c"/>
+    </style>
+    <style id="C3">
+      <line color="#d62728"/>
+    </style>
+    <style id="C4">
+      <line color="#9467bd"/>
+    </style>
+    <style id="C5">
+      <line color="#8c564b"/>
+    </style>
+    <style id="C6">
+      <line color="#e377c2"/>
+    </style>
+    <style id="C7">
+      <line color="#7f7f7f"/>
+    </style>
+    <style id="C8">
+      <line color="#bcbd22"/>
+    </style>
+    <style id="C9">
+      <line color="#17becf"/>
+    </style>
+    <style id="line_green">
+      <line color="#2ca02cff"/>
+    </style>
+    <style id="line_red">
+      <line color="#d62728ff"/>
+    </style>
+    <style id="line_purple">
+      <line color="#9467bdff"/>
+    </style>
+  </listOfStyles>
+</sedML>

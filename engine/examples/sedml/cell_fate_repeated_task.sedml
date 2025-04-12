@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sedML xmlns="http://sed-ml.org/sed-ml/level1/version3" level="1" version="5">
+  <listOfModels>
+    <model id="model_wt" language="urn:sedml:language:sbml" source="cell_fate.sbml"/>
+  </listOfModels>
+  <listOfSimulations>
+    <uniformTimeCourse id="simulation" initialTime="0" outputStartTime="0" outputEndTime="100" numberOfSteps="1000">
+      <algorithm id="algo" name="BKMC" kisaoID="KISAO:0000581">
+        <listOfAlgorithmParameters>
+          <algorithmParameter name="parallelism" kisaoID="KISAO:0000529" value="8"/>
+          <algorithmParameter name="number of runs" kisaoID="KISAO:0000498" value="10000"/>
+          <algorithmParameter name="seed" kisaoID="KISAO:0000488" value="100"/>
+        </listOfAlgorithmParameters>
+      </algorithm>
+    </uniformTimeCourse>
+  </listOfSimulations>
+  <listOfTasks>
+    <task id="task_wt" modelReference="model_wt" simulationReference="simulation"/>
+    <repeatedTask id="repeated_task_wt">
+      <listOfRanges>
+        <uniformRange id="uniform_range" start="1" end="10000" numberOfSteps="10000"/>
+      </listOfRanges>
+      <listOfChanges>
+        <setValue modelReference="model_wt" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;TNF&apos;]/@qual:initialLevel">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <lt/>
+              <apply>
+                <ci> uniform </ci>
+                <cn type="integer"> 0 </cn>
+                <cn type="integer"> 1 </cn>
+              </apply>
+              <cn> 0.3 </cn>
+            </apply>
+          </math>
+        </setValue>
+        <setValue modelReference="model_wt" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;FADD&apos;]/@qual:initialLevel">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <lt/>
+              <apply>
+                <ci> uniform </ci>
+                <cn type="integer"> 0 </cn>
+                <cn type="integer"> 1 </cn>
+              </apply>
+              <cn> 0.5 </cn>
+            </apply>
+          </math>
+        </setValue>
+        <setValue modelReference="model_wt" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;FASL&apos;]/@qual:initialLevel">
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <lt/>
+              <apply>
+                <ci> uniform </ci>
+                <cn type="integer"> 0 </cn>
+                <cn type="integer"> 1 </cn>
+              </apply>
+              <cn> 0.7 </cn>
+            </apply>
+          </math>
+        </setValue>
+      </listOfChanges>
+      <listOfSubTasks>
+        <subTask task="task_wt"/>
+      </listOfSubTasks>
+    </repeatedTask>
+  </listOfTasks>
+  <listOfDataGenerators>
+    <dataGenerator id="data_time_wt" name="time">
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <ci> t </ci>
+      </math>
+      <listOfVariables>
+        <variable id="t" name="time" symbol="urn:sedml:symbol:time" taskReference="repeated_task_wt" dimensionTerm="KISAO:0000825">
+          <listOfAppliedDimensions>
+            <appliedDimension dimensionTarget="repeated_task_wt"/>
+          </listOfAppliedDimensions>
+        </variable>
+      </listOfVariables>
+    </dataGenerator>
+    <dataGenerator id="data_survival_wt" name="Survival">
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <ci> Survival </ci>
+      </math>
+      <listOfVariables>
+        <variable id="Survival" name="Survival" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;Survival&apos;]" taskReference="repeated_task_wt" dimensionTerm="KISAO:0000825">
+          <listOfAppliedDimensions>
+            <appliedDimension target="repeated_task_wt"/>
+          </listOfAppliedDimensions>
+        </variable>
+      </listOfVariables>
+    </dataGenerator>
+    <dataGenerator id="data_nonacd_wt" name="NonACD">
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <ci> NonACD </ci>
+      </math>
+      <listOfVariables>
+        <variable id="NonACD" name="NonACD" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;NonACD&apos;]" taskReference="repeated_task_wt" dimensionTerm="KISAO:0000825">
+          <listOfAppliedDimensions>
+            <appliedDimension target="repeated_task_wt"/>
+          </listOfAppliedDimensions>
+        </variable>
+      </listOfVariables>
+    </dataGenerator>
+    <dataGenerator id="data_apoptosis_wt" name="Apoptosis">
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <ci> Apoptosis </ci>
+      </math>
+      <listOfVariables>
+        <variable id="Apoptosis" name="Apoptosis" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;Apoptosis&apos;]" taskReference="repeated_task_wt" dimensionTerm="KISAO:0000825">
+          <listOfAppliedDimensions>
+            <appliedDimension target="repeated_task_wt"/>
+          </listOfAppliedDimensions>
+        </variable>
+      </listOfVariables>
+    </dataGenerator>
+    <dataGenerator id="data_tnf_wt" name="TNF">
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <ci> TNF </ci>
+      </math>
+      <listOfVariables>
+        <variable id="TNF" name="TNF" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;TNF&apos;]" taskReference="repeated_task_wt" dimensionTerm="KISAO:0000825">
+          <listOfAppliedDimensions>
+            <appliedDimension target="repeated_task_wt"/>
+          </listOfAppliedDimensions>
+        </variable>
+      </listOfVariables>
+    </dataGenerator>
+    <dataGenerator id="data_fadd_wt" name="FADD">
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <ci> FADD </ci>
+      </math>
+      <listOfVariables>
+        <variable id="FADD" name="FADD" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;FADD&apos;]" taskReference="repeated_task_wt" dimensionTerm="KISAO:0000825">
+          <listOfAppliedDimensions>
+            <appliedDimension target="repeated_task_wt"/>
+          </listOfAppliedDimensions>
+        </variable>
+      </listOfVariables>
+    </dataGenerator>
+    <dataGenerator id="data_fasl_wt" name="FASL">
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <ci> FASL </ci>
+      </math>
+      <listOfVariables>
+        <variable id="FASL" name="FASL" target="/sbml:sbml/sbml:model/qual:listOfQualitativeSpecies/qual:qualitativeSpecies[@qual:id=&apos;FASL&apos;]" taskReference="repeated_task_wt" dimensionTerm="KISAO:0000825">
+          <listOfAppliedDimensions>
+            <appliedDimension target="repeated_task_wt"/>
+          </listOfAppliedDimensions>
+        </variable>
+      </listOfVariables>
+    </dataGenerator>
+  </listOfDataGenerators>
+  <listOfOutputs>
+    <report id="report_wt" name="report_wt.csv">
+      <listOfDataSets>
+        <dataSet id="ds1" label="time" dataReference="data_time_wt"/>
+        <dataSet id="ds2" label="Survival" dataReference="data_survival_wt"/>
+        <dataSet id="ds3" label="NonACD" dataReference="data_nonacd_wt"/>
+        <dataSet id="ds4" label="Apoptosis" dataReference="data_apoptosis_wt"/>
+        <dataSet id="ds5" label="TNF" dataReference="data_tnf_wt"/>
+        <dataSet id="ds6" label="FADD" dataReference="data_fadd_wt"/>
+        <dataSet id="ds7" label="FASL" dataReference="data_fasl_wt"/>
+      </listOfDataSets>
+    </report>
+    <plot2D id="plot_trajectories_wt" legend="true">
+      <listOfCurves>
+        <curve id="curve_survival_wt" name="Survival" order="0" style="line_purple" xDataReference="data_time_wt" yDataReference="data_survival_wt"/>
+        <curve id="curve_apoptosis_wt" name="Apoptosis" order="1" style="line_green" xDataReference="data_time_wt" yDataReference="data_apoptosis_wt"/>
+        <curve id="curve_nonacd_wt" name="NonACD" order="2" style="line_red" xDataReference="data_time_wt" yDataReference="data_nonacd_wt"/>
+      </listOfCurves>
+    </plot2D>
+  </listOfOutputs>
+  <listOfStyles>
+    <style id="line_green">
+      <line color="#2ca02cff"/>
+    </style>
+    <style id="line_red">
+      <line color="#d62728ff"/>
+    </style>
+    <style id="line_purple">
+      <line color="#9467bdff"/>
+    </style>
+  </listOfStyles>
+</sedML>
