@@ -327,7 +327,8 @@ jobs:
           -DMAXNODES=128 \
           -DMPI=1
         cmake --build build --parallel "${CPU_COUNT}"
-        
+        cmake --install build --component executables
+
     - name: Test MaBoSS
       env:
         MABOSS_BIN_PATH: ../bin
