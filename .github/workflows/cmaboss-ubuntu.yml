@@ -80,8 +80,9 @@ jobs:
             CC=gcc CXX=g++ INSTALL_PATH=/usr/ BUILD_PATH=/tmp/ \
               LIBXML_LIBDIR=/usr/lib64/libxml2.so \
               LIBXML_INCLUDEDIR=/usr/include/libxml2 \
-              CPU_COUNT=4 SBML_COMPAT=1 bash scripts/build_libsbml.sh &&
+              CPU_COUNT=4 bash scripts/build_libsbml.sh &&
             BUILD_PATH=/tmp/ bash scripts/install_libsbml.sh
+          SBML_COMPAT: 1
         run: |
           cd engine/src
           make grammars
@@ -147,6 +148,8 @@ jobs:
         conda install conda-build anaconda-client conda-verify
       
     - name: Build cMaBoSS Anaconda package
+      env: 
+        SBML_COMPAT: 1
       run: |
         CUSTOM_BUILD_NUMBER=0 conda build -c colomoto --variants "{\"python\": [\"${{ matrix.version.python }}\"], \"numpy\": [\"${{ matrix.version.numpy }}\"]}" conda/cmaboss;
      
@@ -189,6 +192,8 @@ jobs:
         conda install conda-build==25.1.1 anaconda-client conda-verify
       
     - name: Build cMaBoSS Anaconda package
+      env: 
+        SBML_COMPAT: 1
       run: |
         CUSTOM_BUILD_NUMBER=1 conda build -c colomoto --variants "{\"python\": [\"${{ matrix.version.python }}\"], \"numpy\": [\"${{ matrix.version.numpy }}\"]}" conda/cmaboss;
       
