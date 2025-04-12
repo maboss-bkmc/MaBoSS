@@ -18,6 +18,7 @@ jobs:
       BUILD_PATH: /tmp/
       LIBXML_LIBDIR: /usr/lib/x86_64-linux-gnu/libxml2.so
       LIBXML_INCLUDEDIR: /usr/include/libxml2
+      SBML_COMPAT: 1
 
     steps:
     - uses: actions/checkout@v4
@@ -79,7 +80,7 @@ jobs:
             CC=gcc CXX=g++ INSTALL_PATH=/usr/ BUILD_PATH=/tmp/ \
               LIBXML_LIBDIR=/usr/lib64/libxml2.so \
               LIBXML_INCLUDEDIR=/usr/include/libxml2 \
-              CPU_COUNT=4 bash scripts/build_libsbml.sh &&
+              CPU_COUNT=4 SBML_COMPAT=1 bash scripts/build_libsbml.sh &&
             BUILD_PATH=/tmp/ bash scripts/install_libsbml.sh
         run: |
           cd engine/src
