@@ -298,6 +298,41 @@ jobs:
     - name: Test MaBoSS
       run: bash scripts/run_mpi_tests.sh
 
+  maboss_mpi_cmake:
+    name: MaBoSS MPI
+    runs-on: ubuntu-22.04
+    env: 
+      CPU_COUNT: 4
+      
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install flex bison libopenmpi-dev libhdf5-dev
+        pip install numpy
+    
+    - name: Build MaBoSS
+      run: |
+        cmake -B build -S . \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_INSTALL_PREFIX=engine \
+          -DMPI=1
+        cmake --build build --parallel "${CPU_COUNT}"
+        cmake --install build --component executables
+        cmake -B build -S . \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_INSTALL_PREFIX=engine \
+          -DMAXNODES=128 \
+          -DMPI=1
+        cmake --build build --parallel "${CPU_COUNT}"
+        
+    - name: Test MaBoSS
+      env:
+        MABOSS_BIN_PATH: ../bin
+      run: bash scripts/run_mpi_tests.sh
+      
   maboss_binary:
     name: Building MaBoSS linux64 binary
     runs-on: ubuntu-22.04
