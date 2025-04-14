@@ -5,6 +5,7 @@ cmake -G"Ninja" -S . -B build ^
     -DCMAKE_INSTALL_LIBDIR="%PREFIX%"/lib ^
     -DCMAKE_CXX_COMPILER="%CXX%" ^
     -DCMAKE_C_COMPILER="%CC%" ^
+    -DLIBXML_INCLUDE_DIR=%PREFIX%/include/libxml2 ^
     -DLIBSBML_INCLUDE_DIR=%PREFIX%/include ^
     -DLIBSBML_LIBRARY=%PREFIX%/lib/libsbml.lib ^
     -DCMAKE_BUILD_TYPE=Release ^
@@ -19,6 +20,7 @@ cmake -G"Ninja" -S . -B build ^
     -DCMAKE_INSTALL_LIBDIR="%PREFIX%"/lib ^
     -DCMAKE_CXX_COMPILER="%CXX%" ^
     -DCMAKE_C_COMPILER="%CC%" ^
+    -DLIBXML_INCLUDE_DIR=%PREFIX%/include/libxml2 ^
     -DLIBSBML_INCLUDE_DIR=%PREFIX%/include ^
     -DLIBSBML_LIBRARY=%PREFIX%/lib/libsbml.lib ^
     -DCMAKE_BUILD_TYPE=Release ^
@@ -34,6 +36,7 @@ cmake -G"Ninja" -S . -B build ^
     -DCMAKE_INSTALL_LIBDIR="%PREFIX%"/lib ^
     -DCMAKE_CXX_COMPILER="%CXX%" ^
     -DCMAKE_C_COMPILER="%CC%" ^
+    -DLIBXML_INCLUDE_DIR=%PREFIX%/include/libxml2 ^
     -DLIBSBML_INCLUDE_DIR=%PREFIX%/include ^
     -DLIBSBML_LIBRARY=%PREFIX%/lib/libsbml.lib ^
     -DCMAKE_BUILD_TYPE=Release ^
@@ -49,6 +52,7 @@ cmake -G"Ninja" -S . -B build ^
     -DCMAKE_INSTALL_LIBDIR="%PREFIX%"/lib ^
     -DCMAKE_CXX_COMPILER="%CXX%" ^
     -DCMAKE_C_COMPILER="%CC%" ^
+    -DLIBXML_INCLUDE_DIR=%PREFIX%/include/libxml2 ^
     -DLIBSBML_INCLUDE_DIR=%PREFIX%/include ^
     -DLIBSBML_LIBRARY=%PREFIX%/lib/libsbml.lib ^
     -DCMAKE_BUILD_TYPE=Release ^
@@ -64,6 +68,7 @@ cmake -G"Ninja" -S . -B build ^
     -DCMAKE_INSTALL_LIBDIR="%PREFIX%"/lib ^
     -DCMAKE_CXX_COMPILER="%CXX%" ^
     -DCMAKE_C_COMPILER="%CC%" ^
+    -DLIBXML_INCLUDE_DIR=%PREFIX%/include/libxml2 ^
     -DLIBSBML_INCLUDE_DIR=%PREFIX%/include ^
     -DLIBSBML_LIBRARY=%PREFIX%/lib/libsbml.lib ^
     -DCMAKE_BUILD_TYPE=Release ^
