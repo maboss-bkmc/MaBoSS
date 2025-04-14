@@ -148,6 +148,10 @@ jobs:
       run: |
         cmake -B build -S . -G Ninja `
           -DCMAKE_INSTALL_PREFIX=engine `
+          -DZLIB_LIBRARY="C:/vcpkg/installed/x64-windows/lib/zlib.lib" `
+          -DZLIB_INCLUDE_DIR="C:/vcpkg/installed/x64-windows/include/" `
+          -DLIBXML_LIBRARY="C:/vcpkg/installed/x64-windows/lib/libxml2.lib" `
+          -DLIBXML_INCLUDE_DIR="C:/vcpkg/installed/x64-windows/include/" `
           -DLIBSBML_INCLUDE_DIR="C:/Program Files (x86)/libsbml/include" `
           -DLIBSBML_LIBRARY="C:/Program Files (x86)/libsbml/lib/libsbml.lib" `
           -DSTD_THREAD=1 `
