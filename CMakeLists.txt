@@ -262,11 +262,6 @@ else()
       endif()
       
   endif()
-
-  
-  if (NOT MSVC)
-    target_link_libraries(${MABOSS_LIBNAME} -ldl)
-  endif()
   
   target_include_directories(${MABOSS_LIBNAME} PUBLIC ${CMAKE_SOURCE_DIR}/engine/src)
   

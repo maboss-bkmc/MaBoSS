@@ -50,7 +50,7 @@
 #include "MetaEngine.h"
 #include "Probe.h"
 #include "Utils.h"
-#ifndef WINDOWS
+#if !defined (WINDOWS) && !defined(_MSC_VER)
   #include <dlfcn.h>
 #else
   #include <windows.h>
@@ -68,14 +68,14 @@ void MetaEngine::loadUserFuncs(const char* module)
 {
   init();
 
-#ifndef WINDOWS
+#if !defined (WINDOWS) && !defined(_MSC_VER)
   void* dl = dlopen(module, RTLD_LAZY);
 #else
   void* dl = LoadLibrary(module);
 #endif
 
   if (NULL == dl) {
-#ifndef WINDOWS    
+#if !defined (WINDOWS) && !defined(_MSC_VER)
     std::cerr << dlerror() << std::endl;
 #else
     std::cerr << GetLastError() << std::endl;
@@ -83,7 +83,7 @@ void MetaEngine::loadUserFuncs(const char* module)
     exit(1);
   }
 
-#ifndef WINDOWS
+#if !defined (WINDOWS) && !defined(_MSC_VER)
   void* sym = dlsym(dl, MABOSS_USER_FUNC_INIT);
 #else
   typedef void (__cdecl *MYPROC)(std::map<std::string, Function*>*);

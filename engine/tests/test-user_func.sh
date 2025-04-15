@@ -18,7 +18,7 @@ check_file()
 }
 
 rm -rf tmp; mkdir -p tmp
-
+ls -al $1
 echo
 echo "Cell Cycle 1 threads, with user func"
 $LAUNCHER $MABOSS --load-user-functions $1 user_func/cellcycle.bnd -c user_func/cellcycle_runcfg.cfg -c user_func/cellcycle_runcfg-thread_1.cfg -o tmp/Cell_cycle_thread_1
