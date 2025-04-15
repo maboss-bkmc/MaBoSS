@@ -429,7 +429,11 @@ void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, Cumulator
       if (runconfig->hasCustomPopOutput())
       {
         NetworkState s;
+#ifdef USE_DYNAMIC_BITSET
+        PopNetworkState t_popstate(pop_network_state & cumulator->getOutputMask().getMap().begin()->first, 1);
+#else
         PopNetworkState t_popstate(pop_network_state & cumulator->getOutputMask().getMap().begin()->first);
+#endif
         double eval = runconfig->getCustomPopOutputExpression()->eval(NULL, s, t_popstate);
         if (eval >= 0){
           PopSize pop_size((unsigned int) eval);
