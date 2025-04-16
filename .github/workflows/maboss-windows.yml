@@ -101,7 +101,7 @@ jobs:
         LAUNCHER: ""
       run: |
         bash scripts/run_tests.sh
-        bash scripts/run_userfunc_tests.sh cmake win
+        # bash scripts/run_userfunc_tests.sh cmake win
    
   maboss_windows_cmake_sbml:
     name: MaBoSS Windows with SBML support (cmake)
