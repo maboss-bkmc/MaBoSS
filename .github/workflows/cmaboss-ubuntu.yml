@@ -74,6 +74,7 @@ jobs:
 
       - name: Build wheels
         env: 
+          SBML_COMPAT: 1
           CIBW_BUILD: ${{ matrix.build }}
           CIBW_BEFORE_ALL: >
             yum install wget libxml2-devel -y &&
@@ -82,7 +83,7 @@ jobs:
               LIBXML_INCLUDEDIR=/usr/include/libxml2 \
               CPU_COUNT=4 bash scripts/build_libsbml.sh &&
             BUILD_PATH=/tmp/ bash scripts/install_libsbml.sh
-          SBML_COMPAT: 1
+          CIBW_ENVIRONMENT_PASS_LINUX: SBML_COMPAT
         run: |
           cd engine/src
           make grammars
