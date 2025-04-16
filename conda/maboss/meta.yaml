@@ -10,12 +10,15 @@ source:
     
 build:
   {% if CUSTOM_BUILD_NUMBER is defined %}
-    number: {{ CUSTOM_BUILD_NUMBER }}
-    binary_relocation: False
+  number: {{ CUSTOM_BUILD_NUMBER }}
+  binary_relocation: False
   {% else %}
-    number: 0
-    binary_relocation: False
+  number: 0
+  binary_relocation: False
   {% endif %}
+  script_env:
+    - SBML_COMPAT
+    - SEDML_COMPAT
 
 requirements:
   build:

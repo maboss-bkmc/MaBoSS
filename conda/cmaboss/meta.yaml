@@ -11,10 +11,13 @@ source:
 
 build:
   {% if CUSTOM_BUILD_NUMBER is defined %}
-    number: {{ CUSTOM_BUILD_NUMBER }}
+  number: {{ CUSTOM_BUILD_NUMBER }}
   {% else %}
-    number: 0
+  number: 0
   {% endif %}
+  script_env:
+    - SBML_COMPAT
+    - SEDML_COMPAT
 
 requirements:
   build:
