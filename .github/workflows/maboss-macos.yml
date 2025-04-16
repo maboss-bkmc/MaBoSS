@@ -60,6 +60,8 @@ jobs:
     - name: Test MaBoSS
       run: |
         export PATH=/usr/local/opt/flex/bin:/usr/local/opt/bison/bin:$PATH
+        export CXXFLAGS="${CXXFLAGS} -I/usr/local/include -I/usr/local/include/libxml2"
+        export LDFLAGS="${LDFLAGS} -L/usr/local/lib -lxml2"
         bash scripts/run_tests.sh
         bash scripts/run_sbml_tests.sh
         bash scripts/run_userfunc_tests.sh
