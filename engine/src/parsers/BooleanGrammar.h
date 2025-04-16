@@ -52,7 +52,8 @@
 
 #include <vector>
 #include <string.h>
-#include "BooleanNetwork.h"
+#include "../BooleanNetwork.h"
+#include "../BNException.h"
 
 extern void set_current_network(Network* network);
 extern Network* get_current_network();

@@ -142,7 +142,7 @@ CHECK_FLEX  = $(FLEX) --version > /dev/null
 CHECK_BISON = $(BISON) --version > /dev/null
 
 CORE_LIB_SRC := BooleanNetwork.cc BooleanGrammar.cc RunConfigGrammar.cc Function.cc BuiltinFunctions.cc RunConfig.cc LogicalExprGen.cc Utils.cc MBDynBitset.cc RandomGenerator.cc FixedPointDisplayer.cc ObservedGraph.cc
-CORE_LIB_OBJS := BooleanNetwork$(INFIX).o BooleanGrammar$(INFIX).o RunConfigGrammar$(INFIX).o Function$(INFIX).o BuiltinFunctions$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o Utils$(INFIX).o MBDynBitset$(INFIX).o RandomGenerator$(INFIX).o  FixedPointDisplayer$(INFIX).o ObservedGraph$(INFIX).o
+CORE_LIB_OBJS := BooleanNetwork$(INFIX).o parsers/BooleanGrammar$(INFIX).o parsers/RunConfigGrammar$(INFIX).o Function$(INFIX).o BuiltinFunctions$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o Utils$(INFIX).o MBDynBitset$(INFIX).o RandomGenerator$(INFIX).o  FixedPointDisplayer$(INFIX).o ObservedGraph$(INFIX).o
 POP_LIB_SRC := PopMaBEstEngine.cc MetaEngine.cc
 POP_LIB_OBJS := PopMaBEstEngine$(INFIX).o MetaEngine.o
 LIB_SRC := FinalStateSimulationEngine.cc StochasticSimulationEngine.cc MetaEngine.cc FixedPointEngine.cc ProbTrajEngine.cc MaBEstEngine.cc EnsembleEngine.cc ProbaDist.cc StatDistDisplayer.cc FinalStateDisplayer.cc
@@ -191,7 +191,7 @@ server: $(MABOSS_SERVER)
 	cp $(MABOSS_SERVER) ../pub
 
 .PHONY: grammars
-grammars: BooleanGrammar.cc RunConfigGrammar.cc
+grammars: parsers/BooleanGrammar.cc parsers/RunConfigGrammar.cc
 
 ifndef CLIENT_SERVER
 all: maboss popmaboss
@@ -244,21 +244,21 @@ $(MABOSS_CLIENT): MaBoSS-client.o Client.o DataStreamer.o MaBoSS-RPC.o Utils$(IN
 %.o: %.cc
 	$(CXX) $(CXXFLAGS) $(EXTRA_CXXFLAGS) $(WINDOWS_FLAG) $(SBML_FLAG) $(SEDML_FLAG) $(HDF5_FLAG) -c $*.cc -o $*.o
 
-BooleanGrammar.cc: lex.CTBNDL.cc BooleanGrammar.y
+parsers/BooleanGrammar.cc: parsers/lex.CTBNDL.cc parsers/BooleanGrammar.y
 	@$(CHECK_BISON)
-	$(BISON) -v BooleanGrammar.y --output=BooleanGrammar.cc
+	$(BISON) -v parsers/BooleanGrammar.y --output=parsers/BooleanGrammar.cc
 
-lex.CTBNDL.cc: BooleanGrammar.l
+parsers/lex.CTBNDL.cc: parsers/BooleanGrammar.l
 	@$(CHECK_FLEX)
-	$(FLEX) --outfile=lex.CTBNDL.cc $+
+	$(FLEX) --outfile=parsers/lex.CTBNDL.cc $+
 
-RunConfigGrammar.cc: RunConfigGrammar.y lex.RC.cc
+parsers/RunConfigGrammar.cc: parsers/RunConfigGrammar.y parsers/lex.RC.cc
 	@$(CHECK_BISON)
-	$(BISON) -v RunConfigGrammar.y --output RunConfigGrammar.cc
+	$(BISON) -v parsers/RunConfigGrammar.y --output parsers/RunConfigGrammar.cc
 	
-lex.RC.cc: RunConfigGrammar.l
+parsers/lex.RC.cc: parsers/RunConfigGrammar.l
 	@$(CHECK_FLEX)
-	$(FLEX) --outfile=lex.RC.cc $+ 
+	$(FLEX) --outfile=parsers/lex.RC.cc $+ 
 
 .PHONY: mbdyn
 mbdyn: test_MBDynBitset
@@ -267,7 +267,9 @@ test_MBDynBitset: test_MBDynBitset.o
 	g++ -o $@ $+ $(EXTRA_FLAGS)
 
 clean: cleanobj
-	rm -f OpenMpExampleMutant OpenMpExample Test TestApi KMC $(MABOSS) $(POPMABOSS) $(MABOSS_CLIENT) $(MABOSS_SERVER) lex.yy.c lex.CTBNDL.cc BooleanGrammar.tab.h BooleanGrammar.tab.c BooleanGrammar.cc BooleanGrammar.tab.h lex.CTBNDL.cc lex.RC.cc RunConfigGrammar.cc RunConfigGrammar.tab.h RunConfigGrammar.tab.c BooleanGrammar.output RunConfigGrammar.output
+	rm -f OpenMpExampleMutant OpenMpExample Test TestApi KMC $(MABOSS) $(POPMABOSS) $(MABOSS_CLIENT) $(MABOSS_SERVER) 
+	rm -fr parsers/lex.CTBNDL.cc parsers/BooleanGrammar.cc parsers/BooleanGrammar.output 
+	rm -fr parsers/lex.RC.cc parsers/RunConfigGrammar.cc parsers/RunConfigGrammar.output
 	rm -f MaBoSS MaBoSS_dn MaBoSS_[0-9]*n MaBoSS_[0-9]*n-server MaBoSS_[0-9]*n-client
 	rm -f PopMaBoSS PopMaBoSS_dn PopMaBoSS_[0-9]*n
 	rm -f libMaBoSS.so libMaBoSS_[0-9]*n.so libPopMaBoSS.so libPopMaBoSS_[0-9]*n.so

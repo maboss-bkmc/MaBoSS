@@ -51,8 +51,8 @@
      updated to add extended initial conditions: October 2014
 */
 
-#include "BooleanNetwork.h"
-#include "RunConfig.h"
+#include "../BooleanNetwork.h"
+#include "../RunConfig.h"
 
 extern int yylex();
 

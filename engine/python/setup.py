@@ -8,7 +8,7 @@ maboss_sources = [
    "PopMaBEstEngine.cc", 
    
    # Core
-   "BooleanNetwork.cc", "BooleanGrammar.cc", "RunConfigGrammar.cc", "Function.cc", "BuiltinFunctions.cc", 
+   "BooleanNetwork.cc", "parsers/BooleanGrammar.cc", "parsers/RunConfigGrammar.cc", "Function.cc", "BuiltinFunctions.cc", 
    "RunConfig.cc", "LogicalExprGen.cc", "Utils.cc", "MBDynBitset.cc", "RandomGenerator.cc", "FixedPointDisplayer.cc", 
 
    # MaBoSS

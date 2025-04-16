@@ -49,7 +49,7 @@
 #if defined SBML_COMPAT && !defined _SBML_PARSER_H_
 #define _SBML_PARSER_H_
 #include "BooleanNetwork.h"
-#include "BooleanGrammar.h"
+#include "parsers/BooleanGrammar.h"
 #include <sbml/packages/qual/extension/QualModelPlugin.h>
 #include <sbml/SBMLTypes.h>
 

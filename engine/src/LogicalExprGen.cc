@@ -48,7 +48,7 @@
 */
 
 #include "BooleanNetwork.h"
-#include "BooleanGrammar.h"
+#include "parsers/BooleanGrammar.h"
 #include "RunConfig.h"
 #include <iostream>
 
