@@ -18,6 +18,7 @@ jobs:
       LIBXML_LIBDIR: /usr/local/opt/libxml2/lib/libxml2.2.dylib
       LIBXML_INCLUDEDIR: /usr/local/opt/libxml2/include/libxml2/
       MACOSX_DEPLOYMENT_TARGET: 10.13
+      SBML_COMPAT: 1
       CPU_COUNT: 4
 
     steps:

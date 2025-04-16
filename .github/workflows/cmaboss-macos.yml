@@ -18,6 +18,7 @@ jobs:
       LIBXML_LIBDIR: /usr/local/opt/libxml2/lib/libxml2.dylib
       LIBXML_INCLUDEDIR: /usr/local/opt/libxml2/include/libxml2/
       MACOSX_DEPLOYMENT_TARGET: 13.0
+      SBML_COMPAT: 1
     steps:
     - uses: actions/checkout@v4 
 
@@ -83,6 +84,7 @@ jobs:
 
       - name: Build wheels
         env: 
+          SBML_COMPAT: 1
           MACOSX_DEPLOYMENT_TARGET: 13.0
           CIBW_ARCHS: x86_64
           CIBW_BEFORE_ALL: >
@@ -144,6 +146,7 @@ jobs:
 
       - name: Build wheels
         env:
+          SBML_COMPAT: 1
           MACOSX_DEPLOYMENT_TARGET: 14.0 
           CIBW_ARCHS: arm64
           CIBW_BEFORE_ALL: >
@@ -226,6 +229,7 @@ jobs:
     - name: Build cMaBoSS Anaconda package
       env:
         MACOSX_DEPLOYMENT_TARGET: 10.9
+        SBML_COMPAT: 1
       run: |
         CUSTOM_BUILD_NUMBER=0 conda build -c defaults -c colomoto --variants "{\"python\": [\"${{ matrix.version.python }}\"], \"numpy\": [\"${{ matrix.version.numpy }}\"]}" conda/cmaboss;
        
@@ -278,6 +282,7 @@ jobs:
     - name: Build cMaBoSS Anaconda package
       env:
         MACOSX_DEPLOYMENT_TARGET: 10.13
+        SBML_COMPAT: 1
       run: |
         CUSTOM_BUILD_NUMBER=1 conda build -c conda-forge -c colomoto --variants "{\"python\": [\"${{ matrix.version.python }}\"], \"numpy\": [\"${{ matrix.version.numpy }}\"]}" conda/cmaboss;
     
@@ -331,6 +336,7 @@ jobs:
     - name: Build cMaBoSS Anaconda package
       env:
         MACOSX_DEPLOYMENT_TARGET: 11.1
+        SBML_COMPAT: 1
       run: |
         CUSTOM_BUILD_NUMBER=0 conda build -c defaults -c colomoto --variants "{\"python\": [\"${{ matrix.version.python }}\"], \"numpy\": [\"${{ matrix.version.numpy }}\"]}" conda/cmaboss;
         
@@ -383,6 +389,7 @@ jobs:
     - name: Build cMaBoSS Anaconda package
       env:
         MACOSX_DEPLOYMENT_TARGET: 11.0
+        SBML_COMPAT: 1
       run: |
         CUSTOM_BUILD_NUMBER=1 conda build -c conda-forge -c colomoto --variants "{\"python\": [\"${{ matrix.version.python }}\"], \"numpy\": [\"${{ matrix.version.numpy }}\"]}" conda/cmaboss;
         
