@@ -166,7 +166,7 @@ ifdef FUNC_MODULE
 func_module: $(FUNC_MODULE)
 
 $(FUNC_MODULE): $(FUNC_MODULE).o Function$(INFIX).o
-	$(CXX) -shared -o lib$(FUNC_MODULE).so $(FUNC_MODULE).o Function$(INFIX).o -lpthread -L.
+	$(CXX) $(CXXFLAGS) $(EXTRA_CXXFLAGS) -shared -o lib$(FUNC_MODULE).so $(FUNC_MODULE).o Function$(INFIX).o -lpthread -L.
 
 endif
 
