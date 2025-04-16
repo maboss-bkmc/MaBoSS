@@ -114,7 +114,109 @@ jobs:
         bash scripts/run_sbml_tests.sh
         bash scripts/run_userfunc_tests.sh cmake
       
-  
+  maboss_cmake_sedml:
+    name: MaBoSS (cmake) with SEDML support
+    runs-on: ubuntu-22.04
+    env:
+      CC: gcc
+      CXX: g++
+      INSTALL_PATH: /usr/
+      BUILD_PATH: /tmp/
+      LIBXML_LIBDIR: /usr/lib/x86_64-linux-gnu/libxml2.so
+      LIBXML_INCLUDEDIR: /usr/include/libxml2/
+      CPU_COUNT: 4
+      
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install flex bison libhdf5-dev
+        pip install numpy
+    
+    - name: Download libsedml and deps
+      run: |
+        git clone --recurse-submodules https://github.com/fbergmann/libSEDML.git /opt/libSEDML
+        
+    - name: Build libsbml dependencies
+      run: |
+        cd /opt/libSEDML/submodules/libSBML-dependencies 
+        cmake -B build -S . \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=/usr \
+            -DWITH_LIBXML=ON \
+            -DWITH_ZLIB=ON \
+            -DWITH_ICONV=ON \
+            -DWITH_BZIP2=ON \
+            -DLIBXML2_WITH_ZLIB=ON 
+        cmake --build build --parallel "${CPU_COUNT}" 
+        sudo cmake --install build
+        
+    - name: Build libsbml
+      run: |   
+        cd /opt/libSEDML/submodules/libSBML 
+        git checkout 7c26715 
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_INSTALL_PREFIX=/usr \
+          -DWITH_STABLE_PACKAGES=ON \
+          -DWITH_CPP_NAMESPACE=ON \
+          -DWITH_ZLIB=ON \
+          -DLIBSBML_SKIP_SHARED_LIBRARY=ON 
+        cmake --build build --parallel "${CPU_COUNT}" 
+        sudo cmake --install build
+      
+    - name: Build libnuml
+      run: |
+        cd /opt/libSEDML/submodules/NuML/libnuml 
+        cmake -B build -S . \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_INSTALL_PREFIX=/usr \
+          -DWITH_CPP_NAMESPACE=ON \
+          -DLIBNUML_SKIP_SHARED_LIBRARY=ON 
+        cmake --build build --parallel "${CPU_COUNT}" 
+        sudo cmake --install build
+    
+    - name: Build libsedml
+      run: |
+        cd /opt/libSEDML/ 
+        cmake -B build -S . \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_INSTALL_PREFIX=/usr \
+          -DWITH_CPP_NAMESPACE=ON \
+          -DEXTRA_LIBS="/usr/lib/x86_64-linux-gnu/libxml2.a;/usr/lib/libbz2.a;/lib/libzlib.a" \
+          -DBUILD_TESTS=OFF \
+          -DLIBSEDML_SKIP_SHARED_LIBRARY=ON 
+        cmake --build build --parallel "${CPU_COUNT}" 
+        sudo cmake --install build
+
+
+    - name: Build MaBoSS
+      run: |
+        cmake -B build -S . \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_INSTALL_PREFIX=engine \
+          -DSBML=1 -DSEDML=1 \
+          -DBUILD_SERVER=1 -DBUILD_CLIENT=1
+        cmake --build build --parallel "${CPU_COUNT}"
+        cmake --install build --component executables 
+        cmake -B build -S . \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_INSTALL_PREFIX=engine \
+          -DMAXNODES=128 \
+          -DSBML=1 -DSEDML=1 \
+          -DBUILD_SERVER=1
+        cmake --build build --parallel "${CPU_COUNT}"
+        cmake --install build --component executables 
+        
+    - name: Test MaBoSS
+      env:
+        MABOSS_BIN_PATH: ../bin
+      run: |
+        bash scripts/run_tests.sh 
+        bash scripts/run_sbml_tests.sh
+        bash scripts/run_userfunc_tests.sh cmake
+      
   maboss_dynbitset:
     name: MaBoSS DynBitSet (cmake)
     runs-on: ubuntu-22.04
