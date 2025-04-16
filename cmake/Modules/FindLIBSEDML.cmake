@@ -133,12 +133,6 @@ find_library(LIBNUML_LIBRARY
 
 endif()
 
-  add_library(${LIBSEDML_LIBRARY_NAME} UNKNOWN IMPORTED)
-  set_target_properties(${LIBSEDML_LIBRARY_NAME} PROPERTIES IMPORTED_LOCATION ${LIBSEDML_LIBRARY})
-  set_target_properties(${LIBSEDML_LIBRARY_NAME} PROPERTIES INTERFACE_LINK_LIBRARIES ${LIBNUML_LIBRARY})
-  
-
-
 if (NOT LIBSEDML_INCLUDE_DIR)
     message(FATAL_ERROR "libsedml include dir not found not found!")
 endif (NOT LIBSEDML_INCLUDE_DIR)
