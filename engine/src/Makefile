@@ -148,7 +148,7 @@ POP_LIB_OBJS := PopMaBEstEngine$(INFIX).o MetaEngine.o
 LIB_SRC := FinalStateSimulationEngine.cc StochasticSimulationEngine.cc MetaEngine.cc FixedPointEngine.cc ProbTrajEngine.cc MaBEstEngine.cc EnsembleEngine.cc ProbaDist.cc StatDistDisplayer.cc FinalStateDisplayer.cc
 LIB_OBJS := FinalStateSimulationEngine$(INFIX).o StochasticSimulationEngine$(INFIX).o MetaEngine$(INFIX).o FixedPointEngine$(INFIX).o ProbTrajEngine$(INFIX).o MaBEstEngine$(INFIX).o EnsembleEngine$(INFIX).o ProbaDist$(INFIX).o StatDistDisplayer$(INFIX).o FinalStateDisplayer$(INFIX).o
 
-SERVER_OBJS := Server$(INFIX).o DataStreamer$(INFIX).o MaBoSS-RPC$(INFIX).o
+SERVER_OBJS := rpc/Server$(INFIX).o rpc/DataStreamer$(INFIX).o rpc/MaBoSS-RPC$(INFIX).o
 
 # if USE_LIB is set, maboss library will be used for MaBoSS and MaBoSS-server programs => that will oblige the user to set LD_LIBRARY_PATH or DYLD_LIBRARY_PATH environment variable to execute MaBoSS or MaBoSS-server
 #USE_LIB = 1
@@ -225,14 +225,14 @@ else
 	$(CXX) -o $(POPMABOSS) $+ -lpthread $(LDL_FLAG) $(SBML_LIB) $(HDF5_LIB) $(LDFLAGS) $(EXTRA_LDFLAGS)
 endif
 
-$(MABOSS_SERVER): MaBoSS$(INFIX)-server.o $(MABOSS_OBJS) $(SERVER_OBJS)
+$(MABOSS_SERVER): rpc/MaBoSS$(INFIX)-server.o $(MABOSS_OBJS) $(SERVER_OBJS)
 ifdef USE_LIB
 	$(CXX) -o $(MABOSS_SERVER) MaBoSS$(INFIX)-server.o $(SERVER_OBJS) -l$(MABOSS_LIBNAME) -lpthread -L. $(LDL_FLAG) $(SBML_LIB) $(LDFLAGS) $(EXTRA_LDFLAGS)
 else
 	$(CXX) -o $(MABOSS_SERVER) $+ -lpthread $(LDL_FLAG) $(SBML_LIB) $(LDFLAGS) $(EXTRA_LDFLAGS)
 endif
 
-$(MABOSS_CLIENT): MaBoSS-client.o Client.o DataStreamer.o MaBoSS-RPC.o Utils$(INFIX).o
+$(MABOSS_CLIENT): rpc/MaBoSS-client.o rpc/Client.o rpc/DataStreamer.o rpc/MaBoSS-RPC.o Utils$(INFIX).o
 	$(CXX) -o $(MABOSS_CLIENT) $+ -lpthread $(LDL_FLAG) $(LDFLAGS) $(EXTRA_LDFLAGS)
 
 %$(INFIX).o: %.cc
@@ -276,7 +276,7 @@ clean: cleanobj
 	rm -f libMaBoSS-static.a libMaBoSS_[0-9]*n-static.a libPopMaBoSS-static.a libPopMaBoSS_[0-9]*n-static.a
 	
 cleanobj:
-	rm -f *$(INFIX).o *$(INFIX).so *$(INFIX).dylib
+	rm -f *$(INFIX).o *$(INFIX).so *$(INFIX).dylib parsers/*.o rpc/*.o
 
 tar: all
 	$(MAKE) -f Makefile.maboss tar_perform

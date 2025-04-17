@@ -56,14 +56,14 @@
 #include "Server.h"
 #include "DataStreamer.h"
 #include "MaBoSS-RPC.h"
-#include "Utils.h"
-#include "MaBEstEngine.h"
-#include "FinalStateSimulationEngine.h"
-#include "Function.h"
-#include "ProbTrajDisplayer.h"
-#include "StatDistDisplayer.h"
-#include "FixedPointDisplayer.h"
-#include "FinalStateDisplayer.h"
+#include "../Utils.h"
+#include "../MaBEstEngine.h"
+#include "../FinalStateSimulationEngine.h"
+#include "../Function.h"
+#include "../ProbTrajDisplayer.h"
+#include "../StatDistDisplayer.h"
+#include "../FixedPointDisplayer.h"
+#include "../FinalStateDisplayer.h"
 
 Server* Server::server;
 static const char* RPC_portname;

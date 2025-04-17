@@ -49,7 +49,7 @@
 #include <assert.h>
 #include "Client.h"
 #include "Server.h"
-#include "Utils.h"
+#include "../Utils.h"
 #include "DataStreamer.h"
 
 const char* prog = "MaBoSS-client";

@@ -50,7 +50,7 @@
 
 #include <string>
 #include "MaBoSS-RPC.h"
-#include "Utils.h"
+#include "../Utils.h"
 
 class ClientData;
 

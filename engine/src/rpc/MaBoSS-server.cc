@@ -49,7 +49,7 @@
 #include <iostream>
 #include "Client.h"
 #include "Server.h"
-#include "Utils.h"
+#include "../Utils.h"
 
 const char* prog = "MaBoSS-server";
 
