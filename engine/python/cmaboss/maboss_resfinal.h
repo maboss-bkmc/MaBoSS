@@ -52,7 +52,7 @@
 
 #include "src/BooleanNetwork.h"
 #include "src/RunConfig.h"
-#include "src/FinalStateSimulationEngine.h"
+#include "src/engines/FinalStateSimulationEngine.h"
 
 typedef struct {
   PyObject_HEAD

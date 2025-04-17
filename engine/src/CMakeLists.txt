@@ -1,5 +1,6 @@
 
 include(${CMAKE_CURRENT_LIST_DIR}/displayers/CMakeLists.txt)
+include(${CMAKE_CURRENT_LIST_DIR}/engines/CMakeLists.txt)
 include(${CMAKE_CURRENT_LIST_DIR}/parsers/CMakeLists.txt)
 include(${CMAKE_CURRENT_LIST_DIR}/rpc/CMakeLists.txt)
 

@@ -48,8 +48,8 @@
 */
 
 #include "ProbTrajEngine.h"
-#include "Probe.h"
-#include "Utils.h"
+#include "../Probe.h"
+#include "../Utils.h"
 
 struct MergeWrapper {
   Cumulator<NetworkState>* cumulator_1;

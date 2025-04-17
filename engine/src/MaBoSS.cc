@@ -48,10 +48,10 @@
 */
 
 #include <ctime>
-#include "MaBEstEngine.h"
-#include "EnsembleEngine.h"
-#include "StochasticSimulationEngine.h"
-#include "FinalStateSimulationEngine.h"
+#include "engines/MaBEstEngine.h"
+#include "engines/EnsembleEngine.h"
+#include "engines/StochasticSimulationEngine.h"
+#include "engines/FinalStateSimulationEngine.h"
 #include "Function.h"
 #include <fstream>
 #include <stdlib.h>

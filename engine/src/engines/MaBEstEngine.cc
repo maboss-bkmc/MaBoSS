@@ -48,9 +48,9 @@
 */
 
 #include "MaBEstEngine.h"
-#include "BooleanNetwork.h"
-#include "ObservedGraph.h"
-#include "Probe.h"
+#include "../BooleanNetwork.h"
+#include "../ObservedGraph.h"
+#include "../Probe.h"
 #include <stdlib.h>
 #include <math.h>
 #include <iomanip>

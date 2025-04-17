@@ -5,7 +5,7 @@ maboss_version = '1.0.0b26'
 
 maboss_sources = [
    # PopMaBoSS
-   "PopMaBEstEngine.cc", 
+   "engines/PopMaBEstEngine.cc", 
    
    # Displayers
    "displayers/FixedPointDisplayer.cc", "displayers/FinalStateDisplayer.cc", "displayers/StatDistDisplayer.cc",
@@ -15,8 +15,8 @@ maboss_sources = [
    "RunConfig.cc", "LogicalExprGen.cc", "Utils.cc", "MBDynBitset.cc", "RandomGenerator.cc",
 
    # MaBoSS
-   "MetaEngine.cc", "FixedPointEngine.cc", "ProbTrajEngine.cc",
-   "FinalStateSimulationEngine.cc", "StochasticSimulationEngine.cc", "MaBEstEngine.cc", "EnsembleEngine.cc", 
+   "engines/MetaEngine.cc", "engines/FixedPointEngine.cc", "engines/ProbTrajEngine.cc",
+   "engines/FinalStateSimulationEngine.cc", "engines/StochasticSimulationEngine.cc", "engines/MaBEstEngine.cc", "engines/EnsembleEngine.cc", 
    "ProbaDist.cc", "ObservedGraph.cc",
 ]
 

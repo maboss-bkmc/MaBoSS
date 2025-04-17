@@ -48,7 +48,6 @@
 */
 
 #include "StochasticSimulationEngine.h"
-#include "Probe.h"
 #include <stdlib.h>
 #include <math.h>
 #include <iomanip>

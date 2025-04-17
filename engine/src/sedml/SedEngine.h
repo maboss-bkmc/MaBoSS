@@ -64,7 +64,7 @@
 #if defined SEDML_COMPAT && !defined _SEDML_PARSER_H_
 #define _SEDML_PARSER_H_
 #include "../BooleanNetwork.h"
-#include "../MaBEstEngine.h"
+#include "../engines/MaBEstEngine.h"
 #include "../SBMLParser.h"
 
 #include "SedException.h"

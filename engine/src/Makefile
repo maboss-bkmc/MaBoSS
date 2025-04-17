@@ -144,10 +144,10 @@ DISPLAYERS_SRC := displayers/StatDistDisplayer.cc displayers/FinalStateDisplayer
 DISPLAYERS_OBJS := displayers/StatDistDisplayer$(INFIX).o displayers/FinalStateDisplayer$(INFIX).o displayers/FixedPointDisplayer$(INFIX).o displayers/CustomPopProbTrajDisplayer$(INFIX).o 
 CORE_LIB_SRC := BooleanNetwork.cc BooleanGrammar.cc RunConfigGrammar.cc Function.cc BuiltinFunctions.cc RunConfig.cc LogicalExprGen.cc Utils.cc MBDynBitset.cc RandomGenerator.cc ObservedGraph.cc
 CORE_LIB_OBJS := BooleanNetwork$(INFIX).o parsers/BooleanGrammar$(INFIX).o parsers/RunConfigGrammar$(INFIX).o Function$(INFIX).o BuiltinFunctions$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o Utils$(INFIX).o MBDynBitset$(INFIX).o RandomGenerator$(INFIX).o ObservedGraph$(INFIX).o
-POP_LIB_SRC := PopMaBEstEngine.cc MetaEngine.cc
-POP_LIB_OBJS := PopMaBEstEngine$(INFIX).o MetaEngine.o
-LIB_SRC := FinalStateSimulationEngine.cc StochasticSimulationEngine.cc MetaEngine.cc FixedPointEngine.cc ProbTrajEngine.cc MaBEstEngine.cc EnsembleEngine.cc ProbaDist.cc 
-LIB_OBJS := FinalStateSimulationEngine$(INFIX).o StochasticSimulationEngine$(INFIX).o MetaEngine$(INFIX).o FixedPointEngine$(INFIX).o ProbTrajEngine$(INFIX).o MaBEstEngine$(INFIX).o EnsembleEngine$(INFIX).o ProbaDist$(INFIX).o 
+POP_LIB_SRC := engines/PopMaBEstEngine.cc engines/MetaEngine.cc
+POP_LIB_OBJS := engines/PopMaBEstEngine$(INFIX).o engines/MetaEngine.o
+LIB_SRC := engines/FinalStateSimulationEngine.cc engines/StochasticSimulationEngine.cc engines/MetaEngine.cc engines/FixedPointEngine.cc engines/ProbTrajEngine.cc engines/MaBEstEngine.cc engines/EnsembleEngine.cc ProbaDist.cc 
+LIB_OBJS := engines/FinalStateSimulationEngine$(INFIX).o engines/StochasticSimulationEngine$(INFIX).o engines/MetaEngine$(INFIX).o engines/FixedPointEngine$(INFIX).o engines/ProbTrajEngine$(INFIX).o engines/MaBEstEngine$(INFIX).o engines/EnsembleEngine$(INFIX).o ProbaDist$(INFIX).o 
 
 SERVER_OBJS := rpc/Server$(INFIX).o rpc/DataStreamer$(INFIX).o rpc/MaBoSS-RPC$(INFIX).o
 
@@ -277,7 +277,7 @@ clean: cleanobj
 	rm -f libMaBoSS-static.a libMaBoSS_[0-9]*n-static.a libPopMaBoSS-static.a libPopMaBoSS_[0-9]*n-static.a
 	
 cleanobj:
-	rm -f *$(INFIX).o *$(INFIX).so *$(INFIX).dylib parsers/*.o rpc/*.o displayers/*.o
+	rm -f *$(INFIX).o *$(INFIX).so *$(INFIX).dylib parsers/*.o rpc/*.o displayers/*.o engines/*.o
 
 tar: all
 	$(MAKE) -f Makefile.maboss tar_perform

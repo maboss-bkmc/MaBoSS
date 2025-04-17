@@ -36,54 +36,67 @@
 #############################################################################
 
    Module:
-     MaBEstEngine.h
+     FixedPointEngine.h
 
    Authors:
-     Eric Viara <viara@sysra.com>
-     Gautier Stoll <gautier.stoll@curie.fr>
-     Vincent Noël <vincent.noel@curie.fr>
-
+     Vincent Noel <contact@vincent-noel.fr>
+ 
    Date:
-     January-March 2011
+     March 2021
 */
 
-#ifndef _MABESTENGINE_H_
-#define _MABESTENGINE_H_
+#ifndef _FIXEDPOINTENGINE_H_
+#define _FIXEDPOINTENGINE_H_
 
 #include <string>
 #include <map>
 #include <vector>
 #include <assert.h>
 
-#include "ProbTrajEngine.h"
-#include "BooleanNetwork.h"
-#include "Cumulator.h"
-#include "RandomGenerator.h"
-#include "RunConfig.h"
-
-struct ArgWrapper;
-
-class MaBEstEngine : public ProbTrajEngine {
-
-  std::vector<ArgWrapper*> arg_wrapper_v;
-  static void* threadWrapper(void *arg);
-
-  void epilogue();
-  void runThread(Cumulator<NetworkState>* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, long long int* elapsed_time, int seed, FixedPoints* fixpoint_map, ObservedGraph* observed_map, std::ostream* output_traj);
-  
-public:
-  static const std::string VERSION;
-
 #ifdef MPI_COMPAT
-  MaBEstEngine(Network* network, RunConfig* runconfig, int world_size, int world_rank);
-#else
-  MaBEstEngine(Network* network, RunConfig* runconfig);
+#include <mpi.h>
 #endif
 
-  void run(std::ostream* output_traj = NULL);
-  void displayRunStats(std::ostream& os, time_t start_time, time_t end_time) const;
+#include "MetaEngine.h"
+#include "../BooleanNetwork.h"
+#include "../RunConfig.h"
+#include "../displayers/FixedPointDisplayer.h"
+
+struct EnsembleArgWrapper;
+typedef STATE_MAP<NetworkState_Impl, unsigned int> FixedPoints;
+class FixedPointEngine : public MetaEngine {
+
+protected:
+
+  FixedPoints* fixpoints;
+  std::vector<FixedPoints*> fixpoint_map_v;
+  static void mergePairOfFixpoints(FixedPoints* fixpoints_1, FixedPoints* fixpoints_2);
+
+#ifdef MPI_COMPAT
+  static void mergePairOfMPIFixpoints(FixedPoints* fixpoints, int world_rank, int dest, int origin, bool pack=true);
+
+  static void MPI_Unpack_Fixpoints(FixedPoints* fp_map, char* buff, unsigned int buff_size);
+  static char* MPI_Pack_Fixpoints(const FixedPoints* fp_map, int dest, unsigned int * buff_size);
+  static void MPI_Send_Fixpoints(const FixedPoints* fp_map, int dest);
+  static void MPI_Recv_Fixpoints(FixedPoints* fp_map, int origin);
   
-  ~MaBEstEngine();
+#endif
+
+public:
+
+#ifdef MPI_COMPAT
+  FixedPointEngine(Network * network, RunConfig* runconfig, int world_size, int world_rank) : MetaEngine(network, runconfig, world_size, world_rank) {}
+#else
+  FixedPointEngine(Network * network, RunConfig* runconfig) : MetaEngine(network, runconfig) {}
+#endif
+
+  bool converges() const {return fixpoints->size() > 0;}
+  const FixedPoints* getFixpoints() const {return fixpoints;}
+  const std::map<unsigned int, std::pair<NetworkState, double> > getFixPointsDists() const;
+
+  // void displayFixpoints(std::ostream& output_fp, bool hexfloat = false) const;
+  void displayFixpoints(FixedPointDisplayer* displayer) const;
+
 };
 
 #endif

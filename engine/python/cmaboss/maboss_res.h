@@ -52,7 +52,7 @@
 
 #include "src/BooleanNetwork.h"
 #include "src/RunConfig.h"
-#include "src/MaBEstEngine.h"
+#include "src/engines/MaBEstEngine.h"
 
 typedef struct {
   PyObject_HEAD

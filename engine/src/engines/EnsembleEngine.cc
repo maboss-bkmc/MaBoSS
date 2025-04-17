@@ -46,10 +46,9 @@
 */
 
 #include "EnsembleEngine.h"
-#include "ObservedGraph.h"
+#include "../ObservedGraph.h"
 #include "ProbTrajEngine.h"
-#include "Probe.h"
-#include "Utils.h"
+#include "../Probe.h"
 #include <stdlib.h>
 #include <math.h>
 #include <iomanip>

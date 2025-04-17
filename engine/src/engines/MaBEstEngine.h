@@ -36,77 +36,54 @@
 #############################################################################
 
    Module:
-     FinalStateSimulationEngine.h
+     MaBEstEngine.h
 
    Authors:
      Eric Viara <viara@sysra.com>
      Gautier Stoll <gautier.stoll@curie.fr>
      Vincent Noël <vincent.noel@curie.fr>
- 
+
    Date:
      January-March 2011
 */
 
-#ifndef _FINAL_STATE_SIMULATION_ENGINE_H_
-#define _FINAL_STATE_SIMULATION_ENGINE_H_
+#ifndef _MABESTENGINE_H_
+#define _MABESTENGINE_H_
 
 #include <string>
 #include <map>
 #include <vector>
 #include <assert.h>
 
-#include "MetaEngine.h"
-#include "FixedPointEngine.h"
-#include "BooleanNetwork.h"
-#include "Cumulator.h"
-#include "RandomGenerator.h"
-#include "RunConfig.h"
-#include "displayers/FinalStateDisplayer.h"
+#include "ProbTrajEngine.h"
+#include "../BooleanNetwork.h"
+#include "../Cumulator.h"
+#include "../RandomGenerator.h"
+#include "../RunConfig.h"
 
-struct FinalStateArgWrapper;
+struct ArgWrapper;
 
-class FinalStateSimulationEngine : public MetaEngine {
-  
-  bool has_internal = false;
-  NetworkState internal_state;
+class MaBEstEngine : public ProbTrajEngine {
 
-  std::vector<unsigned int> sample_count_per_thread;
-
-  std::vector<FinalStateArgWrapper*> arg_wrapper_v;
-  NodeIndex getTargetNode(RandomGenerator* random_generator, const std::vector<double>& nodeTransitionRates, double total_rate) const;
-  void epilogue();
+  std::vector<ArgWrapper*> arg_wrapper_v;
   static void* threadWrapper(void *arg);
-  void runThread(unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, FixedPoints* final_state_map, std::ostream* output_traj);
-  
-  FixedPoints* mergeFinalStateMaps();
-  STATE_MAP<NetworkState_Impl, double> final_states;
-  std::vector<FixedPoints*> final_states_map_v;
 
+  void epilogue();
+  void runThread(Cumulator<NetworkState>* cumulator, unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, long long int* elapsed_time, int seed, FixedPoints* fixpoint_map, ObservedGraph* observed_map, std::ostream* output_traj);
+  
 public:
   static const std::string VERSION;
-  
+
 #ifdef MPI_COMPAT
-  FinalStateSimulationEngine(Network* network, RunConfig* runconfig, int world_size, int world_rank);
+  MaBEstEngine(Network* network, RunConfig* runconfig, int world_size, int world_rank);
 #else
-  FinalStateSimulationEngine(Network* network, RunConfig* runconfig);
+  MaBEstEngine(Network* network, RunConfig* runconfig);
 #endif
 
-  void run(std::ostream* output_traj);
-  ~FinalStateSimulationEngine();
-
-  const STATE_MAP<Node*, double> getFinalNodes() const;
-  const double getFinalTime() const { return max_time; }
-
-#ifdef PYTHON_API
-  PyObject* getNumpyLastStatesDists() const;
-  std::vector<Node*> getNodes() const;
-  PyObject* getNumpyLastNodesDists(std::vector<Node*> output_nodes) const;
-#endif
-
-  void displayFinal(FinalStateDisplayer* displayer) const;
-  
+  void run(std::ostream* output_traj = NULL);
   void displayRunStats(std::ostream& os, time_t start_time, time_t end_time) const;
-
+  
+  ~MaBEstEngine();
 };
 
 #endif

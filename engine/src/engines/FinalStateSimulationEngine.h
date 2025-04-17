@@ -36,66 +36,84 @@
 #############################################################################
 
    Module:
-     FixedPointEngine.h
+     FinalStateSimulationEngine.h
 
    Authors:
-     Vincent Noel <contact@vincent-noel.fr>
+     Eric Viara <viara@sysra.com>
+     Gautier Stoll <gautier.stoll@curie.fr>
+     Vincent Noël <vincent.noel@curie.fr>
  
    Date:
-     March 2021
+     January-March 2011
 */
 
-#ifndef _FIXEDPOINTENGINE_H_
-#define _FIXEDPOINTENGINE_H_
+#ifndef _FINAL_STATE_SIMULATION_ENGINE_H_
+#define _FINAL_STATE_SIMULATION_ENGINE_H_
 
 #include <string>
 #include <map>
 #include <vector>
 #include <assert.h>
 
-#ifdef MPI_COMPAT
-#include <mpi.h>
+#ifdef PYTHON_API
+#define NO_IMPORT_ARRAY
+#define PY_ARRAY_UNIQUE_SYMBOL MABOSS_ARRAY_API
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#include <Python.h>
+#include <numpy/arrayobject.h>
 #endif
 
 #include "MetaEngine.h"
-#include "BooleanNetwork.h"
-#include "RunConfig.h"
-#include "displayers/FixedPointDisplayer.h"
+#include "FixedPointEngine.h"
+#include "../BooleanNetwork.h"
+// #include "../Cumulator.h"
+#include "../RandomGenerator.h"
+#include "../RunConfig.h"
+#include "../displayers/FinalStateDisplayer.h"
 
-struct EnsembleArgWrapper;
-typedef STATE_MAP<NetworkState_Impl, unsigned int> FixedPoints;
-class FixedPointEngine : public MetaEngine {
+struct FinalStateArgWrapper;
 
-protected:
-
-  FixedPoints* fixpoints;
-  std::vector<FixedPoints*> fixpoint_map_v;
-  static void mergePairOfFixpoints(FixedPoints* fixpoints_1, FixedPoints* fixpoints_2);
-
-#ifdef MPI_COMPAT
-  static void mergePairOfMPIFixpoints(FixedPoints* fixpoints, int world_rank, int dest, int origin, bool pack=true);
-
-  static void MPI_Unpack_Fixpoints(FixedPoints* fp_map, char* buff, unsigned int buff_size);
-  static char* MPI_Pack_Fixpoints(const FixedPoints* fp_map, int dest, unsigned int * buff_size);
-  static void MPI_Send_Fixpoints(const FixedPoints* fp_map, int dest);
-  static void MPI_Recv_Fixpoints(FixedPoints* fp_map, int origin);
+class FinalStateSimulationEngine : public MetaEngine {
   
-#endif
+  bool has_internal = false;
+  NetworkState internal_state;
+
+  std::vector<unsigned int> sample_count_per_thread;
+
+  std::vector<FinalStateArgWrapper*> arg_wrapper_v;
+  NodeIndex getTargetNode(RandomGenerator* random_generator, const std::vector<double>& nodeTransitionRates, double total_rate) const;
+  void epilogue();
+  static void* threadWrapper(void *arg);
+  void runThread(unsigned int start_count_thread, unsigned int sample_count_thread, RandomGeneratorFactory* randgen_factory, int seed, FixedPoints* final_state_map, std::ostream* output_traj);
+  
+  FixedPoints* mergeFinalStateMaps();
+  STATE_MAP<NetworkState_Impl, double> final_states;
+  std::vector<FixedPoints*> final_states_map_v;
 
 public:
-
+  static const std::string VERSION;
+  
 #ifdef MPI_COMPAT
-  FixedPointEngine(Network * network, RunConfig* runconfig, int world_size, int world_rank) : MetaEngine(network, runconfig, world_size, world_rank) {}
+  FinalStateSimulationEngine(Network* network, RunConfig* runconfig, int world_size, int world_rank);
 #else
-  FixedPointEngine(Network * network, RunConfig* runconfig) : MetaEngine(network, runconfig) {}
+  FinalStateSimulationEngine(Network* network, RunConfig* runconfig);
 #endif
 
-  bool converges() const {return fixpoints->size() > 0;}
-  const FixedPoints* getFixpoints() const {return fixpoints;}
-  const std::map<unsigned int, std::pair<NetworkState, double> > getFixPointsDists() const;
+  void run(std::ostream* output_traj);
+  ~FinalStateSimulationEngine();
 
-  // void displayFixpoints(std::ostream& output_fp, bool hexfloat = false) const;
-  void displayFixpoints(FixedPointDisplayer* displayer) const;
+  const STATE_MAP<Node*, double> getFinalNodes() const;
+  const double getFinalTime() const { return max_time; }
+
+#ifdef PYTHON_API
+  PyObject* getNumpyLastStatesDists() const;
+  std::vector<Node*> getNodes() const;
+  PyObject* getNumpyLastNodesDists(std::vector<Node*> output_nodes) const;
+#endif
+
+  void displayFinal(FinalStateDisplayer* displayer) const;
+  
+  void displayRunStats(std::ostream& os, time_t start_time, time_t end_time) const;
 
 };
 

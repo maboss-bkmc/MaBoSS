@@ -58,10 +58,10 @@
 #include <vector>
 #include <assert.h>
 
-#include "BooleanNetwork.h"
-#include "RandomGenerator.h"
-#include "RunConfig.h"
-#include "displayers/FixedPointDisplayer.h"
+#include "../BooleanNetwork.h"
+#include "../RandomGenerator.h"
+#include "../RunConfig.h"
+#include "../displayers/FixedPointDisplayer.h"
 
 #ifdef STD_THREAD
 #include <thread>

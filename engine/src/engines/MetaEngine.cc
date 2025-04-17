@@ -48,8 +48,8 @@
 */
 
 #include "MetaEngine.h"
-#include "Probe.h"
-#include "Utils.h"
+#include "../Probe.h"
+#include "../Utils.h"
 #if !defined (WINDOWS) && !defined(_MSC_VER)
   #include <dlfcn.h>
 #else

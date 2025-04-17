@@ -48,7 +48,7 @@
 #include <ctime>
 #include "BooleanNetwork.h"
 #include "displayers/CustomPopProbTrajDisplayer.h"
-#include "PopMaBEstEngine.h"
+#include "engines/PopMaBEstEngine.h"
 #include "Function.h"
 #include <fstream>
 #include <ostream>

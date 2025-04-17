@@ -53,15 +53,15 @@
 #include <vector>
 #include <assert.h>
 
-#include "displayers/CustomPopProbTrajDisplayer.h"
 #include "MetaEngine.h"
 #include "FixedPointEngine.h"
-#include "BooleanNetwork.h"
-#include "Cumulator.h"
-#include "RandomGenerator.h"
-#include "RunConfig.h"
-#include "displayers/FixedPointDisplayer.h"
-#include "displayers/ProbTrajDisplayer.h"
+#include "../BooleanNetwork.h"
+#include "../Cumulator.h"
+#include "../RandomGenerator.h"
+#include "../RunConfig.h"
+#include "../displayers/FixedPointDisplayer.h"
+#include "../displayers/ProbTrajDisplayer.h"
+#include "../displayers/CustomPopProbTrajDisplayer.h"
 
 struct ArgWrapper;
 

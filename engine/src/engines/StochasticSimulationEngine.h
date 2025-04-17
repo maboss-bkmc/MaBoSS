@@ -55,9 +55,9 @@
 #include <vector>
 #include <assert.h>
 
-#include "BooleanNetwork.h"
-#include "RandomGenerator.h"
-#include "RunConfig.h"
+#include "../BooleanNetwork.h"
+#include "../RandomGenerator.h"
+#include "../RunConfig.h"
 
 
 class StochasticSimulationEngine {
