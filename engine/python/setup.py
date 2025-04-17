@@ -7,15 +7,17 @@ maboss_sources = [
    # PopMaBoSS
    "PopMaBEstEngine.cc", 
    
+   # Displayers
+   "displayers/FixedPointDisplayer.cc", "displayers/FinalStateDisplayer.cc", "displayers/StatDistDisplayer.cc",
+   
    # Core
    "BooleanNetwork.cc", "parsers/BooleanGrammar.cc", "parsers/RunConfigGrammar.cc", "Function.cc", "BuiltinFunctions.cc", 
-   "RunConfig.cc", "LogicalExprGen.cc", "Utils.cc", "MBDynBitset.cc", "RandomGenerator.cc", "FixedPointDisplayer.cc", 
+   "RunConfig.cc", "LogicalExprGen.cc", "Utils.cc", "MBDynBitset.cc", "RandomGenerator.cc",
 
    # MaBoSS
    "MetaEngine.cc", "FixedPointEngine.cc", "ProbTrajEngine.cc",
    "FinalStateSimulationEngine.cc", "StochasticSimulationEngine.cc", "MaBEstEngine.cc", "EnsembleEngine.cc", 
    "ProbaDist.cc", "ObservedGraph.cc",
-   "StatDistDisplayer.cc", "FinalStateDisplayer.cc",   
 ]
 
 maboss_module_sources = [

@@ -53,8 +53,8 @@
 
 #include <iostream>
 #include <iomanip>
-#include "BooleanNetwork.h"
-#include "Utils.h"
+#include "../BooleanNetwork.h"
+#include "../Utils.h"
 #include "ProbTrajDisplayer.h"
 
 class CSVSimplePopProbTrajDisplayer final : public CSVProbTrajDisplayer<PopNetworkState>

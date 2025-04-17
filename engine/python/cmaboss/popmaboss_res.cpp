@@ -48,7 +48,7 @@
 
 #include "popmaboss_res.h"
 
-#include "src/PopProbTrajDisplayer.h"
+#include "src/displayers/PopProbTrajDisplayer.h"
 
 #include <fstream>
 #ifdef __GLIBC__

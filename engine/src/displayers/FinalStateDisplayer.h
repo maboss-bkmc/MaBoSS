@@ -52,7 +52,7 @@
 
 #include <iostream>
 
-#include "BooleanNetwork.h"
+#include "../BooleanNetwork.h"
 
 class FinalStateDisplayer {
 

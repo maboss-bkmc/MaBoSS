@@ -49,7 +49,7 @@
 #include "BooleanNetwork.h"
 #include "Cumulator.h"
 #include "MetaEngine.h"
-#include "ProbTrajDisplayer.h"
+#include "displayers/ProbTrajDisplayer.h"
 #include "Probe.h"
 #include <stdlib.h>
 #include <math.h>

@@ -1,4 +1,3 @@
-
 /*
 #############################################################################
 #                                                                           #
@@ -37,7 +36,7 @@
 #############################################################################
 
    Module:
-     CustomPopProbTrajDisplayer.h
+     FixedPointDisplayer.cc
 
    Authors:
      Eric Viara <viara@sysra.com>
@@ -48,77 +47,63 @@
      Decembre 2020
 */
 
-#ifndef _CUSTOM_POP_PROBTRAJ_DISPLAYER_H_
-#define _CUSTOM_POP_PROBTRAJ_DISPLAYER_H_
+#include "FixedPointDisplayer.h"
+#include "../BooleanNetwork.h"
+#include "../Utils.h"
 
-#include <iostream>
-#include "BooleanNetwork.h"
-#include "ProbTrajDisplayer.h"
-#include "Utils.h"
-#include <iomanip>
-#include <cstring>
-
-class CSVCustomPopProbTrajDisplayer : public ProbTrajDisplayer<PopSize> {
-
-  std::ostream& os_probtraj;
-
-public:
-  CSVCustomPopProbTrajDisplayer(Network* network, std::ostream& os_probtraj, bool hexfloat = false) : ProbTrajDisplayer<PopSize>(network, hexfloat), os_probtraj(os_probtraj) { }
-
-  void beginDisplay() {
-    os_probtraj << "Time\tTH" << (this->compute_errors ? "\tErrorTH" : "") << "\tH";
-    for (unsigned int jj = 0; jj <= this->refnode_count; ++jj) {
-      os_probtraj << "\tHD=" << jj;
-    }
-
-    for (unsigned int nn = 0; nn < this->maxcols; ++nn) {
-      os_probtraj << "\tState\tProba" << (this->compute_errors ? "\tErrorProba" : "");
-    }
-
-    os_probtraj << '\n';
+void CSVFixedPointDisplayer::begin(size_t size) {
+  os << "Fixed Points (" << size << ")\n";
+  if (size > 0) {
+    os << "FP\tProba\tState\t";
+    network->displayHeader(os);
   }
-  void beginTimeTickDisplay() {}
-  void endTimeTickDisplay() {
-    os_probtraj << std::setprecision(4) << std::fixed << this->time_tick;
-  #ifdef HAS_STD_HEXFLOAT
-    if (this->hexfloat) {
-      os_probtraj << std::hexfloat;
-    }
-  #endif
-    if (this->hexfloat) {
-      os_probtraj << '\t' << fmthexdouble(this->TH);
-      os_probtraj << '\t' << fmthexdouble(this->err_TH);
-      os_probtraj << '\t' << fmthexdouble(this->H);
-    } else {
-      os_probtraj << '\t' << this->TH;
-      os_probtraj << '\t' << this->err_TH;
-      os_probtraj << '\t' << this->H;
-    }
+}
 
-    for (unsigned int nn = 0; nn <= this->refnode_count; nn++) {
-      os_probtraj << '\t';
-      if (this->hexfloat) {
-        os_probtraj << fmthexdouble(this->HD_v[nn]);
-      } else {
-        os_probtraj << this->HD_v[nn];
-      }
-    }
-
-    for (const typename ProbTrajDisplayer<PopSize>::Proba &proba : this->proba_v) {
-      os_probtraj << '\t';
-      proba.state.displayOneLine(os_probtraj, this->network);
-      if (this->hexfloat) {
-        os_probtraj << '\t' << fmthexdouble(proba.proba);
-        os_probtraj << '\t' << fmthexdouble(proba.err_proba);
-      } else {
-        os_probtraj << '\t' << std::setprecision(6) << proba.proba;
-        os_probtraj << '\t' << proba.err_proba;
-      }
-    }
-    os_probtraj << '\n';
+void CSVFixedPointDisplayer::displayFixedPoint(size_t num, const NetworkState& state, unsigned int val, unsigned int sample_count) {
+  os << "#" << num << "\t";
+  if (hexfloat) {
+    os << fmthexdouble((double)val / sample_count) <<  "\t";
+  } else {
+    os << ((double)val / sample_count) <<  "\t";
   }
-  void endDisplay() { }
-};
+  state.displayOneLine(os, network);
+  os << '\t';
+  state.display(os, network);
+}
 
+void CSVFixedPointDisplayer::end() {
+}
 
+void JsonFixedPointDisplayer::begin(size_t size) {
+  os << "{\"count\":" << size << "\"points\":[";
+}
+
+void JsonFixedPointDisplayer::displayFixedPoint(size_t num, const NetworkState& state, unsigned int val, unsigned int sample_count) {
+  os << "{\"num\":" << num << ",";
+  os << "\"value\":";
+  if (hexfloat) {
+    os << fmthexdouble((double)val / sample_count, true) <<  "\t";
+  } else {
+    os << ((double)val / sample_count) <<  "\t";
+  }
+  os << ",\"state\":\"";
+  state.displayOneLine(os, network);
+  // TBD: missing
+  //state.display(os, network);
+  os << "\"}";
+}
+
+void JsonFixedPointDisplayer::end() {
+  os << "]}";
+}
+
+#ifdef HDF5_COMPAT
+void HDF5FixedPointDisplayer::begin(size_t size) {
+}
+
+void HDF5FixedPointDisplayer::displayFixedPoint(size_t num, const NetworkState& state, unsigned int val, unsigned int sample_count) {
+}
+
+void HDF5FixedPointDisplayer::end() {
+}
 #endif

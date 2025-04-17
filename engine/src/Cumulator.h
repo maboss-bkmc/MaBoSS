@@ -93,8 +93,8 @@ static bool COMPUTE_ERRORS = true;
 #include "RunConfig.h"
 #include "ProbaDist.h"
 #include "RunConfig.h"
-#include "StatDistDisplayer.h"
-#include "ProbTrajDisplayer.h"
+#include "displayers/StatDistDisplayer.h"
+#include "displayers/ProbTrajDisplayer.h"
 
 class Network;
 template <typename S> class ProbTrajDisplayer;

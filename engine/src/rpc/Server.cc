@@ -60,10 +60,10 @@
 #include "../MaBEstEngine.h"
 #include "../FinalStateSimulationEngine.h"
 #include "../Function.h"
-#include "../ProbTrajDisplayer.h"
-#include "../StatDistDisplayer.h"
-#include "../FixedPointDisplayer.h"
-#include "../FinalStateDisplayer.h"
+#include "../displayers/ProbTrajDisplayer.h"
+#include "../displayers/StatDistDisplayer.h"
+#include "../displayers/FixedPointDisplayer.h"
+#include "../displayers/FinalStateDisplayer.h"
 
 Server* Server::server;
 static const char* RPC_portname;

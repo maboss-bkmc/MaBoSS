@@ -140,13 +140,14 @@ endif
 
 CHECK_FLEX  = $(FLEX) --version > /dev/null
 CHECK_BISON = $(BISON) --version > /dev/null
-
-CORE_LIB_SRC := BooleanNetwork.cc BooleanGrammar.cc RunConfigGrammar.cc Function.cc BuiltinFunctions.cc RunConfig.cc LogicalExprGen.cc Utils.cc MBDynBitset.cc RandomGenerator.cc FixedPointDisplayer.cc ObservedGraph.cc
-CORE_LIB_OBJS := BooleanNetwork$(INFIX).o parsers/BooleanGrammar$(INFIX).o parsers/RunConfigGrammar$(INFIX).o Function$(INFIX).o BuiltinFunctions$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o Utils$(INFIX).o MBDynBitset$(INFIX).o RandomGenerator$(INFIX).o  FixedPointDisplayer$(INFIX).o ObservedGraph$(INFIX).o
+DISPLAYERS_SRC := displayers/StatDistDisplayer.cc displayers/FinalStateDisplayer.cc displayers/FixedPointDisplayer.cc displayers/CustomPopProbTrajDisplayer.cc
+DISPLAYERS_OBJS := displayers/StatDistDisplayer$(INFIX).o displayers/FinalStateDisplayer$(INFIX).o displayers/FixedPointDisplayer$(INFIX).o displayers/CustomPopProbTrajDisplayer$(INFIX).o 
+CORE_LIB_SRC := BooleanNetwork.cc BooleanGrammar.cc RunConfigGrammar.cc Function.cc BuiltinFunctions.cc RunConfig.cc LogicalExprGen.cc Utils.cc MBDynBitset.cc RandomGenerator.cc ObservedGraph.cc
+CORE_LIB_OBJS := BooleanNetwork$(INFIX).o parsers/BooleanGrammar$(INFIX).o parsers/RunConfigGrammar$(INFIX).o Function$(INFIX).o BuiltinFunctions$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o Utils$(INFIX).o MBDynBitset$(INFIX).o RandomGenerator$(INFIX).o ObservedGraph$(INFIX).o
 POP_LIB_SRC := PopMaBEstEngine.cc MetaEngine.cc
 POP_LIB_OBJS := PopMaBEstEngine$(INFIX).o MetaEngine.o
-LIB_SRC := FinalStateSimulationEngine.cc StochasticSimulationEngine.cc MetaEngine.cc FixedPointEngine.cc ProbTrajEngine.cc MaBEstEngine.cc EnsembleEngine.cc ProbaDist.cc StatDistDisplayer.cc FinalStateDisplayer.cc
-LIB_OBJS := FinalStateSimulationEngine$(INFIX).o StochasticSimulationEngine$(INFIX).o MetaEngine$(INFIX).o FixedPointEngine$(INFIX).o ProbTrajEngine$(INFIX).o MaBEstEngine$(INFIX).o EnsembleEngine$(INFIX).o ProbaDist$(INFIX).o StatDistDisplayer$(INFIX).o FinalStateDisplayer$(INFIX).o
+LIB_SRC := FinalStateSimulationEngine.cc StochasticSimulationEngine.cc MetaEngine.cc FixedPointEngine.cc ProbTrajEngine.cc MaBEstEngine.cc EnsembleEngine.cc ProbaDist.cc 
+LIB_OBJS := FinalStateSimulationEngine$(INFIX).o StochasticSimulationEngine$(INFIX).o MetaEngine$(INFIX).o FixedPointEngine$(INFIX).o ProbTrajEngine$(INFIX).o MaBEstEngine$(INFIX).o EnsembleEngine$(INFIX).o ProbaDist$(INFIX).o 
 
 SERVER_OBJS := rpc/Server$(INFIX).o rpc/DataStreamer$(INFIX).o rpc/MaBoSS-RPC$(INFIX).o
 
@@ -157,8 +158,8 @@ ifdef USE_LIB
 MABOSS_OBJS = $(MABOSS_LIB)
 POPMABOSS_OBJS = $(POPMABOSS_LIB)
 else
-MABOSS_OBJS = $(CORE_LIB_OBJS) $(LIB_OBJS) $(SEDML_LIB_OBJS) 
-POPMABOSS_OBJS = $(CORE_LIB_OBJS) $(POP_LIB_OBJS)
+MABOSS_OBJS = $(CORE_LIB_OBJS) ${DISPLAYERS_OBJS} $(LIB_OBJS) $(SEDML_LIB_OBJS) 
+POPMABOSS_OBJS = $(CORE_LIB_OBJS) ${DISPLAYERS_OBJS} $(POP_LIB_OBJS)
 endif
 
 ifdef FUNC_MODULE
@@ -276,7 +277,7 @@ clean: cleanobj
 	rm -f libMaBoSS-static.a libMaBoSS_[0-9]*n-static.a libPopMaBoSS-static.a libPopMaBoSS_[0-9]*n-static.a
 	
 cleanobj:
-	rm -f *$(INFIX).o *$(INFIX).so *$(INFIX).dylib parsers/*.o rpc/*.o
+	rm -f *$(INFIX).o *$(INFIX).so *$(INFIX).dylib parsers/*.o rpc/*.o displayers/*.o
 
 tar: all
 	$(MAKE) -f Makefile.maboss tar_perform

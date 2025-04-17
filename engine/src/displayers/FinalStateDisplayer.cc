@@ -36,7 +36,7 @@
 #############################################################################
 
    Module:
-     FixedPointDisplayer.cc
+     FinalStateDisplayer.cc
 
    Authors:
      Eric Viara <viara@sysra.com>
@@ -47,63 +47,48 @@
      Decembre 2020
 */
 
-#include "FixedPointDisplayer.h"
-#include "BooleanNetwork.h"
-#include "Utils.h"
+#include "FinalStateDisplayer.h"
+#include "../Utils.h"
+#include <iomanip>
 
-void CSVFixedPointDisplayer::begin(size_t size) {
-  os << "Fixed Points (" << size << ")\n";
-  if (size > 0) {
-    os << "FP\tProba\tState\t";
-    network->displayHeader(os);
-  }
+void CSVFinalStateDisplayer::begin() {
 }
 
-void CSVFixedPointDisplayer::displayFixedPoint(size_t num, const NetworkState& state, unsigned int val, unsigned int sample_count) {
-  os << "#" << num << "\t";
+void CSVFinalStateDisplayer::displayFinalState(const NetworkState_Impl& state, double value) {
   if (hexfloat) {
-    os << fmthexdouble((double)val / sample_count) <<  "\t";
+    os << std::setprecision(6) << fmthexdouble(value) << "\t";
   } else {
-    os << ((double)val / sample_count) <<  "\t";
+    os << std::setprecision(6) << value << "\t";
+  }    
+  NetworkState(state, 1).displayOneLine(os, network);
+  os << "\n";
+}
+
+void CSVFinalStateDisplayer::end() {
+}
+
+void JsonFinalStateDisplayer::begin() {
+  os << "[";
+}
+
+void JsonFinalStateDisplayer::displayFinalState(const NetworkState_Impl& state, double value) {
+  if (state_cnt > 0) {
+    os << ",";
   }
-  state.displayOneLine(os, network);
-  os << '\t';
-  state.display(os, network);
-}
-
-void CSVFixedPointDisplayer::end() {
-}
-
-void JsonFixedPointDisplayer::begin(size_t size) {
-  os << "{\"count\":" << size << "\"points\":[";
-}
-
-void JsonFixedPointDisplayer::displayFixedPoint(size_t num, const NetworkState& state, unsigned int val, unsigned int sample_count) {
-  os << "{\"num\":" << num << ",";
-  os << "\"value\":";
+  os << "{\"proba\":";
   if (hexfloat) {
-    os << fmthexdouble((double)val / sample_count, true) <<  "\t";
+    os << std::setprecision(6) << fmthexdouble(value, true);
   } else {
-    os << ((double)val / sample_count) <<  "\t";
-  }
+    os << std::setprecision(6) << value;
+  }    
   os << ",\"state\":\"";
-  state.displayOneLine(os, network);
-  // TBD: missing
-  //state.display(os, network);
+  NetworkState(state, 1).displayOneLine(os, network);
   os << "\"}";
+  state_cnt++;
 }
 
-void JsonFixedPointDisplayer::end() {
-  os << "]}";
+void JsonFinalStateDisplayer::end() {
+  os << "]";
 }
 
-#ifdef HDF5_COMPAT
-void HDF5FixedPointDisplayer::begin(size_t size) {
-}
 
-void HDF5FixedPointDisplayer::displayFixedPoint(size_t num, const NetworkState& state, unsigned int val, unsigned int sample_count) {
-}
-
-void HDF5FixedPointDisplayer::end() {
-}
-#endif

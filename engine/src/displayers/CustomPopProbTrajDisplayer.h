@@ -1,3 +1,4 @@
+
 /*
 #############################################################################
 #                                                                           #
@@ -36,7 +37,7 @@
 #############################################################################
 
    Module:
-     FinalStateDisplayer.cc
+     CustomPopProbTrajDisplayer.h
 
    Authors:
      Eric Viara <viara@sysra.com>
@@ -47,49 +48,27 @@
      Decembre 2020
 */
 
-#include "FinalStateDisplayer.h"
-#include "BooleanNetwork.h"
-#include "Utils.h"
-#include <iomanip>
+#ifndef _CUSTOM_POP_PROBTRAJ_DISPLAYER_H_
+#define _CUSTOM_POP_PROBTRAJ_DISPLAYER_H_
 
-void CSVFinalStateDisplayer::begin() {
-}
+#include <iostream>
+#include "ProbTrajDisplayer.h"
 
-void CSVFinalStateDisplayer::displayFinalState(const NetworkState_Impl& state, double value) {
-  if (hexfloat) {
-    os << std::setprecision(6) << fmthexdouble(value) << "\t";
-  } else {
-    os << std::setprecision(6) << value << "\t";
-  }    
-  NetworkState(state, 1).displayOneLine(os, network);
-  os << "\n";
-}
+class Network;
+class PopSize;
 
-void CSVFinalStateDisplayer::end() {
-}
+class CSVCustomPopProbTrajDisplayer : public ProbTrajDisplayer<PopSize> {
 
-void JsonFinalStateDisplayer::begin() {
-  os << "[";
-}
+  std::ostream& os_probtraj;
 
-void JsonFinalStateDisplayer::displayFinalState(const NetworkState_Impl& state, double value) {
-  if (state_cnt > 0) {
-    os << ",";
-  }
-  os << "{\"proba\":";
-  if (hexfloat) {
-    os << std::setprecision(6) << fmthexdouble(value, true);
-  } else {
-    os << std::setprecision(6) << value;
-  }    
-  os << ",\"state\":\"";
-  NetworkState(state, 1).displayOneLine(os, network);
-  os << "\"}";
-  state_cnt++;
-}
+public:
+  CSVCustomPopProbTrajDisplayer(Network* network, std::ostream& os_probtraj, bool hexfloat = false) : ProbTrajDisplayer<PopSize>(network, hexfloat), os_probtraj(os_probtraj) { }
 
-void JsonFinalStateDisplayer::end() {
-  os << "]";
-}
+  void beginDisplay();
+  void beginTimeTickDisplay() {}
+  void endTimeTickDisplay();
+  void endDisplay() { }
+};
 
 
+#endif

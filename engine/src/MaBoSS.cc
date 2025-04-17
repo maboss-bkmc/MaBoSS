@@ -56,8 +56,8 @@
 #include <fstream>
 #include <stdlib.h>
 #include "Utils.h"
-#include "ProbTrajDisplayer.h"
-#include "StatDistDisplayer.h"
+#include "displayers/ProbTrajDisplayer.h"
+#include "displayers/StatDistDisplayer.h"
 #include "RandomGenerator.h"
 #ifdef SBML_COMPAT
 #include "SBMLParser.h"

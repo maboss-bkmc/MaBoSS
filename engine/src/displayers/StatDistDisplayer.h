@@ -51,6 +51,7 @@
 #define _STATDIST_DISPLAYER_H_
 
 #include <iostream>
+#include "../BooleanNetwork.h"
 
 #ifdef HDF5_COMPAT
 #include <hdf5/serial/hdf5.h>

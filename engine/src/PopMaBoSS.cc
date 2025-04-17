@@ -47,7 +47,7 @@
 
 #include <ctime>
 #include "BooleanNetwork.h"
-#include "CustomPopProbTrajDisplayer.h"
+#include "displayers/CustomPopProbTrajDisplayer.h"
 #include "PopMaBEstEngine.h"
 #include "Function.h"
 #include <fstream>
@@ -55,8 +55,8 @@
 #include <stdlib.h>
 #include "Utils.h"
 #include "RandomGenerator.h"
-#include "ProbTrajDisplayer.h"
-#include "PopProbTrajDisplayer.h"
+#include "displayers/ProbTrajDisplayer.h"
+#include "displayers/PopProbTrajDisplayer.h"
 
 #ifdef MPI_COMPAT
 #include <mpi.h>

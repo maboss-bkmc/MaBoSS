@@ -49,9 +49,9 @@
 
 #include <structmember.h>
 #include <fstream>
-#include "src/FixedPointDisplayer.h"
-#include "src/ProbTrajDisplayer.h"
-#include "src/StatDistDisplayer.h"
+#include "src/displayers/FixedPointDisplayer.h"
+#include "src/displayers/ProbTrajDisplayer.h"
+#include "src/displayers/StatDistDisplayer.h"
 
 #ifdef __GLIBC__
 #include <malloc.h>

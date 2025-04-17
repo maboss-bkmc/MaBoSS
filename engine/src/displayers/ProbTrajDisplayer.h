@@ -52,8 +52,8 @@
 #define _PROBTRAJ_DISPLAYER_H_
 
 #include <iostream>
-#include "BooleanNetwork.h"
-#include "Utils.h"
+#include "../BooleanNetwork.h"
+#include "../Utils.h"
 #include <iomanip>
 #include <cstring>
 

@@ -60,7 +60,7 @@
 #include "MetaEngine.h"
 #include "BooleanNetwork.h"
 #include "RunConfig.h"
-#include "FixedPointDisplayer.h"
+#include "displayers/FixedPointDisplayer.h"
 
 struct EnsembleArgWrapper;
 typedef STATE_MAP<NetworkState_Impl, unsigned int> FixedPoints;

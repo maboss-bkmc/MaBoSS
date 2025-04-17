@@ -1,3 +1,4 @@
+
 /*
 #############################################################################
 #                                                                           #
@@ -36,80 +37,74 @@
 #############################################################################
 
    Module:
-     MetaEngine.h
+     CustomPopProbTrajDisplayer.cc
 
    Authors:
-     Vincent Noel <contact@vincent-noel.fr>
+     Eric Viara <viara@sysra.com>
+     Gautier Stoll <gautier.stoll@curie.fr>
+     Vincent Noël <vincent.noel@curie.fr>
  
    Date:
-     March 2019
+     Decembre 2020
 */
 
-#ifndef _PROBTRAJENGINE_H_
-#define _PROBTRAJENGINE_H_
+#include "CustomPopProbTrajDisplayer.h"
+#include "../Utils.h"
+#include "../BooleanNetwork.h"
+#include <iomanip>
+#include <cstring>
 
-#include <string>
-#include <map>
-#include <vector>
-#include <assert.h>
-
-#ifdef MPI_COMPAT
-#include <mpi.h>
-#endif
-
-#include "BooleanNetwork.h"
-#include "FixedPointEngine.h"
-#include "Cumulator.h"
-#include "RandomGenerator.h"
-#include "RunConfig.h"
-#include "displayers/FixedPointDisplayer.h"
-#include "displayers/ProbTrajDisplayer.h"
-#include "ObservedGraph.h"
-struct EnsembleArgWrapper;
-
-class ProbTrajEngine : public FixedPointEngine {
-
-protected:
-
-  ObservedGraph* observed_graph;
-  std::vector<ObservedGraph* > observed_graph_v;
-
-  Cumulator<NetworkState>* merged_cumulator;
-  std::vector<Cumulator<NetworkState>*> cumulator_v;
-
-  static void* threadMergeWrapper(void *arg);
-
-  static void mergeResults(std::vector<Cumulator<NetworkState>*>& cumulator_v, std::vector<FixedPoints *>& fixpoint_map_v, std::vector<ObservedGraph* >& observed_graph_v);  
-  
-#ifdef MPI_COMPAT
-  static void mergeMPIResults(RunConfig* runconfig, Cumulator<NetworkState>* ret_cumul, FixedPoints* fixpoints, ObservedGraph* graph, int world_size, int world_rank, bool pack=true);
-#endif
-
-public:
-
-#ifdef MPI_COMPAT
-  ProbTrajEngine(Network * network, RunConfig* runconfig, int world_size, int world_rank) : FixedPointEngine(network, runconfig, world_size, world_rank) {}
-#else
-  ProbTrajEngine(Network* network, RunConfig* runconfig) : FixedPointEngine(network, runconfig) {}
-#endif
-
-  Cumulator<NetworkState>* getMergedCumulator() {
-    return merged_cumulator; 
+void CSVCustomPopProbTrajDisplayer::beginDisplay() 
+{
+  os_probtraj << "Time\tTH" << (this->compute_errors ? "\tErrorTH" : "") << "\tH";
+  for (unsigned int jj = 0; jj <= this->refnode_count; ++jj) {
+    os_probtraj << "\tHD=" << jj;
   }
 
-  int getMaxTickIndex() const {return merged_cumulator->getMaxTickIndex();} 
-  const double getFinalTime() const;
+  for (unsigned int nn = 0; nn < this->maxcols; ++nn) {
+    os_probtraj << "\tState\tProba" << (this->compute_errors ? "\tErrorProba" : "");
+  }
 
-  void displayStatDist(StatDistDisplayer* output_statdist) const;
-  void displayProbTraj(ProbTrajDisplayer<NetworkState>* displayer) const;
-  
-  void display(ProbTrajDisplayer<NetworkState>* probtraj_displayer, StatDistDisplayer* statdist_displayer, FixedPointDisplayer* fp_displayer) const;
-  void displayObservedGraph(std::ostream* output_observed_graph, std::ostream * output_observed_durations);
-  
-#ifdef PYTHON_API
-  PyObject* getNumpyObservedGraph();
-  PyObject* getNumpyObservedDurations();
-#endif
-};
+  os_probtraj << '\n';
+}
 
+void CSVCustomPopProbTrajDisplayer::endTimeTickDisplay() 
+{
+  os_probtraj << std::setprecision(4) << std::fixed << this->time_tick;
+#ifdef HAS_STD_HEXFLOAT
+  if (this->hexfloat) {
+    os_probtraj << std::hexfloat;
+  }
 #endif
+  if (this->hexfloat) {
+    os_probtraj << '\t' << fmthexdouble(this->TH);
+    os_probtraj << '\t' << fmthexdouble(this->err_TH);
+    os_probtraj << '\t' << fmthexdouble(this->H);
+  } else {
+    os_probtraj << '\t' << this->TH;
+    os_probtraj << '\t' << this->err_TH;
+    os_probtraj << '\t' << this->H;
+  }
+
+  for (unsigned int nn = 0; nn <= this->refnode_count; nn++) {
+    os_probtraj << '\t';
+    if (this->hexfloat) {
+      os_probtraj << fmthexdouble(this->HD_v[nn]);
+    } else {
+      os_probtraj << this->HD_v[nn];
+    }
+  }
+
+  for (const typename ProbTrajDisplayer<PopSize>::Proba &proba : this->proba_v) {
+    os_probtraj << '\t';
+    proba.state.displayOneLine(os_probtraj, this->network);
+    if (this->hexfloat) {
+      os_probtraj << '\t' << fmthexdouble(proba.proba);
+      os_probtraj << '\t' << fmthexdouble(proba.err_proba);
+    } else {
+      os_probtraj << '\t' << std::setprecision(6) << proba.proba;
+      os_probtraj << '\t' << proba.err_proba;
+    }
+  }
+  os_probtraj << '\n';
+}

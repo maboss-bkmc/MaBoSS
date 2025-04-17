@@ -47,9 +47,8 @@
      December 2020
 */
 
-#include "BooleanNetwork.h"
 #include "StatDistDisplayer.h"
-#include "Utils.h"
+#include "../Utils.h"
 #include <iomanip>
 
 void JSONStatDistDisplayer::beginDisplay() {

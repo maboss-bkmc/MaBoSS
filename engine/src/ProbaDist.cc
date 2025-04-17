@@ -53,7 +53,7 @@ class Network;
 #include "BooleanNetwork.h"
 #include "RunConfig.h"
 #include "Utils.h"
-#include "StatDistDisplayer.h"
+#include "displayers/StatDistDisplayer.h"
 #include <iomanip>
 #include <math.h>
 #include <float.h>

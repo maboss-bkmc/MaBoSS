@@ -81,7 +81,7 @@
 
 #include "BooleanNetwork.h"
 #include "Utils.h"
-#include "StatDistDisplayer.h"
+#include "displayers/StatDistDisplayer.h"
 
 #define CLUSTER_OPTIM
 

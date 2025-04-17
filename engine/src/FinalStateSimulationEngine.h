@@ -61,7 +61,7 @@
 #include "Cumulator.h"
 #include "RandomGenerator.h"
 #include "RunConfig.h"
-#include "FinalStateDisplayer.h"
+#include "displayers/FinalStateDisplayer.h"
 
 struct FinalStateArgWrapper;
 

@@ -61,7 +61,7 @@
 #include "BooleanNetwork.h"
 #include "RandomGenerator.h"
 #include "RunConfig.h"
-#include "FixedPointDisplayer.h"
+#include "displayers/FixedPointDisplayer.h"
 
 #ifdef STD_THREAD
 #include <thread>
