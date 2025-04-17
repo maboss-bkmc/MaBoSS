@@ -175,7 +175,7 @@ else()
   target_link_libraries(${MABOSS_NAME} ${MABOSS_LIBNAME})
   target_link_libraries(${POPMABOSS_NAME} ${MABOSS_LIBNAME})
 
-  set(APPEND list_targets ${MABOSS_NAME} ${POPMABOSS_NAME})
+  list(APPEND list_targets ${MABOSS_NAME} ${POPMABOSS_NAME})
 
 
   if (NOT MSVC)
