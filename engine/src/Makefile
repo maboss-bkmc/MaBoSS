@@ -60,6 +60,7 @@ endif
 ifdef SBML_COMPAT
 SBML_FLAG = -DSBML_COMPAT
 SBML_LIB = -lsbml
+SBML_LIB_OBJS := sbml/SBMLParser$(INFIX).o
 ifeq ($(UNAME_S),Darwin)
 SBML_LIB_STATIC = -lsbml-static -lxml2
 else
@@ -142,8 +143,6 @@ CHECK_FLEX  = $(FLEX) --version > /dev/null
 CHECK_BISON = $(BISON) --version > /dev/null
 DISPLAYERS_SRC := displayers/StatDistDisplayer.cc displayers/FinalStateDisplayer.cc displayers/FixedPointDisplayer.cc displayers/CustomPopProbTrajDisplayer.cc
 DISPLAYERS_OBJS := displayers/StatDistDisplayer$(INFIX).o displayers/FinalStateDisplayer$(INFIX).o displayers/FixedPointDisplayer$(INFIX).o displayers/CustomPopProbTrajDisplayer$(INFIX).o 
-# CORE_LIB_SRC := BooleanNetwork.cc BooleanGrammar.cc RunConfigGrammar.cc Function.cc BuiltinFunctions.cc RunConfig.cc LogicalExprGen.cc Utils.cc MBDynBitset.cc RandomGenerator.cc ObservedGraph.cc
-# CORE_LIB_OBJS := BooleanNetwork$(INFIX).o parsers/BooleanGrammar$(INFIX).o parsers/RunConfigGrammar$(INFIX).o Function$(INFIX).o BuiltinFunctions$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o Utils$(INFIX).o MBDynBitset$(INFIX).o RandomGenerator$(INFIX).o ObservedGraph$(INFIX).o
 CORE_LIB_SRC := parsers/BooleanGrammar.cc parsers/RunConfigGrammar.cc Function.cc BuiltinFunctions.cc RunConfig.cc LogicalExprGen.cc Utils.cc MBDynBitset.cc RandomGenerator.cc ObservedGraph.cc
 CORE_LIB_OBJS := BNException$(INFIX).o IStates$(INFIX).o Node$(INFIX).o Network$(INFIX).o PopNetwork$(INFIX).o NetworkState$(INFIX).o Expressions$(INFIX).o Symbols$(INFIX).o parsers/BooleanGrammar$(INFIX).o parsers/RunConfigGrammar$(INFIX).o Function$(INFIX).o BuiltinFunctions$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o Utils$(INFIX).o MBDynBitset$(INFIX).o RandomGenerator$(INFIX).o ObservedGraph$(INFIX).o
 POP_LIB_SRC := engines/PopMaBEstEngine.cc engines/MetaEngine.cc
@@ -160,8 +159,8 @@ ifdef USE_LIB
 MABOSS_OBJS = $(MABOSS_LIB)
 POPMABOSS_OBJS = $(POPMABOSS_LIB)
 else
-MABOSS_OBJS = $(CORE_LIB_OBJS) ${DISPLAYERS_OBJS} $(LIB_OBJS) $(SEDML_LIB_OBJS) 
-POPMABOSS_OBJS = $(CORE_LIB_OBJS) ${DISPLAYERS_OBJS} $(POP_LIB_OBJS)
+MABOSS_OBJS = $(CORE_LIB_OBJS) ${DISPLAYERS_OBJS} $(LIB_OBJS) $(SBML_LIB_OBJS) $(SEDML_LIB_OBJS) 
+POPMABOSS_OBJS = $(CORE_LIB_OBJS) ${DISPLAYERS_OBJS} $(POP_LIB_OBJS) $(SBML_LIB_OBJS) $(SEDML_LIB_OBJS) 
 endif
 
 ifdef FUNC_MODULE
@@ -205,7 +204,7 @@ endif
 $(MABOSS_ALIB): $(CORE_LIB_OBJS) $(LIB_OBJS)
 	ar rcs $(MABOSS_ALIB) $+
 
-$(MABOSS_LIB): $(CORE_LIB_OBJS) $(LIB_OBJS)
+$(MABOSS_LIB): $(CORE_LIB_OBJS) $(LIB_OBJS) $(SBML_LIB_OBJS) $(SEDML_LIB_OBJS) 
 	$(CXX) -shared -o $(MABOSS_LIB) $+ -lpthread $(LDL_FLAG) $(LDFLAGS) $(SBML_LIB) $(SEDML_LIB) $(HDF5_LIB)
 
 $(POPMABOSS_ALIB): $(CORE_LIB_OBJS) $(POP_LIB_OBJS)

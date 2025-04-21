@@ -55,7 +55,7 @@
 #include "Utils.h"
 
 #ifdef SBML_COMPAT
-#include "SBMLParser.h"
+#include "sbml/SBMLParser.h"
 #endif
 
 

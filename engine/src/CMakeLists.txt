@@ -3,6 +3,7 @@ include(${CMAKE_CURRENT_LIST_DIR}/displayers/CMakeLists.txt)
 include(${CMAKE_CURRENT_LIST_DIR}/engines/CMakeLists.txt)
 include(${CMAKE_CURRENT_LIST_DIR}/parsers/CMakeLists.txt)
 include(${CMAKE_CURRENT_LIST_DIR}/rpc/CMakeLists.txt)
+include(${CMAKE_CURRENT_LIST_DIR}/sbml/CMakeLists.txt)
 include(${CMAKE_CURRENT_LIST_DIR}/sedml/CMakeLists.txt)
 
 list(APPEND src_files

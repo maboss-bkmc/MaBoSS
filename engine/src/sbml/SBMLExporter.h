@@ -47,8 +47,9 @@
 
 #if defined SBML_COMPAT && !defined _SBML_EXPORTER_H_
 #define _SBML_EXPORTER_H_
-#include "Network.h"
-#include "parsers/BooleanGrammar.h"
+#include "../Network.h"
+#include "../RunConfig.h"
+#include "../parsers/BooleanGrammar.h"
 #include <sbml/packages/qual/extension/QualModelPlugin.h>
 #include <sbml/SBMLTypes.h>
 #include <sstream>
@@ -61,11 +62,6 @@ class SBMLExporter
   
   Network* network;
   RunConfig* runconfig;
-//   bool useSBMLNames;
-//   Model* model;
-//   QualModelPlugin* qual_model;
-//   std::map<std::string, int> maxLevels;
-//   std::map<std::string, std::vector<std::string> > fixedNames;
   
   SBMLExporter(Network* network, RunConfig* runconfig, const char* file) : network(network), runconfig(runconfig) {
     

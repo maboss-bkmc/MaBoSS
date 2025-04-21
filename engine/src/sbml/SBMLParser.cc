@@ -46,61 +46,88 @@
      June 2021
 */
 
-#if defined SBML_COMPAT && !defined _SBML_PARSER_H_
-#define _SBML_PARSER_H_
-#include "Network.h"
-#include "parsers/BooleanGrammar.h"
-#include <sbml/packages/qual/extension/QualModelPlugin.h>
-#include <sbml/SBMLTypes.h>
+#include "SBMLParser.h"
+#include "../parsers/BooleanGrammar.h"
 
 LIBSBML_CPP_NAMESPACE_USE
-
 
 #ifdef _MSC_VER
 #include <locale>
 #endif
-class SBMLParser
+
+SBMLParser::SBMLParser(Network* network, const char* file, bool useSBMLNames) : network(network), useSBMLNames(useSBMLNames) 
 {
-  public:
-  
-  Network* network;
-  bool useSBMLNames;
-  Model* model;
-  QualModelPlugin* qual_model;
-  std::map<std::string, int> maxLevels;
-  std::map<std::string, int> initialLevels;
-  std::map<std::string, std::vector<std::string> > fixedNames;
-  
-  SBMLParser(Network* network, const char* file, bool useSBMLNames) : network(network), useSBMLNames(useSBMLNames) 
-  {
-  
+
     SBMLDocument* document;
     SBMLReader reader;
-    
+
     document = reader.readSBML(file);
     parseDocument(document);
-  }
-  
-  SBMLParser(Network* network, SBMLDocument* document, bool useSBMLNames) : network(network), useSBMLNames(useSBMLNames) 
-  {  
+}
+
+SBMLParser::SBMLParser(Network* network, SBMLDocument* document, bool useSBMLNames) : network(network), useSBMLNames(useSBMLNames) 
+{  
     parseDocument(document);
-  }
-  
-  
-  std::string getName(std::string id, int level) {
+}
+
+void SBMLParser::parseDocument(SBMLDocument* document)
+{
+    SBasePlugin* qual = document->getPlugin("qual");
+    if (qual == NULL) {
+        throw BNException("This SBML model is not a qualitative sbml");
+    }
+
+    this->model = document->getModel();
+    this->qual_model = static_cast<QualModelPlugin*>(model->getPlugin("qual"));
+
+    for (unsigned int i=0; i < qual_model->getNumQualitativeSpecies(); i++) {
+        QualitativeSpecies* specie = qual_model->getQualitativeSpecies(i);
+        std::string new_name;
+        if (useSBMLNames && specie->isSetName()) {
+            new_name = specie->getName();
+            new_name.erase(std::remove_if(
+                new_name.begin(), new_name.end(), 
+                [](char c) { 
+    #ifdef _MSC_VER
+                    return !std::isalnum(c, std::locale::classic()) && c != '_'; 
+    #else
+                    return !std::isalnum(c) && c != '_'; 
+    #endif
+                }
+                ), new_name.end()
+            );
+        } else {
+            new_name = specie->getId();
+        }
+        if (specie->isSetInitialLevel()) {
+            this->initialLevels[specie->getId()] = specie->getInitialLevel();
+        }
+        this->maxLevels[specie->getId()] = specie->isSetMaxLevel() ? specie->getMaxLevel() : 1;
+        std::vector<std::string> t_fixed_names;
+        if (this->maxLevels[specie->getId()] > 1) {
+            for (int j=1; j <= this->maxLevels[specie->getId()]; j++) {
+                t_fixed_names.push_back(new_name + "_b" + std::to_string(j));
+            }
+        } else t_fixed_names.push_back(new_name);
+        
+        this->fixedNames[specie->getId()] = t_fixed_names;
+    }  
+}
+
+std::string SBMLParser::getName(std::string id, int level) {
     return this->fixedNames[id][level-1];
-  }
-  
-  void build() {
-      
+}
+
+void SBMLParser::build() {
+        
     for (unsigned int i=0; i < qual_model->getNumTransitions(); i++) {
         Transition* transition = qual_model->getTransition(i);
         parseTransition(transition);
     }
-    
+
     for (unsigned int i=0; i < qual_model->getNumQualitativeSpecies(); i++) {
         QualitativeSpecies* specie = qual_model->getQualitativeSpecies(i);
-       
+        
         for (int j=0; j < this->maxLevels[specie->getId()]; j++){
             if (!this->network->isNodeDefined(getName(specie->getId(), j+1))) {
             
@@ -135,10 +162,10 @@ class SBMLParser
             }
         }
     }
-  } 
-  
-  void setIStates() 
-  {
+} 
+
+void SBMLParser::setIStates() 
+{
     for (auto initialLevel: initialLevels)
     {
         for (int i=1; i <= maxLevels[initialLevel.first]; i++)
@@ -147,58 +174,15 @@ class SBMLParser
             IStateGroup::setNodeProba(network, node, initialLevel.second >= i ? 1 : 0);
         }
     }    
-  }
-  
-  void parseDocument(SBMLDocument* document)
-  {
-    SBasePlugin* qual = document->getPlugin("qual");
-    if (qual == NULL) {
-        throw BNException("This SBML model is not a qualitative sbml");
-    }
-    
-    this->model = document->getModel();
-    this->qual_model = static_cast<QualModelPlugin*>(model->getPlugin("qual"));
+}
 
-    for (unsigned int i=0; i < qual_model->getNumQualitativeSpecies(); i++) {
-        QualitativeSpecies* specie = qual_model->getQualitativeSpecies(i);
-        std::string new_name;
-        if (useSBMLNames && specie->isSetName()) {
-            new_name = specie->getName();
-            new_name.erase(std::remove_if(
-                new_name.begin(), new_name.end(), 
-                [](char c) { 
-#ifdef _MSC_VER
-                    return !std::isalnum(c, std::locale::classic()) && c != '_'; 
-#else
-                    return !std::isalnum(c) && c != '_'; 
-#endif
-                }
-                ), new_name.end()
-            );
-        } else {
-            new_name = specie->getId();
-        }
-        if (specie->isSetInitialLevel()) {
-            this->initialLevels[specie->getId()] = specie->getInitialLevel();
-        }
-        this->maxLevels[specie->getId()] = specie->isSetMaxLevel() ? specie->getMaxLevel() : 1;
-        std::vector<std::string> t_fixed_names;
-        if (this->maxLevels[specie->getId()] > 1) {
-            for (int j=1; j <= this->maxLevels[specie->getId()]; j++) {
-                t_fixed_names.push_back(new_name + "_b" + std::to_string(j));
-            }
-        } else t_fixed_names.push_back(new_name);
-        
-        this->fixedNames[specie->getId()] = t_fixed_names;
-    }  
-  }
-  
-  void parseTransition(Transition* transition) 
-  {
+
+void SBMLParser::parseTransition(Transition* transition) 
+{
     unsigned int num_outputs = transition->getNumOutputs();
     std::vector<std::string> t_outputs;
     int max_level = 0;
-    
+
     for (unsigned int j=0; j < num_outputs; j++) {
         std::string name = transition->getOutput(j)->getQualitativeSpecies();
         t_outputs.push_back(name);
@@ -208,7 +192,7 @@ class SBMLParser
             std::cout << ",";
         }
     }
-    
+
     std::vector<FunctionTerm*> fun_terms(max_level);
     DefaultTerm* def_term = NULL;
     int i_fun_term = -1;
@@ -224,13 +208,13 @@ class SBMLParser
         
         i_fun_term++;
     }
-    
+
     if (nb_fun_term == 0 && def_term == NULL) {
         throw BNException("Could not find the activating expression");
     }
-    
+
     Expression* exp = NULL;
-    
+
     if (def_term != NULL && nb_fun_term == 0){
         
         // Here what we miss is where nb_fun_term > 0 and def_term != null
@@ -250,7 +234,7 @@ class SBMLParser
             createNodes(t_outputs, new ConstantExpression(1.0));
         }
     }
-    
+
     else {
         for (int j=0; j < max_level; j++) {
             if (fun_terms[j] != NULL && fun_terms[j]->getMath() != NULL) {
@@ -345,17 +329,17 @@ class SBMLParser
                 createNodes(new_outputs, exp);
             }  
         }
-    
+
     } 
-        
-  }
-  
-  Expression* parseASTNode(const ASTNode* tree) 
-  {
+    
+}
+
+Expression* SBMLParser::parseASTNode(const ASTNode* tree) 
+{
     std::string name;
     int value;
     Expression* ret = NULL;
- 
+
     switch(tree->getType()) {
         case AST_LOGICAL_AND:
         {
@@ -462,7 +446,7 @@ class SBMLParser
             }
                     
             return ret;
-       
+        
         }
         case AST_RELATIONAL_LEQ:
         // Here we have a multivalued model. The idea is to modify the formula, to replace it by a pure boolean one
@@ -519,7 +503,7 @@ class SBMLParser
             if (value == 0) {
                 // This one is always true
                 return new ConstantExpression(1.0);
-                 
+                    
             } else {             
                 return new NodeExpression(
                     this->network->getOrMakeNode(getName(name, value))
@@ -539,11 +523,12 @@ class SBMLParser
         default:
             throw BNException("Not Implemented : Unknown sbml operator : " + std::string(tree->getName()));
     }
-  }
-  
-  void createNodes(std::vector<std::string> names, Expression* exp) 
-  {
-    for (auto name: names) {
+}
+
+void SBMLParser::createNodes(std::vector<std::string> names, Expression* exp) 
+{
+    for (auto name: names) 
+    {
         NodeDeclItem* decl_item = new NodeDeclItem("logic", exp);
         std::vector<NodeDeclItem*>* decl_item_v = new std::vector<NodeDeclItem*>();
         decl_item_v->push_back(decl_item);
@@ -556,8 +541,5 @@ class SBMLParser
         
         delete decl_item_v;
         delete truc;
-        }
-  }
-};
-
-#endif
+    }
+}

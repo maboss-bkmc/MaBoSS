@@ -41,6 +41,7 @@ libraries = []
 include_dirs = [numpy.get_include()]
 
 if (os.environ.get('SBML_COMPAT') is not None):
+   maboss_sources.append('sbml/SBMLParser.cc')
    extra_compile_args.append('-DSBML_COMPAT')
    libraries.append('sbml')
    

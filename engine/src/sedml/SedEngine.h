@@ -65,7 +65,7 @@
 #define _SEDML_PARSER_H_
 #include "../Network.h"
 #include "../engines/MaBEstEngine.h"
-#include "../SBMLParser.h"
+#include "../sbml/SBMLParser.h"
 
 #include "SedException.h"
 #include "SedTarget.h"

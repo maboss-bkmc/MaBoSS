@@ -62,8 +62,7 @@
 #include "compatibility_header.h"
 
 #ifdef SBML_COMPAT
-#include "SBMLParser.h"
-#include "SBMLExporter.h"
+#include "sbml/SBMLExporter.h"
 #ifdef SEDML_COMPAT
 #include "sedml/SedEngine.h"
 #endif
