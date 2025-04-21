@@ -50,7 +50,7 @@
 
 #include "maboss_commons.h"
 
-#include "src/BooleanNetwork.h"
+#include "src/PopNetwork.h"
 
 typedef struct {
   PyObject_HEAD

@@ -50,7 +50,6 @@
 class Network;
 
 #include "ProbaDist.h"
-#include "BooleanNetwork.h"
 #include "RunConfig.h"
 #include "Utils.h"
 #include "displayers/StatDistDisplayer.h"

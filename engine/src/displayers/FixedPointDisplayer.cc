@@ -48,7 +48,7 @@
 */
 
 #include "FixedPointDisplayer.h"
-#include "../BooleanNetwork.h"
+#include "../NetworkState.h"
 #include "../Utils.h"
 
 void CSVFixedPointDisplayer::begin(size_t size) {

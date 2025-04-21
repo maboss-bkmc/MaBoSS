@@ -50,7 +50,7 @@
 
 #include "maboss_commons.h"
 
-#include "src/BooleanNetwork.h"
+#include "src/Network.h"
 #include "src/RunConfig.h"
 #include "src/engines/FinalStateSimulationEngine.h"
 

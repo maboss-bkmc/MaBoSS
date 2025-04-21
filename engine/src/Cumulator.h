@@ -54,38 +54,14 @@
 #include <map>
 #include <set>
 #include <vector>
-#include <iostream>
 #include <assert.h>
 #include <cfloat>
 
 #ifdef PYTHON_API
-#define NO_IMPORT_ARRAY
-#define PY_ARRAY_UNIQUE_SYMBOL MABOSS_ARRAY_API
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-#include <Python.h>
-#include <numpy/arrayobject.h>
+#include "Python_headers.h"
 #endif
-
 #ifdef MPI_COMPAT
-#include <mpi.h>
-
-#include <stdint.h>
-#include <limits.h>
-
-#if SIZE_MAX == UCHAR_MAX
-   #define my_MPI_SIZE_T MPI_UNSIGNED_CHAR
-#elif SIZE_MAX == USHRT_MAX
-   #define my_MPI_SIZE_T MPI_UNSIGNED_SHORT
-#elif SIZE_MAX == UINT_MAX
-   #define my_MPI_SIZE_T MPI_UNSIGNED
-#elif SIZE_MAX == ULONG_MAX
-   #define my_MPI_SIZE_T MPI_UNSIGNED_LONG
-#elif SIZE_MAX == ULLONG_MAX
-   #define my_MPI_SIZE_T MPI_UNSIGNED_LONG_LONG
-#else
-   #error "what is happening here?"
-#endif
-
+#include "MPI_headers.h"
 #endif
 
 static bool COMPUTE_ERRORS = true;

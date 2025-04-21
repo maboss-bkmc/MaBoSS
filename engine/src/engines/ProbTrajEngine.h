@@ -57,14 +57,18 @@
 #include <mpi.h>
 #endif
 
-#include "../BooleanNetwork.h"
+#ifdef PYTHON_API
+#include "../Python_headers.h"
+#endif
+
+#include "../Network.h"
 #include "FixedPointEngine.h"
 #include "../Cumulator.h"
-#include "../RandomGenerator.h"
+#include "../ObservedGraph.h"
 #include "../RunConfig.h"
 #include "../displayers/FixedPointDisplayer.h"
 #include "../displayers/ProbTrajDisplayer.h"
-#include "../ObservedGraph.h"
+
 struct EnsembleArgWrapper;
 
 class ProbTrajEngine : public FixedPointEngine {

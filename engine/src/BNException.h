@@ -2,7 +2,7 @@
 #define BN_EXCEPTION_H
 
 #include <string>
-
+#include <iostream>
 class BNException {
 
     std::string msg;
@@ -13,4 +13,5 @@ class BNException {
     const std::string& getMessage() const {return msg;}
 };
 
+std::ostream& operator<<(std::ostream& os, const BNException& e);
 #endif

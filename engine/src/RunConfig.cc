@@ -49,12 +49,9 @@
 
 #include <ctime>
 #include <algorithm>
+
 #include "RunConfig.h"
-#include "BooleanNetwork.h"
-// #include "MaBEstEngine.h"
-// #include "EnsembleEngine.h"
-// #include "PopMaBEstEngine.h"
-// #include "FinalStateSimulationEngine.h"
+#include "compatibility_header.h"
 
 extern int rclex_destroy();
 unsigned int RunConfig::verbose = 0;

@@ -47,6 +47,7 @@
   January-March 2011
 */
 
+#include <stdlib.h>
 #include <ctime>
 #include "engines/MaBEstEngine.h"
 #include "engines/EnsembleEngine.h"
@@ -54,11 +55,12 @@
 #include "engines/FinalStateSimulationEngine.h"
 #include "Function.h"
 #include <fstream>
-#include <stdlib.h>
 #include "Utils.h"
 #include "displayers/ProbTrajDisplayer.h"
 #include "displayers/StatDistDisplayer.h"
 #include "RandomGenerator.h"
+#include "compatibility_header.h"
+
 #ifdef SBML_COMPAT
 #include "SBMLParser.h"
 #include "SBMLExporter.h"

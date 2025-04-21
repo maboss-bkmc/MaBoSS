@@ -50,7 +50,6 @@
 
 #include "CustomPopProbTrajDisplayer.h"
 #include "../Utils.h"
-#include "../BooleanNetwork.h"
 #include <iomanip>
 #include <cstring>
 

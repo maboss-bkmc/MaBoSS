@@ -53,7 +53,7 @@
 
 #include <iostream>
 #include <iomanip>
-#include "../BooleanNetwork.h"
+#include "../Network.h"
 #include "../Utils.h"
 #include "ProbTrajDisplayer.h"
 

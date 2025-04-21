@@ -51,11 +51,10 @@
 #define _STOCHASTICSIMULATIONENGINE_H_
 
 #include <string>
-#include <map>
 #include <vector>
 #include <assert.h>
 
-#include "../BooleanNetwork.h"
+#include "../Network.h"
 #include "../RandomGenerator.h"
 #include "../RunConfig.h"
 

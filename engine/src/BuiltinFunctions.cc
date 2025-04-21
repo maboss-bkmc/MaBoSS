@@ -46,7 +46,9 @@
      July 2018
 */
 
-#include "BooleanNetwork.h"
+#include <math.h>
+#include "Function.h"
+#include "Expressions.h"
 
 //
 // User function definition

@@ -46,8 +46,7 @@
 */
 
 #include "maboss_net.h"
-#include "maboss_node.h"
-
+#include "src/IStates.h"
 
 PyMethodDef cMaBoSSNetwork_methods[] = {
     {"set_output", (PyCFunction) cMaBoSSNetwork_setOutput, METH_VARARGS, "sets the output nodes"},

@@ -54,7 +54,7 @@
 #include <assert.h>
 
 #include "ProbTrajEngine.h"
-#include "../BooleanNetwork.h"
+#include "../Network.h"
 #include "../Cumulator.h"
 #include "../RandomGenerator.h"
 #include "../RunConfig.h"

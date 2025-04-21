@@ -51,6 +51,7 @@
 #define _FIXEDPOINT_DISPLAYER_H_
 
 #include <iostream>
+#include "../Network.h"
 
 #ifdef HDF5_COMPAT
 #include <hdf5/serial/hdf5.h>

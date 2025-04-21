@@ -54,6 +54,7 @@
 #include <assert.h>
 #include <iostream>
 
+class Network;
 class ConfigOpt {
   std::string file_or_expr;
   bool is_expr;
@@ -90,5 +91,7 @@ static NullBuffer null_buffer;
 bool hasEnding (std::string const &fullString, std::string const &ending);
 
 
+int setConfigVariables(Network* network, const std::string& prog, std::vector<std::string>& runvar_v);
+int setConfigVariables(Network* network, const std::string& prog, const std::string& runvar);
 
 #endif

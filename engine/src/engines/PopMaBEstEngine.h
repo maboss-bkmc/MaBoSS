@@ -55,7 +55,7 @@
 
 #include "MetaEngine.h"
 #include "FixedPointEngine.h"
-#include "../BooleanNetwork.h"
+#include "../PopNetwork.h"
 #include "../Cumulator.h"
 #include "../RandomGenerator.h"
 #include "../RunConfig.h"

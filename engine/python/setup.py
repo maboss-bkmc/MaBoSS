@@ -5,13 +5,14 @@ maboss_version = '1.0.0b26'
 
 maboss_sources = [
    # PopMaBoSS
-   "engines/PopMaBEstEngine.cc", 
+   "engines/PopMaBEstEngine.cc", "PopNetwork.cc",
    
    # Displayers
    "displayers/FixedPointDisplayer.cc", "displayers/FinalStateDisplayer.cc", "displayers/StatDistDisplayer.cc",
    
    # Core
-   "BooleanNetwork.cc", "parsers/BooleanGrammar.cc", "parsers/RunConfigGrammar.cc", "Function.cc", "BuiltinFunctions.cc", 
+   "Network.cc", "Node.cc", "NetworkState.cc", "IStates.cc", "Expressions.cc", "Symbols.cc", "BNException.cc",
+   "parsers/BooleanGrammar.cc", "parsers/RunConfigGrammar.cc", "Function.cc", "BuiltinFunctions.cc", 
    "RunConfig.cc", "LogicalExprGen.cc", "Utils.cc", "MBDynBitset.cc", "RandomGenerator.cc",
 
    # MaBoSS

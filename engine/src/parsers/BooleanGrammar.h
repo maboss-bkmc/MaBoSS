@@ -52,8 +52,12 @@
 
 #include <vector>
 #include <string.h>
-#include "../BooleanNetwork.h"
+#include "../Network.h"
+#include "../Node.h"
+#include "../PopNetwork.h"
 #include "../BNException.h"
+
+class Expression;
 
 extern void set_current_network(Network* network);
 extern Network* get_current_network();

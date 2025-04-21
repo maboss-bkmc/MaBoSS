@@ -53,9 +53,8 @@
 
 #include <iostream>
 #include "ProbTrajDisplayer.h"
-
-class Network;
-class PopSize;
+#include "../Network.h"
+#include "../NetworkState.h"
 
 class CSVCustomPopProbTrajDisplayer : public ProbTrajDisplayer<PopSize> {
 

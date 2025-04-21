@@ -8,8 +8,10 @@
 //
 //
 
-#include "BooleanNetwork.h"
-
+#include "Node.h"
+#include "Function.h"
+#include "Expressions.h"
+#include "NetworkState.h"
 class TestFunction : public Function {
 
 public:

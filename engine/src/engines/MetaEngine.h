@@ -53,15 +53,13 @@
 #include <mpi.h>
 #endif
 
-#include <string>
-#include <map>
 #include <vector>
 #include <assert.h>
 
-#include "../BooleanNetwork.h"
+#include "../Network.h"
+#include "../NetworkState.h"
 #include "../RandomGenerator.h"
 #include "../RunConfig.h"
-#include "../displayers/FixedPointDisplayer.h"
 
 #ifdef STD_THREAD
 #include <thread>

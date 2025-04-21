@@ -46,7 +46,6 @@
 */
 
 #include "popmaboss_sim.h"
-#include "src/BooleanNetwork.h"
 #include "src/engines/PopMaBEstEngine.h"
 #include "popmaboss_res.h"
 

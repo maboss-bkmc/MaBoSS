@@ -48,7 +48,6 @@
 #ifndef _FIXEDPOINTENGINE_H_
 #define _FIXEDPOINTENGINE_H_
 
-#include <string>
 #include <map>
 #include <vector>
 #include <assert.h>
@@ -58,9 +57,10 @@
 #endif
 
 #include "MetaEngine.h"
-#include "../BooleanNetwork.h"
+#include "../Network.h"
 #include "../RunConfig.h"
 #include "../displayers/FixedPointDisplayer.h"
+#include "../maps_header.h"
 
 struct EnsembleArgWrapper;
 typedef STATE_MAP<NetworkState_Impl, unsigned int> FixedPoints;
@@ -94,7 +94,6 @@ public:
   const FixedPoints* getFixpoints() const {return fixpoints;}
   const std::map<unsigned int, std::pair<NetworkState, double> > getFixPointsDists() const;
 
-  // void displayFixpoints(std::ostream& output_fp, bool hexfloat = false) const;
   void displayFixpoints(FixedPointDisplayer* displayer) const;
 
 };

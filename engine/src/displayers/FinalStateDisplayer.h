@@ -51,8 +51,8 @@
 #define _FINALSTATE_DISPLAYER_H_
 
 #include <iostream>
-
-#include "../BooleanNetwork.h"
+#include "../NetworkState.h"
+#include "../Network.h"
 
 class FinalStateDisplayer {
 

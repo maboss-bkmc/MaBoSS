@@ -51,8 +51,10 @@
      updated to add extended initial conditions: October 2014
 */
 
-#include "../BooleanNetwork.h"
+#include "../Node.h"
+#include "../Expressions.h"
 #include "../RunConfig.h"
+#include "../compatibility_header.h"
 
 extern int yylex();
 

@@ -49,7 +49,6 @@
 #include "maboss_commons.h"
 #include "maboss_net.h"
 #include "popmaboss_net.h"
-#include "src/BooleanNetwork.h"
 
 PyMethodDef cMaBoSSNode_methods[] = {
     {"getLabel", (PyCFunction) cMaBoSSNode_getLabel, METH_NOARGS, "returns the node object"},

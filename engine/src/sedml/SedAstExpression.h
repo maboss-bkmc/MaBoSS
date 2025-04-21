@@ -5,8 +5,6 @@
 #include <string> 
 #include <sbml/math/ASTNode.h>
 
-#include "../BooleanNetwork.h"
-
 class SedASTExpression
 {
   public:

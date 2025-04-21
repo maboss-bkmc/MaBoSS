@@ -50,16 +50,40 @@
 #ifndef _FUNCTION_H_
 #define _FUNCTION_H_
 
-#include <vector>
+#include <string>
 #include <map>
-#include <math.h>
+#include <vector>
+#include <ostream>
 
-class ArgumentList;
 class Expression;
 class Node;
 class NetworkState;
 class PopNetworkState;
 class Function;
+
+
+class ArgumentList {
+  std::vector<Expression*> expr_v;
+
+public:
+  ArgumentList() { }
+
+  void push_back(Expression* expr) {expr_v.push_back(expr);}
+
+  ArgumentList* clone() const;
+
+  bool hasCycle(Node* node) const;
+
+  bool isConstantExpression() const;
+
+  void display(std::ostream& os) const;
+
+  const std::vector<Expression*>& getExpressionList() const { return expr_v; }
+  size_t getExpressionListCount() const { return expr_v.size(); }
+
+  ~ArgumentList();
+};
+
 
 class Function {
   std::string funname;

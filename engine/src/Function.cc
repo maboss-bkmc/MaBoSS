@@ -47,10 +47,54 @@
      July 2018
 */
 
-#include "BooleanNetwork.h"
-#include <iostream>
+#include "Function.h"
+#include "BNException.h"
+#include "Expressions.h"
 
 std::map<std::string, Function*>* Function::func_map;
+
+ArgumentList* ArgumentList::clone() const {
+  ArgumentList* arg_list_cloned = new ArgumentList();
+  for (const auto * expr : expr_v) {
+    arg_list_cloned->push_back(expr->clone());
+  }
+  return arg_list_cloned;
+}
+
+bool ArgumentList::hasCycle(Node* node) const {
+  for (const auto * expr : expr_v) {
+    if (expr->hasCycle(node)) {
+return true;
+    }
+  }
+  return false;
+}
+
+bool ArgumentList::isConstantExpression() const {
+  for (const auto * expr : expr_v) {
+    if (!expr->isConstantExpression()) {
+return false;
+    }
+  }
+  return true;
+}
+
+void ArgumentList::display(std::ostream& os) const {
+  unsigned int nn = 0;
+  for (const auto * expr : expr_v) {
+    os << (nn > 0 ? ", " : "");
+    expr->display(os);
+    nn++;
+  }
+}
+
+ArgumentList::~ArgumentList() {
+  for (auto * expr : expr_v)
+    delete expr;
+  
+}
+
+
 
 Function::Function(const std::string& funname, unsigned int min_args, unsigned int max_args) : funname(funname), min_args(min_args), max_args(max_args == ~0U ? min_args : max_args)
 {

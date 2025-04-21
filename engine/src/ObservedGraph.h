@@ -2,7 +2,7 @@
 #define __OBSERVED_GRAPH_H__
 
 #include <ostream>
-#include "BooleanNetwork.h"
+#include "Network.h"
 
 #ifdef PYTHON_API
 #include <Python.h>

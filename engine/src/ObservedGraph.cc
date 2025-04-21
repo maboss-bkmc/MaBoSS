@@ -1,4 +1,5 @@
 #include "ObservedGraph.h"
+#include "NetworkState.h"
 
 #ifdef PYTHON_API
 #define NO_IMPORT_ARRAY

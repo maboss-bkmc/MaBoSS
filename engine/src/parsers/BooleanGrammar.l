@@ -50,6 +50,7 @@
 */
 
 #include <math.h>
+#include "../compatibility_header.h"
 
 static char *yytokstr();
 static unsigned int input_lineno = 1;

@@ -51,7 +51,7 @@
 #include "popmaboss_net.h"
 #include "maboss_commons.h"
 
-#include "src/BooleanNetwork.h"
+#include "src/PopNetwork.h"
 #include "src/engines/PopMaBEstEngine.h"
 #include "src/RunConfig.h"
 

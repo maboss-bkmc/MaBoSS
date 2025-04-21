@@ -51,7 +51,11 @@
 #define _RUNCONFIG_H_
 
 #include "RandomGenerator.h"
-#include "BooleanNetwork.h"
+#include "Network.h"
+#include "PopNetwork.h"
+#include "Expressions.h"
+#include "IStates.h"
+
 class MaBEstEngine;
 class PopMaBEstEngine;
 class FinalStateSimulationEngine;

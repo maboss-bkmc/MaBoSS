@@ -47,7 +47,9 @@
 */
 
 #include "Utils.h"
-#include "engines/MaBEstEngine.h"
+#include "Network.h"
+#include "Symbols.h"
+#include "compatibility_header.h"
 
 const std::string NL_PATTERN = "@--NL--@";
 unsigned int ConfigOpt::runconfig_file_cnt = 0;
@@ -163,3 +165,51 @@ bool hasEnding (std::string const &fullString, std::string const &ending) {
         return false;
     }
 }
+
+
+int setConfigVariables(Network* network, const std::string& prog, std::vector<std::string>& runvar_v)
+{
+  SymbolTable* symtab = network->getSymbolTable();
+  for (const auto & var_values : runvar_v) {
+    size_t o_var_value_pos = 0;
+    for (;;) {
+      if (o_var_value_pos == std::string::npos) {
+	break;
+      }
+      size_t var_value_pos = var_values.find(',', o_var_value_pos);
+      std::string var_value = var_value_pos == std::string::npos ? var_values.substr(o_var_value_pos) : var_values.substr(o_var_value_pos, var_value_pos-o_var_value_pos);
+      o_var_value_pos = var_value_pos + (var_value_pos == std::string::npos ? 0 : 1);
+      size_t pos = var_value.find('=');
+      if (pos == std::string::npos) {
+	std::cerr << '\n' << prog << ": invalid var format [" << var_value << "] VAR=BOOL_OR_DOUBLE expected\n";
+	return 1;
+      }
+      std::string ovar = var_value.substr(0, pos);
+      std::string var = ovar[0] != '$' ? "$" + ovar : ovar;
+      const Symbol* symbol = symtab->getOrMakeSymbol(var);
+      std::string value = var_value.substr(pos+1);
+      if (!strcasecmp(value.c_str(), "true")) {
+	symtab->overrideSymbolValue(symbol, 1);
+      } else if (!strcasecmp(value.c_str(), "false")) {
+	symtab->overrideSymbolValue(symbol, 0);
+      } else {
+	double dval;
+	int r = sscanf(value.c_str(), "%lf", &dval);
+	if (r != 1) {
+	  std::cerr << '\n' << prog << ": invalid value format [" << var_value << "] " << ovar << "=BOOL_OR_DOUBLE expected\n";
+	  return 1;
+	}
+	symtab->overrideSymbolValue(symbol, dval);
+      }
+    }
+  }
+  return 0;
+}
+
+int setConfigVariables(Network* network, const std::string& prog, const std::string& runvar)
+{
+  std::vector<std::string> runvar_v;
+  runvar_v.push_back(runvar);
+  return setConfigVariables(network, prog, runvar_v);
+}
+

@@ -47,12 +47,17 @@
      October 2014
 */
 
-#include "BooleanNetwork.h"
+#include "Network.h"
 #include "parsers/BooleanGrammar.h"
 #include "RunConfig.h"
 #include <iostream>
 
 static const std::string LOGICAL_EXPR_MSG = "MaBoSS: logical expression generation: ";
+
+const std::string LOGICAL_AND_SYMBOL = " & ";
+const std::string LOGICAL_OR_SYMBOL = " | ";
+const std::string LOGICAL_NOT_SYMBOL = "!";
+const std::string LOGICAL_XOR_SYMBOL = " ^ ";
 
 bool dont_shrink_logical_expressions;
 static bool rewrite_xor = true;

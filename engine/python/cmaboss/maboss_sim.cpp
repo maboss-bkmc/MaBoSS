@@ -50,7 +50,6 @@
 #include "maboss_res.h"
 #include "maboss_resfinal.h"
 
-#include "src/BooleanNetwork.h"
 #include "src/engines/MaBEstEngine.h"
 #include "src/engines/FinalStateSimulationEngine.h"
 #include <sstream>

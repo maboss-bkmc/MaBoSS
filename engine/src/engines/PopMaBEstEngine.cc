@@ -46,9 +46,6 @@
 */
 
 #include "PopMaBEstEngine.h"
-#include "../BooleanNetwork.h"
-#include "../Cumulator.h"
-#include "MetaEngine.h"
 #include "../displayers/ProbTrajDisplayer.h"
 #include "../Probe.h"
 #include <stdlib.h>

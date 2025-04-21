@@ -51,12 +51,10 @@
 #define _MABESTENGINE_H_
 
 #include <string>
-#include <map>
 #include <vector>
 #include <assert.h>
 
 #include "ProbTrajEngine.h"
-#include "../BooleanNetwork.h"
 #include "../Cumulator.h"
 #include "../RandomGenerator.h"
 #include "../RunConfig.h"

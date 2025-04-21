@@ -65,8 +65,7 @@
 
 #include "MetaEngine.h"
 #include "FixedPointEngine.h"
-#include "../BooleanNetwork.h"
-// #include "../Cumulator.h"
+#include "../Network.h"
 #include "../RandomGenerator.h"
 #include "../RunConfig.h"
 #include "../displayers/FinalStateDisplayer.h"
