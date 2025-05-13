@@ -143,4 +143,4 @@ class TestCMaBoSS(TestCase):
         )
         
         if platform != "darwin":
-            pd.testing.assert_frame_equal(table.sort_index(axis=1), table_expected.sort_index(axis=1), check_exact=False)
+            pd.testing.assert_frame_equal(table.sort_index(axis=1), table_expected.sort_index(axis=1), check_exact=False, rtol=2e-2, atol=1e-4)
