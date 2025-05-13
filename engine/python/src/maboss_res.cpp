@@ -49,9 +49,9 @@
 
 #include <structmember.h>
 #include <fstream>
-#include "src/displayers/FixedPointDisplayer.h"
-#include "src/displayers/ProbTrajDisplayer.h"
-#include "src/displayers/StatDistDisplayer.h"
+#include "displayers/FixedPointDisplayer.h"
+#include "displayers/ProbTrajDisplayer.h"
+#include "displayers/StatDistDisplayer.h"
 
 #ifdef __GLIBC__
 #include <malloc.h>
@@ -85,21 +85,46 @@ PyMethodDef cMaBoSSResult_methods[] = {
 };
 
 
-PyTypeObject cMaBoSSResult = []{
-  PyTypeObject res{PyVarObject_HEAD_INIT(NULL, 0)};
-
-  res.tp_name = build_type_name("cMaBoSSResult");
-  res.tp_basicsize = sizeof(cMaBoSSResultObject);
-  res.tp_itemsize = 0;
-  res.tp_dealloc = (destructor) cMaBoSSResult_dealloc;
-  res.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
-  res.tp_doc = "cMaBoSSResultObject";
-  res.tp_methods = cMaBoSSResult_methods;
-  res.tp_members = cMaBoSSResult_members;
-  res.tp_new = cMaBoSSResult_new;
-
-  return res;
-}();
+PyTypeObject cMaBoSSResult = {
+  PyVarObject_HEAD_INIT(NULL, 0)
+  build_type_name("cMaBoSSResultObject"),               /* tp_name */
+  sizeof(cMaBoSSResultObject),               /* tp_basicsize */
+    0,                              /* tp_itemsize */
+  (destructor) cMaBoSSResult_dealloc,      /* tp_dealloc */
+    0,                              /* tp_vectorcall_offset */
+    0,                              /* tp_getattr */
+    0,                              /* tp_setattr */
+    0,                              /* tp_as_async */
+    0,                              /* tp_repr */
+    0,                              /* tp_as_number */
+    0,                              /* tp_as_sequence */
+    0,                              /* tp_as_mapping */
+    0,                              /* tp_hash */
+    0,                              /* tp_call */
+    0,                              /* tp_str */
+    0,                              /* tp_getattro */
+    0,                              /* tp_setattro */
+    0,                              /* tp_as_buffer */
+  Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,                              /* tp_flags */
+  "cMaBoSS Result object",                   /* tp_doc */
+    0,                              /* tp_traverse */
+    0,                              /* tp_clear */
+    0,                              /* tp_richcompare */
+    0,                              /* tp_weaklistoffset */
+    0,                              /* tp_iter */
+    0,                              /* tp_iternext */
+  cMaBoSSResult_methods,                              /* tp_methods */
+  cMaBoSSResult_members,                              /* tp_members */
+    0,                              /* tp_getset */
+    0,                              /* tp_base */
+    0,                              /* tp_dict */
+    0,                              /* tp_descr_get */
+    0,                              /* tp_descr_set */
+    0,                              /* tp_dictoffset */
+    0,                              /* tp_init */
+    0,                              /* tp_alloc */
+  cMaBoSSResult_new,                      /* tp_new */    
+};
 
 void cMaBoSSResult_dealloc(cMaBoSSResultObject *self)
 {

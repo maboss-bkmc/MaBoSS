@@ -62,19 +62,46 @@ PyMethodDef cMaBoSSNode_methods[] = {
     {NULL}  /* Sentinel */
 };
 
-PyTypeObject cMaBoSSNode = []{
-    PyTypeObject net{PyVarObject_HEAD_INIT(NULL, 0)};
-    net.tp_name = build_type_name("cMaBoSSNodeObject");
-    net.tp_basicsize = sizeof(cMaBoSSNodeObject);
-    net.tp_itemsize = 0;
-    net.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
-    net.tp_doc = "cMaBoSS Node object";
-    net.tp_init = cMaBoSSNode_init;
-    net.tp_new = cMaBoSSNode_new;
-    net.tp_dealloc = (destructor) cMaBoSSNode_dealloc;
-    net.tp_methods = cMaBoSSNode_methods;
-    return net;
-}();
+PyTypeObject cMaBoSSNode = {
+  PyVarObject_HEAD_INIT(NULL, 0)
+  build_type_name("cMaBoSSNodeObject"),               /* tp_name */
+  sizeof(cMaBoSSNodeObject),               /* tp_basicsize */
+    0,                              /* tp_itemsize */
+  (destructor) cMaBoSSNode_dealloc,      /* tp_dealloc */
+    0,                              /* tp_vectorcall_offset */
+    0,                              /* tp_getattr */
+    0,                              /* tp_setattr */
+    0,                              /* tp_as_async */
+    0,                              /* tp_repr */
+    0,                              /* tp_as_number */
+    0,                              /* tp_as_sequence */
+    0,                              /* tp_as_mapping */
+    0,                              /* tp_hash */
+    0,                              /* tp_call */
+    0,                              /* tp_str */
+    0,                              /* tp_getattro */
+    0,                              /* tp_setattro */
+    0,                              /* tp_as_buffer */
+  Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,                              /* tp_flags */
+  "cMaBoSS Node object",                   /* tp_doc */
+    0,                              /* tp_traverse */
+    0,                              /* tp_clear */
+    0,                              /* tp_richcompare */
+    0,                              /* tp_weaklistoffset */
+    0,                              /* tp_iter */
+    0,                              /* tp_iternext */
+  cMaBoSSNode_methods,                              /* tp_methods */
+    0,                              /* tp_members */
+    0,                              /* tp_getset */
+    0,                              /* tp_base */
+    0,                              /* tp_dict */
+    0,                              /* tp_descr_get */
+    0,                              /* tp_descr_set */
+    0,                              /* tp_dictoffset */
+  cMaBoSSNode_init,                              /* tp_init */
+    0,                              /* tp_alloc */
+  cMaBoSSNode_new,                      /* tp_new */    
+};
 
 void cMaBoSSNode_dealloc(cMaBoSSNodeObject *self)
 {

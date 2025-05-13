@@ -1,31 +1,17 @@
 [build-system]
 requires = [
-    "setuptools>=42",
-    "wheel",
-    "Cython",
+    "scikit-build-core",
     "oldest-supported-numpy; python_version<'3.9'",
     "numpy>=2; python_version>='3.9'",
     "lxml"
 ]
+build-backend = "scikit_build_core.build"
 
-build-backend = "setuptools.build_meta"
+[tool.scikit-build]
+cmake.args = ["-DSBML=ON"]
+build.verbose = true 
 
-# Install libSBML with all packages
-[tool.cibuildwheel.linux]
-skip = [
-    "cp36-*", "cp37-*",
-    "pp37-*",
-]
-
-[tool.cibuildwheel.macos]
-skip = [
-    "cp36-*","cp37-*", "pp*"
-]
-
-[tool.cibuildwheel]
-test-requires = "pandas"
-test-command = [
-  "cd {project}/engine/tests",
-  "python -m unittest test",
-  "python -m unittest test_128n",
-]
+[project]
+name = "cmaboss"
+version = "1.0.0b26"
+description = "Python wrapper for MaBoSS"

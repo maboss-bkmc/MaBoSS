@@ -50,8 +50,8 @@
 #include "maboss_res.h"
 #include "maboss_resfinal.h"
 
-#include "src/engines/MaBEstEngine.h"
-#include "src/engines/FinalStateSimulationEngine.h"
+#include "engines/MaBEstEngine.h"
+#include "engines/FinalStateSimulationEngine.h"
 #include <sstream>
 
 #ifdef __GLIBC__
@@ -78,21 +78,46 @@ PyMemberDef cMaBoSSSim_members[] = {
     {NULL}  /* Sentinel */
 };
 
-PyTypeObject cMaBoSSSim = []{
-    PyTypeObject sim{PyVarObject_HEAD_INIT(NULL, 0)};
-
-    sim.tp_name = build_type_name("cMaBoSSSimObject");
-    sim.tp_basicsize = sizeof(cMaBoSSSimObject);
-    sim.tp_itemsize = 0;
-    sim.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
-    sim.tp_doc = "cMaBoSS Simulation object";
-    sim.tp_init = cMaBoSSSim_init;
-    sim.tp_new = cMaBoSSSim_new;
-    sim.tp_dealloc = (destructor) cMaBoSSSim_dealloc;
-    sim.tp_methods = cMaBoSSSim_methods;
-    sim.tp_members = cMaBoSSSim_members;
-    return sim;
-}();
+PyTypeObject cMaBoSSSim = {
+  PyVarObject_HEAD_INIT(NULL, 0)
+  build_type_name("cMaBoSSSimObject"),               /* tp_name */
+  sizeof(cMaBoSSSimObject),               /* tp_basicsize */
+    0,                              /* tp_itemsize */
+  (destructor) cMaBoSSSim_dealloc,      /* tp_dealloc */
+    0,                              /* tp_vectorcall_offset */
+    0,                              /* tp_getattr */
+    0,                              /* tp_setattr */
+    0,                              /* tp_as_async */
+    0,                              /* tp_repr */
+    0,                              /* tp_as_number */
+    0,                              /* tp_as_sequence */
+    0,                              /* tp_as_mapping */
+    0,                              /* tp_hash */
+    0,                              /* tp_call */
+    0,                              /* tp_str */
+    0,                              /* tp_getattro */
+    0,                              /* tp_setattro */
+    0,                              /* tp_as_buffer */
+  Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,                              /* tp_flags */
+  "cMaBoSS Simulation object",                   /* tp_doc */
+    0,                              /* tp_traverse */
+    0,                              /* tp_clear */
+    0,                              /* tp_richcompare */
+    0,                              /* tp_weaklistoffset */
+    0,                              /* tp_iter */
+    0,                              /* tp_iternext */
+  cMaBoSSSim_methods,                              /* tp_methods */
+  cMaBoSSSim_members,                              /* tp_members */
+    0,                              /* tp_getset */
+    0,                              /* tp_base */
+    0,                              /* tp_dict */
+    0,                              /* tp_descr_get */
+    0,                              /* tp_descr_set */
+    0,                              /* tp_dictoffset */
+  cMaBoSSSim_init,                              /* tp_init */
+    0,                              /* tp_alloc */
+  cMaBoSSSim_new,                      /* tp_new */    
+};
 
 void cMaBoSSSim_dealloc(cMaBoSSSimObject *self)
 {
@@ -130,7 +155,6 @@ int cMaBoSSSim_init(PyObject* self, PyObject *args, PyObject* kwargs)
     }
     
     if (py_simulation->network == NULL) {
-      PyErr_SetString(PyBNException, "Couldn't create the network");
       return -1;
     }
     
@@ -145,13 +169,16 @@ int cMaBoSSSim_init(PyObject* self, PyObject *args, PyObject* kwargs)
     }
     
     if (py_simulation->config == NULL) {
-      PyErr_SetString(PyBNException, "Couldn't create the config");
       return -1;
     }
     
     py_simulation->param = (cMaBoSSParamObject*) PyObject_CallFunction((PyObject *) &cMaBoSSParam,
       "OO", py_simulation->network, py_simulation->config
     );
+    
+    if (py_simulation->param == NULL) {
+      return -1;
+    }
     
     // Error checking
     IStateGroup::checkAndComplete(py_simulation->network->network);

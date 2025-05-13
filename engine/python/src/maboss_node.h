@@ -36,118 +36,38 @@
 #############################################################################
 
    Module:
-     sedml_sim.cpp
+     maboss_node.h
 
    Authors:
      Vincent Noël <vincent.noel@curie.fr>
  
    Date:
-     April 2025
+     January-March 2020
 */
 
-#include "sedml_sim.h"
+#ifndef MABOSS_NODE
+#define MABOSS_NODE
+
 #include "maboss_commons.h"
 
-#include "src/sedml/SedEngine.h"
+#include "Node.h"
 
-#ifdef __GLIBC__
-#include <malloc.h>
+typedef struct {
+  PyObject_HEAD
+  Node* node;
+  Network* network;
+} cMaBoSSNodeObject;
+
+void cMaBoSSNode_dealloc(cMaBoSSNodeObject *self);
+PyObject* cMaBoSSNode_getLabel(cMaBoSSNodeObject* self);
+PyObject* cMaBoSSNode_setLogic(cMaBoSSNodeObject* self, PyObject* args);
+PyObject* cMaBoSSNode_getLogic(cMaBoSSNodeObject* self);
+PyObject * cMaBoSSNode_setRawRateUp(cMaBoSSNodeObject* self, PyObject* args); 
+PyObject * cMaBoSSNode_setRawRateDown(cMaBoSSNodeObject* self, PyObject* args); 
+PyObject* cMaBoSSNode_setRate(cMaBoSSNodeObject* self, PyObject* args);
+PyObject* cMaBoSSNode_getRateUp(cMaBoSSNodeObject* self);
+PyObject* cMaBoSSNode_getRateDown(cMaBoSSNodeObject* self); 
+PyObject * cMaBoSSNode_new(PyTypeObject* type, PyObject *args, PyObject* kwargs);
+int cMaBoSSNode_init(PyObject *self, PyObject *args, PyObject *kwargs);
+
 #endif
-
-PyMethodDef sedmlSim_methods[] = {
-  {"get_plots", (PyCFunction) sedmlSim_get_plots, METH_NOARGS, "returns the list of plots"},
-  {"get_reports", (PyCFunction) sedmlSim_get_reports, METH_NOARGS, "returns the list of reports"},
-  {NULL}  /* Sentinel */
-};
-
-PyMemberDef sedmlSim_members[] = {
-    {NULL}  /* Sentinel */
-};
-
-PyTypeObject sedmlSim = []{
-    PyTypeObject sim{PyVarObject_HEAD_INIT(NULL, 0)};
-
-    sim.tp_name = build_type_name("sedmlSimObject");
-    sim.tp_basicsize = sizeof(sedmlSimObject);
-    sim.tp_itemsize = 0;
-    sim.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
-    sim.tp_doc = "cMaBoSS SEDML Simulation object";
-    sim.tp_init = sedmlSim_init;
-    sim.tp_new = sedmlSim_new;
-    sim.tp_dealloc = (destructor) sedmlSim_dealloc;
-    sim.tp_methods = sedmlSim_methods;
-    sim.tp_members = sedmlSim_members;
-    return sim;
-}();
-
-void sedmlSim_dealloc(sedmlSimObject *self)
-{
-    Py_TYPE(self)->tp_free((PyObject *) self);
-}
-
-int sedmlSim_init(PyObject* self, PyObject *args, PyObject* kwargs)  
-{
-  PyObject * sedml_file = Py_None;
-  const char *kwargs_list[] = {"sedml_file", NULL};
-  if (!PyArg_ParseTupleAndKeywords(
-    args, kwargs, "|O", const_cast<char **>(kwargs_list), 
-    &sedml_file
-  )) {
-    return -1;
-  }
-  sedmlSimObject* py_simulation = (sedmlSimObject *) self;
-
-  try {
-    SedEngine* engine = new SedEngine();
-    py_simulation->engine = engine;  
-    engine->parse(PyUnicode_AsUTF8(sedml_file));
-    engine->run();
-  }
-  catch (BNException& e) {
-    PyErr_SetString(PyBNException, e.getMessage().c_str());
-    return -1;
-  }
-  
-  return 0;
-}
-
-PyObject * sedmlSim_new(PyTypeObject* type, PyObject *args, PyObject* kwargs) 
-{
-  sedmlSimObject* py_simulation = (sedmlSimObject *) type->tp_alloc(type, 0);
-  py_simulation->engine = NULL;
-  return (PyObject *) py_simulation;
-}
-
-PyObject* sedmlSim_get_plots(sedmlSimObject* self)
-{
-  std::vector<Plot2D> sedplots = self->engine->getPlots();
-  PyObject* list_plots = PyList_New(sedplots.size());
-  size_t i=0;
-  
-  for (const auto& plot: sedplots)
-  {
-    PyObject* plot_data = plot.getPlotData();
-    PyList_SetItem(list_plots, i, plot_data);
-    i++;
-  }
-  
-  Py_INCREF(list_plots);
-  return list_plots;
-}
-
-PyObject* sedmlSim_get_reports(sedmlSimObject* self)
-{
-  std::vector<Report> sedreports = self->engine->getReports();
-  PyObject* list_reports = PyList_New(sedreports.size());
-  size_t i=0;
-  
-  for (const auto& report: sedreports)
-  {
-    PyObject* report_data = report.getReportData();
-    PyList_SetItem(list_reports, i, report_data);
-    i++;
-  }
-  
-  Py_INCREF(list_reports);
-  return list_reports;
-}

@@ -73,22 +73,46 @@ PyMappingMethods cPopMaBoSSNetwork_mapping = {
 	(objobjargproc)cPopMaBoSSNetwork_NodesSetItem,
 };
 
-PyTypeObject cPopMaBoSSNetwork = []{
-    PyTypeObject net{PyVarObject_HEAD_INIT(NULL, 0)};
-
-    net.tp_name = build_type_name("cPopMaBoSSNetworkObject");
-    net.tp_basicsize = sizeof(cPopMaBoSSNetworkObject);
-    net.tp_itemsize = 0;
-    net.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
-    net.tp_doc = "cMaBoSS PopNetwork object";
-    net.tp_init = cPopMaBoSSNetwork_init;
-    net.tp_new = cPopMaBoSSNetwork_new;
-    net.tp_dealloc = (destructor) cPopMaBoSSNetwork_dealloc;
-    net.tp_methods = cPopMaBoSSNetwork_methods;
-    net.tp_as_mapping = &cPopMaBoSSNetwork_mapping;
-    net.tp_str = cPopMaBoSSNetwork_str;
-    return net;
-}();
+PyTypeObject cPopMaBoSSNetwork = {
+  PyVarObject_HEAD_INIT(NULL, 0)
+  build_type_name("cPopMaBoSSNetworkObject"),               /* tp_name */
+  sizeof(cPopMaBoSSNetworkObject),               /* tp_basicsize */
+    0,                              /* tp_itemsize */
+  (destructor) cPopMaBoSSNetwork_dealloc,      /* tp_dealloc */
+    0,                              /* tp_vectorcall_offset */
+    0,                              /* tp_getattr */
+    0,                              /* tp_setattr */
+    0,                              /* tp_as_async */
+    0,                              /* tp_repr */
+    0,                              /* tp_as_number */
+    0,                              /* tp_as_sequence */
+  &cPopMaBoSSNetwork_mapping,                              /* tp_as_mapping */
+    0,                              /* tp_hash */
+    0,                              /* tp_call */
+  cPopMaBoSSNetwork_str,                              /* tp_str */
+    0,                              /* tp_getattro */
+    0,                              /* tp_setattro */
+    0,                              /* tp_as_buffer */
+  Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,                              /* tp_flags */
+  "cPopMaBoSS Network object",                   /* tp_doc */
+    0,                              /* tp_traverse */
+    0,                              /* tp_clear */
+    0,                              /* tp_richcompare */
+    0,                              /* tp_weaklistoffset */
+    0,                              /* tp_iter */
+    0,                              /* tp_iternext */
+  cPopMaBoSSNetwork_methods,                              /* tp_methods */
+    0,                              /* tp_members */
+    0,                              /* tp_getset */
+    0,                              /* tp_base */
+    0,                              /* tp_dict */
+    0,                              /* tp_descr_get */
+    0,                              /* tp_descr_set */
+    0,                              /* tp_dictoffset */
+  cPopMaBoSSNetwork_init,                              /* tp_init */
+    0,                              /* tp_alloc */
+  cPopMaBoSSNetwork_new,                      /* tp_new */   
+};
 
 void cPopMaBoSSNetwork_dealloc(cPopMaBoSSNetworkObject *self)
 {
@@ -340,6 +364,11 @@ int cPopMaBoSSNetwork_init(PyObject* self, PyObject *args, PyObject* kwargs)
     for (auto* node: py_network->network->getNodes()) 
     { 
       PyObject * py_node = PyObject_CallFunction((PyObject *) &cMaBoSSNode, "sO", node->getLabel().c_str(), py_network);
+      if (py_node == NULL)
+      { 
+        return -1;
+      }
+      
       PyDict_SetItemString(py_network->nodes, node->getLabel().c_str(), (PyObject*) py_node);
       Py_INCREF(py_node);
     }
@@ -475,8 +504,7 @@ PyObject* cPopMaBoSSNetwork_setPopIstate(cPopMaBoSSNetworkObject* self, PyObject
         istate_map->push_back(new PopIStateGroup::PopProbaIState(proba, individual_pop_istates));
       }
       
-      std::string message = "Error loading complex pop istates";
-      new PopIStateGroup(self->network, istate_nodes, istate_map, message);
+      new PopIStateGroup(self->network, istate_nodes, istate_map);
     } 
   } catch (BNException& e) {
     PyErr_SetString(PyBNException, e.getMessage().c_str());

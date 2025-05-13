@@ -36,7 +36,7 @@
 #############################################################################
 
    Module:
-     maboss_node.h
+     maboss_cfg.h
 
    Authors:
      Vincent Noël <vincent.noel@curie.fr>
@@ -45,29 +45,20 @@
      January-March 2020
 */
 
-#ifndef MABOSS_NODE
-#define MABOSS_NODE
+#ifndef MABOSS_CONFIG
+#define MABOSS_CONFIG
 
 #include "maboss_commons.h"
 
-#include "src/Node.h"
+#include "RunConfig.h"
 
 typedef struct {
   PyObject_HEAD
-  Node* node;
-  Network* network;
-} cMaBoSSNodeObject;
+  RunConfig* config;
+} cMaBoSSConfigObject;
 
-void cMaBoSSNode_dealloc(cMaBoSSNodeObject *self);
-PyObject* cMaBoSSNode_getLabel(cMaBoSSNodeObject* self);
-PyObject* cMaBoSSNode_setLogic(cMaBoSSNodeObject* self, PyObject* args);
-PyObject* cMaBoSSNode_getLogic(cMaBoSSNodeObject* self);
-PyObject * cMaBoSSNode_setRawRateUp(cMaBoSSNodeObject* self, PyObject* args); 
-PyObject * cMaBoSSNode_setRawRateDown(cMaBoSSNodeObject* self, PyObject* args); 
-PyObject* cMaBoSSNode_setRate(cMaBoSSNodeObject* self, PyObject* args);
-PyObject* cMaBoSSNode_getRateUp(cMaBoSSNodeObject* self);
-PyObject* cMaBoSSNode_getRateDown(cMaBoSSNodeObject* self); 
-PyObject * cMaBoSSNode_new(PyTypeObject* type, PyObject *args, PyObject* kwargs);
-int cMaBoSSNode_init(PyObject *self, PyObject *args, PyObject *kwargs);
+void cMaBoSSConfig_dealloc(cMaBoSSConfigObject *self);
+PyObject * cMaBoSSConfig_new(PyTypeObject* type, PyObject *args, PyObject* kwargs);
+int cMaBoSSConfig_init(PyObject* self, PyObject *args, PyObject* kwargs);
 
 #endif

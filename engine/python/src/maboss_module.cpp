@@ -60,7 +60,9 @@
 #include "sedml_sim.h"
 #endif
 
-#if ! defined (MAXNODES) || MAXNODES <= 64 
+#if !defined (MAXNODES) || MAXNODES == 0xFFFFFFF 
+    const char module_name[] = "cmaboss_dn";
+#elif MAXNODES <= 64 
     const char module_name[] = "cmaboss";
 #else
     const char module_name[] = STR(MODULE_NAME);
@@ -86,7 +88,9 @@ PyMethodDef cMaBoSS[] =
 struct PyModuleDef cMaBoSSDef =
 {
     PyModuleDef_HEAD_INIT,
-#if ! defined (MAXNODES) || MAXNODES <= 64 
+#if !defined (MAXNODES) || MAXNODES == 0xFFFFFFF 
+    "cmaboss_dn",
+#elif MAXNODES <= 64 
     "cmaboss", 
 #else
     STR(MODULE_NAME),
@@ -97,7 +101,9 @@ struct PyModuleDef cMaBoSSDef =
 };
 
 PyMODINIT_FUNC
-#if ! defined (MAXNODES) || MAXNODES <= 64 
+#if !defined (MAXNODES) || MAXNODES == 0xFFFFFFF 
+PyInit_cmaboss_dn(void)
+#elif MAXNODES <= 64 
 PyInit_cmaboss(void)
 #else
 #define MODULE_INIT_NAME NAME1(PyInit_, MODULE_NAME)
@@ -146,7 +152,9 @@ MODULE_INIT_NAME(void)
 
     m = PyModule_Create(&cMaBoSSDef);
 
-#if ! defined (MAXNODES) || MAXNODES <= 64 
+#if !defined (MAXNODES) || MAXNODES == 0xFFFFFFF 
+    char exception_name[50] = "cmaboss_dn.BNException";
+#elif MAXNODES <= 64 
     char exception_name[50] = "cmaboss.BNException";
 #else
     char exception_name[50] = STR(MODULE_NAME);

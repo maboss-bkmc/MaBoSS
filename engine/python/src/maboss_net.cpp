@@ -46,7 +46,7 @@
 */
 
 #include "maboss_net.h"
-#include "src/IStates.h"
+#include "IStates.h"
 
 PyMethodDef cMaBoSSNetwork_methods[] = {
     {"set_output", (PyCFunction) cMaBoSSNetwork_setOutput, METH_VARARGS, "sets the output nodes"},
@@ -68,22 +68,46 @@ PyMappingMethods cMaBoSSNetwork_mapping = {
 	(objobjargproc)cMaBoSSNetwork_NodesSetItem,
 };
 
-PyTypeObject cMaBoSSNetwork = []{
-    PyTypeObject net{PyVarObject_HEAD_INIT(NULL, 0)};
-
-    net.tp_name = build_type_name("cMaBoSSNetworkObject");
-    net.tp_basicsize = sizeof(cMaBoSSNetworkObject);
-    net.tp_itemsize = 0;
-    net.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
-    net.tp_doc = "cMaBoSS Network object";
-    net.tp_init = cMaBoSSNetwork_init;
-    net.tp_new = cMaBoSSNetwork_new;
-    net.tp_dealloc = (destructor) cMaBoSSNetwork_dealloc;
-    net.tp_methods = cMaBoSSNetwork_methods;
-    net.tp_as_mapping = &cMaBoSSNetwork_mapping;
-    net.tp_str = cMaBoSSNetwork_str;
-    return net;
-}();
+PyTypeObject cMaBoSSNetwork = {
+  PyVarObject_HEAD_INIT(NULL, 0)
+  build_type_name("cMaBoSSNetworkObject"),               /* tp_name */
+  sizeof(cMaBoSSNetworkObject),               /* tp_basicsize */
+    0,                              /* tp_itemsize */
+  (destructor) cMaBoSSNetwork_dealloc,      /* tp_dealloc */
+    0,                              /* tp_vectorcall_offset */
+    0,                              /* tp_getattr */
+    0,                              /* tp_setattr */
+    0,                              /* tp_as_async */
+    0,                              /* tp_repr */
+    0,                              /* tp_as_number */
+    0,                              /* tp_as_sequence */
+  &cMaBoSSNetwork_mapping,                              /* tp_as_mapping */
+    0,                              /* tp_hash */
+    0,                              /* tp_call */
+  cMaBoSSNetwork_str,                              /* tp_str */
+    0,                              /* tp_getattro */
+    0,                              /* tp_setattro */
+    0,                              /* tp_as_buffer */
+  Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,                              /* tp_flags */
+  "cMaBoSS Network object",                   /* tp_doc */
+    0,                              /* tp_traverse */
+    0,                              /* tp_clear */
+    0,                              /* tp_richcompare */
+    0,                              /* tp_weaklistoffset */
+    0,                              /* tp_iter */
+    0,                              /* tp_iternext */
+  cMaBoSSNetwork_methods,                              /* tp_methods */
+    0,                              /* tp_members */
+    0,                              /* tp_getset */
+    0,                              /* tp_base */
+    0,                              /* tp_dict */
+    0,                              /* tp_descr_get */
+    0,                              /* tp_descr_set */
+    0,                              /* tp_dictoffset */
+  cMaBoSSNetwork_init,                              /* tp_init */
+    0,                              /* tp_alloc */
+  cMaBoSSNetwork_new,                      /* tp_new */
+};
 
 void cMaBoSSNetwork_dealloc(cMaBoSSNetworkObject *self)
 {
@@ -204,6 +228,11 @@ PyObject* cMaBoSSNetwork_addNode(cMaBoSSNetworkObject* self, PyObject *args)
   
   try{
     PyObject * py_node = PyObject_CallFunction((PyObject *) &cMaBoSSNode, "sO", name, self->network);
+    if (py_node == NULL)
+    {
+      return NULL;
+    }
+    
     PyDict_SetItemString(self->nodes, name, (PyObject*) py_node);
     Py_INCREF(py_node);
     
@@ -336,6 +365,10 @@ int cMaBoSSNetwork_init(PyObject* self, PyObject *args, PyObject* kwargs)
     for (auto* node: py_network->network->getNodes()) 
     {
       PyObject * py_node = PyObject_CallFunction((PyObject *) &cMaBoSSNode, "sO", node->getLabel().c_str(), py_network);
+      if (py_node == NULL)
+      {
+        return -1;
+      }
       PyDict_SetItemString(py_network->nodes, node->getLabel().c_str(), (PyObject*) py_node);
       Py_INCREF(py_node);
     }

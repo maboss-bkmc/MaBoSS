@@ -36,30 +36,45 @@
 #############################################################################
 
    Module:
-     sedml_sim.h
+     maboss_net.h
 
    Authors:
      Vincent Noël <vincent.noel@curie.fr>
  
    Date:
-     April 2025
+     January-March 2020
 */
 
-#ifndef SEDML_SIM
-#define SEDML_SIM
+#ifndef MABOSS_NETWORK_H
+#define MABOSS_NETWORK_H
 
 #include "maboss_commons.h"
-#include "src/sedml/SedEngine.h"
 
+#include "Network.h"
 typedef struct {
   PyObject_HEAD
-  SedEngine* engine;
-} sedmlSimObject;
+  Network* network;
+  PyObject* nodes;
+} cMaBoSSNetworkObject;
 
-void sedmlSim_dealloc(sedmlSimObject *self);
-int sedmlSim_init(PyObject* self, PyObject *args, PyObject* kwargs);
-PyObject * sedmlSim_new(PyTypeObject* type, PyObject *args, PyObject* kwargs);
-PyObject* sedmlSim_get_plots(sedmlSimObject* self);
-PyObject* sedmlSim_get_reports(sedmlSimObject* self);
+
+void cMaBoSSNetwork_dealloc(cMaBoSSNetworkObject *self);
+PyObject *cMaBoSSNetwork_str(PyObject *self);
+int cMaBoSSNetwork_NodesSetItem(cMaBoSSNetworkObject* self, PyObject *key, PyObject* value);
+PyObject * cMaBoSSNetwork_NodesGetItem(cMaBoSSNetworkObject* self, PyObject *key);
+Py_ssize_t cMaBoSSNetwork_NodesLength(cMaBoSSNetworkObject* self);
+PyObject * cMaBoSSNetwork_Keys(cMaBoSSNetworkObject* self);
+PyObject * cMaBoSSNetwork_Values(cMaBoSSNetworkObject* self);
+PyObject * cMaBoSSNetwork_Items(cMaBoSSNetworkObject* self);
+PyObject* cMaBoSSNetwork_setOutput(cMaBoSSNetworkObject* self, PyObject *args);
+PyObject* cMaBoSSNetwork_getOutput(cMaBoSSNetworkObject* self);
+PyObject* cMaBoSSNetwork_setObservedGraphNode(cMaBoSSNetworkObject* self, PyObject *args);
+PyObject* cMaBoSSNetwork_getObservedGraphNode(cMaBoSSNetworkObject* self, PyObject *args);
+PyObject* cMaBoSSNetwork_addNode(cMaBoSSNetworkObject* self, PyObject *args);
+PyObject* cMaBoSSNetwork_setIState(cMaBoSSNetworkObject* self, PyObject *args); 
+PyObject* cMaBoSSNetwork_getIState(cMaBoSSNetworkObject* self);
+PyObject * cMaBoSSNetwork_new(PyTypeObject* type, PyObject *args, PyObject* kwargs);
+int cMaBoSSNetwork_init(PyObject* self, PyObject *args, PyObject* kwargs);
 
 #endif
+

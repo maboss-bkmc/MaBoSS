@@ -36,29 +36,30 @@
 #############################################################################
 
    Module:
-     maboss_cfg.h
+     sedml_sim.h
 
    Authors:
      Vincent Noël <vincent.noel@curie.fr>
  
    Date:
-     January-March 2020
+     April 2025
 */
 
-#ifndef MABOSS_CONFIG
-#define MABOSS_CONFIG
+#ifndef SEDML_SIM
+#define SEDML_SIM
 
 #include "maboss_commons.h"
-
-#include "src/RunConfig.h"
+#include "sedml/SedEngine.h"
 
 typedef struct {
   PyObject_HEAD
-  RunConfig* config;
-} cMaBoSSConfigObject;
+  SedEngine* engine;
+} sedmlSimObject;
 
-void cMaBoSSConfig_dealloc(cMaBoSSConfigObject *self);
-PyObject * cMaBoSSConfig_new(PyTypeObject* type, PyObject *args, PyObject* kwargs);
-int cMaBoSSConfig_init(PyObject* self, PyObject *args, PyObject* kwargs);
+void sedmlSim_dealloc(sedmlSimObject *self);
+int sedmlSim_init(PyObject* self, PyObject *args, PyObject* kwargs);
+PyObject * sedmlSim_new(PyTypeObject* type, PyObject *args, PyObject* kwargs);
+PyObject* sedmlSim_get_plots(sedmlSimObject* self);
+PyObject* sedmlSim_get_reports(sedmlSimObject* self);
 
 #endif

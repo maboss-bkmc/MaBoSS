@@ -36,7 +36,7 @@
 #############################################################################
 
    Module:
-     maboss_resfinal.h
+     maboss_res.h
 
    Authors:
      Vincent Noël <vincent.noel@curie.fr>
@@ -45,31 +45,40 @@
      January-March 2020
 */
 
-#ifndef MABOSS_RESFINAL
-#define MABOSS_RESFINAL
+#ifndef MABOSS_RES
+#define MABOSS_RES
 
 #include "maboss_commons.h"
 
-#include "src/Network.h"
-#include "src/RunConfig.h"
-#include "src/engines/FinalStateSimulationEngine.h"
+#include "Network.h"
+#include "RunConfig.h"
+#include "engines/MaBEstEngine.h"
 
 typedef struct {
   PyObject_HEAD
   Network* network;
   RunConfig* runconfig;
-  FinalStateSimulationEngine* engine;
+  MaBEstEngine* engine;
   time_t start_time;
   time_t end_time;
+  PyObject* probtraj;
   PyObject* last_probtraj;
-} cMaBoSSResultFinalObject;
+  PyObject* observed_graph;
+  PyObject* observed_durations;
+} cMaBoSSResultObject;
 
-void cMaBoSSResultFinal_dealloc(cMaBoSSResultFinalObject *self);
-PyObject * cMaBoSSResultFinal_new(PyTypeObject* type, PyObject *args, PyObject* kwargs);
-PyObject* cMaBoSSResultFinal_get_last_probtraj(cMaBoSSResultFinalObject* self);
-PyObject* cMaBoSSResultFinal_get_last_nodes_probtraj(cMaBoSSResultFinalObject* self, PyObject* args);
-PyObject* cMaBoSSResultFinal_display_final_states(cMaBoSSResultFinalObject* self, PyObject* args);
-PyObject* cMaBoSSResultFinal_get_final_time(cMaBoSSResultFinalObject* self);
-PyObject* cMaBoSSResultFinal_display_run(cMaBoSSResultFinalObject* self, PyObject* args);
+void cMaBoSSResult_dealloc(cMaBoSSResultObject *self);
+PyObject * cMaBoSSResult_new(PyTypeObject* type, PyObject *args, PyObject* kwargs);
+PyObject* cMaBoSSResult_get_fp_table(cMaBoSSResultObject* self);
+PyObject* cMaBoSSResult_get_observed_graph(cMaBoSSResultObject* self);
+PyObject* cMaBoSSResult_get_observed_durations(cMaBoSSResultObject* self);
+PyObject* cMaBoSSResult_get_probtraj(cMaBoSSResultObject* self);
+PyObject* cMaBoSSResult_get_last_probtraj(cMaBoSSResultObject* self);
+PyObject* cMaBoSSResult_get_nodes_probtraj(cMaBoSSResultObject* self, PyObject* args);
+PyObject* cMaBoSSResult_get_last_nodes_probtraj(cMaBoSSResultObject* self, PyObject* args);
+PyObject* cMaBoSSResult_display_fp(cMaBoSSResultObject* self, PyObject *args);
+PyObject* cMaBoSSResult_display_probtraj(cMaBoSSResultObject* self, PyObject *args);
+PyObject* cMaBoSSResult_display_statdist(cMaBoSSResultObject* self, PyObject *args);
+PyObject* cMaBoSSResult_display_run(cMaBoSSResultObject* self, PyObject* args);
 
 #endif

@@ -36,7 +36,7 @@
 #############################################################################
 
    Module:
-     maboss_net.cpp
+     maboss_param.cpp
 
    Authors:
      Vincent Noël <vincent.noel@curie.fr>
@@ -45,38 +45,29 @@
      January-March 2020
 */
 
-#ifndef POPMABOSS_NETWORK
-#define POPMABOSS_NETWORK
+#ifndef MABOSS_PARAM
+#define MABOSS_PARAM
 
 #include "maboss_commons.h"
 
-#include "src/PopNetwork.h"
+#include "Network.h"
+#include "RunConfig.h"
 
 typedef struct {
   PyObject_HEAD
-  PopNetwork* network;
-  PyObject* nodes;
-} cPopMaBoSSNetworkObject;
+  Network* network;
+  RunConfig* config;
+} cMaBoSSParamObject;
 
-void cPopMaBoSSNetwork_dealloc(cPopMaBoSSNetworkObject *self);
-PyObject *cPopMaBoSSNetwork_str(PyObject *self);
-int cPopMaBoSSNetwork_NodesSetItem(cPopMaBoSSNetworkObject* self, PyObject *key, PyObject* value);
-PyObject * cPopMaBoSSNetwork_NodesGetItem(cPopMaBoSSNetworkObject* self, PyObject *key);
-Py_ssize_t cPopMaBoSSNetwork_NodesLength(cPopMaBoSSNetworkObject* self);
-PyObject* cPopMaBoSSNetwork_Keys(cPopMaBoSSNetworkObject* self);
-PyObject* cPopMaBoSSNetwork_Values(cPopMaBoSSNetworkObject* self); 
-PyObject* cPopMaBoSSNetwork_Items(cPopMaBoSSNetworkObject* self); 
-PyObject* cPopMaBoSSNetwork_getDeathRate(cPopMaBoSSNetworkObject* self); 
-PyObject* cPopMaBoSSNetwork_setDeathRate(cPopMaBoSSNetworkObject* self, PyObject *args);
-PyObject* cPopMaBoSSNetwork_setOutput(cPopMaBoSSNetworkObject* self, PyObject *args);
-PyObject* cPopMaBoSSNetwork_getOutput(cPopMaBoSSNetworkObject* self);
-PyObject* cPopMaBoSSNetwork_addDivisionRule(cPopMaBoSSNetworkObject* self, PyObject *args);
-PyObject* cPopMaBoSSNetwork_removeDivisionRule(cPopMaBoSSNetworkObject* self, PyObject* args);
-PyObject* cPopMaBoSSNetwork_getDivisionRules(cPopMaBoSSNetworkObject* self);
-PyObject* cPopMaBoSSNetwork_setIstate(cPopMaBoSSNetworkObject* self, PyObject *args);
-PyObject* cPopMaBoSSNetwork_setPopIstate(cPopMaBoSSNetworkObject* self, PyObject *args);
-PyObject* cPopMaBoSSNetwork_clearPopIstate(cPopMaBoSSNetworkObject* self);
-PyObject * cPopMaBoSSNetwork_new(PyTypeObject* type, PyObject *args, PyObject* kwargs);
-int cPopMaBoSSNetwork_init(PyObject* self, PyObject *args, PyObject* kwargs);
+void cMaBoSSParam_dealloc(PyObject *self);
+PyObject* cMaBoSSParam_new(PyTypeObject* type, PyObject *args, PyObject* kwargs);
+int cMaBoSSParam_init(PyObject* self, PyObject *args, PyObject* kwargs);
+PyObject* cMaBoSSParam_update_parameters(cMaBoSSParamObject* self, PyObject *args, PyObject* kwargs);
+int cMaBoSSParam_SetItem(cMaBoSSParamObject* self, PyObject *key, PyObject* value);
+PyObject * cMaBoSSParam_GetItem(cMaBoSSParamObject* self, PyObject *key);
+Py_ssize_t cMaBoSSParam_Length(cMaBoSSParamObject* self);
+PyObject* cMaBoSSParam_getKeys(cMaBoSSParamObject* self);
+PyObject* cMaBoSSParam_getValues(cMaBoSSParamObject* self);
+PyObject* cMaBoSSParam_getItems(cMaBoSSParamObject* self);
 
 #endif

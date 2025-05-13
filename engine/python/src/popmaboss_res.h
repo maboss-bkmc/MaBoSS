@@ -51,9 +51,9 @@
 #include "popmaboss_net.h"
 #include "maboss_commons.h"
 
-#include "src/PopNetwork.h"
-#include "src/engines/PopMaBEstEngine.h"
-#include "src/RunConfig.h"
+#include "PopNetwork.h"
+#include "engines/PopMaBEstEngine.h"
+#include "RunConfig.h"
 
 
 typedef struct {
