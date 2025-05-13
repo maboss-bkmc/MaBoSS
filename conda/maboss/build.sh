@@ -1,19 +1,98 @@
-cd engine/src
+cmake -G"Ninja" -S . -B build \
+    -DCMAKE_INSTALL_PREFIX="${PREFIX}" \
+    -DCMAKE_INSTALL_LIBDIR="${PREFIX}"/lib \
+    -DCMAKE_CXX_COMPILER="${CXX}" \
+    -DCMAKE_C_COMPILER="${CC}" \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DLIBXML_INCLUDE_DIR=${PREFIX}/include/libxml2 \
+    -DLIBXML_LIBRARY=${PREFIX}/lib/libxml2${SHLIB_EXT} \
+    -DLIBSBML_INCLUDE_DIR=${PREFIX}/include \
+    -DLIBSBML_LIBRARY=${PREFIX}/lib/libsbml${SHLIB_EXT} \
+    -DBUILD_CLIENT=ON -DBUILD_SERVER=ON \
+    -DSBML=1
+cmake --build build --parallel 1
+cmake --install build --component executables 
 
-# export CXXFLAGS="${CXXFLAGS} -I${PREFIX}/include -I${PREFIX}/include/libxml2"
-export LDFLAGS="${LDFLAGS} -L${BUILD_PREFIX}/lib -lxml2"
+cmake -G"Ninja" -S . -B build \
+    -DCMAKE_INSTALL_PREFIX="${PREFIX}" \
+    -DCMAKE_INSTALL_LIBDIR="${PREFIX}"/lib \
+    -DCMAKE_CXX_COMPILER="${CXX}" \
+    -DCMAKE_C_COMPILER="${CC}" \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DLIBXML_INCLUDE_DIR=${PREFIX}/include/libxml2 \
+    -DLIBXML_LIBRARY=${PREFIX}/lib/libxml2${SHLIB_EXT} \
+    -DLIBSBML_INCLUDE_DIR=${PREFIX}/include \
+    -DLIBSBML_LIBRARY=${PREFIX}/lib/libsbml${SHLIB_EXT} \
+    -DMAXNODES=128 \
+    -DBUILD_SERVER=ON \
+    -DSBML=1
+cmake --build build --parallel 1
+cmake --install build --component executables 
 
-make SBML_COMPAT=1 CLIENT_SERVER=1 install
-make SBML_COMPAT=1 CLIENT_SERVER=1 MAXNODES=128 install
-make SBML_COMPAT=1 CLIENT_SERVER=1 MAXNODES=256 install
-make SBML_COMPAT=1 CLIENT_SERVER=1 MAXNODES=512 install
-make SBML_COMPAT=1 CLIENT_SERVER=1 MAXNODES=1024 install
-mkdir -p ${PREFIX}/bin
-mv ../pub/MaBoSS  ../pub/MaBoSS_*n ${PREFIX}/bin
-mv ../pub/PopMaBoSS  ../pub/PopMaBoSS_*n ${PREFIX}/bin
-mv ../pub/MaBoSS-server  ../pub/MaBoSS_*n-server ${PREFIX}/bin
-mv ../pub/MaBoSS-client ${PREFIX}/bin
-cd ../..
+cmake -G"Ninja" -S . -B build \
+    -DCMAKE_INSTALL_PREFIX="${PREFIX}" \
+    -DCMAKE_INSTALL_LIBDIR="${PREFIX}"/lib \
+    -DCMAKE_CXX_COMPILER="${CXX}" \
+    -DCMAKE_C_COMPILER="${CC}" \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DLIBXML_INCLUDE_DIR=${PREFIX}/include/libxml2 \
+    -DLIBXML_LIBRARY=${PREFIX}/lib/libxml2${SHLIB_EXT} \
+    -DLIBSBML_INCLUDE_DIR=${PREFIX}/include \
+    -DLIBSBML_LIBRARY=${PREFIX}/lib/libsbml${SHLIB_EXT} \
+    -DMAXNODES=256 \
+    -DBUILD_SERVER=ON \
+    -DSBML=1
+cmake --build build --parallel 1
+cmake --install build --component executables 
+
+cmake -G"Ninja" -S . -B build \
+    -DCMAKE_INSTALL_PREFIX="${PREFIX}" \
+    -DCMAKE_INSTALL_LIBDIR="${PREFIX}"/lib \
+    -DCMAKE_CXX_COMPILER="${CXX}" \
+    -DCMAKE_C_COMPILER="${CC}" \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DLIBXML_INCLUDE_DIR=${PREFIX}/include/libxml2 \
+    -DLIBXML_LIBRARY=${PREFIX}/lib/libxml2${SHLIB_EXT} \
+    -DLIBSBML_INCLUDE_DIR=${PREFIX}/include \
+    -DLIBSBML_LIBRARY=${PREFIX}/lib/libsbml${SHLIB_EXT} \
+    -DMAXNODES=512 \
+    -DBUILD_SERVER=ON \
+    -DSBML=1
+cmake --build build --parallel 1
+cmake --install build --component executables 
+
+cmake -G"Ninja" -S . -B build \
+    -DCMAKE_INSTALL_PREFIX="${PREFIX}" \
+    -DCMAKE_INSTALL_LIBDIR="${PREFIX}"/lib \
+    -DCMAKE_CXX_COMPILER="${CXX}" \
+    -DCMAKE_C_COMPILER="${CC}" \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DLIBXML_INCLUDE_DIR=${PREFIX}/include/libxml2 \
+    -DLIBXML_LIBRARY=${PREFIX}/lib/libxml2${SHLIB_EXT} \
+    -DLIBSBML_INCLUDE_DIR=${PREFIX}/include \
+    -DLIBSBML_LIBRARY=${PREFIX}/lib/libsbml${SHLIB_EXT} \
+    -DMAXNODES=1024 \
+    -DBUILD_SERVER=ON \
+    -DSBML=1
+cmake --build build --parallel 1
+cmake --install build --component executables 
+
+cmake -G"Ninja" -S . -B build \
+    -DCMAKE_INSTALL_PREFIX="${PREFIX}" \
+    -DCMAKE_INSTALL_LIBDIR="${PREFIX}"/lib \
+    -DCMAKE_CXX_COMPILER="${CXX}" \
+    -DCMAKE_C_COMPILER="${CC}" \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DLIBXML_INCLUDE_DIR=${PREFIX}/include/libxml2 \
+    -DLIBXML_LIBRARY=${PREFIX}/lib/libxml2${SHLIB_EXT} \
+    -DLIBSBML_INCLUDE_DIR=${PREFIX}/include \
+    -DLIBSBML_LIBRARY=${PREFIX}/lib/libsbml${SHLIB_EXT} \
+    -DDYNBITSET=ON -DDYNBITSET_STD_ALLOC=ON \
+    -DBUILD_SERVER=ON \
+    -DSBML=1
+cmake --build build --parallel 1
+cmake --install build --component executables 
+
 mkdir -p "${PREFIX}/share/MaBoSS"
 #mv doc tutorial examples ${PREFIX}/share/MaBoSS/
 mv tools/* ${PREFIX}/bin

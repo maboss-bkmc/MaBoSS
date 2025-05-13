@@ -27,26 +27,34 @@ requirements:
     - flex  # [not win]
     - bison  # [not win]
     - winflexbison  # [win]
-    - make
+    - make  # [not win]
+    - cmake
+    - ninja
     - python {{ python }}
     - numpy
-    - libsbml-plus-packages
-    
+    - {{ LIBSBML_PACKAGE }}
+    - python-gil  # [py>=313]
+
   host: 
-    - setuptools
     - python {{ python }}
-    - numpy
-    - libsbml-plus-packages
+    - pip
+    - scikit-build-core
+    - {{ pin_compatible('numpy', min_pin='x.x', max_pin='x') }}
+    - {{ LIBSBML_PACKAGE }}
+    - python-gil  # [py>=313]
   
   run: 
     - python {{ python }}
-    - libsbml-plus-packages
-
+    - {{ pin_compatible('numpy', min_pin='x.x', max_pin='x') }}
+    - {{ LIBSBML_PACKAGE }}
+    - python-gil  # [py>=313]
 test:
   requires:
-    - numpy
+    - python {{ python }}
+    - {{ pin_compatible('numpy', min_pin='x.x', max_pin='x') }}
     - pandas
-  
+    - python-gil  # [py>=313]
+
 about:
   home:  https://maboss.curie.fr
 

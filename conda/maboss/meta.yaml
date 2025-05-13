@@ -30,12 +30,13 @@ requirements:
     - make  # [not win]
     - cmake  # [win]
     - ninja  # [win]
+    - {{ LIBSBML_PACKAGE }}
         
   host:
-    - libsbml-plus-packages
+    - {{ LIBSBML_PACKAGE }}
     
   run:
-    - libsbml-plus-packages
+    - {{ LIBSBML_PACKAGE }}
     
 test:
   requires:

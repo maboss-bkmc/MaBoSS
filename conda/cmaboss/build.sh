@@ -1,8 +1,4 @@
-cd engine/src
-make grammars
-cd ../python
-cp -r ../src cmaboss
-$PYTHON -m pip install . --no-deps --ignore-installed --no-cache-dir -vvv
+$PYTHON -m pip install engine/python --no-deps --ignore-installed --no-cache-dir -vvv
 mkdir -p ${PREFIX}/tests
-cp -r ../tests/* ${PREFIX}/tests
+cp -r engine/tests/* ${PREFIX}/tests
 
