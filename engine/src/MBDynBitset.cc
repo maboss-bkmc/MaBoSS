@@ -1,5 +1,7 @@
 
 #include "MBDynBitset.h"
+
+#ifdef USE_DYNAMIC_BITSET
 #include <iostream>
 #include <vector>
 #include <bitset>
@@ -8,8 +10,6 @@
 #else
 #include "io.h"
 #endif
-#include <sys/types.h>
-#include <assert.h>
 
 //#include <sys/syscall.h>
 //#define gettid() syscall(SYS_gettid)
@@ -87,6 +87,8 @@ void MBDynBitset::end_pthread()
 }
 
 #else
+#include <sys/types.h>
+#include <assert.h>
 
 class Mutex {
   pthread_mutex_t mutex;
@@ -275,3 +277,4 @@ void MBDynBitset::stats()
 #endif
 }
 
+#endif

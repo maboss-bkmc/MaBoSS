@@ -205,11 +205,11 @@ EnsembleEngine::EnsembleEngine(std::vector<Network*> networks, RunConfig* runcon
     unsigned int t_count = (nn == 0 ? firstcount : count);
     Cumulator<NetworkState>* cumulator = new Cumulator<NetworkState>(runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), t_count, (nn == 0 ? first_scount : scount ));
     if (has_internal) {
-#ifdef USE_STATIC_BITSET
-      NetworkState_Impl state2 = ~internal_state.getState();
-      cumulator->setOutputMask(state2);
+#ifdef USE_DYNAMIC_BITSET
+      NetworkState_Impl state2 = ~internal_state.getState(1);
+      cumulator->setOutputMask(NetworkState(state2));
 #else
-      cumulator->setOutputMask(~internal_state.getState());
+      cumulator->setOutputMask(NetworkState(~internal_state.getState()));
 #endif
     }
 

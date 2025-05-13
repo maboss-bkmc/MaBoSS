@@ -76,14 +76,16 @@ public:
 #endif
 
 public:
-  NetworkState(const NetworkState_Impl& state) : state(state) { }
-  NetworkState(const NetworkState& state) : state(state.getState()) {}
+  
+  NetworkState(const NetworkState_Impl& _state) : state(_state) { }
+  NetworkState(const NetworkState& _state) : state(_state.getState()) {}
+  NetworkState& operator=(const NetworkState& _state) {
+    state = _state.getState();
+    return *this;
+  }
 #ifdef USE_DYNAMIC_BITSET
-  NetworkState(const NetworkState_Impl& state, int copy) : state(state, 1) { }
-  NetworkState(const NetworkState& state, int copy) : state(state.getState(1), 1) {}
-#else
-  NetworkState(const NetworkState_Impl& state, int copy) : state(state) { }
-  NetworkState(const NetworkState& state, int copy) : state(state.getState()) {}
+  NetworkState(const NetworkState_Impl& _state, int copy) { state = NetworkState_Impl(_state, copy); }
+  NetworkState(const NetworkState& _state, int copy) : state(_state.getState(copy)) {}
 #endif
 
   NetworkState operator&(const NetworkState& mask) const { 
@@ -461,10 +463,11 @@ public:
 
   PopNetworkState applyMask(const PopNetworkState& mask, std::map<unsigned int, unsigned int>& scale) const {
     std::map<NetworkState_Impl, unsigned int> new_map;
-    NetworkState networkstate_mask = mask.getMap().begin()->first;
+    
+    NetworkState_Impl networkstate_mask = mask.getMap().begin()->first;
         
     for (const auto & elem: mp) {
-      NetworkState_Impl new_state = elem.first & networkstate_mask.getState();
+      NetworkState_Impl new_state = elem.first & networkstate_mask;
 #ifdef USE_DYNAMIC_BITSET
       new_map[NetworkState_Impl(new_state, 1)] = scale[elem.second];
 #else

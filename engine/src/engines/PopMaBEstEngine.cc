@@ -121,8 +121,8 @@ PopMaBEstEngine::PopMaBEstEngine(PopNetwork *pop_network, RunConfig *runconfig) 
     Cumulator<PopNetworkState> *cumulator = new Cumulator<PopNetworkState>(runconfig, runconfig->getTimeTick(), runconfig->getMaxTime(), (nn == 0 ? firstcount : count), (nn == 0 ? first_scount : scount ));
     if (has_internal)
     {
-  #ifdef USE_STATIC_BITSET
-      NetworkState_Impl state2 = ~internal_state.getState();
+  #ifdef USE_DYNAMIC_BITSET
+      NetworkState_Impl state2 = ~internal_state.getState(1);
       cumulator->setOutputMask(PopNetworkState(state2, 1));
   #else
       cumulator->setOutputMask(PopNetworkState(~internal_state.getState(), 1));
@@ -304,8 +304,11 @@ void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, Cumulator
             {
               // Construct ψ' from (ψ, S and S')
               // ψ'(S'') ≡ ψ(S'' ), ∀S'' != (S, S')
+#ifdef USE_DYNAMIC_BITSET
+              PopNetworkState new_pop_network_state = PopNetworkState(pop_network_state, 1);
+#else
               PopNetworkState new_pop_network_state = PopNetworkState(pop_network_state);
-              
+#endif         
               // ψ'(S) ≡ ψ(S) − 1
               new_pop_network_state.decr(t_network_state);
               
@@ -340,7 +343,12 @@ void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, Cumulator
               
               // Construct the two daughter cell states S' and S'' using MaBoSS language
               // Construct the new state ψ 0 
+              
+#ifdef USE_DYNAMIC_BITSET
+              PopNetworkState new_pop_network_state = PopNetworkState(pop_network_state, 1);
+#else
               PopNetworkState new_pop_network_state = PopNetworkState(pop_network_state);
+#endif
               new_pop_network_state.decr(t_network_state);
               
               NetworkState state_daughter1 = division_rule->applyRules(DivisionRule::DAUGHTER_1, pop.first, pop_network_state);
@@ -362,8 +370,11 @@ void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, Cumulator
           if (rate_death > 0){
             rate_death *= pop.second;
             total_rate += rate_death;
-            
+#ifdef USE_DYNAMIC_BITSET
+            PopNetworkState new_pop_network_state = PopNetworkState(pop_network_state, 1);
+#else
             PopNetworkState new_pop_network_state = PopNetworkState(pop_network_state);
+#endif
             new_pop_network_state.decr(t_network_state);
             popNodeTransitionRates.insert(std::pair<PopNetworkState, double>(new_pop_network_state, rate_death));
           }
@@ -373,7 +384,11 @@ void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, Cumulator
             FixedPoints::iterator iter = fixpoint_map->find(t_network_state.getState());
             if (iter == fixpoint_map->end())
             {
+#ifdef USE_DYNAMIC_BITSET
+              (*fixpoint_map)[t_network_state.getState(1)] = 1;
+#else
               (*fixpoint_map)[t_network_state.getState()] = 1;
+#endif
             }
             else
             {
@@ -387,7 +402,11 @@ void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, Cumulator
         for (const auto &transition : popNodeTransitionRates)
         {
           std::cout << ">>> Transition : ";
+#ifdef USE_DYNAMIC_BITSET
+          PopNetworkState t_state(transition.first, 1);
+#else
           PopNetworkState t_state(transition.first);
+#endif
           t_state.displayOneLine(std::cout, pop_network);
           std::cout << ", proba=" << (int)(100*transition.second/total_rate) << std::endl;
         }
@@ -866,7 +885,11 @@ if (getWorldRank() == 0) {
   size_t nn = 0;
   for (const auto& fp : *fixpoints)
   {
-    const NetworkState &network_state = fp.first;
+#ifdef USE_DYNAMIC_BITSET
+    NetworkState network_state(fp.first, 1);
+#else
+    NetworkState network_state(fp.first);
+#endif
     displayer->displayFixedPoint(nn + 1, network_state, fp.second, sample_count);
     nn++;
   }
@@ -947,7 +970,11 @@ const std::map<unsigned int, std::pair<NetworkState, double> > PopMaBEstEngine::
 
   unsigned int nn = 0;
   for (const auto & fp : *fixpoints) {
-    const NetworkState& network_state = fp.first;
+#ifdef USE_DYNAMIC_BITSET
+    NetworkState network_state(fp.first, 1);
+#else
+    NetworkState network_state(fp.first);
+#endif
     res[nn++] = std::make_pair(network_state,(double) fp.second / sample_count);
   }
   return res;

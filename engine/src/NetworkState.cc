@@ -80,7 +80,11 @@ unsigned int NetworkState::hamming(Network* network, const NetworkState_Impl& st
 #endif
 
 #ifdef HAMMING_METHOD2
+#ifdef USE_DYNAMIC_BITSET
   NetworkState network_state2(state2, 1);
+#else
+  NetworkState network_state2(state2);
+#endif
   const std::vector<Node*>& nodes = network->getNodes();
   
   for (const auto * node : nodes) {

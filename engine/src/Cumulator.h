@@ -712,7 +712,11 @@ public:
   }
   
   void setRefnodeMask(const NetworkState_Impl& _refnode_mask) {
-    this->refnode_mask = _refnode_mask;
+#ifdef USE_DYNAMIC_BITSET
+    this->refnode_mask = NetworkState(_refnode_mask, 1);
+#else
+    this->refnode_mask = NetworkState(_refnode_mask);
+#endif
   }
 
   void displayProbTraj(unsigned int _refnode_count, ProbTrajDisplayer<S>* displayer) const 

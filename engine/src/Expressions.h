@@ -264,9 +264,14 @@ class StateExpression: public Expression {
   NetworkState state;
   Network* network;
 public:
-  StateExpression(NetworkState state, Network* network) : state(state), network(network) { }
-
-  Expression* clone() const {return new StateExpression(state, network);}
+#ifdef USE_DYNAMIC_BITSET
+  StateExpression(const NetworkState state, Network* network) : state(NetworkState(state, 1)), network(network) { }
+  Expression* clone() const {return new StateExpression(NetworkState(state, 1), network);}
+#else
+  StateExpression(const NetworkState state, Network* network) : state(state), network(network) { }
+  Expression* clone() const {return new StateExpression(NetworkState(state), network);}
+#endif
+  
 
   double eval(const Node* this_node, const NetworkState& network_state) const {
     return state.getState() == network_state.getState() ? 1.0 : 0.0;

@@ -79,7 +79,11 @@ void JSONStatDistDisplayer::addStateProba(const NetworkState_Impl& state, double
     os << ",";
   }
   os << "{";
+#ifdef USE_DYNAMIC_BITSET
   NetworkState network_state(state, 1);
+#else
+  NetworkState network_state(state);
+#endif
   os << "\"state\":\"";
   network_state.displayOneLine(os, network);
   os << "\",\"proba\":";
@@ -149,7 +153,11 @@ void JSONStatDistDisplayer::addProbaVariance(const NetworkState_Impl& state, dou
     os_statdist_distrib << ",";
   }
   os_statdist_distrib << "{\"state\":\"";
+#ifdef USE_DYNAMIC_BITSET
   NetworkState network_state(state, 1);
+#else
+  NetworkState network_state(state);
+#endif
   network_state.displayOneLine(os_statdist_distrib, network);
   os_statdist_distrib << "\"";
   if (hexfloat) {
@@ -180,7 +188,12 @@ void CSVStatDistDisplayer::beginStateProbaDisplay() {
 }
 
 void CSVStatDistDisplayer::addStateProba(const NetworkState_Impl& state, double proba) {
+  
+#ifdef USE_DYNAMIC_BITSET 
   NetworkState network_state(state, 1);
+#else
+  NetworkState network_state(state);
+#endif
   os_statdist << '\t';
   network_state.displayOneLine(os_statdist, network);
   if (hexfloat) {
@@ -223,7 +236,11 @@ void CSVStatDistDisplayer::endClusterStationaryDistribution() {
 }
 
 void CSVStatDistDisplayer::addProbaVariance(const NetworkState_Impl& state, double proba, double variance) {
+#ifdef USE_DYNAMIC_BITSET
   NetworkState network_state(state, 1);
+#else
+  NetworkState network_state(state);
+#endif
   os_statdist << '\t';
   network_state.displayOneLine(os_statdist, network);
   if (hexfloat) {

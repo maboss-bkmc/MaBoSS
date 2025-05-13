@@ -60,7 +60,11 @@ void CSVFinalStateDisplayer::displayFinalState(const NetworkState_Impl& state, d
   } else {
     os << std::setprecision(6) << value << "\t";
   }    
+#ifdef USE_DYNAMIC_BITSET
   NetworkState(state, 1).displayOneLine(os, network);
+#else
+  NetworkState(state).displayOneLine(os, network);
+#endif
   os << "\n";
 }
 
@@ -82,7 +86,11 @@ void JsonFinalStateDisplayer::displayFinalState(const NetworkState_Impl& state, 
     os << std::setprecision(6) << value;
   }    
   os << ",\"state\":\"";
+#ifdef USE_DYNAMIC_BITSET
   NetworkState(state, 1).displayOneLine(os, network);
+#else
+  NetworkState(state).displayOneLine(os, network);
+#endif
   os << "\"}";
   state_cnt++;
 }
