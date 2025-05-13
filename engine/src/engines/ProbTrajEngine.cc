@@ -176,10 +176,6 @@ void ProbTrajEngine::mergeMPIResults(RunConfig* runconfig, Cumulator<NetworkStat
 #endif
 
 
-const double ProbTrajEngine::getFinalTime() const {
-  return merged_cumulator->getFinalTime();
-}
-
 void ProbTrajEngine::displayProbTraj(ProbTrajDisplayer<NetworkState>* displayer) const {
 
 #ifdef MPI_COMPAT

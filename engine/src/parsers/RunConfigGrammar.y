@@ -179,12 +179,7 @@ node_attr_decl: SYMBOL '.' SYMBOL '=' expression ';'
   if (strcasecmp($3, "istate")) {
     throw BNException(std::string(yy_error_head() + "invalid node group attribute: ") + $3 + ", valid attribute is istate");
   }
-  std::string error_msg;
-  new IStateGroup(network, $1, $5, error_msg);
-  if (error_msg.length() > 0) {
-    throw BNException(std::string(yy_error_head() + error_msg));
-  }
-  
+  new IStateGroup(network, $1, $5);  
   free($3);
 }
 | symbol_istate_list '.' SYMBOL '=' pop_istate_expression_list ';'
@@ -192,12 +187,8 @@ node_attr_decl: SYMBOL '.' SYMBOL '=' expression ';'
   if (strcasecmp($3, "pop_istate")) {
     throw BNException(std::string(yy_error_head() + "invalid node group attribute: ") + $3 + ", valid attribute is pop_istate");
   }
-  std::string error_msg;
   PopNetwork* pop_network = static_cast<PopNetwork*>(network);
-  new PopIStateGroup(pop_network, $1, $5, error_msg);
-  if (error_msg.length() > 0) {
-    throw BNException(std::string(yy_error_head() + error_msg));
-  }
+  new PopIStateGroup(pop_network, $1, $5);
   free($3);
 }
 ;

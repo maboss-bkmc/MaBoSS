@@ -1590,7 +1590,7 @@ PyObject* getNumpySimpleLastStatesDists(Network* network) const
   
 #endif
 
-  const double getFinalTime() const {
+  double getFinalTime() const {
       return time_tick*(getMaxTickIndex()-1);
 
   }

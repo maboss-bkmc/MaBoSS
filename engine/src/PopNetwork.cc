@@ -49,6 +49,7 @@
 */
 
 #include "PopNetwork.h"
+#include "IStates.h"
 #include "parsers/BooleanGrammar.h"
 
 extern FILE* ctbndlin;
@@ -167,15 +168,24 @@ PopNetwork::~PopNetwork()
 }
 
 
-PopNetwork::PopNetwork(const PopNetwork& pop_network) {
-  *this = pop_network;
+PopNetwork::PopNetwork(const PopNetwork& pop_network): Network(pop_network) {
+  deathRate = pop_network.deathRate->clone();
+  for (auto * division_rule: pop_network.getDivisionRules()) {
+    divisionRules.push_back(division_rule);
+  }
+  for (auto* pop_istate_group: *(pop_network.getPopIStateGroup())){
+    pop_istate_group_list->push_back(new PopIStateGroup(*pop_istate_group));
+  }
 }
 
 PopNetwork& PopNetwork::operator=(const PopNetwork& pop_network) {
   Network::operator=(pop_network);
   deathRate = pop_network.getDeathRate()->clone();
-  for (auto division_rule: pop_network.getDivisionRules()) {
+  for (auto *division_rule: pop_network.getDivisionRules()) {
     divisionRules.push_back(division_rule);
+  }
+  for (auto* pop_istate_group: *(pop_network.getPopIStateGroup())){
+    pop_istate_group_list->push_back(new PopIStateGroup(*pop_istate_group));
   }
   return *this;
 }

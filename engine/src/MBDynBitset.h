@@ -75,7 +75,7 @@ public:
   }
   //public:
 
-  MBDynBitset(const MBDynBitset& bitset, int real_copy) {
+  MBDynBitset(const MBDynBitset& bitset, int) {
 #ifdef MB_COUNT
     true_copy_cnt++;
 #endif

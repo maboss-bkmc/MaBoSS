@@ -115,7 +115,7 @@ class Expression {
 public:
   virtual double eval(const Node* this_node, const NetworkState& network_state) const = 0;
   virtual double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop_state) const = 0;
-  virtual double eval(const NetworkState& network_state, double time){
+  virtual double eval(const NetworkState&, double){
     return 0;
   }
   virtual bool hasCycle(Node* node) const = 0;
@@ -128,7 +128,7 @@ public:
 
   virtual Expression* clone() const = 0; 
 
-  virtual Expression* cloneAndShrink(bool& shrinked) const {
+  virtual Expression* cloneAndShrink(bool&) const {
     return clone();
   }
 
@@ -137,7 +137,7 @@ public:
   virtual bool isLogicalExpression() const {return false;}
   virtual std::vector<Node*> getNodes() const{return std::vector<Node*>(); }
 #ifdef SBML_COMPAT
-  virtual ASTNode* writeSBML(LogicalExprGenContext& genctx) const { return new ASTNode(AST_CONSTANT_TRUE); }
+  virtual ASTNode* writeSBML(LogicalExprGenContext&) const { return new ASTNode(AST_CONSTANT_TRUE); }
 #endif
   virtual void generateLogicalExpression(LogicalExprGenContext& genctx) const = 0;
   virtual bool generationWillAddParenthesis() const {return false;}
@@ -161,20 +161,20 @@ public:
 
   Expression* clone() const {return new TimeExpression();}
 
-  double eval(const Node* this_node, const NetworkState& network_state) const {
+  double eval(const Node*, const NetworkState&) const {
     return 0;
   }
 
-  double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop_state) const {
+  double eval(const Node*, const NetworkState&, const PopNetworkState&) const {
     return 0;
   }
   
-  double eval(const NetworkState& network_state, double time)
+  double eval(const NetworkState&, double time)
   {
     return time;
   }
 
-  bool hasCycle(Node* _node) const {
+  bool hasCycle(Node*) const {
     return false;
   }
 
@@ -190,12 +190,12 @@ public:
   }
 
 #ifdef SBML_COMPAT
-  ASTNode* writeSBML(LogicalExprGenContext& genctx) const {
+  ASTNode* writeSBML(LogicalExprGenContext&) const {
     ASTNode* time_node = new ASTNode(AST_NAME_TIME);
     return time_node;
   }
 #endif
-  void generateLogicalExpression(LogicalExprGenContext& genctx) const {}
+  void generateLogicalExpression(LogicalExprGenContext&) const {}
 
   ~TimeExpression() {
   }
@@ -209,15 +209,15 @@ public:
 
   Expression* clone() const {return new NodeExpression(node);}
 
-  double eval(const Node* this_node, const NetworkState& network_state) const {
+  double eval(const Node*, const NetworkState& network_state) const {
     return (double)node->getNodeState(network_state);
   }
 
-  double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop_state) const {
+  double eval(const Node*, const NetworkState& network_state, const PopNetworkState&) const {
     return (double)node->getNodeState(network_state);
   }
   
-  double eval(const NetworkState& network_state, double time)
+  double eval(const NetworkState& network_state, double)
   {
     return (double)node->getNodeState(network_state);
   }
@@ -239,7 +239,7 @@ public:
   }
 
 #ifdef SBML_COMPAT
-  ASTNode* writeSBML(LogicalExprGenContext& genctx) const {
+  ASTNode* writeSBML(LogicalExprGenContext&) const {
     ASTNode* equ = new ASTNode(AST_RELATIONAL_EQ);
     ASTNode* a_node = new ASTNode(AST_NAME);
     a_node->setId(node->getLabel());
@@ -254,9 +254,7 @@ public:
 #endif
   void generateLogicalExpression(LogicalExprGenContext& genctx) const;
 
-  ~NodeExpression() {
-    //delete node;
-  }
+  ~NodeExpression() {}
 };
 
 
@@ -273,20 +271,20 @@ public:
 #endif
   
 
-  double eval(const Node* this_node, const NetworkState& network_state) const {
+  double eval(const Node*, const NetworkState& network_state) const {
     return state.getState() == network_state.getState() ? 1.0 : 0.0;
   }
 
-  double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop_state) const {
+  double eval(const Node*, const NetworkState& network_state, const PopNetworkState&) const {
     return state.getState() == network_state.getState() ? 1.0 : 0.0;
   }
   
-  double eval(const NetworkState& network_state, double time)
+  double eval(const NetworkState& network_state, double)
   {
     return state.getState() == network_state.getState() ? 1.0 : 0.0;
   }
   
-  bool hasCycle(Node* node) const {
+  bool hasCycle(Node*) const {
     return false;
   }
 
@@ -304,7 +302,7 @@ public:
     return vec;
   }
   
-  void generateLogicalExpression(LogicalExprGenContext& genctx) const {}
+  void generateLogicalExpression(LogicalExprGenContext&) const {}
 
   ~StateExpression() {
   }
@@ -316,17 +314,17 @@ class PopExpression : public Expression {
 public:
   PopExpression(Expression* expr) : expr(expr) { }
 
-  Expression* clone() const {return new PopExpression(expr);}
+  Expression* clone() const {return new PopExpression(expr->clone());}
 
-  double eval(const Node* this_node, const NetworkState& network_state) const {
+  double eval(const Node*, const NetworkState&) const {
     return 0.;
   }
 
-  double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop_state) const {
+  double eval(const Node*, const NetworkState&, const PopNetworkState& pop_state) const {
     return (double) pop_state.count(expr);
   }
   
-  bool hasCycle(Node* node) const {
+  bool hasCycle(Node*) const {
     return false;
   }
 
@@ -747,15 +745,15 @@ public:
 
   Expression* clone() const {return new ConstantExpression(value);}
 
-  double eval(const Node* this_node, const NetworkState& network_state) const {
+  double eval(const Node*, const NetworkState&) const {
     return value;
   }
   
-  double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop) const {
+  double eval(const Node*, const NetworkState&, const PopNetworkState&) const {
     return value;
   }
 
-  bool hasCycle(Node* node) const {
+  bool hasCycle(Node*) const {
     return false;
   }
 
@@ -789,7 +787,7 @@ public:
 
   Expression* clone() const {return new SymbolExpression(symbol_table, symbol);}
 
-  double eval(const Node* this_node, const NetworkState& network_state) const {
+  double eval(const Node*, const NetworkState&) const {
     if (!value_set) {
       value = symbol_table->getSymbolValue(symbol);
       value_set = true;
@@ -797,7 +795,7 @@ public:
     return value;
   }
   
-  double eval(const Node* this_node, const NetworkState& network_state, const PopNetworkState& pop) const {
+  double eval(const Node*, const NetworkState&, const PopNetworkState&) const {
     if (!value_set) {
       value = symbol_table->getSymbolValue(symbol);
       value_set = true;
@@ -805,7 +803,7 @@ public:
     return value;
   }
 
-  bool hasCycle(Node* node) const {
+  bool hasCycle(Node*) const {
     return false;
   }
 
@@ -868,7 +866,7 @@ public:
     throw BNException("invalid use of alias attribute @" + identifier + " in unknown node");
   }
 
-  bool hasCycle(Node* node) const {
+  bool hasCycle(Node*) const {
     return false;
   }
 

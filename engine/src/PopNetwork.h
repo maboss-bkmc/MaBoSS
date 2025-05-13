@@ -153,7 +153,7 @@ class PopNetwork : public Network {
   // Evaluation of the death rate according to the state
   double getDeathRate(const NetworkState& state, const PopNetworkState& pop) const;
   
-  std::vector<PopIStateGroup*>* getPopIStateGroup() { return pop_istate_group_list; }
+  std::vector<PopIStateGroup*>* getPopIStateGroup() const { return pop_istate_group_list; }
   
   std::string toString() const {
     std::ostringstream ostr;

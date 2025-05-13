@@ -102,7 +102,7 @@ public:
   ~FinalStateSimulationEngine();
 
   const STATE_MAP<Node*, double> getFinalNodes() const;
-  const double getFinalTime() const { return max_time; }
+  double getFinalTime() const { return max_time; }
 
 #ifdef PYTHON_API
   PyObject* getNumpyLastStatesDists() const;

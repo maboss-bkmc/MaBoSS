@@ -82,7 +82,6 @@ class RandomGenerator {
 
  public:
 
-  static void resetGeneratedNumberCount() {generated_number_count = 0;}
   virtual std::string getName() const = 0;
 
   virtual bool isPseudoRandom() const = 0;
@@ -91,14 +90,15 @@ class RandomGenerator {
 
   virtual double generate() = 0;
 
-  virtual void setSeed(int seed) { }
-
-  static size_t getGeneratedNumberCount() {return generated_number_count;}
-
+  virtual void setSeed(int seed) = 0;
+  
   virtual ~RandomGenerator() {}
+  
+  static void resetGeneratedNumberCount() {generated_number_count = 0;}
+  static size_t getGeneratedNumberCount() {return generated_number_count;}
 };
 
-class Rand48RandomGenerator: public RandomGenerator
+class Rand48RandomGenerator final: public RandomGenerator
 {
 
 #define RAND48_N	16
@@ -193,7 +193,7 @@ public:
   }
 };
 
-class GLibCRandomGenerator : public RandomGenerator
+class GLibCRandomGenerator final : public RandomGenerator
 {
   // Info on this PRNG : https://www.mscs.dal.ca/~selinger/random/
   // rand() call simplification : https://stackoverflow.com/a/26630526
@@ -277,7 +277,7 @@ class GLibCRandomGenerator : public RandomGenerator
 
 };
 
-class MT19937RandomGenerator : public RandomGenerator
+class MT19937RandomGenerator final : public RandomGenerator
 {
   // Info on this PRNG : http://www.cplusplus.com/reference/random/mt19937/
 
@@ -330,7 +330,7 @@ class MT19937RandomGenerator : public RandomGenerator
 
 };
 
-class PhysicalRandomGenerator : public RandomGenerator {
+class PhysicalRandomGenerator final : public RandomGenerator {
 #ifndef _MSC_VER
   int fd;
 #else
@@ -384,7 +384,7 @@ unsigned int result;
 #endif
   }
 
-  virtual double generate() {
+  double generate() {
     double result = ((double)generateUInt32())/~0U; // fixed this 2014-10-17, but I think I added /2 because it did not work
 #ifdef RANDOM_TRACE
     std::cout << result << '\n';
@@ -392,6 +392,8 @@ unsigned int result;
     return result;
   }
 
+  void setSeed(int) {}
+  
   ~PhysicalRandomGenerator() {
 #ifndef _MSC_VER 
     if (fd >= 0) {

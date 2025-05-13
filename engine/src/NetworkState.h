@@ -96,7 +96,7 @@ public:
 #endif
   }
   
-  NetworkState applyMask(const NetworkState& mask, std::map<unsigned int, unsigned int>& scale) const {
+  NetworkState applyMask(const NetworkState& mask, std::map<unsigned int, unsigned int>&) const {
 #ifdef USE_DYNAMIC_BITSET
     return NetworkState(state & mask.getState(), 1);
 #else
@@ -766,7 +766,7 @@ class PopSize {
 public:
   PopSize(unsigned int _size) : size(_size) { }
   PopSize() : size(0) { }
-  PopSize(const PopSize& p, int copy ) {
+  PopSize(const PopSize& p, int) {
     this->size = p.getSize();
   }
   void set() {size = 0;}
@@ -774,16 +774,16 @@ public:
   static bool isPopState() {return false;}
   
   // & operator for applying the mask
-  PopSize operator&(const NetworkState_Impl& mask) const { 
+  PopSize operator&(const NetworkState_Impl&) const { 
     return PopSize(size); 
   }
   
   // & operator for applying the mask
-  PopSize operator&(const NetworkState& mask) const { 
+  PopSize operator&(const NetworkState&) const { 
     return PopSize(size);
   }
   
-  PopSize applyMask(const PopSize& mask, std::map<unsigned int, unsigned int>& scale) const {
+  PopSize applyMask(const PopSize&, std::map<unsigned int, unsigned int>&) const {
     return PopSize(size);
   }
   
@@ -795,14 +795,14 @@ public:
     return size < pop_size.getSize();
   }
   
-  int hamming(Network* network, const NetworkState& state) const {
+  int hamming(Network*, const NetworkState&) const {
     return 0;
   }
   std::set<NetworkState_Impl>* getNetworkStates() const {
     return new std::set<NetworkState_Impl>();
   }
   
-  std::string getName(Network * network, const std::string& sep=" -- ") const {
+  std::string getName(Network *, const std::string& sep = " -- ") const {
     return std::to_string(size);
   }
   

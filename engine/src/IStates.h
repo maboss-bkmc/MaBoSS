@@ -52,6 +52,7 @@
 
 #include <vector>
 
+#include "BNException.h"
 #include "NetworkState.h"
 #include "Expressions.h"
 
@@ -116,7 +117,7 @@ public:
   std::vector<const Node*>* nodes;
   std::vector<PopProbaIState*>* proba_istates;
   
-  PopIStateGroup(PopNetwork* network, std::vector<const Node*>* nodes, std::vector<PopProbaIState*>* proba_istates, std::string& error_msg) : nodes(nodes), proba_istates(proba_istates) 
+  PopIStateGroup(PopNetwork* network, std::vector<const Node*>* nodes, std::vector<PopProbaIState*>* proba_istates) : nodes(nodes), proba_istates(proba_istates) 
   {
     epilogue(network); 
   }
@@ -188,17 +189,14 @@ public:
     void normalizeProbaValue(double proba_sum) {proba_value /= proba_sum;}
   };
   
-  IStateGroup(Network* network, std::vector<const Node*>* nodes, std::vector<ProbaIState*>* proba_istates, std::string& error_msg) : nodes(nodes), proba_istates(proba_istates) {
+  IStateGroup(Network* network, std::vector<const Node*>* nodes, std::vector<ProbaIState*>* proba_istates) : nodes(nodes), proba_istates(proba_istates) {
     is_random = false;
     size_t node_size = nodes->size();
     for (auto * proba_istate : *proba_istates)
     {
-      if (proba_istate->getStateValueList()->size() != node_size) {
-        std::ostringstream ostr;
-        ostr << "size inconsistency in istate expression: got " <<  proba_istate->getStateValueList()->size() << " states, has " << node_size << " nodes";
-        error_msg = ostr.str();
-        return;
-      }
+      if (proba_istate->getStateValueList()->size() != node_size)
+        throw BNException("size inconsistency in istate expression: got " + std::to_string(proba_istate->getStateValueList()->size()) + " states, has " + std::to_string(node_size) + " nodes");
+      
     }
     epilogue(network);
  }
@@ -319,8 +317,7 @@ public:
     }
     
     
-    std::string message = "";
-    new IStateGroup(network, nodes, new_proba_istates, message);
+    new IStateGroup(network, nodes, new_proba_istates);
   }
   
   static void setNodeProba(Network * network, Node * node, double value) {
@@ -341,9 +338,8 @@ public:
       new_proba_istates->push_back(new ProbaIState(value, 1.0));
     }
 
-    std::string message = "";
 
-    new IStateGroup(network, new_nodes, new_proba_istates, message);
+    new IStateGroup(network, new_nodes, new_proba_istates);
   }
 
 static void setInitialState(Network * network, NetworkState * state) {

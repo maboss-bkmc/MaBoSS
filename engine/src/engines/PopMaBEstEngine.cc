@@ -342,7 +342,7 @@ void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, Cumulator
           for (auto division_rule: pop_network->getDivisionRules()) {
             
             // Compute the transition rate of cell division from MaBoSS language, ρS→division
-            double division_rate = division_rule->getRate(pop.first, pop_network_state);
+            double division_rate = division_rule->getRate(t_network_state, pop_network_state);
             
             // if ρS→division > 0 then
             if (division_rate > 0){
@@ -358,10 +358,10 @@ void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, Cumulator
 #endif
               new_pop_network_state.decr(t_network_state);
               
-              NetworkState state_daughter1 = division_rule->applyRules(DivisionRule::DAUGHTER_1, pop.first, pop_network_state);
+              NetworkState state_daughter1 = division_rule->applyRules(DivisionRule::DAUGHTER_1, t_network_state, pop_network_state);
               new_pop_network_state.incr(state_daughter1);
               
-              NetworkState state_daughter2 = division_rule->applyRules(DivisionRule::DAUGHTER_2, pop.first, pop_network_state);
+              NetworkState state_daughter2 = division_rule->applyRules(DivisionRule::DAUGHTER_2, t_network_state, pop_network_state);
               new_pop_network_state.incr(state_daughter2);
               
               // Compute the transition rate ρψ→ψ' = ψ(S)ρS→division
@@ -373,7 +373,7 @@ void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, Cumulator
               
             }
           }
-          double rate_death = pop_network->getDeathRate(pop.first, pop_network_state);
+          double rate_death = pop_network->getDeathRate(t_network_state, pop_network_state);
           if (rate_death > 0){
             rate_death *= pop.second;
             total_rate += rate_death;

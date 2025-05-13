@@ -102,7 +102,8 @@ public:
   }
 
   int getMaxTickIndex() const {return merged_cumulator->getMaxTickIndex();} 
-  const double getFinalTime() const;
+  double getFinalTime() const { return merged_cumulator->getFinalTime(); }
+
 
   void displayStatDist(StatDistDisplayer* output_statdist) const;
   void displayProbTraj(ProbTrajDisplayer<NetworkState>* displayer) const;
