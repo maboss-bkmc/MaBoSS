@@ -232,7 +232,14 @@ void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, Cumulator
 {
   const std::vector<Node *> &nodes = pop_network->getNodes();
   PopNetworkState pop_network_state;
-
+  Expression* custom_pop_output;
+  if (runconfig->hasCustomPopOutput())
+  {
+    custom_pop_output = runconfig->getCustomPopOutputExpression()->clone();
+  } else {
+    custom_pop_output = NULL;
+  }
+  
   RandomGenerator *random_generator = randgen_factory->generateRandomGenerator(seed);
   for (unsigned int nn = 0; nn < sample_count_thread; ++nn)
   {
@@ -450,7 +457,7 @@ void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, Cumulator
 #else
         PopNetworkState t_popstate(pop_network_state & cumulator->getOutputMask().getMap().begin()->first);
 #endif
-        double eval = runconfig->getCustomPopOutputExpression()->eval(NULL, s, t_popstate);
+        double eval = custom_pop_output->eval(NULL, s, t_popstate);
         if (eval >= 0){
           PopSize pop_size((unsigned int) eval);
           custom_cumulator->cumul(pop_size, tm, TH); 
@@ -488,6 +495,10 @@ void PopMaBEstEngine::runThread(Cumulator<PopNetworkState> *cumulator, Cumulator
 
   }
   delete random_generator;
+  if (runconfig->hasCustomPopOutput())
+  {
+    delete custom_pop_output;
+  }
 }
 
 void PopMaBEstEngine::run(std::ostream *output_traj)
