@@ -6,7 +6,9 @@ set(_PROJECT_DEPENDENCY_DIR ${_UPPER_PROJECT_NAME}_DEPENDENCY_DIR)
 
 find_library(LIBXML_LIBRARY
     NAMES  libxml2s xml2s libxml2.lib xml2
-    PATHS ${${_PROJECT_DEPENDENCY_DIR}}/lib64
+    PATHS $ENV{LIBXML_DIR}/lib
+          $ENV{LIBXML_DIR}/lib64
+          ${${_PROJECT_DEPENDENCY_DIR}}/lib64
           ${${_PROJECT_DEPENDENCY_DIR}}/lib
     NO_DEFAULT_PATH
 )
@@ -15,7 +17,7 @@ find_library(LIBXML_LIBRARY
 if (NOT LIBXML_LIBRARY)
     find_library(LIBXML_LIBRARY
         NAMES  libxml2s xml2s libxml2.lib xml2
-        PATHS /usr/lib /usr/local/lib
+        PATHS /usr/lib /usr/local/lib $ENV{LIBXML_DIR}/lib
               ${${_PROJECT_DEPENDENCY_DIR}}/lib
         DOC "The file name of the libxml2 library."
     )
@@ -23,7 +25,9 @@ endif()
 
 find_path(LIBXML_INCLUDE_DIR
     NAMES libxml/parser.h
-    PATHS ${${_PROJECT_DEPENDENCY_DIR}}/include
+    PATHS $ENV{LIBXML_DIR}/include
+          $ENV{LIBXML_DIR}/include/libxml2
+          ${${_PROJECT_DEPENDENCY_DIR}}/include
           ${${_PROJECT_DEPENDENCY_DIR}}/include/libxml2
     NO_DEFAULT_PATH
 )

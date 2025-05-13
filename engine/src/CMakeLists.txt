@@ -23,10 +23,6 @@ list(APPEND src_files
   ${CMAKE_CURRENT_LIST_DIR}/RandomGenerator.cc
   ${CMAKE_CURRENT_LIST_DIR}/RunConfig.cc
   ${CMAKE_CURRENT_LIST_DIR}/Utils.cc
-)
+  ${CMAKE_CURRENT_LIST_DIR}/MBDynBitset.cc
 
-if (NOT MSVC)
-  list(APPEND src_files
-    ${CMAKE_CURRENT_LIST_DIR}/MBDynBitset.cc
-  )
-endif()
+)

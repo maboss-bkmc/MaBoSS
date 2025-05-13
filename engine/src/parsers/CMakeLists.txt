@@ -45,3 +45,8 @@ if(BISON_FOUND)
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${MABOSS_LIBNAME}.dir/engine/src/parsers/RunConfigGrammar.cc
     )
 ENDIF(BISON_FOUND)
+
+list(APPEND src_files 
+    ${BISON_ctbndl_parser_OUTPUTS} 
+    ${BISON_rc_parser_OUTPUTS}
+)
