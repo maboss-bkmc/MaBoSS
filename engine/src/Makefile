@@ -59,7 +59,7 @@ endif
 
 ifdef SBML_COMPAT
 SBML_FLAG = -DSBML_COMPAT
-SBML_LIB = -lsbml
+SBML_LIB = -lsbml -lxml2 -lbz2
 SBML_LIB_OBJS := sbml/SBMLParser$(INFIX).o
 ifeq ($(UNAME_S),Darwin)
 SBML_LIB_STATIC = -lsbml-static -lxml2
@@ -71,8 +71,12 @@ endif
 ifdef SEDML_COMPAT
 LIBXML2_FLAG = $(shell xml2-config --cflags)
 SEDML_FLAG = -DSEDML_COMPAT $(LIBXML2_FLAG)
-SEDML_LIB = -lsedml-static -lnuml
-SBML_LIB = -lsbml-static -lxml2 -lbz2 -lz
+SEDML_LIB = -lsedml -lnuml
+ifeq ($(UNAME_S),Darwin)
+SEDML_LIB_STATIC = -lsedml-static -lnuml-static
+else
+SEDML_LIB_STATIC = -static -lsedml-static -lnuml-static
+endif
 CXX_VERSION = c++17
 
 SEDML_LIB_SRC := sedml/XMLPatcher.cc
@@ -93,13 +97,9 @@ MABOSS_SERVER := MaBoSS$(INFIX)-server
 MABOSS_CLIENT := MaBoSS-client
 
 MABOSS_LIBNAME = MaBoSS$(INFIX)
-POPMABOSS_LIBNAME = PopMaBoSS$(INFIX)
 
 MABOSS_LIB = lib$(MABOSS_LIBNAME).so
 MABOSS_ALIB = lib$(MABOSS_LIBNAME)-static.a
-POPMABOSS_LIB = lib$(POPMABOSS_LIBNAME).so
-POPMABOSS_ALIB = lib$(POPMABOSS_LIBNAME)-static.a
-
 
 EXTRA_FLAGS = -std=$(CXX_VERSION) -Wpedantic
 
@@ -138,17 +138,17 @@ ifndef BISON
 BISON = bison
 endif 
 
-
 CHECK_FLEX  = $(FLEX) --version > /dev/null
 CHECK_BISON = $(BISON) --version > /dev/null
-DISPLAYERS_SRC := displayers/StatDistDisplayer.cc displayers/FinalStateDisplayer.cc displayers/FixedPointDisplayer.cc displayers/CustomPopProbTrajDisplayer.cc
-DISPLAYERS_OBJS := displayers/StatDistDisplayer$(INFIX).o displayers/FinalStateDisplayer$(INFIX).o displayers/FixedPointDisplayer$(INFIX).o displayers/CustomPopProbTrajDisplayer$(INFIX).o 
-CORE_LIB_SRC := parsers/BooleanGrammar.cc parsers/RunConfigGrammar.cc Function.cc BuiltinFunctions.cc RunConfig.cc LogicalExprGen.cc Utils.cc MBDynBitset.cc RandomGenerator.cc ObservedGraph.cc
-CORE_LIB_OBJS := BNException$(INFIX).o IStates$(INFIX).o Node$(INFIX).o Network$(INFIX).o PopNetwork$(INFIX).o NetworkState$(INFIX).o Expressions$(INFIX).o Symbols$(INFIX).o parsers/BooleanGrammar$(INFIX).o parsers/RunConfigGrammar$(INFIX).o Function$(INFIX).o BuiltinFunctions$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o Utils$(INFIX).o MBDynBitset$(INFIX).o RandomGenerator$(INFIX).o ObservedGraph$(INFIX).o
-POP_LIB_SRC := engines/PopMaBEstEngine.cc engines/MetaEngine.cc
-POP_LIB_OBJS := engines/PopMaBEstEngine$(INFIX).o engines/MetaEngine.o
-LIB_SRC := engines/FinalStateSimulationEngine.cc engines/StochasticSimulationEngine.cc engines/MetaEngine.cc engines/FixedPointEngine.cc engines/ProbTrajEngine.cc engines/MaBEstEngine.cc engines/EnsembleEngine.cc ProbaDist.cc 
-LIB_OBJS := engines/FinalStateSimulationEngine$(INFIX).o engines/StochasticSimulationEngine$(INFIX).o engines/MetaEngine$(INFIX).o engines/FixedPointEngine$(INFIX).o engines/ProbTrajEngine$(INFIX).o engines/MaBEstEngine$(INFIX).o engines/EnsembleEngine$(INFIX).o ProbaDist$(INFIX).o 
+
+LIB_OBJS := \
+	displayers/StatDistDisplayer$(INFIX).o displayers/FinalStateDisplayer$(INFIX).o displayers/FixedPointDisplayer$(INFIX).o displayers/CustomPopProbTrajDisplayer$(INFIX).o \
+	parsers/BooleanGrammar$(INFIX).o parsers/RunConfigGrammar$(INFIX).o \
+	BNException$(INFIX).o IStates$(INFIX).o Node$(INFIX).o Network$(INFIX).o PopNetwork$(INFIX).o NetworkState$(INFIX).o Expressions$(INFIX).o Symbols$(INFIX).o \
+	Function$(INFIX).o BuiltinFunctions$(INFIX).o RunConfig$(INFIX).o LogicalExprGen$(INFIX).o \
+	Utils$(INFIX).o MBDynBitset$(INFIX).o RandomGenerator$(INFIX).o ObservedGraph$(INFIX).o ProbaDist$(INFIX).o \
+	engines/PopMaBEstEngine$(INFIX).o engines/MetaEngine.o engines/FinalStateSimulationEngine$(INFIX).o engines/StochasticSimulationEngine$(INFIX).o \
+	engines/FixedPointEngine$(INFIX).o engines/ProbTrajEngine$(INFIX).o engines/MaBEstEngine$(INFIX).o engines/EnsembleEngine$(INFIX).o 
 
 SERVER_OBJS := rpc/Server$(INFIX).o rpc/DataStreamer$(INFIX).o rpc/MaBoSS-RPC$(INFIX).o
 
@@ -157,10 +157,8 @@ SERVER_OBJS := rpc/Server$(INFIX).o rpc/DataStreamer$(INFIX).o rpc/MaBoSS-RPC$(I
 
 ifdef USE_LIB
 MABOSS_OBJS = $(MABOSS_LIB)
-POPMABOSS_OBJS = $(POPMABOSS_LIB)
 else
-MABOSS_OBJS = $(CORE_LIB_OBJS) ${DISPLAYERS_OBJS} $(LIB_OBJS) $(SBML_LIB_OBJS) $(SEDML_LIB_OBJS) 
-POPMABOSS_OBJS = $(CORE_LIB_OBJS) ${DISPLAYERS_OBJS} $(POP_LIB_OBJS) $(SBML_LIB_OBJS) $(SEDML_LIB_OBJS) 
+MABOSS_OBJS = $(LIB_OBJS) $(SBML_LIB_OBJS) $(SEDML_LIB_OBJS) 
 endif
 
 ifdef FUNC_MODULE
@@ -178,7 +176,7 @@ maboss: $(MABOSS_LIB) $(MABOSS)
 	cp $(MABOSS) ../pub
 
 .PHONY: popmaboss
-popmaboss: $(POPMABOSS_LIB) $(POPMABOSS)
+popmaboss: $(MABOSS_LIB) $(POPMABOSS)
 	mkdir -p ../pub
 	cp $(POPMABOSS) ../pub
 
@@ -201,17 +199,11 @@ else
 all: maboss popmaboss client server
 endif
 
-$(MABOSS_ALIB): $(CORE_LIB_OBJS) $(LIB_OBJS)
+$(MABOSS_ALIB): $(LIB_OBJS) $(SBML_LIB_OBJS) $(SEDML_LIB_OBJS) 
 	ar rcs $(MABOSS_ALIB) $+
 
-$(MABOSS_LIB): $(CORE_LIB_OBJS) $(LIB_OBJS) $(SBML_LIB_OBJS) $(SEDML_LIB_OBJS) 
+$(MABOSS_LIB): $(LIB_OBJS) $(SBML_LIB_OBJS) $(SEDML_LIB_OBJS) 
 	$(CXX) -shared -o $(MABOSS_LIB) $+ -lpthread $(LDL_FLAG) $(LDFLAGS) $(SBML_LIB) $(SEDML_LIB) $(HDF5_LIB)
-
-$(POPMABOSS_ALIB): $(CORE_LIB_OBJS) $(POP_LIB_OBJS)
-	ar rcs $(POPMABOSS_ALIB) $+
-
-$(POPMABOSS_LIB): $(CORE_LIB_OBJS) $(POP_LIB_OBJS)
-	$(CXX) -shared -o $(POPMABOSS_LIB) $+ -lpthread $(LDL_FLAG) $(LDFLAGS) $(SBML_LIB) $(HDF5_LIB)
 
 $(MABOSS): MaBoSS$(INFIX).o $(MABOSS_OBJS)
 ifdef USE_LIB
@@ -220,11 +212,11 @@ else
 	$(CXX) -o $(MABOSS) $+ -lpthread $(LDL_FLAG) $(SBML_LIB) $(SEDML_LIB) $(HDF5_LIB) $(LDFLAGS) $(EXTRA_LDFLAGS)
 endif
 
-$(POPMABOSS): PopMaBoSS$(INFIX).o $(POPMABOSS_OBJS)
+$(POPMABOSS): PopMaBoSS$(INFIX).o $(MABOSS_OBJS)
 ifdef USE_LIB
-	$(CXX) -o $(POPMABOSS) PopMaBoSS$(INFIX).o -l$(POPMABOSS_LIBNAME) -lpthread -L. $(LDL_FLAG) $(SBML_LIB) $(HDF5_LIB) $(LDFLAGS) $(EXTRA_LDFLAGS)
+	$(CXX) -o $(POPMABOSS) PopMaBoSS$(INFIX).o -l$(MABOSS_LIBNAME) -lpthread -L. $(LDL_FLAG) $(SBML_LIB) $(HDF5_LIB) $(LDFLAGS) $(EXTRA_LDFLAGS)
 else
-	$(CXX) -o $(POPMABOSS) $+ -lpthread $(LDL_FLAG) $(SBML_LIB) $(HDF5_LIB) $(LDFLAGS) $(EXTRA_LDFLAGS)
+	$(CXX) -o $(POPMABOSS) $+ -lpthread $(LDL_FLAG) $(SBML_LIB) $(SEDML_LIB) $(HDF5_LIB) $(LDFLAGS) $(EXTRA_LDFLAGS)
 endif
 
 $(MABOSS_SERVER): rpc/MaBoSS$(INFIX)-server.o $(MABOSS_OBJS) $(SERVER_OBJS)
@@ -299,23 +291,21 @@ endif
 package:
 	@(cd ..; dir=`pwd`; cd src; make -j 4 all; version=`./MaBoSS -version | awk '{print $$3}'`; make clean; echo $$version; mkdir -p /tmp/MaBoSS-$$version/package; cd ..; find README src binaries doc examples \( -name Makefile\* -o -name \*.[ylh] -o -name init-config.sh -o -name \*.cc -o -name MaBoSS-RefCard.pdf -o -name DescriptionOutputFile.pdf -o -name MaBoSS -o -name MaBoSS_*n -o -name MaBoSS_*n.exe -o -name MaBoSS*-* -o -name MaBoSS.exe -o -name \*.cfg -o -name \*.bnd -o -name README \) -print | cpio -pdmv /tmp/MaBoSS-$$version; cd /tmp; tar  cvfz /tmp/MaBoSS-$$version.tgz --exclude='*.svn*' MaBoSS-$$version; echo | rm -r /tmp/MaBoSS-$$version; echo; echo "Package: /tmp/MaBoSS-$$version.tgz")
 
-install_lib: $(MABOSS_LIB) $(POPMABOSS_LIB)
+install_lib: $(MABOSS_LIB)
 	mkdir -p ../lib
 	cp $(MABOSS_LIB) ../lib
-	cp $(POPMABOSS_LIB) ../lib
 	mkdir -p ../include/
 	cp *.h ../include/
 
-install_alib: $(MABOSS_ALIB) $(POPMABOSS_ALIB)
+install_alib: $(MABOSS_ALIB)
 	mkdir -p ../lib
 	cp $(MABOSS_ALIB) ../lib
-	cp $(POPMABOSS_ALIB) ../lib
 	mkdir -p ../include/
 	cp *.h ../include/
 	
-install_static: MaBoSS$(INFIX).o $(MABOSS_OBJS) PopMaBoSS$(INFIX).o $(POPMABOSS_OBJS)
+install_static: MaBoSS$(INFIX).o $(MABOSS_OBJS) PopMaBoSS$(INFIX).o $(MABOSS_OBJS)
 	$(CXX) -o $(MABOSS) MaBoSS$(INFIX).o $(MABOSS_OBJS) $(SBML_LIB_STATIC) $(STATIC_LIBS) -lpthread $(LDL_FLAG) -L.  $(LDFLAGS) $(EXTRA_LDFLAGS)
-	$(CXX) -o $(POPMABOSS) PopMaBoSS$(INFIX).o $(POPMABOSS_OBJS) $(SBML_LIB_STATIC) $(STATIC_LIBS) -lpthread $(LDL_FLAG) -L. $(LDFLAGS) $(EXTRA_LDFLAGS)
+	$(CXX) -o $(POPMABOSS) PopMaBoSS$(INFIX).o $(MABOSS_OBJS) $(SBML_LIB_STATIC) $(STATIC_LIBS) -lpthread $(LDL_FLAG) -L. $(LDFLAGS) $(EXTRA_LDFLAGS)
 	mkdir -p ../pub
 	cp $(MABOSS) ../pub
 	cp $(POPMABOSS) ../pub
