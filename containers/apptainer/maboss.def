@@ -1,4 +1,3 @@
-#include <sbml/SBMLReader.h>
 Bootstrap: docker
 from: ubuntu:24.04
 
@@ -24,18 +23,20 @@ from: ubuntu:24.04
         -DWITH_ZLIB=ON \
         -DWITH_ICONV=ON \
         -DWITH_BZIP2=ON \
-        -DLIBXML2_WITH_ZLIB=ON
+        -DLIBXML2_WITH_ZLIB=ON \
+        -DBUILD_SHARED_LIBS=ON 
     cmake --build build --parallel 16
     cmake --install build
     
     cd /opt/libSEDML/submodules/libSBML
     git checkout 7c26715
-    cmake -B build -S . -DCMAKE_BUILD_TYPE=Release \
+    cmake -B build -S . \
+        -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_INSTALL_PREFIX=/usr \
         -DWITH_STABLE_PACKAGES=ON \
         -DWITH_CPP_NAMESPACE=ON \
         -DWITH_ZLIB=ON \
-        -DLIBSBML_SKIP_SHARED_LIBRARY=ON
+        -DBUILD_SHARED_LIBS=ON 
     cmake --build build --parallel 16
     cmake --install build
 
@@ -44,7 +45,8 @@ from: ubuntu:24.04
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_INSTALL_PREFIX=/usr \
         -DWITH_CPP_NAMESPACE=ON \
-        -DLIBNUML_SKIP_SHARED_LIBRARY=ON
+        -DBUILD_SHARED_LIBS=ON \
+        -DLIBNUML_SKIP_STATIC_LIBRARY=ON
     cmake --build build --parallel 16
     cmake --install build
     
@@ -53,9 +55,13 @@ from: ubuntu:24.04
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_INSTALL_PREFIX=/usr \
         -DWITH_CPP_NAMESPACE=ON \
-        -DEXTRA_LIBS="/usr/lib/x86_64-linux-gnu/libxml2.a;/usr/lib/libbz2.a;/lib/libzlib.a" \
+        -DFIND_LIBNUML=OFF \
+        -DLIBNUML_LIBRARY=/usr/lib/x86_64-linux-gnu/libnuml.so \
+        -DLIBNUML_INCLUDE_DIR=/usr/include \
+        -DEXTRA_LIBS="xml2;bz2;zlib" \
         -DBUILD_TESTS=OFF \
-        -DLIBSEDML_SKIP_SHARED_LIBRARY=ON
+        -DBUILD_SHARED_LIBS=ON \
+        -DLIBSEDML_SKIP_STATIC_LIBRARY=ON 
     cmake --build build --parallel 16
     cmake --install build
 
@@ -105,6 +111,15 @@ from: ubuntu:24.04
     cmake --build build --parallel 16
     cmake --install build --component executables 
 
+    cmake -B build -S . \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/usr/ \
+        -DDYNBITSET=ON -DDYNBITSET_STD_ALLOC=ON \
+        -DSEDML=1 -DSBML=1 \
+        -DBUILD_SERVER=1
+    cmake --build build --parallel 16
+    cmake --install build --component executables 
+
     rm -fr /opt/libSEDML
     rm -fr /opt/MaBoSS/
 
@@ -114,4 +129,6 @@ from: ubuntu:24.04
     & MaBoSS_128n-server -q --host 0.0.0.0 --port 7778 \
     & MaBoSS_256n-server -q --host 0.0.0.0 --port 7779 \
     & MaBoSS_512n-server -q --host 0.0.0.0 --port 7780 \
-    & MaBoSS_1024n-server -q --host 0.0.0.0 --port 7781
+    & MaBoSS_1024n-server -q --host 0.0.0.0 --port 7781 \
+    & MaBoSS_dn-server -q --host 0.0.0.0 --port 7782
+    
