@@ -113,7 +113,7 @@ jobs:
           -DCMAKE_CXX_COMPILER=${CXX} \
           -DBUILD_SERVER=1 -DBUILD_CLIENT=1 \
           -DSBML=1 
-        cmake --build build --parallel ${{ env.CPU_COUNT }}
+        cmake --build build --parallel ${{ env.CPU_COUNT }} --verbose
         cmake --install build --component executables 
         
         cmake -B build -S . \
@@ -123,7 +123,7 @@ jobs:
           -DBUILD_SERVER=1 \
           -DMAXNODES=128 \
           -DSBML=1
-        cmake --build build --parallel ${{ env.CPU_COUNT }}
+        cmake --build build --parallel ${{ env.CPU_COUNT }} --verbose
         cmake --install build --component executables 
         
     - name: Test MaBoSS
@@ -193,7 +193,7 @@ jobs:
   maboss_binary_macos:
     name: MaBoSS MacOSX x86_64 binary
     runs-on: macos-13
-    needs: [maboss_macos, maboss_llvm_macos]
+    needs: [maboss_macos, maboss_llvm_macos, maboss_macos_cmake]
     env:
       CC: clang
       CXX: clang++
@@ -267,7 +267,7 @@ jobs:
         
   maboss_binary_macos_m1:
     name: MaBoSS MacOSX arm64 binary
-    needs: [maboss_macos, maboss_llvm_macos]
+    needs: [maboss_macos, maboss_llvm_macos, maboss_macos_cmake]
     runs-on: macos-14
     env:
       CC: clang
@@ -342,7 +342,7 @@ jobs:
         
   maboss_binary_macos_universal:
     name: MaBoSS MacOSX universal binary
-    needs: [maboss_binary_macos, maboss_binary_macos_m1]
+    needs: [maboss_macos, maboss_llvm_macos, maboss_macos_cmake]
     runs-on: macos-13
 
     steps:
@@ -402,7 +402,7 @@ jobs:
   maboss_library_macos:
     name: Building MaBoSS osx library
     runs-on: macos-13
-    needs: [maboss_macos, maboss_llvm_macos]
+    needs: [maboss_macos, maboss_llvm_macos, maboss_macos_cmake]
     env: 
       CPU_COUNT: 4
       MACOSX_DEPLOYMENT_TARGET: 10.13 
@@ -451,7 +451,7 @@ jobs:
   maboss_library_macos_m1:
     name: Building MaBoSS osx library for arm64 
     runs-on: macos-14
-    needs: [maboss_macos, maboss_llvm_macos]
+    needs: [maboss_macos, maboss_llvm_macos, maboss_macos_cmake]
     env: 
       CPU_COUNT: 3
       MACOSX_DEPLOYMENT_TARGET: 11.0
@@ -502,7 +502,7 @@ jobs:
   maboss_library_sbml_macos:
     name: Building MaBoSS osx library with libSBML
     runs-on: macos-13
-    needs: [maboss_macos, maboss_llvm_macos]
+    needs: [maboss_macos, maboss_llvm_macos, maboss_macos_cmake]
     env:  
       CC: gcc-12
       CXX: g++-12
@@ -580,13 +580,13 @@ jobs:
       
   conda_maboss_macosx:
     name: Build Conda MaBoSS package
-    needs: [maboss_macos, maboss_llvm_macos]
+    needs: [maboss_macos, maboss_llvm_macos, maboss_macos_cmake]
     strategy:
       fail-fast: false
       matrix:
         repo: [
-          {id: 0, name: "defaults"}, 
-          {id: 1, name: "conda-forge"}
+          {id: 0, name: "defaults", libsbml_package: "libsbml-plus-packages"}, 
+          {id: 1, name: "conda-forge", libsbml_package: "libsbml"}
         ]
     runs-on: macos-13
     defaults:
@@ -620,8 +620,11 @@ jobs:
         echo "  - /opt/MacOSX10.13.sdk        # [osx]" >> ~/.conda/conda_build_config.yaml
         
     - name: Build MaBoSS Anaconda package
+      env: 
+        CUSTOM_BUILD_NUMBER: ${{ matrix.repo.id }}
+        LIBSBML_PACKAGE: ${{ matrix.repo.libsbml_package }}
       run: |
-        CUSTOM_BUILD_NUMBER=${{ matrix.repo.id }} conda build -c ${{ matrix.repo.name }} -c vincent-noel conda/maboss
+        conda build -c ${{ matrix.repo.name }} -c vincent-noel conda/maboss
     
     - name: Upload MaBoSS to Anaconda cloud on vincent-noel
       run: |   
@@ -635,13 +638,13 @@ jobs:
 
   conda_maboss_macosx_m1:
     name: Build Conda MaBoSS package for arm64
-    needs: [maboss_macos, maboss_llvm_macos]
+    needs: [maboss_macos, maboss_llvm_macos, maboss_macos_cmake]
     strategy:
       fail-fast: false
       matrix:
         repo: [
-          {id: 0, name: "defaults"}, 
-          {id: 1, name: "conda-forge"}
+          {id: 0, name: "defaults", libsbml_package: "libsbml-plus-packages"}, 
+          {id: 1, name: "conda-forge", libsbml_package: "libsbml"}
         ]
     runs-on: macos-14
     defaults:
@@ -675,8 +678,11 @@ jobs:
         echo "  - /opt/MacOSX11.0.sdk        # [osx]" >> ~/.conda/conda_build_config.yaml
         
     - name: Build MaBoSS Anaconda package
+      env: 
+        CUSTOM_BUILD_NUMBER: ${{ matrix.repo.id }}
+        LIBSBML_PACKAGE: ${{ matrix.repo.libsbml_package }}
       run: |
-        CUSTOM_BUILD_NUMBER=${{ matrix.repo.id }} conda build -c ${{ matrix.repo.name }} -c vincent-noel conda/maboss
+        conda build -c ${{ matrix.repo.name }} -c vincent-noel conda/maboss
     
     - name: Upload MaBoSS to Anaconda cloud on vincent-noel
       run: |   

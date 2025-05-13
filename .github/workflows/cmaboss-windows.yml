@@ -7,14 +7,93 @@ on:
     types: [created]
 
 jobs:
+  build_wheels_windows:
+    name: Build windows wheels
+    runs-on: windows-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        build: [
+          {name: "win32", pattern: "cp*-win32", arch: "x86", triplet: "x86-windows"},
+          {name: "win64", pattern: "cp*-win_amd64", arch: "amd64", triplet: "x64-windows"}
+        ]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12' 
+
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.build.arch }}
+    
+      - name: Install cibuildwheel
+        run: python -m pip install cibuildwheel numpy twine
+
+      - name: Build wheels  
+        env: 
+          CC: cl.exe
+          CXX: cl.exe
+          LIBSBML_DIR: "C:/libsbml/"
+          LIBXML_DIR: "C:/vcpkg/installed/${{ matrix.build.triplet}}/"
+          CMAKE_BUILD_PARALLEL_LEVEL: 1
+          CIBW_BUILD: ${{ matrix.build.pattern }}
+          CIBW_BEFORE_ALL: >
+            vcpkg install libxml2:${{ matrix.build.triplet}} &&
+            choco install winflexbison3 &&
+            set LIBXML_LIBRARY="C:/vcpkg/installed/${{ matrix.build.triplet}}/lib/libxml2.lib" &&
+            set LIBXML_INCLUDE_DIR="C:/vcpkg/installed/${{ matrix.build.triplet}}/include/" &&
+            set LIBBZ_LIBRARY="C:/vcpkg/installed/${{ matrix.build.triplet}}/lib/libbz2.lib" &&
+            set LIBBZ_INCLUDE_DIR="C:/vcpkg/installed/${{ matrix.build.triplet}}/include/" &&
+            set ZLIB_LIBRARY="C:/vcpkg/installed/${{ matrix.build.triplet}}/lib/zlib.lib" &&
+            set ZLIB_INCLUDE_DIR="C:/vcpkg/installed/${{ matrix.build.triplet}}/include/" &&
+            set LIBSBML_INSTALL_PREFIX="C:/libsbml/" &&
+            .\\scripts\build_libsbml.bat &&
+            .\\scripts\install_libsbml.bat
+          CIBW_SKIP: cp36-* cp37-* pp*
+          CIBW_BUILD_VERBOSITY: 1
+          CIBW_BEFORE_BUILD: > 
+            pip install delvewheel
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >
+            delvewheel repair -w {dest_dir} {wheel} --add-path C:/vcpkg/installed/${{ matrix.build.triplet}}/bin/;C:/libsbml/bin/
+          CIBW_ENVIRONMENT_PASS_WINDOWS: SBML_COMPAT
+          CIBW_TEST_REQUIRES: pandas
+          CIBW_TEST_COMMAND: >
+            cd /d {project}/engine/tests &&
+            python -m unittest test.py &&
+            python -m unittest test_128n.py
+        run: |
+          python -m cibuildwheel --output-dir wheelhouse engine/python
+      
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels_${{ matrix.build.name }}
+          path: wheelhouse/*.whl
+          
+      - name: Upload cMaBoSS to test Pypi
+        if: github.repository == 'sysbio-curie/MaBoSS' && github.ref == 'refs/heads/master'
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TEST_TOKEN }}
+        run: |
+          python -m twine upload --repository testpypi --skip-existing wheelhouse/cmaboss*
+          
+      - name: Upload cMaBoSS to Pypi
+        if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          python -m twine upload --skip-existing wheelhouse/cmaboss*
+        
   cmaboss_conda_defaults:
     name: Build cMaBoSS Anaconda package
-    runs-on: windows-2022
+    runs-on: windows-2019
 
     strategy:
       fail-fast: false
       matrix:
-        version: [{python: 3.8, numpy: 1.24}, {python: 3.9, numpy: "2.0"}, {python: 3.10, numpy: 2.2}, {python: 3.11, numpy: 2.2}, {python: 3.12, numpy: 2.2}, {python: 3.13, numpy: 2.2}]
+        version: [{python: '3.8', numpy: 1.24}, {python: '3.9', numpy: 2.0}, {python: '3.10', numpy: 2.0}, {python: '3.11', numpy: 2.0}, {python: '3.12', numpy: 2.0}, {python: '3.13', numpy: 2.1}]
     
     defaults:
       run:
@@ -33,30 +112,36 @@ jobs:
     - name: Install conda-build
       run: |
         conda install conda-build anaconda-client conda-verify
-      
+        conda install -c conda-forge winflexbison
+        Get-Content .\conda\cmaboss\meta.yaml | Where-Object {$_ -notmatch 'winflexbison'} | Set-Content out.yaml
+        xcopy out.yaml .\conda\cmaboss\meta.yaml /y
+    
     - name: Build cMaBoSS Anaconda package
       env: 
+        LIBSBML_PACKAGE: libsbml-plus-packages
+        FLEX_ROOT: C:\Miniconda\envs\test\Library\bin\
+        BISON_ROOT: C:\Miniconda\envs\test\Library\bin\
         CUSTOM_BUILD_NUMBER: 0
       run: |
-        conda build -c colomoto --variants "{python: [${{ matrix.version.python }}], numpy: [${{ matrix.version.numpy }}]}" conda/cmaboss;
+        conda build -c vincent-noel --variants "{python: [${{ matrix.version.python }}], numpy: ['${{ matrix.version.numpy }}']}" conda/cmaboss;
      
     - name: Upload cMaBoSS Ananconda package on vincent-noel
       run: |
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/share/miniconda/envs/test/conda-bld/linux-64/*.conda --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel C:\Miniconda\envs\test\conda-bld\win-64/*.conda --force;
 
     - name: Upload cMaBoSS Ananconda package on colomoto
       if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
       run: |
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/share/miniconda/envs/test/conda-bld/linux-64/*.conda --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto C:\Miniconda\envs\test\conda-bld\win-64/*.conda --force;
 
   cmaboss_conda_condaforge:
     name: Build cMaBoSS Anaconda package (conda-forge)
-    runs-on: windows-2022
+    runs-on: windows-2019
 
     strategy:
       fail-fast: false
       matrix:
-        version: [{python: 3.8, numpy: 1.24}, {python: 3.9, numpy: 2.0}, {python: 3.10, numpy: 2.2}, {python: 3.11, numpy: 2.2}, {python: 3.12, numpy: 2.2}, {python: 3.13, numpy: 2.2}]
+        version: [{python: '3.8', numpy: 1.24}, {python: '3.9', numpy: 2.0}, {python: '3.10', numpy: 2.0}, {python: '3.11', numpy: 2.0}, {python: '3.12', numpy: 2.0}, {python: '3.13', numpy: 2.1}]
     
     defaults:
       run:
@@ -74,20 +159,21 @@ jobs:
     
     - name: Install conda-build
       run: |
-        conda install conda-build==25.1.1 anaconda-client conda-verify
-      
+        conda install conda-build anaconda-client conda-verify
+
     - name: Build cMaBoSS Anaconda package
       env: 
+        LIBSBML_PACKAGE: libsbml
         CUSTOM_BUILD_NUMBER: 1
       run: |
-        conda build -c colomoto --variants {"python": ["${{ matrix.version.python }}"], "numpy": ["${{ matrix.version.numpy }}"] conda/cmaboss;
+        conda build --variants "{python: [${{ matrix.version.python }}], numpy: ['${{ matrix.version.numpy }}']}" conda/cmaboss;
       
     - name: Upload cMaBoSS Ananconda package on vincent-noel
       run: |
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/share/miniconda/envs/test/conda-bld/linux-64/*.conda --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel C:\Miniconda\envs\test\conda-bld\win-64/*.conda --force;
 
     - name: Upload cMaBoSS Ananconda package on colomoto
       if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
       run: |
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/share/miniconda/envs/test/conda-bld/linux-64/*.conda --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto C:\Miniconda\envs\test\conda-bld\win-64*.conda --force;
       

@@ -24,9 +24,9 @@ jobs:
 
     - name: Install dependencies
       run: |
-        brew install flex bison python3 cmake libxml2
+        brew install flex bison python3 cmake libxml2 ninja
         python3 -m pip install --upgrade pip
-        pip3 install numpy wheel delocate pandas
+        pip3 install numpy wheel delocate pandas scikit-build-core
 
     - name: Set cmake version variable
       run: |
@@ -47,23 +47,23 @@ jobs:
       run: sudo bash scripts/install_libsbml.sh
             
     - name: Build cMaBoSS
+      env: 
+        FLEX_ROOT: /usr/local/opt/flex/bin
+        BISON_ROOT: /usr/local/opt/bison/bin
       run: |
-        export PATH=/usr/local/opt/flex/bin:/usr/local/opt/bison/bin:$PATH
-        cd engine/src
-        make grammars
-        cd ../python
-        cp -r ../src cmaboss
+        cd engine/python
         python3 -m pip wheel -w wheelhouse .
         delocate-wheel -w fixed_wheels -v `ls wheelhouse/cmaboss*.whl`
         pip3 install `ls fixed_wheels/cmaboss*.whl` 
         
     - name: Test cMaBoSS
+      env: 
+        FLEX_ROOT: /usr/local/opt/flex/bin
+        BISON_ROOT: /usr/local/opt/bison/bin
       run: |
-        export PATH=/usr/local/opt/flex/bin:/usr/local/opt/bison/bin:$PATH
         bash scripts/run_cmaboss_tests.sh
-
-     
-  build_wheels_macos:
+  
+  build_wheels_macos_new:
     name: Build MacOS wheels
     runs-on: macos-13
     needs: cmaboss_macos
@@ -96,13 +96,15 @@ jobs:
             BUILD_PATH=/tmp/ bash scripts/install_libsbml.sh
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
             DYLD_LIBRARY_PATH=/usr/local/lib/ delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}
-
+          CIBW_SKIP: cp36-* cp37-* pp*
+          CIBW_TEST_REQUIRES: pandas
+          CIBW_TEST_COMMAND: >
+            cd {project}/engine/tests &&
+            python -m unittest test.py &&
+            python -m unittest test_128n.py
+          FLEX_ROOT: /usr/local/opt/flex/bin
+          BISON_ROOT: /usr/local/opt/bison/bin
         run: |
-          export PATH=/usr/local/opt/flex/bin:/usr/local/opt/bison/bin:$PATH
-          cd engine/src
-          make grammars
-          cd ../../
-          cp -r engine/src engine/python/cmaboss/
           python -m cibuildwheel --output-dir wheelhouse engine/python
 
       - uses: actions/upload-artifact@v4
@@ -126,7 +128,7 @@ jobs:
         run: |
           python -m twine upload --skip-existing wheelhouse/cmaboss*
           
-  build_wheels_macos_arm64:
+  build_wheels_macos_arm64_new:
     name: Build MacOS wheels (M1)
     runs-on: macos-14
     needs: cmaboss_macos
@@ -158,13 +160,15 @@ jobs:
             BUILD_PATH=/tmp/ sudo bash scripts/install_libsbml.sh
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
             DYLD_LIBRARY_PATH=/usr/local/lib/ delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}
-
+          CIBW_SKIP: cp36-* cp37-* pp*
+          CIBW_TEST_REQUIRES: pandas
+          CIBW_TEST_COMMAND: >
+            cd {project}/engine/tests &&
+            python -m unittest test.py &&
+            python -m unittest test_128n.py
+          FLEX_ROOT: /opt/homebrew/opt/flex/bin
+          BISON_ROOT: /opt/homebrew/opt/bison/bin
         run: |
-          export PATH=/opt/homebrew/opt/flex/bin:/opt/homebrew/opt/bison/bin:$PATH
-          cd engine/src
-          make grammars
-          cd ../../
-          cp -r engine/src engine/python/cmaboss/
           python -m cibuildwheel --output-dir wheelhouse engine/python
 
       - uses: actions/upload-artifact@v4
@@ -187,7 +191,7 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
         run: |
           python -m twine upload --skip-existing wheelhouse/cmaboss*
-                  
+    
 
   conda_cmaboss_macosx_defaults:
     name: cMaBoSS Conda package (defaults)
@@ -196,7 +200,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: [{python: "3.8", numpy: "1.24"}, {python: "3.9", numpy: "2.0"}, {python: "3.10", numpy: "2.2"}, {python: "3.11", numpy: "2.2"}, {python: "3.12", numpy: "2.2"}, {python: "3.13", numpy: "2.2"}]
+        version: [{python: "3.8", numpy: "1.24"}, {python: "3.9", numpy: "2.0"}, {python: "3.10", numpy: "2.0"}, {python: "3.11", numpy: "2.0"}, {python: "3.12", numpy: "2.0"}, {python: "3.13", numpy: "2.1"}]
     runs-on: macos-13
 
     defaults:
@@ -230,8 +234,10 @@ jobs:
       env:
         MACOSX_DEPLOYMENT_TARGET: 10.9
         SBML_COMPAT: 1
+        CUSTOM_BUILD_NUMBER: 0
+        LIBSBML_PACKAGE: libsbml-plus-packages
       run: |
-        CUSTOM_BUILD_NUMBER=0 conda build -c defaults -c colomoto --variants "{\"python\": [\"${{ matrix.version.python }}\"], \"numpy\": [\"${{ matrix.version.numpy }}\"]}" conda/cmaboss;
+        conda build -c defaults -c colomoto --variants "{\"python\": [\"${{ matrix.version.python }}\"], \"numpy\": [\"${{ matrix.version.numpy }}\"]}" conda/cmaboss;
        
     - name: Upload MaBoSS to Anaconda cloud on vincent-noel
       run: |   
@@ -249,7 +255,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: [{python: "3.8", numpy: "1.24"}, {python: "3.9", numpy: "2.0"}, {python: "3.10", numpy: "2.2"}, {python: "3.11", numpy: "2.2"}, {python: "3.12", numpy: "2.2"}, {python: "3.13", numpy: "2.2"}]
+        version: [{python: "3.8", numpy: "1.24"}, {python: "3.9", numpy: "2.0"}, {python: "3.10", numpy: "2.0"}, {python: "3.11", numpy: "2.0"}, {python: "3.12", numpy: "2.0"}, {python: "3.13", numpy: "2.1"}]
     runs-on: macos-13
 
     defaults:
@@ -283,8 +289,10 @@ jobs:
       env:
         MACOSX_DEPLOYMENT_TARGET: 10.13
         SBML_COMPAT: 1
+        CUSTOM_BUILD_NUMBER: 1
+        LIBSBML_PACKAGE: libsbml
       run: |
-        CUSTOM_BUILD_NUMBER=1 conda build -c conda-forge -c colomoto --variants "{\"python\": [\"${{ matrix.version.python }}\"], \"numpy\": [\"${{ matrix.version.numpy }}\"]}" conda/cmaboss;
+        conda build -c conda-forge --variants "{\"python\": [\"${{ matrix.version.python }}\"], \"numpy\": [\"${{ matrix.version.numpy }}\"]}" conda/cmaboss;
     
     - name: Upload MaBoSS to Anaconda cloud on vincent-noel
       run: |   
@@ -303,7 +311,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: [{python: "3.8", numpy: "1.24"}, {python: "3.9", numpy: "2.0"}, {python: "3.10", numpy: "2.2"}, {python: "3.11", numpy: "2.2"}, {python: "3.12", numpy: "2.2"}, {python: "3.13", numpy: "2.2"}]
+        version: [{python: "3.8", numpy: "1.24"}, {python: "3.9", numpy: "2.0"}, {python: "3.10", numpy: "2.0"}, {python: "3.11", numpy: "2.0"}, {python: "3.12", numpy: "2.0"}, {python: "3.13", numpy: "2.1"}]
     runs-on: macos-14
 
     defaults:
@@ -337,8 +345,10 @@ jobs:
       env:
         MACOSX_DEPLOYMENT_TARGET: 11.1
         SBML_COMPAT: 1
+        CUSTOM_BUILD_NUMBER: 0
+        LIBSBML_PACKAGE: libsbml-plus-packages
       run: |
-        CUSTOM_BUILD_NUMBER=0 conda build -c defaults -c colomoto --variants "{\"python\": [\"${{ matrix.version.python }}\"], \"numpy\": [\"${{ matrix.version.numpy }}\"]}" conda/cmaboss;
+        conda build -c defaults -c colomoto --variants "{\"python\": [\"${{ matrix.version.python }}\"], \"numpy\": [\"${{ matrix.version.numpy }}\"]}" conda/cmaboss;
         
     - name: Upload MaBoSS to Anaconda cloud on vincent-noel
       run: |   
@@ -356,7 +366,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: [{python: "3.8", numpy: "1.24"}, {python: "3.9", numpy: "2.0"}, {python: "3.10", numpy: "2.2"}, {python: "3.11", numpy: "2.2"}, {python: "3.12", numpy: "2.2"}, {python: "3.13", numpy: "2.2"}]
+        version: [{python: "3.8", numpy: "1.24"}, {python: "3.9", numpy: "2.0"}, {python: "3.10", numpy: "2.0"}, {python: "3.11", numpy: "2.0"}, {python: "3.12", numpy: "2.0"}, {python: "3.13", numpy: "2.1"}]
     runs-on: macos-14
 
     defaults:
@@ -390,8 +400,11 @@ jobs:
       env:
         MACOSX_DEPLOYMENT_TARGET: 11.0
         SBML_COMPAT: 1
+        CUSTOM_BUILD_NUMBER: 1
+        LIBSBML_PACKAGE: libsbml
+
       run: |
-        CUSTOM_BUILD_NUMBER=1 conda build -c conda-forge -c colomoto --variants "{\"python\": [\"${{ matrix.version.python }}\"], \"numpy\": [\"${{ matrix.version.numpy }}\"]}" conda/cmaboss;
+        conda build -c conda-forge --variants "{\"python\": [\"${{ matrix.version.python }}\"], \"numpy\": [\"${{ matrix.version.numpy }}\"]}" conda/cmaboss;
         
     - name: Upload MaBoSS to Anaconda cloud on vincent-noel
       run: |   

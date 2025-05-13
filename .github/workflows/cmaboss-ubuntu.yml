@@ -26,8 +26,9 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -yq python3-pip python3-setuptools
-        sudo pip3 install numpy pandas
+        sudo apt-get install -yq python3-pip ninja-build
+        pip3 install --upgrade pip
+        sudo pip3 install numpy pandas scikit-build-core
 
     - name: Cache compiled libSBML
       id: cache-libsbml-gcc
@@ -45,18 +46,15 @@ jobs:
         
     - name: Build cMaBoSS
       run: |
-        cd engine/src
-        make grammars
-        cd ../python
-        cp -r ../src cmaboss
-        pip3 install . -vvv
+        cd engine/python
+        pip3 install . -v
         cd ../..
     
     - name: Test cMaBoSS
       run: bash scripts/run_cmaboss_tests.sh
-
+  
   build_wheels_linux:
-    name: Build linux wheels
+    name: Build linux wheels (scikit-build-core)
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
@@ -76,19 +74,27 @@ jobs:
         env: 
           SBML_COMPAT: 1
           CIBW_BUILD: ${{ matrix.build }}
+          CIBW_SKIP: cp36-* cp37-* pp37-*
           CIBW_BEFORE_ALL: >
-            yum install wget libxml2-devel -y &&
+            yum install wget flex bison libxml2-devel wget -y &&
+            wget https://github.com/westes/flex/releases/download/v2.6.4/flex-2.6.4.tar.gz &&
+            tar -xzf flex-2.6.4.tar.gz &&
+            cd flex-2.6.4 && ./configure --prefix=/usr && make -j 4 && make install && cd .. &&
+            wget https://ftp.gnu.org/gnu/bison/bison-3.8.2.tar.gz &&
+            tar -xzf bison-3.8.2.tar.gz &&
+            cd bison-3.8.2 && ./configure --prefix=/usr && make -j 4 && make install && cd .. &&
             CC=gcc CXX=g++ INSTALL_PATH=/usr/ BUILD_PATH=/tmp/ \
               LIBXML_LIBDIR=/usr/lib64/libxml2.so \
               LIBXML_INCLUDEDIR=/usr/include/libxml2 \
               CPU_COUNT=4 bash scripts/build_libsbml.sh &&
             BUILD_PATH=/tmp/ bash scripts/install_libsbml.sh
           CIBW_ENVIRONMENT_PASS_LINUX: SBML_COMPAT
+          CIBW_TEST_REQUIRES: pandas
+          CIBW_TEST_COMMAND: >
+            cd {project}/engine/tests &&
+            python -m unittest test.py &&
+            python -m unittest test_128n.py
         run: |
-          cd engine/src
-          make grammars
-          cd ../../
-          cp -r engine/src engine/python/cmaboss/
           python -m cibuildwheel --output-dir wheelhouse engine/python
 
       - uses: actions/upload-artifact@v4
@@ -119,16 +125,18 @@ jobs:
         run: |
           python -m twine upload --skip-existing wheelhouse/cmaboss*
           
-  cmaboss_conda_defaults:
-    name: Build cMaBoSS Anaconda package
-    runs-on: ubuntu-22.04
+  
+  cmaboss_conda_condaforge:
+    name: Build cMaBoSS Anaconda package (conda-forge)
+    runs-on: ubuntu-24.04
 
     needs: cmaboss
 
     strategy:
       fail-fast: false
       matrix:
-        version: [{python: "3.8", numpy: "1.24"}, {python: "3.9", numpy: "2.0"}, {python: "3.10", numpy: "2.2"}, {python: "3.11", numpy: "2.2"}, {python: "3.12", numpy: "2.2"}, {python: "3.13", numpy: "2.2"}]
+        repo: [{name: defaults, build_number: 0, libsbml: libsbml-plus-packages}, {name: conda-forge, build_number: 1, libsbml: libsbml}]
+        version: [{python: "3.8", numpy: "1.24"}, {python: "3.9", numpy: "2.0"}, {python: "3.10", numpy: "2.0"}, {python: "3.11", numpy: "2.0"}, {python: "3.12", numpy: "2.0"}, {python: "3.13", numpy: "2.1"}]
     
     defaults:
       run:
@@ -140,7 +148,7 @@ jobs:
       with:
         auto-update-conda: true
         conda-remove-defaults: "true"
-        channels: defaults
+        channels: ${{ matrix.repo.name }}
         python-version: 3.12
         use-mamba: true
     
@@ -151,59 +159,20 @@ jobs:
     - name: Build cMaBoSS Anaconda package
       env: 
         SBML_COMPAT: 1
+        CUSTOM_BUILD_NUMBER: ${{ matrix.repo.build_number }}
+        LIBSBML_PACKAGE: ${{ matrix.repo.libsbml }}
       run: |
-        CUSTOM_BUILD_NUMBER=0 conda build -c colomoto --variants "{\"python\": [\"${{ matrix.version.python }}\"], \"numpy\": [\"${{ matrix.version.numpy }}\"]}" conda/cmaboss;
-     
+        if [[ ${{ matrix.repo.name }} == "conda-forge" && ${{ matrix.version.python }} == "3.13" ]]; then
+          conda build -c colomoto --variants "{\"python\": [\"${{ matrix.version.python }}\"], \"numpy\": [\"${{ matrix.version.numpy }}\"]}" conda/cmaboss;
+        else  
+          conda build -c colomoto --variants "{\"python\": [\"${{ matrix.version.python }}\"], \"numpy\": [\"${{ matrix.version.numpy }}\"]}" conda/cmaboss;
+        fi
     - name: Upload cMaBoSS Ananconda package on vincent-noel
       run: |
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/share/miniconda/envs/test/conda-bld/linux-64/*.conda --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel $CONDA/envs/test/conda-bld/linux-64/*.conda --force;
 
     - name: Upload cMaBoSS Ananconda package on colomoto
       if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
       run: |
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/share/miniconda/envs/test/conda-bld/linux-64/*.conda --force;
-
-  cmaboss_conda_condaforge:
-    name: Build cMaBoSS Anaconda package (conda-forge)
-    runs-on: ubuntu-22.04
-
-    needs: cmaboss
-
-    strategy:
-      fail-fast: false
-      matrix:
-        version: [{python: "3.8", numpy: "1.24"}, {python: "3.9", numpy: "2.0"}, {python: "3.10", numpy: "2.2"}, {python: "3.11", numpy: "2.2"}, {python: "3.12", numpy: "2.2"}, {python: "3.13", numpy: "2.2"}]
-    
-    defaults:
-      run:
-        shell: bash -el {0}
-                
-    steps:
-    - uses: actions/checkout@v4
-    - uses: conda-incubator/setup-miniconda@v3
-      with:
-        auto-update-conda: true
-        conda-remove-defaults: "true"
-        channels: conda-forge
-        python-version: 3.12
-        use-mamba: true
-    
-    - name: Install conda-build
-      run: |
-        conda install conda-build==25.1.1 anaconda-client conda-verify
-      
-    - name: Build cMaBoSS Anaconda package
-      env: 
-        SBML_COMPAT: 1
-      run: |
-        CUSTOM_BUILD_NUMBER=1 conda build -c colomoto --variants "{\"python\": [\"${{ matrix.version.python }}\"], \"numpy\": [\"${{ matrix.version.numpy }}\"]}" conda/cmaboss;
-      
-    - name: Upload cMaBoSS Ananconda package on vincent-noel
-      run: |
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /usr/share/miniconda/envs/test/conda-bld/linux-64/*.conda --force;
-
-    - name: Upload cMaBoSS Ananconda package on colomoto
-      if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
-      run: |
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /usr/share/miniconda/envs/test/conda-bld/linux-64/*.conda --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto $CONDA/envs/test/conda-bld/linux-64/*.conda --force;
       

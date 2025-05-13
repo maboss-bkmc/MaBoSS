@@ -96,14 +96,14 @@ jobs:
           -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_INSTALL_PREFIX=engine \
           -DSBML=1 -DBUILD_SERVER=1 -DBUILD_CLIENT=1
-        cmake --build build --parallel "${CPU_COUNT}"
+        cmake --build build --parallel "${CPU_COUNT}" --verbose
         cmake --install build --component executables 
         cmake -B build -S . \
           -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_INSTALL_PREFIX=engine \
           -DMAXNODES=128 \
           -DSBML=1 -DBUILD_SERVER=1
-        cmake --build build --parallel "${CPU_COUNT}"
+        cmake --build build --parallel "${CPU_COUNT}" --verbose
         cmake --install build --component executables 
         
     - name: Test MaBoSS
@@ -216,61 +216,7 @@ jobs:
         bash scripts/run_tests.sh 
         bash scripts/run_sbml_tests.sh
         bash scripts/run_userfunc_tests.sh cmake
-      
-  maboss_dynbitset:
-    name: MaBoSS DynBitSet (cmake)
-    runs-on: ubuntu-22.04
-    env:
-      CC: gcc
-      CXX: g++
-      INSTALL_PATH: /usr/
-      BUILD_PATH: /tmp/
-      LIBXML_LIBDIR: /usr/lib/x86_64-linux-gnu/libxml2.so
-      LIBXML_INCLUDEDIR: /usr/include/libxml2/
-      CPU_COUNT: 4
-      
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install flex bison libhdf5-dev
-        pip install numpy
-    
-    - name: Cache compiled libSBML
-      id: cache-libsbml-gcc
-      uses: actions/cache@v4
-      with:
-        path: /tmp/libsbml-5.20.4
-        key: ${{ runner.os }}-libSBML-5.20.4-gcc-namespace
-
-    - name: Compiling libSBML
-      if: steps.cache-libsbml-gcc.outputs.cache-hit != 'true'
-      run: bash scripts/build_libsbml.sh
-        
-    - name: Install libSBML
-      run: sudo bash scripts/install_libsbml.sh
-
-    - name: Build MaBoSS
-      run: |
-        cmake -B build . -DCMAKE_INSTALL_PREFIX=engine -DSBML=1 -DDYNBITSET=1 -DBUILD_SERVER=1 -DBUILD_CLIENT=1
-        cmake --build build --parallel "${CPU_COUNT}"
-        cmake --install build --component executables 
-        
-    - name: Test MaBoSS
-      env:
-        MABOSS_BIN_PATH: ../bin
-        MABOSS: ../bin/MaBoSS_dn
-        MABOSS_128n: ../bin/MaBoSS_dn
-        MABOSS_SERVER: ../bin/MaBoSS_dn-server
-        MABOSS_SERVER_128n: ../bin/MaBoSS_dn-server
-        POPMABOSS: ../bin/PopMaBoSS_dn
-      run: |
-        bash scripts/run_tests.sh   
-        bash scripts/run_sbml_tests.sh
-        bash scripts/run_userfunc_tests.sh cmake
-      
+   
   maboss_dynbitset_std_alloc:
     name: MaBoSS DynBitSet STD alloc (cmake)
     runs-on: ubuntu-22.04
@@ -401,7 +347,7 @@ jobs:
       run: bash scripts/run_mpi_tests.sh
 
   maboss_mpi_cmake:
-    name: MaBoSS MPI
+    name: MaBoSS MPI (cmake)
     runs-on: ubuntu-22.04
     env: 
       CPU_COUNT: 4
@@ -439,7 +385,7 @@ jobs:
   maboss_binary:
     name: Building MaBoSS linux64 binary
     runs-on: ubuntu-22.04
-    needs: [maboss, maboss_llvm, maboss_mpi]
+    needs: [maboss, maboss_llvm, maboss_cmake, maboss_mpi, maboss_mpi_cmake]
     env:  
       CC: gcc
       CXX: g++
@@ -508,7 +454,7 @@ jobs:
   maboss_library:
     name: Building MaBoSS linux64 library
     runs-on: ubuntu-22.04
-    needs: [maboss, maboss_llvm, maboss_mpi]
+    needs: [maboss, maboss_llvm, maboss_cmake, maboss_mpi, maboss_mpi_cmake]
 
     env:
       CPU_COUNT: 4
@@ -559,7 +505,7 @@ jobs:
   maboss_library_sbml:
     name: Building MaBoSS linux64 library with libSBML
     runs-on: ubuntu-22.04
-    needs: [maboss, maboss_llvm, maboss_mpi]
+    needs: [maboss, maboss_llvm, maboss_cmake, maboss_mpi, maboss_mpi_cmake]
     env:
       CC: gcc
       CXX: g++
@@ -630,7 +576,7 @@ jobs:
   test_docker:
     name: Test Docker MaBoSS Server
     runs-on: ubuntu-22.04
-    needs: [maboss, maboss_llvm, maboss_mpi]
+    needs: [maboss, maboss_llvm, maboss_cmake, maboss_mpi, maboss_mpi_cmake]
     
     steps:
     - uses: actions/checkout@v4
@@ -726,7 +672,7 @@ jobs:
   test_apptainer:
     name: Apptainer MaBoSS
     runs-on: ubuntu-22.04
-    needs: [maboss, maboss_llvm, maboss_mpi]
+    needs: [maboss, maboss_llvm, maboss_cmake, maboss_mpi, maboss_mpi_cmake]
    
     steps:
     - uses: actions/checkout@v4
@@ -755,13 +701,13 @@ jobs:
       fail-fast: false
       matrix:
         repo: [
-          {id: 0, name: "defaults"}, 
-          {id: 1, name: "conda-forge"}
+          {id: 0, name: "defaults", libsbml_package: "libsbml-plus-packages"}, 
+          {id: 1, name: "conda-forge", libsbml_package: "libsbml"}
         ]
         
     runs-on: ubuntu-22.04
 
-    needs: [maboss, maboss_llvm, maboss_mpi]
+    needs: [maboss, maboss_llvm, maboss_cmake, maboss_mpi, maboss_mpi_cmake]
     
     defaults:
       run:
@@ -779,11 +725,14 @@ jobs:
         
     - name: Install conda-build
       run: |
-        conda install conda-build==25.1.1 anaconda-client conda-verify
+        conda install conda-build anaconda-client conda-verify
       
     - name: Build Anaconda package
+      env:
+        CUSTOM_BUILD_NUMBER: ${{ matrix.repo.id }}
+        LIBSBML_PACKAGE: ${{ matrix.repo.libsbml_package }}
       run: |
-        CUSTOM_BUILD_NUMBER=${{ matrix.repo.id }} conda build -c ${{ matrix.repo.name }} -c colomoto conda/maboss
+        conda build -c ${{ matrix.repo.name }} -c vincent-noel conda/maboss
 
     - name: Upload MaBoSS Ananconda package on vincent-noel
       run: |
