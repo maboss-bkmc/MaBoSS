@@ -36,8 +36,8 @@ jobs:
       id: cache-libsbml-clang
       uses: actions/cache@v4
       with:
-        path: /tmp/libsbml-5.20.4
-        key: ${{ runner.os }}-${{ env.CMAKE_VERSION }}-libSBML-5.20.4-clang++-namespace
+        path: /tmp/libsbml-5.20.5
+        key: ${{ runner.os }}-${{ env.CMAKE_VERSION }}-libSBML-5.20.5-clang++-namespace
 
     - name: Compiling libSBML
       if: steps.cache-libsbml-clang.outputs.cache-hit != 'true'

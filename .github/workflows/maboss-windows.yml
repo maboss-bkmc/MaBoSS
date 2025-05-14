@@ -9,7 +9,7 @@ on:
 jobs:
   maboss_windows:
     name: MaBoSS Windows
-    runs-on: windows-latest
+    runs-on: windows-2022
     
     defaults:
       run:
@@ -41,8 +41,8 @@ jobs:
       id: cache-libsbml-gcc
       uses: actions/cache@v4
       with:
-        path: D:/a/_temp/msys64/tmp/libsbml-5.20.4
-        key: ${{ runner.os }}-libSBML-5.20.4-namespace
+        path: D:/a/_temp/msys64/tmp/libsbml-5.20.5
+        key: ${{ runner.os }}-libSBML-5.20.5-namespace
         
     - name: Compiling libSBML
       if: steps.cache-libsbml-gcc.outputs.cache-hit != 'true'
@@ -70,7 +70,16 @@ jobs:
   maboss_windows_cmake:
     name: MaBoSS Windows (cmake)
     runs-on: windows-2022
-    
+    env: 
+        CC: cl.exe
+        CXX: cl.exe
+        LIBSBML_INSTALL_PREFIX: C:/vcpkg/installed/x64-windows/
+        LIBXML_LIBRARY: C:/vcpkg/installed/x64-windows/lib/libxml2.lib
+        LIBXML_INCLUDE_DIR: C:/vcpkg/installed/x64-windows/include/
+        ZLIB_LIBRARY: C:/vcpkg/installed/x64-windows/lib/zlib.lib
+        ZLIB_INCLUDE_DIR: C:/vcpkg/installed/x64-windows/include/
+        CPU_COUNT: 4
+      
     steps:
     - uses: actions/checkout@v4
     - uses: ilammy/msvc-dev-cmd@v1 
@@ -85,29 +94,18 @@ jobs:
       id: cache-libsbml-msvc
       uses: actions/cache@v4
       with:
-        path: D:\a\MaBoSS\MaBoSS\libsbml-5.20.4\
-        key: ${{ runner.os }}-libSBML-5.20.4-msvc-namespace
+        path: D:\a\MaBoSS\MaBoSS\libsbml-5.20.5\
+        key: ${{ runner.os }}-libSBML-5.20.5-msvc-namespace
 
     - name: Compiling libSBML
       if: steps.cache-libsbml-msvc.outputs.cache-hit != 'true'
+      
       run: |
-        curl -L https://github.com/sbmlteam/libsbml/archive/refs/tags/v5.20.4.tar.gz --output v5.20.4.tar.gz
-        7z e v5.20.4.tar.gz  && 7z x v5.20.4.tar
-        cmake -B libsbml-5.20.4/build -S libsbml-5.20.4 -G"Ninja" `
-        -DCMAKE_INSTALL_PREFIX=C:/vcpkg/installed/x64-windows/ `
-        -DLIBXML_LIBRARY="C:/vcpkg/installed/x64-windows/lib/libxml2.lib" `
-        -DLIBXML_INCLUDE_DIR="C:/vcpkg/installed/x64-windows/include/" `
-        -DWITH_SWIG=OFF `
-        -DWITH_STABLE_PACKAGES=ON `
-        -DWITH_CPP_NAMESPACE=ON `
-        -DBUILD_SHARED_LIBS=ON
-                
-        cmake --build libsbml-5.20.4/build --parallel 4 --verbose
+        .\\scripts\\build_libsbml.bat 
 
     - name: Install libSBML
       run: |
-        cmake --install libsbml-5.20.4/build
-        ldd C:/vcpkg/installed/x64-windows/bin/libsbml.dll
+        .\\scripts\install_libsbml.bat
 
     - name: Build MaBoSS
       run: |
@@ -181,8 +179,8 @@ jobs:
       id: cache-libsbml-gcc
       uses: actions/cache@v4
       with:
-        path: D:/a/_temp/msys64/tmp/libsbml-5.20.4
-        key: ${{ runner.os }}-libSBML-5.20.4-namespace
+        path: D:/a/_temp/msys64/tmp/libsbml-5.20.5
+        key: ${{ runner.os }}-libSBML-5.20.5-namespace
         
     - name: Compiling libSBML
       if: steps.cache-libsbml-gcc.outputs.cache-hit != 'true'
@@ -316,8 +314,8 @@ jobs:
       id: cache-libsbml-gcc
       uses: actions/cache@v4
       with:
-        path: D:/a/_temp/msys64/tmp/libsbml-5.20.4
-        key: ${{ runner.os }}-libSBML-5.20.4-namespace
+        path: D:/a/_temp/msys64/tmp/libsbml-5.20.5
+        key: ${{ runner.os }}-libSBML-5.20.5-namespace
         
     - name: Compiling libSBML
       if: steps.cache-libsbml-gcc.outputs.cache-hit != 'true'

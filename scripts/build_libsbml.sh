@@ -33,11 +33,14 @@ fi
 
 mkdir -p ${BUILD_PATH}
 cd ${BUILD_PATH}
-wget https://github.com/sbmlteam/libsbml/archive/refs/tags/v5.20.4.tar.gz
-tar -zxf v5.20.4.tar.gz
-cd libsbml-5.20.4
+wget https://github.com/sbmlteam/libsbml/archive/refs/tags/v5.20.5.tar.gz
+tar -zxf v5.20.5.tar.gz
+cd libsbml-5.20.5
 mkdir build
 cd build
+
+#Hacky fix for gcc 15
+sed -i '10i #include <cstdint>' ${BUILD_PATH}/libsbml-5.20.5/src/sbml/html2md/html2md.h
 
 if [[ -n $RUNNER_OS ]] && [[ $RUNNER_OS == "Windows" ]]; then
 
