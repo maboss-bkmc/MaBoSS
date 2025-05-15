@@ -342,7 +342,7 @@ jobs:
         
   maboss_binary_macos_universal:
     name: MaBoSS MacOSX universal binary
-    needs: [maboss_macos, maboss_llvm_macos, maboss_macos_cmake]
+    needs: [maboss_binary_macos_m1, maboss_binary_macos]
     runs-on: macos-13
 
     steps:
@@ -531,7 +531,7 @@ jobs:
         key: ${{ runner.os }}-${{ env.CMAKE_VERSION }}-libSBML-5.20.5-g++12-namespace
 
     - name: Compiling libSBML
-      if: steps.cache-libsbml-gcc11.outputs.cache-hit != 'true'
+      if: steps.cache-libsbml-gcc12.outputs.cache-hit != 'true'
       run: bash scripts/build_libsbml.sh
         
     - name: Install libSBML
@@ -579,7 +579,7 @@ jobs:
  
       
   conda_maboss_macosx:
-    name: Build Conda MaBoSS package
+    name: Build Conda MaBoSS package (${{matrix.repo.name}})
     needs: [maboss_macos, maboss_llvm_macos, maboss_macos_cmake]
     strategy:
       fail-fast: false
@@ -637,7 +637,7 @@ jobs:
         anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /Users/runner/miniconda3/envs/test/conda-bld/osx-64/*.conda --force;
 
   conda_maboss_macosx_m1:
-    name: Build Conda MaBoSS package for arm64
+    name: Build Conda MaBoSS package for arm64 (${{matrix.repo.name}})
     needs: [maboss_macos, maboss_llvm_macos, maboss_macos_cmake]
     strategy:
       fail-fast: false
@@ -686,11 +686,11 @@ jobs:
     
     - name: Upload MaBoSS to Anaconda cloud on vincent-noel
       run: |   
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel /Users/runner/miniconda3/envs/test/conda-bld/osx-arm64/*.conda --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u vincent-noel $CONDA/envs/test/conda-bld/osx-arm64/*.conda --force;
   
     
     - name: Upload MaBoSS to Anaconda cloud on colomoto
       if: github.repository == 'sysbio-curie/MaBoSS' && github.event_name == 'release'
       run: |   
-        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto /Users/runner/miniconda3/envs/test/conda-bld/osx-arm64/*.conda --force;
+        anaconda -t ${{ secrets.ANACONDA_TOKEN }} upload -u colomoto $CONDA/envs/test/conda-bld/osx-arm64/*.conda --force;
       

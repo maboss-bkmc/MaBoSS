@@ -86,10 +86,21 @@ jobs:
     
     - name: Install dependencies
       run: |
-        vcpkg install libxml2
         choco install winflexbison3
         python -m pip install numpy
+    
+    - name: Cache compiled vcpkg packages
+      id: cache-vcpkg
+      uses: actions/cache@v4
+      with:
+        path: C:\vcpkg\
+        key: ${{ runner.os }}-vcpkg-msvc
         
+    - name: Install libxml2
+      if: steps.cache-vcpkg.outputs.cache-hit != 'true'
+      run: |
+        vcpkg install libxml2
+    
     - name: Cache compiled libSBML
       id: cache-libsbml-msvc
       uses: actions/cache@v4
@@ -147,7 +158,7 @@ jobs:
 
     
   maboss_binary_windows:
-    runs-on: windows-latest
+    runs-on: windows-2022
     name: Building MaBoSS Windows 64bits binary
     needs: [maboss_windows, maboss_windows_cmake]
     
@@ -221,7 +232,7 @@ jobs:
         asset_content_type: application/zip
         
   maboss_library_windows:
-    runs-on: windows-latest
+    runs-on: windows-2022
     name: Building MaBoSS Windows 64bits library
     needs: [maboss_windows, maboss_windows_cmake]
     
@@ -281,7 +292,7 @@ jobs:
         asset_content_type: application/gzip
       
   maboss_sbml_library_windows:
-    runs-on: windows-latest
+    runs-on: windows-2022
     name: Building MaBoSS Windows 64bits library with libSBML
     needs: [maboss_windows, maboss_windows_cmake]
 
@@ -374,7 +385,7 @@ jobs:
           { id: 1, name: "conda-forge", libsbml_package: "libsbml"}
         ]
         
-    runs-on: windows-2019
+    runs-on: windows-2022
 
     needs: [maboss_windows, maboss_windows_cmake]
     
@@ -384,6 +395,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - uses: ilammy/msvc-dev-cmd@v1 
     - uses: conda-incubator/setup-miniconda@v3
       with:
         auto-update-conda: true
