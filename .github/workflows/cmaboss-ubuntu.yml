@@ -110,7 +110,7 @@ jobs:
           path: wheelhouse/*.whl
           
       - name: Upload cMaBoSS to test Pypi
-        if: github.repository == 'vincent-noel/MaBoSS' && github.ref == 'refs/heads/master'
+        if: github.repository == 'sysbio-curie/MaBoSS' && github.ref == 'refs/heads/master'
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TEST_TOKEN }}
