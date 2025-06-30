@@ -201,7 +201,7 @@ jobs:
       fail-fast: false
       matrix:
         repo: [
-          {name: defaults, deployment_target: "10.9", libsbml: libsbml-plus-packages, libsbml_source: colomoto, build_number: 0},
+          {name: defaults, deployment_target: "10.13", libsbml: libsbml-plus-packages, libsbml_source: colomoto, build_number: 0},
           {name: conda-forge, deployment_target: "10.13", libsbml: libsbml, libsbml_source: conda-forge, build_number: 1}
         ]
         version: [
