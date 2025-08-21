@@ -257,3 +257,57 @@ PyObject* ProbTrajEngine::getNumpyObservedDurations()
 }
 
 #endif
+
+void ProbTrajEngine::buildSchedule() {
+  // std::cout << "Building schedule..." << std::endl;
+  // Clear previous schedule if any
+  for (auto schedule_entry : schedule) {
+    delete schedule_entry.second;
+  }
+  schedule.clear();
+  schedule_times.clear();
+  
+  // Build new schedule
+  for (const auto& node : network->getNodes()) {
+    std::map<double, Expression*>* node_schedule = node->getScheduledFlips();
+    if (node_schedule != NULL) {
+      for (const auto& entry : *node_schedule) {
+        double time = entry.first;
+        Expression* expr = entry.second;
+        if (schedule.find(time) == schedule.end()) {
+          schedule[time] = new std::map<Node*, Expression*>();
+        }
+        (*schedule[time])[node] = expr;
+        schedule_times.push_back(time);
+        
+      }
+    }
+  }
+  
+  // Making sure schedule times are unique and sorted
+  std::sort(schedule_times.begin(), schedule_times.end());  
+  auto last = std::unique(schedule_times.begin(), schedule_times.end());
+  schedule_times.erase(last, schedule_times.end());
+}
+
+void ProbTrajEngine::applySchedule(NetworkState& network_state, std::vector<double>& times, double time) {
+  
+  for (double t : times) {
+    if (t <= time) {
+      auto it = schedule.find(t);
+      if (it != schedule.end()) {
+        for (const auto& entry : *(it->second)) {
+          Node* node = entry.first;
+          Expression* expr = entry.second;
+          double val = expr->eval(node, network_state);
+          if (network_state.getNodeState(node) != (val > 0.0)) {
+            network_state.setNodeState(node, (val > 0.0)); 
+          }
+        }
+      }
+      times.erase(times.begin()); // Remove the time from the list
+      break;
+    }
+    else { break; } // No need to check further if time is already past the schedule time
+  }
+}

@@ -55,7 +55,7 @@
 bool Node::override = false;
 bool Node::augment = false;
 
-Node::Node(const std::string& label, const std::string& description, NodeIndex index) : label(label), description(description), istate_set(false), is_internal(false), is_reference(false), in_graph(false), referenceState(false), logicalInputExpr(NULL), rateUpExpr(NULL), rateDownExpr(NULL), index(index)
+Node::Node(const std::string& label, const std::string& description, NodeIndex index) : label(label), description(description), istate_set(false), is_internal(false), is_reference(false), in_graph(false), referenceState(false), logicalInputExpr(NULL), rateUpExpr(NULL), rateDownExpr(NULL), index(index), schedule(NULL)
 {
 #if !defined(USE_STATIC_BITSET) && !defined(USE_DYNAMIC_BITSET)
   node_bit = NetworkState::nodeBit(index);
@@ -78,6 +78,7 @@ void Node::reset()
   rateUpExpr = NULL;
   delete rateDownExpr;
   rateDownExpr = NULL;
+  schedule = NULL;
 }
 
 void Node::setLogicalInputExpression(const Expression* _logicalInputExpr) {
@@ -294,4 +295,12 @@ Node::~Node()
   for (const auto & attr_expr : attr_expr_map) {
     delete attr_expr.second;
   }
+  
+  if (schedule != NULL) { 
+    for (auto schedule_entry : *schedule) {
+      delete schedule_entry.second;
+    }
+  }
+  delete schedule;
+  
 }

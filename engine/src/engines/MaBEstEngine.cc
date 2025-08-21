@@ -55,6 +55,7 @@
 #include <math.h>
 #include <iomanip>
 #include <iostream>
+#include <cmath>
 
 const std::string MaBEstEngine::VERSION = "2.6.2";
 
@@ -118,6 +119,8 @@ MaBEstEngine::MaBEstEngine(Network* network, RunConfig* runconfig) :
     
     observed_graph_v[nn] = new ObservedGraph(network);
     observed_graph_v[nn]->init();
+    
+    this->buildSchedule();
   }
 }
 
@@ -164,9 +167,13 @@ void MaBEstEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int st
   Probe probe;
   probe.start();
   std::vector<double> nodeTransitionRates(nodes.size(), 0.0);
+  
+  bool hasSchedule = !schedule.empty();
+  
   RandomGenerator* random_generator = randgen_factory->generateRandomGenerator(seed);
   for (unsigned int nn = 0; nn < sample_count_thread; ++nn) {
 
+    std::vector<double> times = schedule_times;
     random_generator->setSeed(seed+start_count_thread+nn);
     cumulator->rewind();
     network->initStates(network_state, random_generator);
@@ -181,6 +188,11 @@ void MaBEstEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int st
     _observed_graph->addFirstTransition(network_state);
 
     while (tm < max_time) {
+      
+      if (hasSchedule)
+        this->applySchedule(network_state, times, tm);
+      
+      
       double total_rate = 0.;
             nodeTransitionRates.assign(nodes.size(), 0.0);
 
@@ -207,7 +219,7 @@ void MaBEstEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int st
 
       double TH;
       if (total_rate == 0) {
-	tm = max_time;
+	tm = times.size() > 0 ? times[0] : max_time;
 	TH = 0.;
   FixedPoints::iterator iter = fixpoint_map->find(network_state.getState());
 	if (iter == fixpoint_map->end()) {
@@ -224,7 +236,7 @@ void MaBEstEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int st
 	  transition_time = -log(U_rand1) / total_rate;
 	}
 	
-	tm += transition_time;
+	tm += times.size() > 0 ? std::min(transition_time, (times[0] - tm)) : transition_time;
 	TH = computeTH(network, nodeTransitionRates, total_rate);
       }
 

@@ -80,7 +80,7 @@ extern std::string yy_error_head();
   std::vector<PopIStateGroup::PopProbaIState::PopIStateGroupIndividual*>* pop_istate_pop_list;
   PopIStateGroup::PopProbaIState::PopIStateGroupIndividual* pop_istate_ind;
   ArgumentList* arg_list;
-
+  std::map<double, Expression*>* schedule;
 }
 
 %type<expr> primary_expression 
@@ -106,6 +106,7 @@ extern std::string yy_error_head();
 %type<pop_istate_pop_list> pop_istate_population_list
 %type<pop_istate_ind> pop_istate_individual
 %type<arg_list> argument_expression_list
+%type<schedule> schedule_list
 
 %token<str> VARIABLE
 %token<str> SYMBOL
@@ -173,6 +174,15 @@ node_attr_decl: SYMBOL '.' SYMBOL '=' expression ';'
   free($1);
   free($3);
   delete $5;
+}
+| SYMBOL '.' SYMBOL '=' schedule_list ';'
+{
+  Node* node = network->getNode($1);
+
+  if (!strcasecmp($3, "schedule"))
+  {
+    node->setScheduledFlips($5);
+  } 
 }
 | symbol_istate_list '.' SYMBOL '=' istate_expression_list ';'
 {
@@ -277,6 +287,18 @@ pop_istate_individual: '{' '[' expression_list ']' ':' primary_expression '}'
   delete $6;
 }
 ;
+
+schedule_list: DOUBLE ':' expression
+{
+  $$ = new std::map<double, Expression*>();
+  (*$$)[$1] = $3;
+}
+| schedule_list ',' DOUBLE ':' expression
+{
+  $$ = $1;
+  (*$$)[$3] = $5;
+}
+
 
 expression_list: primary_expression
 {

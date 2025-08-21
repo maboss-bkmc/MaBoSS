@@ -104,6 +104,7 @@ class Node {
   MAP<std::string, std::string> attr_str_map;
   Expression* rewriteLogicalExpression(Expression* rateUpExpr, Expression* rateDownExpr) const;
   NetworkState_Impl node_bit;
+  std::map<double, Expression*>* schedule;
 
  public:
   Node(const std::string& label, const std::string& description, NodeIndex index);
@@ -190,6 +191,12 @@ class Node {
     this->in_graph = _in_graph;
   }
 
+  void setScheduledFlips(std::map<double, Expression*>* _schedule) {
+    schedule = _schedule;
+  }
+  std::map<double, Expression*>* getScheduledFlips() const {
+    return schedule;
+  }
   bool isReference() const {
     return is_reference;
   }

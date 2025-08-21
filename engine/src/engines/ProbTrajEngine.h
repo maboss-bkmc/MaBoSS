@@ -80,7 +80,11 @@ protected:
 
   Cumulator<NetworkState>* merged_cumulator;
   std::vector<Cumulator<NetworkState>*> cumulator_v;
-
+  std::map<double, std::map<Node*, Expression*>*> schedule;
+  std::vector<double> schedule_times;
+  
+  void buildSchedule();
+  void applySchedule(NetworkState& network_state, std::vector<double>& times, double time);
   static void* threadMergeWrapper(void *arg);
 
   static void mergeResults(std::vector<Cumulator<NetworkState>*>& cumulator_v, std::vector<FixedPoints *>& fixpoint_map_v, std::vector<ObservedGraph* >& observed_graph_v);  
