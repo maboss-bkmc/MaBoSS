@@ -74,7 +74,7 @@ jobs:
         env: 
           SBML_COMPAT: 1
           CIBW_BUILD: ${{ matrix.build }}
-          CIBW_SKIP: pp37-*
+          CIBW_SKIP: cp314-*
           CIBW_BEFORE_ALL: >
             yum install wget flex bison libxml2-devel libxslt-devel gettext-devel texinfo help2man -y &&
             git clone https://github.com/westes/flex.git &&
