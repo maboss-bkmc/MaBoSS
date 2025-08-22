@@ -11,7 +11,7 @@ check()
     fi
 }
 
-cd ${PREFIX}/tests
+cd ${PREFIX}/tests/cmaboss
 
 python -m unittest test
 check "test 64 nodes"

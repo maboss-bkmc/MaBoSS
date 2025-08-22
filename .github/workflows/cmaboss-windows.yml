@@ -59,7 +59,7 @@ jobs:
           CIBW_ENVIRONMENT_PASS_WINDOWS: SBML_COMPAT
           CIBW_TEST_REQUIRES: pandas
           CIBW_TEST_COMMAND: >
-            cd /d {project}/engine/tests &&
+            cd /d {project}/engine/tests/cmaboss &&
             python -m unittest test.py &&
             python -m unittest test_128n.py
         run: |

@@ -1,6 +1,6 @@
 echo off
 
-cd %PREFIX%\tests
+cd %PREFIX%\tests\cmaboss
 
 set /A FAIL=0
 

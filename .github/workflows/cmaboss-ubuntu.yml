@@ -74,7 +74,7 @@ jobs:
         env: 
           SBML_COMPAT: 1
           CIBW_BUILD: ${{ matrix.build }}
-          CIBW_SKIP: cp314-*
+          CIBW_SKIP: cp314-* cp314t-*
           CIBW_BEFORE_ALL: >
             yum install wget flex bison libxml2-devel libxslt-devel gettext-devel texinfo help2man -y &&
             git clone https://github.com/westes/flex.git &&
@@ -90,7 +90,7 @@ jobs:
           CIBW_ENVIRONMENT_PASS_LINUX: SBML_COMPAT
           CIBW_TEST_REQUIRES: pandas
           CIBW_TEST_COMMAND: >
-            cd {project}/engine/tests &&
+            cd {project}/engine/tests/cmaboss &&
             python -m unittest test.py &&
             python -m unittest test_128n.py
         run: |

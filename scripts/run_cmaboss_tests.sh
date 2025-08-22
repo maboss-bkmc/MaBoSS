@@ -12,7 +12,7 @@ check()
     fi
 }
 
-cd engine/tests
+cd engine/tests/cmaboss
 
 python3 -m unittest test
 check "tests on classic"

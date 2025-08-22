@@ -1,0 +1,76 @@
+node TumorCell
+{
+	rate_up = 0.0;
+	rate_down = 0.0;
+}
+
+node DyingTumorCell
+{
+	rate_up = TumorCell ? $chemotherapy : 0.0 ;
+	rate_down = 0.0;
+}
+
+node CALR
+{
+	rate_up = DyingTumorCell ? $u_CALR : 0.0;
+	// rate_down = Death ? $d_CALR : 0.0 ;
+	rate_down = 0.0;
+}
+
+node ATP
+{
+	rate_up = DyingTumorCell ? $u_ATP : 0.0 ;
+	rate_down = DyingTumorCell ? 0.0 : $d_ATP ;
+}
+
+node HMGB1
+{
+	rate_up = DyingTumorCell ? $u_HMGB1 : 0.0 ;
+	rate_down = DyingTumorCell ? 0.0 : $d_HMGB1 ;
+}
+
+node DC
+{
+	rate_up = 0.0;
+	rate_down = 0.0;
+}
+
+node ActDC
+{
+	rate_up = DC ? ((#cell(CALR)/#cell(1)) * (#cell(ATP)/#cell(1)) *(#cell(HMGB1)/#cell(1))) : 0.0 ;
+	rate_down = 0.0;
+}
+
+node MigrDC
+{
+	rate_up = ActDC ? $migrDC : 0.0;
+	rate_down = 0.0;
+}
+
+node LNodeDC
+{
+	rate_up = MigrDC ? $lNodeDC : 0.0;
+	rate_down = 0.0;
+}
+
+node TCell
+{
+	rate_up = LNodeDC ? $primingTCell : 0.0 ;
+	rate_down = 0.0 ;
+}
+
+node CTL
+{
+	rate_up = TCell ? $activateCTL : 0.0 ;
+	rate_down = 0.0 ;
+}
+
+death
+{
+	rate = (TumorCell ? (-log(1- (#cell(CTL)/#cell(1)))) : 0.0)  + (CTL ? (-log(1- (#cell(TumorCell)/#cell(1)))) : 0.0) + (DyingTumorCell ? $deathChemotherapy : 0.0);
+}
+
+division
+{
+	rate = (TumorCell ? $growthFactor : 0.0)  + ((TCell & !(CTL)) ? (#cell(TumorCell)/#cell(1)*$clonalExpansion) : 0.0)  ;
+ }
