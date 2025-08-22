@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10.0)
-project(MaBoSS VERSION 2.6.2)
+project(MaBoSS VERSION 2.6.3)
 
 if (SEDML)
   set(CMAKE_C_STANDARD 17)
