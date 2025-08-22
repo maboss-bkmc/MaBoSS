@@ -64,7 +64,11 @@ SBML_LIB_OBJS := sbml/SBMLParser$(INFIX).o
 ifeq ($(UNAME_S),Darwin)
 SBML_LIB_STATIC = -lsbml-static -lxml2
 else
+ifeq ($(OS),Windows_NT)
+SBML_LIB_STATIC = -static -lsbml-static -lxml2 -lbcrypt
+else
 SBML_LIB_STATIC = -static -lsbml-static -lxml2
+endif
 endif
 endif
 
