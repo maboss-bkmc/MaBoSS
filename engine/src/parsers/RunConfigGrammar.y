@@ -293,10 +293,20 @@ schedule_list: DOUBLE ':' expression
   $$ = new std::map<double, Expression*>();
   (*$$)[$1] = $3;
 }
+| INTEGER ':' expression
+{
+  $$ = new std::map<double, Expression*>();
+  (*$$)[(double)$1] = $3;
+}
 | schedule_list ',' DOUBLE ':' expression
 {
   $$ = $1;
   (*$$)[$3] = $5;
+}
+| schedule_list ',' INTEGER ':' expression
+{
+  $$ = $1;
+  (*$$)[(double)$3] = $5;
 }
 
 

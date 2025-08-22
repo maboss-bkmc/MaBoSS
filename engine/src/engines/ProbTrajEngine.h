@@ -84,7 +84,7 @@ protected:
   std::vector<double> schedule_times;
   
   void buildSchedule();
-  void applySchedule(NetworkState& network_state, std::vector<double>& times, double time);
+  void applySchedule(RandomGenerator* random_generator, NetworkState& network_state, std::vector<double>& times, double time);
   static void* threadMergeWrapper(void *arg);
 
   static void mergeResults(std::vector<Cumulator<NetworkState>*>& cumulator_v, std::vector<FixedPoints *>& fixpoint_map_v, std::vector<ObservedGraph* >& observed_graph_v);  

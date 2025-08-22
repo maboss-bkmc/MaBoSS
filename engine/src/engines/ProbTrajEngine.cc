@@ -290,7 +290,7 @@ void ProbTrajEngine::buildSchedule() {
   schedule_times.erase(last, schedule_times.end());
 }
 
-void ProbTrajEngine::applySchedule(NetworkState& network_state, std::vector<double>& times, double time) {
+void ProbTrajEngine::applySchedule(RandomGenerator* random_generator, NetworkState& network_state, std::vector<double>& times, double time) {
   
   for (double t : times) {
     if (t <= time) {
@@ -300,9 +300,8 @@ void ProbTrajEngine::applySchedule(NetworkState& network_state, std::vector<doub
           Node* node = entry.first;
           Expression* expr = entry.second;
           double val = expr->eval(node, network_state);
-          if (network_state.getNodeState(node) != (val > 0.0)) {
-            network_state.setNodeState(node, (val > 0.0)); 
-          }
+          double rand = random_generator->generate();
+          network_state.setNodeState(node, (val >= rand)); 
         }
       }
       times.erase(times.begin()); // Remove the time from the list

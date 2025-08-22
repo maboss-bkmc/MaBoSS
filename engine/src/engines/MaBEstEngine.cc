@@ -190,7 +190,7 @@ void MaBEstEngine::runThread(Cumulator<NetworkState>* cumulator, unsigned int st
     while (tm < max_time) {
       
       if (hasSchedule)
-        this->applySchedule(network_state, times, tm);
+        this->applySchedule(random_generator, network_state, times, tm);
       
       
       double total_rate = 0.;
