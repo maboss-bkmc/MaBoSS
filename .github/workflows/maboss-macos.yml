@@ -128,7 +128,7 @@ jobs:
         
     - name: Test MaBoSS
       env: 
-        MABOSS_BIN_PATH: ../bin
+        MABOSS_BIN_PATH: ../../bin
       run: |
         export PATH=/usr/local/opt/flex/bin:/usr/local/opt/bison/bin:$PATH
         bash scripts/run_tests.sh   

@@ -108,7 +108,7 @@ jobs:
         
     - name: Test MaBoSS
       env:
-        MABOSS_BIN_PATH: ../bin
+        MABOSS_BIN_PATH: ../../bin
       run: |
         bash scripts/run_tests.sh 
         bash scripts/run_sbml_tests.sh
@@ -211,7 +211,7 @@ jobs:
         
     - name: Test MaBoSS
       env:
-        MABOSS_BIN_PATH: ../bin
+        MABOSS_BIN_PATH: ../../bin
       run: |
         bash scripts/run_tests.sh 
         bash scripts/run_sbml_tests.sh
@@ -264,12 +264,12 @@ jobs:
         
     - name: Test MaBoSS
       env:
-        MABOSS_BIN_PATH: ../bin
-        MABOSS: ../bin/MaBoSS_dn
-        MABOSS_128n: ../bin/MaBoSS_dn
-        MABOSS_SERVER: ../bin/MaBoSS_dn-server
-        MABOSS_SERVER_128n: ../bin/MaBoSS_dn-server
-        POPMABOSS: ../bin/PopMaBoSS_dn
+        MABOSS_BIN_PATH: ../../bin
+        MABOSS: ../../bin/MaBoSS_dn
+        MABOSS_128n: ../../bin/MaBoSS_dn
+        MABOSS_SERVER: ../../bin/MaBoSS_dn-server
+        MABOSS_SERVER_128n: ../../bin/MaBoSS_dn-server
+        POPMABOSS: ../../bin/PopMaBoSS_dn
       run: |
         bash scripts/run_tests.sh   
         bash scripts/run_sbml_tests.sh
@@ -379,7 +379,7 @@ jobs:
 
     - name: Test MaBoSS
       env:
-        MABOSS_BIN_PATH: ../bin
+        MABOSS_BIN_PATH: ../../bin
       run: bash scripts/run_mpi_tests.sh
       
   maboss_binary:
@@ -597,7 +597,7 @@ jobs:
         
     - name: Test MaBoSS docker server
       run: |
-        bash -c "cd engine/tests; bash ./test-container.sh"
+        bash -c "cd engine/tests/maboss; bash ./test-container.sh"
         
   publish_docker_hub:
     name: Docker MaBoSS Server
@@ -692,7 +692,7 @@ jobs:
         
     - name: Test MaBoSS
       run: |
-        bash -c "cd engine/tests; bash ./test-container.sh"
+        bash -c "cd engine/tests/maboss; bash ./test-container.sh"
     
   maboss_conda_defaults:
     name: Build MaBoSS conda package (${{matrix.repo.name}})

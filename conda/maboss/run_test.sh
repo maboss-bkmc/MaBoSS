@@ -18,7 +18,7 @@ export MABOSS_SERVER=${PREFIX}/bin/MaBoSS-server
 export MABOSS_SERVER_128n=${PREFIX}/bin/MaBoSS_128n-server
 export POPMABOSS=${PREFIX}/bin/PopMaBoSS
 
-cd ${PREFIX}/tests
+cd ${PREFIX}/tests/maboss
 
 bash ./test-cellcycle.sh
 check "cellcycle"
@@ -37,6 +37,6 @@ check popmaboss
 bash ./test-sbml.sh
 check "sbml"
 
-cd ../..
+cd ../../..
 
 exit $return_code

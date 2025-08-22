@@ -96,6 +96,6 @@ cmake --install build --component executables
 mkdir -p "${PREFIX}/share/MaBoSS"
 #mv doc tutorial examples ${PREFIX}/share/MaBoSS/
 mv tools/* ${PREFIX}/bin
-mkdir -p ${PREFIX}/tests
-cp -r engine/tests/* ${PREFIX}/tests
+mkdir -p ${PREFIX}/tests/maboss
+cp -r engine/tests/maboss/* ${PREFIX}/tests/maboss
 

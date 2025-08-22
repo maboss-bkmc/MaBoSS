@@ -12,7 +12,7 @@ check()
     fi
 }
 
-cd engine/tests
+cd engine/tests/maboss
 
 bash ./test-mpi-cellcycle.sh 2
 check "cellcycle 2 nodes"
@@ -34,6 +34,6 @@ bash ./test-mpi-observed_graph.sh 2
 check "observed_graph 2 nodes"
 bash ./test-mpi-observed_graph.sh 4
 check "observed_graph 4 nodes"
-cd ../..
+cd ../../..
 
 exit $return_code

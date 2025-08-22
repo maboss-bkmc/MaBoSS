@@ -94,5 +94,5 @@ cmake -G"Ninja" -S . -B build ^
 cmake --build build --parallel 1
 cmake --install build --component executables 
 
-mkdir %PREFIX%\tests
-xcopy /s engine\tests %PREFIX%\tests
+mkdir %PREFIX%\tests\maboss
+xcopy /s engine\tests\maboss %PREFIX%\tests\maboss

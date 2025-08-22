@@ -18,6 +18,6 @@ python3 -m unittest test
 check "tests on classic"
 python3 -m unittest test_128n
 check "tests on bitsets"
-cd ../..
+cd ../../..
 
 exit $return_code

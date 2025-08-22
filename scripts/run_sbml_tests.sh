@@ -12,11 +12,11 @@ check()
     fi
 }
 
-cd engine/tests/
+cd engine/tests/maboss
 
 bash ./test-sbml.sh
 check "sbml"
 
-cd ../..
+cd ../../..
 
 exit $return_code

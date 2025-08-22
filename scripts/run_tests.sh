@@ -12,7 +12,7 @@ check()
     fi
 }
 
-cd engine/tests/
+cd engine/tests/maboss/
 
 bash ./test-cellcycle.sh
 check "cellcycle"
@@ -28,6 +28,8 @@ bash ./test-popmaboss.sh
 check popmaboss
 bash ./test-observed_graph.sh
 check observed_graph
+bash ./test-schedule.sh
+check "schedule"
 
 if [[ -n $RUNNER_OS ]] && [[ $RUNNER_OS != "Windows" ]]; then
     bash ./test-server.sh
@@ -36,6 +38,6 @@ if [[ -n $RUNNER_OS ]] && [[ $RUNNER_OS != "Windows" ]]; then
     check "rngs"
 fi
 
-cd ../..
+cd ../../..
 
 exit $return_code

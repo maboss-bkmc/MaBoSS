@@ -4,7 +4,7 @@ set MABOSS="%PREFIX%\bin\MaBoSS.exe"
 set POPMABOSS="%PREFIX%\bin\PopMaBoSS.exe"
 set MABOSS_128n="%PREFIX%\bin\MaBoSS_128n.exe"
 
-cd %PREFIX%\tests
+cd %PREFIX%\tests\maboss
 
 set /A FAIL=0
 call .\test-cellcycle.bat

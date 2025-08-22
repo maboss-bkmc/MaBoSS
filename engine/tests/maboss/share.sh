@@ -2,7 +2,7 @@
 
 
 if [ -z "$MABOSS_BIN_PATH" ] ; then 
-    MABOSS_BIN_PATH=../pub; 
+    MABOSS_BIN_PATH=../../pub; 
 fi
 
 if [ -z "$MABOSS" ] ; then MABOSS=$MABOSS_BIN_PATH/MaBoSS; fi
