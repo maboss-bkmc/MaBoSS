@@ -11,6 +11,7 @@ class BNException {
     BNException(const std::string& _msg) : msg(_msg) { }
   
     const std::string& getMessage() const {return msg;}
+    const std::string what() const {return msg;}
 };
 
 std::ostream& operator<<(std::ostream& os, const BNException& e);
