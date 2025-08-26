@@ -341,7 +341,9 @@ class PhysicalRandomGenerator final : public RandomGenerator {
   PhysicalRandomGenerator() {
 #ifndef _MSC_VER 
     fd = open("/dev/urandom", O_RDONLY);
-    assert(fd >= 0);
+    if (fd < 0) {
+      throw BNException("Cannot open /dev/urandom");
+    }
 # else 
     mt_randgen = new MT19937RandomGenerator(42);
 #endif
@@ -417,11 +419,12 @@ public:
 
 private:
   Type type;
+  static bool has_shown_warning;
 
 public:
   RandomGeneratorFactory(Type _type) : type(_type) { }
 
-  RandomGenerator* generateRandomGenerator(int seed=1) const {
+  RandomGenerator* generateRandomGenerator(int seed=1) {
     switch(type) {
     case DEFAULT:
       return new Rand48RandomGenerator(seed);
@@ -430,7 +433,16 @@ public:
     case MERSENNE_TWISTER:
       return new MT19937RandomGenerator(seed);
     case PHYSICAL:
-      return new PhysicalRandomGenerator();
+      try {
+        return new PhysicalRandomGenerator();
+      } catch (const BNException& e) {
+        if (!has_shown_warning) {
+          has_shown_warning = true;
+          std::cerr << "Warning: cannot use physical random generator, falling back to Mersenne Twister: " << e.what() << '\n';
+        }
+        this->type = MERSENNE_TWISTER;
+        return new MT19937RandomGenerator(seed);
+      }
     default:
       throw BNException("Unknown random number generator !");
     }

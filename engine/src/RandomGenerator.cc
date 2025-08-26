@@ -50,3 +50,4 @@
 #include "RandomGenerator.h"
 
 size_t RandomGenerator::generated_number_count = 0;
+bool RandomGeneratorFactory::has_shown_warning = false;
