@@ -57,7 +57,7 @@
 #include <iostream>
 #include <cmath>
 
-const std::string MaBEstEngine::VERSION = "2.6.3";
+const std::string MaBEstEngine::VERSION = "2.6.4";
 
 #ifdef MPI_COMPAT
 MaBEstEngine::MaBEstEngine(Network* network, RunConfig* runconfig, int world_size, int world_rank) :
