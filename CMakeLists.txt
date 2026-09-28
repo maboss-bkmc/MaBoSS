@@ -97,6 +97,19 @@ else()
   target_compile_definitions(${MABOSS_LIBNAME} PUBLIC MAXNODES=${MAXNODES} ${DYNBITSET_FLAG})
   set_target_properties(${MABOSS_LIBNAME} PROPERTIES OUTPUT_NAME ${MABOSS_NAME})
 
+  # MSVC adds no "lib" prefix, so this DLL and the MaBoSS executable share a
+  # base name in the same directory, and their two links write the same .pdb
+  # and .ilk. When Ninja runs them in parallel one of them fails with
+  # "LNK1104: cannot open file 'MaBoSS.ilk'". Build the shared library's
+  # artefacts in their own directory instead; installed names are unchanged.
+  if(MSVC)
+    set_target_properties(${MABOSS_LIBNAME} PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/shared
+      ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/shared
+      PDB_OUTPUT_DIRECTORY     ${CMAKE_BINARY_DIR}/shared
+    )
+  endif()
+
   if(MPI)
       find_package(MPI)
       if(MPI_CXX_FOUND)
