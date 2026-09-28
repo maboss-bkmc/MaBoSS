@@ -18,10 +18,10 @@ jobs:
     env:
       CC: gcc
       CXX: g++
-      INSTALL_PATH: /mingw64/
+      INSTALL_PATH: /ucrt64/
       BUILD_PATH: /tmp/
-      LIBXML_LIBDIR: /mingw64/lib/libxml2.dll.a
-      LIBXML_INCLUDEDIR: /mingw64/include/libxml2/
+      LIBXML_LIBDIR: /ucrt64/lib/libxml2.dll.a
+      LIBXML_INCLUDEDIR: /ucrt64/include/libxml2/
       CPU_COUNT: 4
       
     steps:
@@ -29,21 +29,22 @@ jobs:
     
     - uses: msys2/setup-msys2@v2
       with:
+        msystem: UCRT64
         update: true
         install: flex bison make 
-          mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-binutils 
-          mingw-w64-x86_64-gcc mingw-w64-x86_64-headers-git mingw-w64-x86_64-gcc-libs 
-          mingw-w64-x86_64-libwinpthread-git mingw-w64-x86_64-winpthreads-git mingw-w64-x86_64-bzip2 
-          mingw-w64-x86_64-lapack mingw-w64-x86_64-openblas mingw-w64-x86_64-hdf5
-          mingw-w64-x86_64-python-pip mingw-w64-x86_64-python-numpy mingw-w64-x86_64-libxml2
-          mingw-w64-x86_64-diffutils
+          mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-binutils 
+          mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-headers mingw-w64-ucrt-x86_64-gcc-libs 
+          mingw-w64-ucrt-x86_64-libwinpthread mingw-w64-ucrt-x86_64-winpthreads mingw-w64-ucrt-x86_64-bzip2 
+          mingw-w64-ucrt-x86_64-lapack mingw-w64-ucrt-x86_64-openblas mingw-w64-ucrt-x86_64-hdf5
+          mingw-w64-ucrt-x86_64-python-pip mingw-w64-ucrt-x86_64-python-numpy mingw-w64-ucrt-x86_64-libxml2
+          mingw-w64-ucrt-x86_64-diffutils
      
     - name: Cache compiled libSBML
       id: cache-libsbml-gcc
       uses: actions/cache@v4
       with:
         path: D:/a/_temp/msys64/tmp/libsbml-5.21.1
-        key: ${{ runner.os }}-libSBML-5.21.1-namespace
+        key: ${{ runner.os }}-libSBML-5.21.1-namespace-ucrt64
         
     - name: Compiling libSBML
       if: steps.cache-libsbml-gcc.outputs.cache-hit != 'true'
@@ -169,10 +170,10 @@ jobs:
     env:
       CC: gcc
       CXX: g++
-      INSTALL_PATH: /mingw64/
+      INSTALL_PATH: /ucrt64/
       BUILD_PATH: /tmp/
-      LIBXML_LIBDIR: /mingw64/lib/libxml2.dll.a
-      LIBXML_INCLUDEDIR: /mingw64/include/libxml2/
+      LIBXML_LIBDIR: /ucrt64/lib/libxml2.dll.a
+      LIBXML_INCLUDEDIR: /ucrt64/include/libxml2/
       CPU_COUNT: 4
           
     steps:
@@ -180,19 +181,20 @@ jobs:
     
     - uses: msys2/setup-msys2@v2
       with:
+        msystem: UCRT64
         update: true
         install: flex bison make zip 
-          mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-binutils 
-          mingw-w64-x86_64-gcc mingw-w64-x86_64-headers-git mingw-w64-x86_64-gcc-libs 
-          mingw-w64-x86_64-libwinpthread-git mingw-w64-x86_64-winpthreads-git mingw-w64-x86_64-bzip2 
-          mingw-w64-x86_64-lapack mingw-w64-x86_64-openblas mingw-w64-x86_64-libxml2
+          mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-binutils 
+          mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-headers mingw-w64-ucrt-x86_64-gcc-libs 
+          mingw-w64-ucrt-x86_64-libwinpthread mingw-w64-ucrt-x86_64-winpthreads mingw-w64-ucrt-x86_64-bzip2 
+          mingw-w64-ucrt-x86_64-lapack mingw-w64-ucrt-x86_64-openblas mingw-w64-ucrt-x86_64-libxml2
         
     - name: Cache compiled libSBML
       id: cache-libsbml-gcc
       uses: actions/cache@v4
       with:
         path: D:/a/_temp/msys64/tmp/libsbml-5.21.1
-        key: ${{ runner.os }}-libSBML-5.21.1-namespace
+        key: ${{ runner.os }}-libSBML-5.21.1-namespace-ucrt64
         
     - name: Compiling libSBML
       if: steps.cache-libsbml-gcc.outputs.cache-hit != 'true'
@@ -250,11 +252,12 @@ jobs:
     
     - uses: msys2/setup-msys2@v2
       with:
+        msystem: UCRT64
         update: true
         install: flex bison make 
-          mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-binutils 
-          mingw-w64-x86_64-gcc mingw-w64-x86_64-headers-git mingw-w64-x86_64-gcc-libs 
-          mingw-w64-x86_64-libwinpthread-git mingw-w64-x86_64-winpthreads-git
+          mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-binutils 
+          mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-headers mingw-w64-ucrt-x86_64-gcc-libs 
+          mingw-w64-ucrt-x86_64-libwinpthread mingw-w64-ucrt-x86_64-winpthreads
             
     - name: Build library
       run: |
@@ -307,10 +310,10 @@ jobs:
     env:
       CC: gcc
       CXX: g++
-      INSTALL_PATH: /mingw64/
+      INSTALL_PATH: /ucrt64/
       BUILD_PATH: /tmp/
-      LIBXML_LIBDIR: /mingw64/lib/libxml2.dll.a
-      LIBXML_INCLUDEDIR: /mingw64/include/libxml2/
+      LIBXML_LIBDIR: /ucrt64/lib/libxml2.dll.a
+      LIBXML_INCLUDEDIR: /ucrt64/include/libxml2/
       CPU_COUNT: 4
           
     steps:
@@ -318,19 +321,20 @@ jobs:
     
     - uses: msys2/setup-msys2@v2
       with:
+        msystem: UCRT64
         update: true
         install: flex bison make 
-          mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-binutils 
-          mingw-w64-x86_64-gcc mingw-w64-x86_64-headers-git mingw-w64-x86_64-gcc-libs 
-          mingw-w64-x86_64-libwinpthread-git mingw-w64-x86_64-winpthreads-git mingw-w64-x86_64-bzip2 
-          mingw-w64-x86_64-lapack mingw-w64-x86_64-openblas mingw-w64-x86_64-libxml2
+          mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-binutils 
+          mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-headers mingw-w64-ucrt-x86_64-gcc-libs 
+          mingw-w64-ucrt-x86_64-libwinpthread mingw-w64-ucrt-x86_64-winpthreads mingw-w64-ucrt-x86_64-bzip2 
+          mingw-w64-ucrt-x86_64-lapack mingw-w64-ucrt-x86_64-openblas mingw-w64-ucrt-x86_64-libxml2
         
     - name: Cache compiled libSBML
       id: cache-libsbml-gcc
       uses: actions/cache@v4
       with:
         path: D:/a/_temp/msys64/tmp/libsbml-5.21.1
-        key: ${{ runner.os }}-libSBML-5.21.1-namespace
+        key: ${{ runner.os }}-libSBML-5.21.1-namespace-ucrt64
         
     - name: Compiling libSBML
       if: steps.cache-libsbml-gcc.outputs.cache-hit != 'true'
