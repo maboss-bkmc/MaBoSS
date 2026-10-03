@@ -668,7 +668,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - uses: ilammy/msvc-dev-cmd@v1 
+    # No ilammy/msvc-dev-cmd here: conda-build's vs2022 activation runs
+    # vcvars64.bat itself, and doing it twice overflows cmd.exe's 8191-char
+    # PATH limit ("The input line is too long").
     - uses: conda-incubator/setup-miniconda@v4
       with:
         auto-update-conda: true
