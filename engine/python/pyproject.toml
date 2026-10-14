@@ -13,5 +13,5 @@ build.verbose = true
 
 [project]
 name = "cmaboss"
-version = "1.0.0b32"
+version = "1.0.0b33"
 description = "Python wrapper for MaBoSS"
